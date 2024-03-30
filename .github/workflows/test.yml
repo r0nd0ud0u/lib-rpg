@@ -17,6 +17,9 @@ jobs:
         run: rustup update stable
 
       - name: Run unit tests
+        run: ls -al
+        
+      - name: Run unit tests
         run: cargo test unit --all-targets -- --nocapture
       
       - name: Check formatting

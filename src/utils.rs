@@ -29,7 +29,7 @@ mod tests {
     use crate::utils::build_effect_name;
 
     #[test]
-    fn build_effect_name_works() {
+    fn unit_build_effect_name_works() {
         // case args not empty
         let mut str = build_effect_name("effect", "stats");
         assert_eq!("stats-effect", str);
