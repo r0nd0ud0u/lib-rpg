@@ -1,17 +1,13 @@
 #[cxx::bridge]
-mod utils {
+mod utilsExtern {
     extern "Rust" {
         fn build_effect_name(raw_effect: &str, stats_name: &str) -> String;
     }
 }
 
-
-/**
- * @brief Utils::BuildEffectName
- * Returns the concatenation of effect str and stats str
- * If the effect str name is empty => only the stats str
- * If the stats str name is empty => only the effect str
- */
+/// * Returns the concatenation of effect str and stats str
+/// * If the effect str name is empty => only the stats str
+///* If the stats str name is empty => only the effect str
 pub fn build_effect_name(raw_effect: &str, stats_name: &str) -> String {
     let mut effect_name = "".to_string();
     if raw_effect.is_empty() && !stats_name.is_empty() {
@@ -29,7 +25,7 @@ mod tests {
     use crate::utils::build_effect_name;
 
     #[test]
-    fn build_effect_name_works() {
+    fn unit_build_effect_name_works() {
         // case args not empty
         let mut str = build_effect_name("effect", "stats");
         assert_eq!("stats-effect", str);
