@@ -1,0 +1,26 @@
+name: test
+
+on: push
+
+permissions:
+  pull-requests: write
+  repository-projects: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update rust
+        run: rustup update stable
+
+      - name: Run unit tests
+        run: cargo test unit --all-targets -- --nocapture
+      
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features
