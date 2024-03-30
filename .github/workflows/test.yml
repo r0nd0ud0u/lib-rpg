@@ -13,6 +13,10 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Update rust
         run: rustup update stable
 

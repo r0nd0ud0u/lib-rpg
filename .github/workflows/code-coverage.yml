@@ -16,6 +16,11 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
       - run: rustup update stable
 
       - name: Run unit tests with code coverage
