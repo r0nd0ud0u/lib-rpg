@@ -1,0 +1,48 @@
+name: Code Coverage
+
+on:
+  pull_request:
+    branches: [ main ]
+
+
+permissions:
+  pull-requests: write
+  repository-projects: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      - run: rustup update stable
+
+      - name: Run unit tests with code coverage
+        run: RUSTFLAGS='-Cinstrument-coverage' LLVM_PROFILE_FILE='cargo-test-unit-%p-%m.profraw' cargo test unit --verbose
+
+      - name: Install grcov tool and dependency (llvm-tools)
+        run: |
+          cargo install grcov
+          rustup component add llvm-tools-preview
+
+      # Report using zgosalvez/github-actions-report-lcov
+      - name: Build code coverage LCOV report
+        run: |
+          mkdir -p target/coverage
+          grcov . --keep-only 'src/*' --binary-path ./target/debug/deps/ --source-dir . --output-types lcov --branch --ignore-not-existing --output-path target/coverage/lcov.tests.info
+      - name: Install lcov
+        run: sudo apt-get install lcov
+      - name: Report code coverage in Pull Request
+        uses: zgosalvez/github-actions-report-lcov@v4.1.2
+        with:
+          coverage-files: target/coverage/lcov.*.info
+          artifact-name: code-coverage-report
+          minimum-coverage: 30
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true
