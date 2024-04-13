@@ -20,12 +20,11 @@ pub fn build_effect_name(raw_effect: &str, stats_name: &str, is_cpp: bool) -> St
     } else if !raw_effect.is_empty() && !stats_name.is_empty() {
         effect_name = format!("{}-{}", stats_name, raw_effect);
     }
-    if is_cpp{
+    if is_cpp {
         effect_name.to_string() + "\0"
-    } else{
+    } else {
         effect_name.to_string()
     }
-    
 }
 
 /// Returns a random number between min and max

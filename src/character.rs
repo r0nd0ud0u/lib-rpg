@@ -6,8 +6,10 @@ pub mod ffi {
         pub fn try_new_ext_character() -> Box<ExtendedCharacter>;
         /// Getters
         pub fn get_is_random_target(&self) -> bool;
+        pub fn get_is_heal_atk_blocked(&self) -> bool;
         /// Setters
         pub fn set_is_random_target(&mut self, value: bool);
+        pub fn set_is_heal_atk_blocked(&mut self, value: bool);
 
     }
 }
@@ -15,6 +17,7 @@ pub mod ffi {
 #[derive(Default, Debug, Clone)]
 pub struct ExtendedCharacter {
     pub is_random_target: bool,
+    pub is_heal_atk_blocked: bool,
 }
 
 pub fn try_new_ext_character() -> Box<ExtendedCharacter> {
@@ -26,8 +29,14 @@ impl ExtendedCharacter {
     pub fn get_is_random_target(&self) -> bool {
         self.is_random_target
     }
+    pub fn get_is_heal_atk_blocked(&self) -> bool {
+        self.is_heal_atk_blocked
+    }
     /// Setters
     pub fn set_is_random_target(&mut self, value: bool) {
         self.is_random_target = value;
+    }
+    pub fn set_is_heal_atk_blocked(&mut self, value: bool) {
+        self.is_heal_atk_blocked = value;
     }
 }
