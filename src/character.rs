@@ -1,39 +1,33 @@
 #[cxx::bridge]
 pub mod ffi {
     extern "Rust" {
-        type AttaqueType2;
-        fn get_level(self: &AttaqueType2) -> u8;
-        fn get_name(&self) -> String;
-        fn default_atk(name: String) -> Box<AttaqueType2>;
+        type ExtendedCharacter;
+        /// Constructor
+        pub fn try_new_ext_character() -> Box<ExtendedCharacter>;
+        /// Getters
+        pub fn get_is_random_target(&self) -> bool;
+        /// Setters
+        pub fn set_is_random_target(&mut self, value: bool);
+
     }
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct AttaqueType2 {
-    pub name: String,
-    pub level: u8,
-    pub mana_cost: u32,
-    pub vigor_cost: u32,
-    pub berseck_cost: u32,
-    pub target: String,
-    pub reach: String,
-    pub name_photo: String,
-    pub all_effects: Vec<crate::effect::EffectParam2>,
-    pub form: String,
+pub struct ExtendedCharacter {
+    pub is_random_target: bool,
 }
 
-fn default_atk(name: String) -> Box<AttaqueType2> {
-    Box::new(AttaqueType2 {
-        name,
-        ..Default::default()
-    })
+pub fn try_new_ext_character() -> Box<ExtendedCharacter> {
+    Box::<ExtendedCharacter>::default()
 }
 
-impl AttaqueType2 {
-    fn get_level(&self) -> u8 {
-        self.level
+impl ExtendedCharacter {
+    /// Getters
+    pub fn get_is_random_target(&self) -> bool {
+        self.is_random_target
     }
-    fn get_name(&self) -> String {
-        self.name.to_string()
+    /// Setters
+    pub fn set_is_random_target(&mut self, value: bool) {
+        self.is_random_target = value;
     }
 }
