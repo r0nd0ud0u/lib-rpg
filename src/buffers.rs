@@ -6,12 +6,12 @@ pub mod ffi {
         /// Setters
         pub fn set_is_passive_enabled(&mut self, value: bool);
         pub fn set_buffers(&mut self, value: i64, is_percent: bool);
-        pub fn set_stat_name(&mut self, value: &str);
+        pub fn add_stat_name(&mut self, value: &str);
         /// Getters
         pub fn get_value(&self) -> i64;
         pub fn get_is_percent(&self) -> bool;
         pub fn get_is_passive_enabled(&self) -> bool;
-        pub fn get_stat_name(&self) -> String;
+        pub fn get_all_stat_name(&self) -> &Vec<String>;
         /// Constructor
         pub fn buffers_new() -> Box<Buffers>;
         /// Static methods
@@ -53,7 +53,7 @@ pub struct Buffers {
     pub value: i64,
     pub is_percent: bool,
     /// Potentially, a buffer can be applied on a stat, otherwise empty
-    pub stat_name: String,
+    pub all_stat_name: Vec<String>,
 }
 
 impl Buffers {
@@ -65,8 +65,8 @@ impl Buffers {
     pub fn set_is_passive_enabled(&mut self, value: bool) {
         self.is_passive_enabled = value;
     }
-    pub fn set_stat_name(&mut self, value: &str) {
-        self.stat_name = value.to_string();
+    pub fn add_stat_name(&mut self, value: &str) {
+        self.all_stat_name.push(value.to_string() + "\0");
     }
     // Getters
     pub fn get_value(&self) -> i64 {
@@ -78,8 +78,8 @@ impl Buffers {
     pub fn get_is_passive_enabled(&self) -> bool {
         self.is_passive_enabled
     }
-    pub fn get_stat_name(&self) -> String {
-        self.stat_name.to_string() + "\0"
+    pub fn get_all_stat_name(&self) -> &Vec<String> {
+        &self.all_stat_name
     }
 }
 
