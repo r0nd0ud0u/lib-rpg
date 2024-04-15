@@ -9,9 +9,11 @@ pub mod ffi {
         /// Getters
         pub fn get_is_random_target(&self) -> bool;
         pub fn get_is_heal_atk_blocked(&self) -> bool;
+        pub fn get_is_first_round(&self) -> bool;
         /// Setters
         pub fn set_is_random_target(&mut self, value: bool);
         pub fn set_is_heal_atk_blocked(&mut self, value: bool);
+        pub fn set_is_first_round(&mut self, value: bool);
         /// Static
         pub fn get_char_effect_value(target: &str) -> u8;
         pub fn get_coeffsign_effect_value(target: &str) -> i8;
@@ -23,6 +25,7 @@ pub mod ffi {
 pub struct ExtendedCharacter {
     pub is_random_target: bool,
     pub is_heal_atk_blocked: bool,
+    pub is_first_round: bool,
 }
 
 pub fn try_new_ext_character() -> Box<ExtendedCharacter> {
@@ -56,12 +59,18 @@ impl ExtendedCharacter {
     pub fn get_is_heal_atk_blocked(&self) -> bool {
         self.is_heal_atk_blocked
     }
+    pub fn get_is_first_round(&self) -> bool {
+        self.is_first_round
+    }
     /// Setters
     pub fn set_is_random_target(&mut self, value: bool) {
         self.is_random_target = value;
     }
     pub fn set_is_heal_atk_blocked(&mut self, value: bool) {
         self.is_heal_atk_blocked = value;
+    }
+    pub fn set_is_first_round(&mut self, value: bool) {
+        self.is_first_round = value;
     }
 }
 
