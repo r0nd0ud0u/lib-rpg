@@ -6,10 +6,12 @@ pub mod ffi {
         /// Setters
         pub fn set_is_passive_enabled(&mut self, value: bool);
         pub fn set_buffers(&mut self, value: i64, is_percent: bool);
+        pub fn set_stat_name(&mut self, value: &str);
         /// Getters
         pub fn get_value(&self) -> i64;
         pub fn get_is_percent(&self) -> bool;
         pub fn get_is_passive_enabled(&self) -> bool;
+        pub fn get_stat_name(&self) -> String;
         /// Constructor
         pub fn buffers_new() -> Box<Buffers>;
         /// Static methods
@@ -50,6 +52,8 @@ pub struct Buffers {
     /// If it is active, it changes the value
     pub value: i64,
     pub is_percent: bool,
+    /// Potentially, a buffer can be applied on a stat, otherwise empty
+    pub stat_name: String,
 }
 
 impl Buffers {
@@ -61,6 +65,9 @@ impl Buffers {
     pub fn set_is_passive_enabled(&mut self, value: bool) {
         self.is_passive_enabled = value;
     }
+    pub fn set_stat_name(&mut self, value: &str) {
+        self.stat_name = value.to_string();
+    }
     // Getters
     pub fn get_value(&self) -> i64 {
         self.value
@@ -70,6 +77,9 @@ impl Buffers {
     }
     pub fn get_is_passive_enabled(&self) -> bool {
         self.is_passive_enabled
+    }
+    pub fn get_stat_name(&self) -> String {
+        self.stat_name.to_string() + "\0"
     }
 }
 
