@@ -1,5 +1,3 @@
-use crate::common::effect_const::TARGET_ENNEMY;
-
 #[cxx::bridge]
 pub mod ffi {
     extern "Rust" {
@@ -14,9 +12,6 @@ pub mod ffi {
         pub fn set_is_random_target(&mut self, value: bool);
         pub fn set_is_heal_atk_blocked(&mut self, value: bool);
         pub fn set_is_first_round(&mut self, value: bool);
-        /// Static
-        pub fn get_char_effect_value(target: &str) -> u8;
-        pub fn get_coeffsign_effect_value(target: &str) -> i8;
 
     }
 }
@@ -30,25 +25,6 @@ pub struct ExtendedCharacter {
 
 pub fn try_new_ext_character() -> Box<ExtendedCharacter> {
     Box::<ExtendedCharacter>::default()
-}
-
-/// Static
-///
-pub fn get_char_effect_value(target: &str) -> u8 {
-    let mut sign: u8 = b'+';
-    if target == TARGET_ENNEMY {
-        sign = b'-';
-    }
-    sign
-}
-
-///
-pub fn get_coeffsign_effect_value(target: &str) -> i8 {
-    let mut coeff: i8 = 1;
-    if target == TARGET_ENNEMY {
-        coeff = -1;
-    }
-    coeff
 }
 
 impl ExtendedCharacter {
@@ -71,31 +47,5 @@ impl ExtendedCharacter {
     }
     pub fn set_is_first_round(&mut self, value: bool) {
         self.is_first_round = value;
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{
-        character::{get_char_effect_value, get_coeffsign_effect_value},
-        common::effect_const::TARGET_ENNEMY,
-    };
-
-    #[test]
-    fn unit_get_char_effect_value() {
-        let result = get_char_effect_value(TARGET_ENNEMY);
-        assert_eq!(b'-', result);
-
-        let result = get_char_effect_value("OUPS");
-        assert_eq!(b'+', result);
-    }
-
-    #[test]
-    fn unit_get_coeffsign_effect_value() {
-        let result = get_coeffsign_effect_value(TARGET_ENNEMY);
-        assert_eq!(-1, result);
-
-        let result = get_coeffsign_effect_value("OUPS");
-        assert_eq!(1, result);
     }
 }
