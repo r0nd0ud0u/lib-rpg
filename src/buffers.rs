@@ -28,15 +28,13 @@ pub fn buffers_new() -> Box<Buffers> {
 /// Returns the buf/debuf on cur_value.
 /// its type {percent, decimal} and the additional value
 pub fn update_damage_by_buf(add_value: i64, is_percent: bool, cur_value: i64) -> i64 {
-    let output;
-    if  is_percent {
+    if is_percent {
         // sign of cur_value taken into account
-        output = cur_value * add_value / 100;
+        cur_value * add_value / 100
     } else {
-        let sign = if cur_value > 0 {1} else{-1};
-        output = sign*add_value;
+        let sign = if cur_value > 0 { 1 } else { -1 };
+        sign * add_value
     }
-    output
 }
 
 /// Returns: i64
@@ -111,7 +109,7 @@ mod tests {
         let result = update_damage_by_buf(-10, true, 200);
         assert_eq!(result, -20);
 
-        // negative amount 
+        // negative amount
         let result = update_damage_by_buf(-10, false, -200);
         assert_eq!(result, 10);
         let result = update_damage_by_buf(-10, true, -200);
