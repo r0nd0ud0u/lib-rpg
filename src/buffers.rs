@@ -6,10 +6,12 @@ pub mod ffi {
         /// Setters
         pub fn set_is_passive_enabled(&mut self, value: bool);
         pub fn set_buffers(&mut self, value: i64, is_percent: bool);
+        pub fn add_stat_name(&mut self, value: &str);
         /// Getters
         pub fn get_value(&self) -> i64;
         pub fn get_is_percent(&self) -> bool;
         pub fn get_is_passive_enabled(&self) -> bool;
+        pub fn get_all_stat_name(&self) -> &Vec<String>;
         /// Constructor
         pub fn buffers_new() -> Box<Buffers>;
         /// Static methods
@@ -23,18 +25,16 @@ pub fn buffers_new() -> Box<Buffers> {
 }
 
 /// Returns: i64
-/// The returned damage is calculated according the current value of the damage
+/// Returns the buf/debuf on cur_value.
 /// its type {percent, decimal} and the additional value
 pub fn update_damage_by_buf(add_value: i64, is_percent: bool, cur_value: i64) -> i64 {
-    let mut output = cur_value;
-    if cur_value > 0 {
-        if is_percent {
-            output += output * add_value / 100;
-        } else if output > 0 {
-            output += add_value;
-        }
+    if is_percent {
+        // sign of cur_value taken into account
+        cur_value * add_value / 100
+    } else {
+        let sign = if cur_value > 0 { 1 } else { -1 };
+        sign * add_value
     }
-    output
 }
 
 /// Returns: i64
@@ -50,6 +50,8 @@ pub struct Buffers {
     /// If it is active, it changes the value
     pub value: i64,
     pub is_percent: bool,
+    /// Potentially, a buffer can be applied on a stat, otherwise empty
+    pub all_stat_name: Vec<String>,
 }
 
 impl Buffers {
@@ -61,6 +63,9 @@ impl Buffers {
     pub fn set_is_passive_enabled(&mut self, value: bool) {
         self.is_passive_enabled = value;
     }
+    pub fn add_stat_name(&mut self, value: &str) {
+        self.all_stat_name.push(value.to_string() + "\0");
+    }
     // Getters
     pub fn get_value(&self) -> i64 {
         self.value
@@ -70,6 +75,9 @@ impl Buffers {
     }
     pub fn get_is_passive_enabled(&self) -> bool {
         self.is_passive_enabled
+    }
+    pub fn get_all_stat_name(&self) -> &Vec<String> {
+        &self.all_stat_name
     }
 }
 
@@ -87,11 +95,25 @@ mod tests {
 
         // buffer , decimal value
         let result = update_damage_by_buf(10, false, 20);
-        assert_eq!(result, 30);
+        assert_eq!(result, 10);
+
+        // buffer , negative decimal value
+        let result = update_damage_by_buf(-10, false, 20);
+        assert_eq!(result, -10);
 
         // buffer , percent value
         let result = update_damage_by_buf(10, true, 100);
-        assert_eq!(result, 110);
+        assert_eq!(result, 10);
+
+        // buffer , negative percent value
+        let result = update_damage_by_buf(-10, true, 200);
+        assert_eq!(result, -20);
+
+        // negative amount
+        let result = update_damage_by_buf(-10, false, -200);
+        assert_eq!(result, 10);
+        let result = update_damage_by_buf(-10, true, -200);
+        assert_eq!(result, 20);
     }
 
     #[test]
