@@ -25,16 +25,16 @@ pub fn buffers_new() -> Box<Buffers> {
 }
 
 /// Returns: i64
-/// The returned damage is calculated according the current value of the damage
+/// Returns the buf/debuf on cur_value.
 /// its type {percent, decimal} and the additional value
 pub fn update_damage_by_buf(add_value: i64, is_percent: bool, cur_value: i64) -> i64 {
-    let mut output = cur_value;
-    if cur_value > 0 {
-        if is_percent {
-            output += output * add_value / 100;
-        } else if output > 0 {
-            output += add_value;
-        }
+    let output;
+    if  is_percent {
+        // sign of cur_value taken into account
+        output = cur_value * add_value / 100;
+    } else {
+        let sign = if cur_value > 0 {1} else{-1};
+        output = sign*add_value;
     }
     output
 }
@@ -97,11 +97,25 @@ mod tests {
 
         // buffer , decimal value
         let result = update_damage_by_buf(10, false, 20);
-        assert_eq!(result, 30);
+        assert_eq!(result, 10);
+
+        // buffer , negative decimal value
+        let result = update_damage_by_buf(-10, false, 20);
+        assert_eq!(result, -10);
 
         // buffer , percent value
         let result = update_damage_by_buf(10, true, 100);
-        assert_eq!(result, 110);
+        assert_eq!(result, 10);
+
+        // buffer , negative percent value
+        let result = update_damage_by_buf(-10, true, 200);
+        assert_eq!(result, -20);
+
+        // negative amount 
+        let result = update_damage_by_buf(-10, false, -200);
+        assert_eq!(result, 10);
+        let result = update_damage_by_buf(-10, true, -200);
+        assert_eq!(result, 20);
     }
 
     #[test]
