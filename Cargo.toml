@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 cxx = "1.0"
-rand = "0.8.5"
 
 [build-dependencies]
 cxx-build = "1.0"
