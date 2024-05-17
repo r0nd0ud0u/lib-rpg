@@ -1,10 +1,10 @@
-use rand::Rng;
+//use rand::Rng;
 
 #[cxx::bridge]
 mod utilsExtern {
     extern "Rust" {
         fn build_effect_name(raw_effect: &str, stats_name: &str, is_cpp: bool) -> String;
-        fn get_random_nb(min: i64, max: i64) -> i64;
+        //fn get_random_nb(min: i64, max: i64) -> i64;
     }
 }
 
@@ -27,18 +27,18 @@ pub fn build_effect_name(raw_effect: &str, stats_name: &str, is_cpp: bool) -> St
     }
 }
 
-/// Returns a random number between min and max
+/* /// Returns a random number between min and max
 pub fn get_random_nb(min: i64, max: i64) -> i64 {
     let mut rng = rand::thread_rng();
     // +1 is necessariy otherwise max is not included
     rng.gen_range(min..max + 1)
 }
-
+ */
 #[cfg(test)]
 mod tests {
     use crate::utils::build_effect_name;
 
-    use super::get_random_nb;
+    //use super::get_random_nb;
 
     #[test]
     fn unit_build_effect_name_works() {
@@ -56,10 +56,10 @@ mod tests {
         assert!(str.is_empty());
     }
 
-    #[test]
+/*     #[test]
     fn unit_get_random_nb_works() {
         let result = get_random_nb(0, 100);
         assert!(result >= 0);
         assert!(result <= 100);
-    }
+    } */
 }
