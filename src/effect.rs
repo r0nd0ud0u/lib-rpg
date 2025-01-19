@@ -1,9 +1,3 @@
-#[cxx::bridge]
-mod ffi {
-
-    extern "Rust" {}
-}
-
 #[derive(Debug, Clone)]
 pub struct EffectParam2 {
     /// Received

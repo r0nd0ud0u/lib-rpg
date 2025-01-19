@@ -1,23 +1,3 @@
-#[cxx::bridge]
-pub mod ffi {
-
-    extern "Rust" {
-        type TargetInfo;
-        /// Constructor
-        pub fn target_info_new() -> Box<TargetInfo>;
-        /// Getters
-        pub fn get_name(&self) -> String;
-        pub fn get_is_targeted(&self) -> bool;
-        pub fn get_is_boss(&self) -> bool;
-        pub fn get_is_reach_rand(&self) -> bool;
-        /// Setters
-        pub fn set_name(&mut self, name: &str);
-        pub fn set_is_targeted(&mut self, value: bool);
-        pub fn set_is_boss(&mut self, value: bool);
-        pub fn set_is_reach_rand(&mut self, value: bool);
-    }
-}
-
 pub fn target_info_new() -> Box<TargetInfo> {
     Box::<TargetInfo>::default()
 }

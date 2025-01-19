@@ -1,13 +1,3 @@
-#[cxx::bridge]
-pub mod ffi {
-    extern "Rust" {
-        type AttaqueType2;
-        fn get_level(self: &AttaqueType2) -> u8;
-        fn get_name(&self) -> String;
-        fn default_atk(name: String) -> Box<AttaqueType2>;
-    }
-}
-
 #[derive(Default, Debug, Clone)]
 pub struct AttaqueType2 {
     pub name: String,

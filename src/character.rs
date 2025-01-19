@@ -1,21 +1,3 @@
-    #[cxx::bridge]
-    pub mod ffi {
-        extern "Rust" {
-            type ExtendedCharacter;
-            /// Constructor
-            pub fn try_new_ext_character() -> Box<ExtendedCharacter>;
-            /// Getters
-            pub fn get_is_random_target(&self) -> bool;
-            pub fn get_is_heal_atk_blocked(&self) -> bool;
-            pub fn get_is_first_round(&self) -> bool;
-            /// Setters
-            pub fn set_is_random_target(&mut self, value: bool);
-            pub fn set_is_heal_atk_blocked(&mut self, value: bool);
-            pub fn set_is_first_round(&mut self, value: bool);
-
-        }
-    }
-
 #[derive(Default, Debug, Clone)]
 pub struct ExtendedCharacter {
     pub is_random_target: bool,

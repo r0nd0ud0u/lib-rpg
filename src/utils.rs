@@ -1,12 +1,5 @@
 //use rand::Rng;
 
-#[cxx::bridge]
-mod utilsExtern {
-    extern "Rust" {
-        fn build_effect_name(raw_effect: &str, stats_name: &str, is_cpp: bool) -> String;
-    }
-}
-
 /// * Returns the concatenation of effect str and stats str
 /// * If the effect str name is empty => only the stats str
 ///* If the stats str name is empty => only the effect str
