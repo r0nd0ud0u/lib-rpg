@@ -1,11 +1,5 @@
-#[cxx::bridge]
-mod ffi {
-
-    extern "Rust" {}
-}
-
 #[derive(Debug, Clone)]
-pub struct EffectParam2 {
+pub struct EffectParam {
     /// Received
     pub effect: String,
     pub nb_turns: i64,

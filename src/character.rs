@@ -1,20 +1,6 @@
-#[cxx::bridge]
-pub mod ffi {
-    extern "Rust" {
-        type ExtendedCharacter;
-        /// Constructor
-        pub fn try_new_ext_character() -> Box<ExtendedCharacter>;
-        /// Getters
-        pub fn get_is_random_target(&self) -> bool;
-        pub fn get_is_heal_atk_blocked(&self) -> bool;
-        pub fn get_is_first_round(&self) -> bool;
-        /// Setters
-        pub fn set_is_random_target(&mut self, value: bool);
-        pub fn set_is_heal_atk_blocked(&mut self, value: bool);
-        pub fn set_is_first_round(&mut self, value: bool);
+use std::collections::HashMap;
 
-    }
-}
+use crate::{attack_type::AttackType, equipment::Equipment, stats::Stats};
 
 #[derive(Default, Debug, Clone)]
 pub struct ExtendedCharacter {
@@ -23,29 +9,53 @@ pub struct ExtendedCharacter {
     pub is_first_round: bool,
 }
 
-pub fn try_new_ext_character() -> Box<ExtendedCharacter> {
-    Box::<ExtendedCharacter>::default()
+#[derive(Debug, Clone)]
+pub struct Character {
+    pub name: String,
+    pub short_name: String,
+    pub photo_name: String,
+    pub stats: Stats,
+    pub kind: CharacterType,
+    pub level: u64,
+    pub exp: u64,
+    pub next_exp_level: u64,
+    /// key: body, value: equipmentName
+    pub equipment_on: HashMap<String, Equipment>,
+    /// key: attak name, value: AttakType struct
+    pub attacks_list: HashMap<String, AttackType>,
+    /// That vector contains all the atks from m_AttakList and is sorted by level.
+    pub attacks_by_lvl: Vec<AttackType>,
+    pub selected_tier: Tier,
+    pub color_theme: String,
 }
 
-impl ExtendedCharacter {
-    /// Getters
-    pub fn get_is_random_target(&self) -> bool {
-        self.is_random_target
+impl Default for Character {
+    fn default() -> Self {
+        Character {
+            name: String::from("default"),
+            short_name: String::from("default"),
+            photo_name: String::from("default"),
+            stats: Stats::default(),
+            kind: CharacterType::Hero,
+            equipment_on: HashMap::new(),
+            attacks_list: HashMap::new(),
+            level: 1,
+            exp: 0,
+            next_exp_level: 100,
+            attacks_by_lvl: vec![],
+            selected_tier: Tier::Standard,
+            color_theme: "dark".to_owned(),
+        }
     }
-    pub fn get_is_heal_atk_blocked(&self) -> bool {
-        self.is_heal_atk_blocked
-    }
-    pub fn get_is_first_round(&self) -> bool {
-        self.is_first_round
-    }
-    /// Setters
-    pub fn set_is_random_target(&mut self, value: bool) {
-        self.is_random_target = value;
-    }
-    pub fn set_is_heal_atk_blocked(&mut self, value: bool) {
-        self.is_heal_atk_blocked = value;
-    }
-    pub fn set_is_first_round(&mut self, value: bool) {
-        self.is_first_round = value;
-    }
+}
+
+#[derive(Debug, Clone)]
+pub enum CharacterType {
+    Hero,
+    _Boss,
+}
+
+#[derive(Debug, Clone)]
+pub enum Tier {
+    Standard,
 }

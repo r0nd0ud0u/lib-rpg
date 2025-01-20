@@ -1,29 +1,3 @@
-#[cxx::bridge]
-pub mod ffi {
-
-    extern "Rust" {
-        type Buffers;
-        /// Setters
-        pub fn set_is_passive_enabled(&mut self, value: bool);
-        pub fn set_buffers(&mut self, value: i64, is_percent: bool);
-        pub fn add_stat_name(&mut self, value: &str);
-        /// Getters
-        pub fn get_value(&self) -> i64;
-        pub fn get_is_percent(&self) -> bool;
-        pub fn get_is_passive_enabled(&self) -> bool;
-        pub fn get_all_stat_name(&self) -> &Vec<String>;
-        /// Constructor
-        pub fn buffers_new() -> Box<Buffers>;
-        /// Static methods
-        pub fn update_damage_by_buf(cur_value: i64, is_percent: bool, new_value: i64) -> i64;
-        pub fn update_heal_by_multi(cur_value: i64, coeff_multi: i64) -> i64;
-    }
-}
-
-pub fn buffers_new() -> Box<Buffers> {
-    Box::<Buffers>::default()
-}
-
 /// Returns: i64
 /// Returns the buf/debuf on cur_value.
 /// its type {percent, decimal} and the additional value
