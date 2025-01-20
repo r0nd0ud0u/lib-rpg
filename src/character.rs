@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use crate::{attack_type::AttackType, equipment::Equipment, stats::Stats};
+
 #[derive(Default, Debug, Clone)]
 pub struct ExtendedCharacter {
     pub is_random_target: bool,
@@ -5,63 +9,53 @@ pub struct ExtendedCharacter {
     pub is_first_round: bool,
 }
 
-pub fn try_new_ext_character() -> Box<ExtendedCharacter> {
-    Box::<ExtendedCharacter>::default()
-}
-
-impl ExtendedCharacter {
-    /// Getters
-    pub fn get_is_random_target(&self) -> bool {
-        self.is_random_target
-    }
-    pub fn get_is_heal_atk_blocked(&self) -> bool {
-        self.is_heal_atk_blocked
-    }
-    pub fn get_is_first_round(&self) -> bool {
-        self.is_first_round
-    }
-    /// Setters
-    pub fn set_is_random_target(&mut self, value: bool) {
-        self.is_random_target = value;
-    }
-    pub fn set_is_heal_atk_blocked(&mut self, value: bool) {
-        self.is_heal_atk_blocked = value;
-    }
-    pub fn set_is_first_round(&mut self, value: bool) {
-        self.is_first_round = value;
-    }
-}
-
-
-/*
-  characType m_Type = characType::Hero;
-  Stats m_Stats;
-  std::unordered_map<QString, Stuff>
-      m_WearingEquipment; // key: body, value: equipmentName
-  std::unordered_map<QString, AttaqueType>
-      m_AttakList; // key: attak name, value: AttakType struct
-  // That vector contains all the atks from m_AttakList and is sorted by level.
-  std::vector<AttaqueType> m_AtksByLevel;
-  int m_Level = 1;
-  int m_Exp = 0;
-  int m_NextLevel = 100;
-  std::vector<QString> m_Forms = std::vector<QString>{STANDARD_FORM};
-  QString m_SelectedForm = STANDARD_FORM;
-  QString m_ColorStr = "dark"; */
-
 #[derive(Debug, Clone)]
 pub struct Character {
     pub name: String,
     pub short_name: String,
     pub photo_name: String,
+    pub stats: Stats,
+    pub kind: CharacterType,
+    pub level: u64,
+    pub exp: u64,
+    pub next_exp_level: u64,
+    /// key: body, value: equipmentName
+    pub equipment_on: HashMap<String, Equipment>,
+    /// key: attak name, value: AttakType struct
+    pub attacks_list: HashMap<String, AttackType>,
+    /// That vector contains all the atks from m_AttakList and is sorted by level.
+    pub attacks_by_lvl: Vec<AttackType>,
+    pub selected_tier: Tier,
+    pub color_theme: String,
 }
 
 impl Default for Character {
     fn default() -> Self {
         Character {
-            name:  String::from("default"),
+            name: String::from("default"),
             short_name: String::from("default"),
             photo_name: String::from("default"),
+            stats: Stats::default(),
+            kind: CharacterType::Hero,
+            equipment_on: HashMap::new(),
+            attacks_list: HashMap::new(),
+            level: 1,
+            exp: 0,
+            next_exp_level: 100,
+            attacks_by_lvl: vec![],
+            selected_tier: Tier::Standard,
+            color_theme: "dark".to_owned(),
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum CharacterType {
+    Hero,
+    _Boss,
+}
+
+#[derive(Debug, Clone)]
+pub enum Tier {
+    Standard,
 }
