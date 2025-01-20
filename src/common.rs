@@ -5,3 +5,7 @@ pub mod effect_const {
 pub mod stats_const {
     pub const STATS_HP: &str = "PV";
 }
+
+pub mod character_const {
+    pub const STANDARD_TIER: &str = "standard";
+}

@@ -1,8 +1,10 @@
+pub mod attack_type;
 pub mod attaque;
-pub mod attaque_type;
 pub mod buffers;
 pub mod character;
 pub mod common;
 pub mod effect;
+pub mod equipment;
 pub mod players_manager;
+pub mod stats;
 pub mod utils;
