@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct EffectParam {
     /// Received
     pub effect: String,

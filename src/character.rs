@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use crate::{attack_type::AttackType, equipment::Equipment, stats::Stats};
+use crate::{
+    attack_type::AttackType, buffers::Buffers, equipment::Equipment, powers::Powers, stats::Stats,
+};
 
 #[derive(Default, Debug, Clone)]
 pub struct ExtendedCharacter {
@@ -27,6 +29,14 @@ pub struct Character {
     pub attacks_by_lvl: Vec<AttackType>,
     pub selected_tier: Tier,
     pub color_theme: String,
+    pub is_last_atk_crit: bool,
+    pub last_rx_tx: HashMap<u64, u64>,
+    pub all_buffers: Vec<Buffers>,
+    pub power: Powers,
+    pub extended_character: ExtendedCharacter,
+    pub is_blocking_atk: bool,
+    pub actions_done_in_round: u64,
+    pub max_actions_by_round: u64,
 }
 
 impl Default for Character {
@@ -45,6 +55,14 @@ impl Default for Character {
             attacks_by_lvl: vec![],
             selected_tier: Tier::Standard,
             color_theme: "dark".to_owned(),
+            is_last_atk_crit: false,
+            last_rx_tx: HashMap::new(),
+            all_buffers: vec![],
+            is_blocking_atk: false,
+            power: Powers::default(),
+            extended_character: ExtendedCharacter::default(),
+            actions_done_in_round: 0,
+            max_actions_by_round: 0,
         }
     }
 }
@@ -58,4 +76,10 @@ pub enum CharacterType {
 #[derive(Debug, Clone)]
 pub enum Tier {
     Standard,
+}
+
+#[derive(Debug, Clone)]
+pub enum Class {
+    Standard,
+    Tank,
 }
