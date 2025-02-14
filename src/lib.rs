@@ -10,3 +10,4 @@ pub mod players_manager;
 pub mod powers;
 pub mod stats;
 pub mod utils;
+pub mod game_manager;
