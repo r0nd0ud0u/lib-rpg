@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "rust_rpg"
+name = "rust-rpg"
 version = "0.1.0"

@@ -1,11 +1,8 @@
 [package]
-name = "rust_rpg"
+name = "rust-rpg"
 version = "0.1.0"
 authors = [""]
 edition = "2018"
-
-[lib]
-crate-type = ["staticlib"]
 
 [profile.release]
 debug = true
