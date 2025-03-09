@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 /// Returns: i64
 /// Returns the buf/debuf on cur_value.
 /// its type {percent, decimal} and the additional value
@@ -17,15 +19,22 @@ pub fn update_heal_by_multi(cur_value: i64, coeff_multi: i64) -> i64 {
     cur_value * coeff_multi
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Buffers {
     /// A buf can be passive, that is without being a change of value
+    #[serde(default, rename = "Buf-passive-enabled")]
     pub is_passive_enabled: bool,
     /// If it is active, it changes the value
+    #[serde(default, rename = "Buf-value")]
     pub value: i64,
+    #[serde(default, rename = "Buf-is-percent")]
     pub is_percent: bool,
     /// Potentially, a buffer can be applied on a stat, otherwise empty
-    pub all_stat_name: Vec<String>,
+    /// TODO: encode a list of string or try to decode with delimiter
+    #[serde(default, rename = "Buf-all-stats")]
+    pub all_stat_name: String,
+    #[serde(default, rename = "Buf-type")]
+    pub buf_type: i64,
 }
 
 impl Buffers {
@@ -37,9 +46,6 @@ impl Buffers {
     pub fn set_is_passive_enabled(&mut self, value: bool) {
         self.is_passive_enabled = value;
     }
-    pub fn add_stat_name(&mut self, value: &str) {
-        self.all_stat_name.push(value.to_string() + "\0");
-    }
     // Getters
     pub fn get_value(&self) -> i64 {
         self.value
@@ -49,9 +55,6 @@ impl Buffers {
     }
     pub fn get_is_passive_enabled(&self) -> bool {
         self.is_passive_enabled
-    }
-    pub fn get_all_stat_name(&self) -> &Vec<String> {
-        &self.all_stat_name
     }
 }
 
