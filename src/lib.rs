@@ -5,6 +5,7 @@ pub mod character;
 pub mod common;
 pub mod effect;
 pub mod equipment;
+pub mod game_manager;
 pub mod loot;
 pub mod players_manager;
 pub mod powers;

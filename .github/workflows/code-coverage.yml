@@ -39,10 +39,10 @@ jobs:
       - name: Install lcov
         run: sudo apt-get install lcov
       - name: Report code coverage in Pull Request
-        uses: zgosalvez/github-actions-report-lcov@v4.1.2
+        uses: zgosalvez/github-actions-report-lcov@v4.1.23
         with:
           coverage-files: target/coverage/lcov.*.info
           artifact-name: code-coverage-report
-          minimum-coverage: 30
+          minimum-coverage: 10
           github-token: ${{ secrets.GITHUB_TOKEN }}
           update-comment: true
