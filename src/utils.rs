@@ -1,5 +1,7 @@
 //use rand::Rng;
 
+use std::{fs, io, path::Path};
+
 /// * Returns the concatenation of effect str and stats str
 /// * If the effect str name is empty => only the stats str
 ///* If the stats str name is empty => only the effect str
@@ -19,9 +21,24 @@ pub fn build_effect_name(raw_effect: &str, stats_name: &str, is_cpp: bool) -> St
     }
 }
 
+pub fn list_files_in_dir(path: &str) -> io::Result<Vec<String>> {
+    let mut files = Vec::new();
+
+    for entry in fs::read_dir(Path::new(path))? {
+        let entry = entry?;
+        if entry.path().is_file() {
+            files.push(entry.path().display().to_string());
+        }
+    }
+
+    Ok(files)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::utils::build_effect_name;
+
+    use super::list_files_in_dir;
 
     #[test]
     fn unit_build_effect_name_works() {
@@ -37,5 +54,13 @@ mod tests {
         // case both args empty
         str = build_effect_name("", "", false);
         assert!(str.is_empty());
+    }
+
+    #[test]
+    fn unit_list_files_in_dir() {
+        let all_files = list_files_in_dir("./tests/characters");
+        let list = all_files.unwrap();
+        assert_eq!(1, list.len());
+        assert_eq!(list[0], "./tests/characters\\test.json")
     }
 }

@@ -1,12 +1,25 @@
+use crate::players_manager::PlayerManager;
+
 #[derive(Debug, Clone)]
 pub struct GameManager {
-    pub deleteme: String,
+    pub player_manager: PlayerManager,
 }
 
-impl Default for GameManager {
-    fn default() -> Self {
+impl GameManager {
+    pub fn build() -> GameManager {
         GameManager {
-            deleteme: "".to_owned(),
+            player_manager: PlayerManager::build(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::game_manager::GameManager;
+
+    #[test]
+    fn unit_build() {
+       let gm = GameManager::build(); 
+       assert_eq!(1, gm.player_manager.all_heroes.len());
     }
 }

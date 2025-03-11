@@ -43,3 +43,8 @@ pub mod character_const {
     pub const TX_RX: &str = "Tx-rx";
     pub const TYPE: &str = "TYPE";
 }
+
+pub mod paths_const {
+    pub const OFFLINE_ROOT: &str = "./offlines";
+    pub const OFFLINE_CHARACTERS: &str = "./offlines/characters";
+}

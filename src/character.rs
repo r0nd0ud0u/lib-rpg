@@ -90,10 +90,10 @@ impl Default for Character {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum CharacterType {
     Hero,
-    _Boss,
+    Boss,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -121,7 +121,7 @@ mod tests {
 
     #[test]
     fn unit_decode_json() {
-        let file_path = "./tests/test.json"; // Path to the JSON file
+        let file_path = "./tests/characters/test.json"; // Path to the JSON file
         match Character::decode_json(file_path) {
             Ok(character) => {
                 println!("Decoded character: {:?}", character);
