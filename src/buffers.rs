@@ -20,20 +20,21 @@ pub fn update_heal_by_multi(cur_value: i64, coeff_multi: i64) -> i64 {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[serde(default)]
 pub struct Buffers {
     /// A buf can be passive, that is without being a change of value
-    #[serde(default, rename = "Buf-passive-enabled")]
+    #[serde(rename = "Buf-passive-enabled")]
     pub is_passive_enabled: bool,
     /// If it is active, it changes the value
-    #[serde(default, rename = "Buf-value")]
+    #[serde(rename = "Buf-value")]
     pub value: i64,
-    #[serde(default, rename = "Buf-is-percent")]
+    #[serde(rename = "Buf-is-percent")]
     pub is_percent: bool,
     /// Potentially, a buffer can be applied on a stat, otherwise empty
     /// TODO: encode a list of string or try to decode with delimiter
-    #[serde(default, rename = "Buf-all-stats")]
+    #[serde(rename = "Buf-all-stats")]
     pub all_stat_name: String,
-    #[serde(default, rename = "Buf-type")]
+    #[serde(rename = "Buf-type")]
     pub buf_type: i64,
 }
 

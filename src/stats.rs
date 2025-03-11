@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[serde(default)]
 pub struct TxRx {
     #[serde(rename = "Tx-rx-size")]
     tx_rx_size: u64,
@@ -9,77 +10,73 @@ pub struct TxRx {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[serde(default)]
 struct Attribute {
     #[serde(rename = "Current")]
     current: u32,
-    #[serde(default)]
     current_raw: u32,
     #[serde(rename = "Max")]
     max: u32,
-    #[serde(default)]
     max_raw: u32,
-    #[serde(default)]
     buf_effect_value: u32,
-    #[serde(default)]
     buf_effect_percent: u32,
-    #[serde(default)]
     buf_equip_value: u32,
-    #[serde(default)]
     buf_equip_percent: u32,
 }
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[serde(default)]
 pub struct Stats {
     #[serde(rename = "Aggro")]
     aggro: Vec<Attribute>,
 
-    #[serde(default, rename = "Aggro rate")]
+    #[serde(rename = "Aggro rate")]
     aggro_rate: Vec<Attribute>,
 
-    #[serde(default, rename = "Magic armor")]
+    #[serde(rename = "Magic armor")]
     magic_armor: Vec<Attribute>,
 
-    #[serde(default, rename = "Physical armor")]
+    #[serde(rename = "Physical armor")]
     physical_armor: Vec<Attribute>,
 
-    #[serde(default, rename = "Magic strength")]
+    #[serde(rename = "Magic strength")]
     magic_strength: Vec<Attribute>,
 
-    #[serde(default, rename = "Physical strength")]
+    #[serde(rename = "Physical strength")]
     physical_strength: Vec<Attribute>,
 
-    #[serde(default, rename = "HP")]
+    #[serde(rename = "HP")]
     hp: Vec<Attribute>,
 
-    #[serde(default, rename = "Mana")]
+    #[serde(rename = "Mana")]
     mana: Vec<Attribute>,
 
-    #[serde(default, rename = "Vigor")]
+    #[serde(rename = "Vigor")]
     vigor: Vec<Attribute>,
 
-    #[serde(default, rename = "Berseck")]
+    #[serde(rename = "Berseck")]
     berseck: Vec<Attribute>,
 
-    #[serde(default, rename = "Berseck rate")]
+    #[serde(rename = "Berseck rate")]
     berseck_rate: Vec<Attribute>,
 
-    #[serde(default, rename = "Speed")]
+    #[serde(rename = "Speed")]
     speed: Vec<Attribute>,
 
-    #[serde(default, rename = "Critical strike")]
+    #[serde(rename = "Critical strike")]
     critical_strike: Vec<Attribute>,
 
-    #[serde(default, rename = "Dodge")]
+    #[serde(rename = "Dodge")]
     dodge: Vec<Attribute>,
 
-    #[serde(default, rename = "HP regeneration")]
+    #[serde(rename = "HP regeneration")]
     regeneration_hp: Vec<Attribute>,
 
-    #[serde(default, rename = "Mana regeneration")]
+    #[serde(rename = "Mana regeneration")]
     regeneration_mana: Vec<Attribute>,
 
-    #[serde(default, rename = "Vigor regeneration")]
+    #[serde(rename = "Vigor regeneration")]
     regeneration_vigor: Vec<Attribute>,
 
-    #[serde(default, rename = "Speed regeneration")]
+    #[serde(rename = "Speed regeneration")]
     regeneration_speed: Vec<Attribute>,
 }

@@ -18,6 +18,7 @@ pub struct ExtendedCharacter {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(default)]
 pub struct Character {
     #[serde(rename = "Name")]
     pub name: String,
@@ -35,26 +36,21 @@ pub struct Character {
     pub level: u64,
     #[serde(rename = "Experience")]
     pub exp: u64,
-    #[serde(default)]
     pub next_exp_level: u64,
     /// key: body, value: equipmentName
-    #[serde(default)]
     pub equipment_on: HashMap<String, Equipment>,
     /// key: attak name, value: AttakType struct
-    #[serde(default)]
     pub attacks_list: HashMap<String, AttackType>,
     /// That vector contains all the atks from m_AttakList and is sorted by level.
-    #[serde(default)]
     pub attacks_by_lvl: Vec<AttackType>,
     #[serde(rename = "Color")]
     pub color_theme: String,
-    #[serde(default)]
     pub is_last_atk_crit: bool,
     #[serde(rename = "Tx-rx")]
     tx_rx: Vec<TxRx>,
-    #[serde(default, rename = "Buf-debuf")]
+    #[serde(rename = "Buf-debuf")]
     pub all_buffers: Vec<Buffers>,
-    #[serde(default, rename = "Powers")]
+    #[serde(rename = "Powers")]
     pub power: Powers,
     #[serde(rename = "ExtendedCharacter")]
     pub extended_character: ExtendedCharacter,
@@ -62,7 +58,7 @@ pub struct Character {
     pub is_blocking_atk: bool,
     #[serde(rename = "nb-actions-in-round")]
     pub actions_done_in_round: u64,
-    #[serde(default, rename = "max-nb-actions-in-round")]
+    #[serde(rename = "max-nb-actions-in-round")]
     pub max_actions_by_round: u64,
 }
 
