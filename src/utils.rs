@@ -1,6 +1,9 @@
 use anyhow::Result;
 use serde::{de::DeserializeOwned, Serialize};
-use std::{fs, io, path::{Path, PathBuf}};
+use std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
 
 /// * Returns the concatenation of effect str and stats str
 /// * If the effect str name is empty => only the stats str

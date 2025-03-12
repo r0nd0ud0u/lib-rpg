@@ -107,7 +107,7 @@ pub enum Class {
 }
 
 impl Character {
-    pub fn try_new_from_json<P: AsRef<Path>>(path: P)-> Result<Character> {
+    pub fn try_new_from_json<P: AsRef<Path>>(path: P) -> Result<Character> {
         if let Ok(value) = utils::read_from_json(&path) {
             Ok(value)
         } else {

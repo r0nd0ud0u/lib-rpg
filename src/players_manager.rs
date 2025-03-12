@@ -32,7 +32,10 @@ impl PlayerManager {
                     }
                     Err(_) => println!("{:?} cannot be decoded", path),
                 }),
-            Err(_) => println!("Files cannot be listed in {:#?}", OFFLINE_CHARACTERS.as_os_str()),
+            Err(_) => println!(
+                "Files cannot be listed in {:#?}",
+                OFFLINE_CHARACTERS.as_os_str()
+            ),
         };
     }
 }
