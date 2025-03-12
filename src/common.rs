@@ -45,6 +45,11 @@ pub mod character_const {
 }
 
 pub mod paths_const {
-    pub const OFFLINE_ROOT: &str = "./offlines";
-    pub const OFFLINE_CHARACTERS: &str = "./offlines/characters";
+    use std::path::Path;
+    use lazy_static::lazy_static;
+
+    lazy_static! {
+        pub static ref OFFLINE_ROOT: &'static Path = Path::new("./offlines");
+        pub static ref OFFLINE_CHARACTERS: &'static Path = Path::new("./offlines/characters");
+    }
 }

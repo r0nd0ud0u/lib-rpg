@@ -1,8 +1,6 @@
-//use rand::Rng;
-
 use anyhow::Result;
 use serde::{de::DeserializeOwned, Serialize};
-use std::{fs, io, path::Path};
+use std::{fs, io, path::{Path, PathBuf}};
 
 /// * Returns the concatenation of effect str and stats str
 /// * If the effect str name is empty => only the stats str
@@ -23,13 +21,13 @@ pub fn build_effect_name(raw_effect: &str, stats_name: &str, is_cpp: bool) -> St
     }
 }
 
-pub fn list_files_in_dir(path: &str) -> io::Result<Vec<String>> {
+pub fn list_files_in_dir(path: &Path) -> io::Result<Vec<PathBuf>> {
     let mut files = Vec::new();
 
-    for entry in fs::read_dir(Path::new(path))? {
+    for entry in fs::read_dir(path)? {
         let entry = entry?;
         if entry.path().is_file() {
-            files.push(entry.path().display().to_string());
+            files.push(entry.path());
         }
     }
 
@@ -50,6 +48,8 @@ fn _write_to_json<P: AsRef<Path>, T: Serialize>(value: &T, path: P) -> Result<()
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use crate::utils::build_effect_name;
 
     use super::list_files_in_dir;
@@ -72,9 +72,9 @@ mod tests {
 
     #[test]
     fn unit_list_files_in_dir() {
-        let all_files = list_files_in_dir("./tests/characters");
+        let all_files = list_files_in_dir(Path::new("./tests/characters"));
         let list = all_files.unwrap();
         assert_eq!(1, list.len());
-        assert_eq!(list[0], "./tests/characters\\test.json")
+        assert_eq!(list[0], Path::new("./tests/characters/test.json"))
     }
 }

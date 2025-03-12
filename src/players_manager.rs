@@ -19,7 +19,7 @@ impl PlayerManager {
         pl
     }
     pub fn load_all_characters(&mut self) {
-        match list_files_in_dir(OFFLINE_CHARACTERS) {
+        match list_files_in_dir(&OFFLINE_CHARACTERS) {
             Ok(list) => list
                 .iter()
                 .for_each(|path| match Character::try_new_from_json(path) {
@@ -30,9 +30,9 @@ impl PlayerManager {
                             self.all_bosses.push(c);
                         }
                     }
-                    Err(_) => println!("{} cannot be decoded", path),
+                    Err(_) => println!("{:?} cannot be decoded", path),
                 }),
-            Err(_) => println!("Files cannot be listed in {}", OFFLINE_CHARACTERS),
+            Err(_) => println!("Files cannot be listed in {:#?}", OFFLINE_CHARACTERS.as_os_str()),
         };
     }
 }
