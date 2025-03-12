@@ -38,26 +38,7 @@ pub struct Buffers {
     pub buf_type: i64,
 }
 
-impl Buffers {
-    // Setters
-    pub fn set_buffers(&mut self, value: i64, is_percent: bool) {
-        self.value = value;
-        self.is_percent = is_percent;
-    }
-    pub fn set_is_passive_enabled(&mut self, value: bool) {
-        self.is_passive_enabled = value;
-    }
-    // Getters
-    pub fn get_value(&self) -> i64 {
-        self.value
-    }
-    pub fn get_is_percent(&self) -> bool {
-        self.is_percent
-    }
-    pub fn get_is_passive_enabled(&self) -> bool {
-        self.is_passive_enabled
-    }
-}
+impl Buffers {}
 
 #[cfg(test)]
 mod tests {

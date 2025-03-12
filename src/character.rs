@@ -123,13 +123,11 @@ mod tests {
     #[test]
     fn unit_decode_json() {
         let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        match Character::try_new_from_json(file_path) {
-            Ok(character) => {
-                println!("Decoded character: {:?}", character);
-            }
-            Err(e) => {
-                println!("Error decoding JSON: {}", e);
-            }
-        }
+        let c = Character::try_new_from_json(file_path).unwrap();
+        assert_eq!("Test", c.name);
+        // TODO add other fields
+
+        let file_path = "./tests/characters/wrong.json";
+        assert!(Character::try_new_from_json(file_path).is_err());
     }
 }

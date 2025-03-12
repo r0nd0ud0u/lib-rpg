@@ -1,5 +1,6 @@
 pub mod effect_const {
-    pub const TARGET_ENNEMY: &str = "Ennemie";
+    pub const TARGET_ENNEMY: &str = "Ennemy";
+    pub const TARGET_ALLY: &str = "Ally";
 }
 
 pub mod stats_const {
@@ -46,10 +47,10 @@ pub mod character_const {
 
 pub mod paths_const {
     use lazy_static::lazy_static;
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
     lazy_static! {
         pub static ref OFFLINE_ROOT: &'static Path = Path::new("./offlines");
-        pub static ref OFFLINE_CHARACTERS: &'static Path = Path::new("./offlines/characters");
+        pub static ref OFFLINE_CHARACTERS: PathBuf = PathBuf::from("./offlines/characters");
     }
 }

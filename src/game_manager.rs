@@ -1,4 +1,5 @@
-use crate::players_manager::PlayerManager;
+use crate::{common::paths_const::OFFLINE_CHARACTERS, players_manager::PlayerManager};
+use anyhow::Result;
 
 #[derive(Debug, Clone)]
 pub struct GameManager {
@@ -6,10 +7,9 @@ pub struct GameManager {
 }
 
 impl GameManager {
-    pub fn build() -> GameManager {
-        GameManager {
-            player_manager: PlayerManager::build(),
-        }
+    pub fn try_new() -> Result<GameManager> {
+        let pm = PlayerManager::try_new(OFFLINE_CHARACTERS.as_os_str())?;
+        Ok(GameManager { player_manager: pm })
     }
 }
 
@@ -19,7 +19,7 @@ mod tests {
 
     #[test]
     fn unit_build() {
-        let gm = GameManager::build();
+        let gm = GameManager::try_new().unwrap();
         assert_eq!(1, gm.player_manager.all_heroes.len());
     }
 }
