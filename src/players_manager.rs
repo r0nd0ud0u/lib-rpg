@@ -1,54 +1,61 @@
-pub fn target_info_new() -> Box<TargetInfo> {
-    Box::<TargetInfo>::default()
-}
+use std::path::Path;
+
+use anyhow::{bail, Result};
+
+use crate::{
+    character::{Character, CharacterType},
+    common::paths_const::OFFLINE_CHARACTERS,
+    utils::list_files_in_dir,
+};
 
 #[derive(Default, Debug, Clone)]
-pub struct TargetInfo {
-    pub name: String,
-    is_targeted: bool,
-    is_boss: bool,
-    is_reach_rand: bool,
+pub struct PlayerManager {
+    pub all_heroes: Vec<Character>,
+    pub all_bosses: Vec<Character>,
 }
 
-impl TargetInfo {
-    /// Getters
-    pub fn get_name(&self) -> String {
-        self.name.to_string()
+impl PlayerManager {
+    pub fn try_new<P: AsRef<Path>>(path: P) -> Result<PlayerManager> {
+        let mut pl = PlayerManager {
+            ..Default::default()
+        };
+        pl.load_all_characters(path)?;
+        Ok(pl)
     }
-    pub fn get_is_targeted(&self) -> bool {
-        self.is_targeted
-    }
-    pub fn get_is_boss(&self) -> bool {
-        self.is_boss
-    }
-    pub fn get_is_reach_rand(&self) -> bool {
-        self.is_reach_rand
-    }
-    /// Setters
-    pub fn set_name(&mut self, name: &str) {
-        self.name = name.to_string() + "\0";
-    }
-    pub fn set_is_targeted(&mut self, value: bool) {
-        self.is_targeted = value;
-    }
-    pub fn set_is_boss(&mut self, value: bool) {
-        self.is_boss = value;
-    }
-    pub fn set_is_reach_rand(&mut self, value: bool) {
-        self.is_reach_rand = value;
+
+    pub fn load_all_characters<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
+        match list_files_in_dir(&path) {
+            Ok(list) => list
+                .iter()
+                .for_each(|path| match Character::try_new_from_json(path) {
+                    Ok(c) => {
+                        if c.kind == CharacterType::Hero {
+                            self.all_heroes.push(c);
+                        } else {
+                            self.all_bosses.push(c);
+                        }
+                    }
+                    Err(e) => println!("{:?} cannot be decoded: {}", path, e),
+                }),
+            Err(e) => bail!(
+                "Files cannot be listed in {:#?}: {}",
+                OFFLINE_CHARACTERS.as_os_str(),
+                e
+            ),
+        };
+        Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::TargetInfo;
+    use super::PlayerManager;
 
     #[test]
-    fn unit_get_name() {
-        let mut ti = TargetInfo::default();
-        ti.set_name("test");
+    fn unit_try_new() {
+        let pl = PlayerManager::try_new("tests/characters").unwrap();
+        assert_eq!(1, pl.all_heroes.len());
 
-        let result = ti.get_name();
-        assert_eq!("test\0", result);
+        assert!(PlayerManager::try_new("").is_err());
     }
 }
