@@ -19,7 +19,7 @@ mod tests {
 
     #[test]
     fn unit_build() {
-       let gm = GameManager::build(); 
-       assert_eq!(1, gm.player_manager.all_heroes.len());
+        let gm = GameManager::build();
+        assert_eq!(1, gm.player_manager.all_heroes.len());
     }
 }

@@ -1,10 +1,14 @@
-use std::{collections::HashMap, fs::File, io::Read};
-
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, path::Path};
 
 use crate::{
-    attack_type::AttackType, buffers::Buffers, equipment::Equipment, powers::Powers, stats::Stats,
-    stats::TxRx,
+    attack_type::AttackType,
+    buffers::Buffers,
+    equipment::Equipment,
+    powers::Powers,
+    stats::{Stats, TxRx},
+    utils,
 };
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -103,15 +107,12 @@ pub enum Class {
 }
 
 impl Character {
-    pub fn decode_json(file_path: &str) -> Result<Character, serde_json::Error> {
-        // Open the file
-        let mut file = File::open(file_path).expect("File not found");
-        // Read the file content into a string
-        let mut json_str = String::new();
-        file.read_to_string(&mut json_str)
-            .expect("Failed to read file");
-        // Deserialize the JSON string into a Character struct
-        serde_json::from_str(&json_str)
+    pub fn try_new_from_json<P: AsRef<Path>>(path: P)-> Result<Character> {
+        if let Ok(value) = utils::read_from_json(&path) {
+            Ok(value)
+        } else {
+            Err(anyhow!("Unknown file: {:?}", path.as_ref()))
+        }
     }
 }
 
@@ -122,7 +123,7 @@ mod tests {
     #[test]
     fn unit_decode_json() {
         let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        match Character::decode_json(file_path) {
+        match Character::try_new_from_json(file_path) {
             Ok(character) => {
                 println!("Decoded character: {:?}", character);
             }

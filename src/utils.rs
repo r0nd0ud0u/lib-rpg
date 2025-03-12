@@ -1,5 +1,7 @@
 //use rand::Rng;
 
+use anyhow::Result;
+use serde::{de::DeserializeOwned, Serialize};
 use std::{fs, io, path::Path};
 
 /// * Returns the concatenation of effect str and stats str
@@ -32,6 +34,18 @@ pub fn list_files_in_dir(path: &str) -> io::Result<Vec<String>> {
     }
 
     Ok(files)
+}
+
+pub fn read_from_json<P: AsRef<Path>, T: DeserializeOwned>(path: P) -> Result<T> {
+    let content = fs::read_to_string(path)?;
+    let value: T = serde_json::from_str(&content)?;
+    Ok(value)
+}
+
+fn _write_to_json<P: AsRef<Path>, T: Serialize>(value: &T, path: P) -> Result<()> {
+    let data = serde_json::to_string_pretty(value)?;
+    fs::write(path, data)?;
+    Ok(())
 }
 
 #[cfg(test)]

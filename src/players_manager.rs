@@ -22,7 +22,7 @@ impl PlayerManager {
         match list_files_in_dir(OFFLINE_CHARACTERS) {
             Ok(list) => list
                 .iter()
-                .for_each(|path| match Character::decode_json(path) {
+                .for_each(|path| match Character::try_new_from_json(path) {
                     Ok(c) => {
                         if c.kind == CharacterType::Hero {
                             self.all_heroes.push(c);
@@ -43,7 +43,7 @@ mod tests {
 
     #[test]
     fn unit_build() {
-       let pl= PlayerManager::build(); 
-       assert_eq!(1, pl.all_heroes.len());
+        let pl = PlayerManager::build();
+        assert_eq!(1, pl.all_heroes.len());
     }
 }
