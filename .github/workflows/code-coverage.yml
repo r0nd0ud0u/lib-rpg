@@ -43,7 +43,7 @@ jobs:
       - name: Report code coverage in Pull Request
         uses: zgosalvez/github-actions-report-lcov@v4.1.23
         with:
-          coverage-files: target/coverage/lcov.*.info
+          coverage-files: target/coverage/lcov*
           artifact-name: code-coverage-report
           minimum-coverage: 30
           github-token: ${{ secrets.GITHUB_TOKEN }}
