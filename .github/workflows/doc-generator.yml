@@ -1,9 +1,6 @@
 name: Docs
 on:
   workflow_call:
-    secrets:
-      key_pem:
-        required: true
 
 permissions:
   contents: read
