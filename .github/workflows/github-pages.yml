@@ -1,0 +1,51 @@
+name: GitHub Pages
+
+on: [ push ]
+
+permissions:
+  pull-requests: write
+  pages: write
+  repository-projects: write
+  id-token: write
+  contents: write
+  deployments: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  doc:
+    uses: ./.github/workflows/doc-generator.yml
+  coverage:
+    uses: ./.github/workflows/code-coverage.yml
+  deploy:
+    name: Deploy github page
+    environment:
+      name: github-pages
+      url: https://rondoudou.github.io/lib-rpg
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: [doc, coverage]
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+      - run: |
+          mkdir -p github-pages
+          tar -xf doc/artifact.tar -C github-pages
+          # doc
+          mkdir -p github-pages/coverage
+          mv code-coverage-report/* github-pages/coverage
+
+          # benchmark
+          mkdir -p github-pages/benchmark
+          tar -xf benchmark/artifact.tar -C github-pages/benchmark
+
+          rm -r doc code-coverage-report benchmark
+      - name: Upload github pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          name: github-pages
+          path: github-pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

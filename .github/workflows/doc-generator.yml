@@ -1,0 +1,41 @@
+name: Docs
+on:
+  workflow_call:
+    secrets:
+      key_pem:
+        required: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_NET_GIT_FETCH_WITH_CLI: true
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update rust
+        run: rustup update stable
+
+      # build docs
+      - name: Clean docs folder
+        run: cargo clean --doc
+
+      - name: Build docs
+        run: cargo doc --no-deps
+
+      - name: Add redirect
+        run: echo '<meta http-equiv="refresh" content="0; url=lib_rpg/index.html">' > target/doc/index.html
+      - name: Remove lock file
+        run: rm target/doc/.lock
+      - name: Upload doc artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/doc
+          name: doc
