@@ -31,18 +31,20 @@ jobs:
           cargo install grcov
           rustup component add llvm-tools-preview
 
+      - name: Install lcov
+        run: sudo apt-get install lcov
+
       # Report using zgosalvez/github-actions-report-lcov
       - name: Build code coverage LCOV report
         run: |
           mkdir -p target/coverage
-          grcov . --keep-only 'src/*' --binary-path ./target/debug/deps/ --source-dir . --output-types lcov --branch --ignore-not-existing --output-path target/coverage/lcov.tests.info
-      - name: Install lcov
-        run: sudo apt-get install lcov
+          grcov . --keep-only 'src/*' --ignore 'src/bin/*' --binary-path ./target/debug/deps/ --source-dir . --output-types lcov,html --branch --ignore-not-existing --output-path target/coverage/
+
       - name: Report code coverage in Pull Request
         uses: zgosalvez/github-actions-report-lcov@v4.1.23
         with:
-          coverage-files: target/coverage/lcov.*.info
+          coverage-files: target/coverage/lcov*
           artifact-name: code-coverage-report
-          minimum-coverage: 10
+          minimum-coverage: 30
           github-token: ${{ secrets.GITHUB_TOKEN }}
           update-comment: true
