@@ -20,6 +20,11 @@ jobs:
       - name: Update rust
         run: rustup update stable
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
       # build docs
       - name: Clean docs folder
         run: cargo clean --doc
