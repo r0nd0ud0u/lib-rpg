@@ -22,7 +22,7 @@ jobs:
     name: Deploy github page
     environment:
       name: github-pages
-      url: https://rondoudou.github.io/lib-rpg
+      url: https://r0nd0ud0u.github.io/lib-rpg
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' }}
     needs: [doc, coverage]
