@@ -2,6 +2,9 @@ name: Code Coverage
 
 on:
   workflow_call:
+    secrets:
+      key_pem:
+        required: true
   pull_request:
     branches: [ main ]
 
