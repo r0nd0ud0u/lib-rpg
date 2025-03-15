@@ -11,7 +11,7 @@ pub struct TxRx {
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
-struct Attribute {
+pub struct Attribute {
     #[serde(rename = "Current")]
     current: u32,
     current_raw: u32,
