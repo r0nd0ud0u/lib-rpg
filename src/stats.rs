@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
 pub struct TxRx {
     #[serde(rename = "Tx-rx-size")]
@@ -9,7 +9,7 @@ pub struct TxRx {
     tx_rx_type: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
 struct Attribute {
     #[serde(rename = "Current")]
@@ -23,7 +23,7 @@ struct Attribute {
     buf_equip_value: u32,
     buf_equip_percent: u32,
 }
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
 pub struct Stats {
     #[serde(rename = "Aggro")]

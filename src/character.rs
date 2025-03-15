@@ -11,7 +11,7 @@ use crate::{
     utils,
 };
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 pub struct ExtendedCharacter {
     #[serde(default, rename = "is_random_target")]
     pub is_random_target: bool,
@@ -21,7 +21,7 @@ pub struct ExtendedCharacter {
     pub is_first_round: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(default)]
 pub struct Character {
     #[serde(rename = "Name")]
@@ -100,7 +100,7 @@ pub enum CharacterType {
     Boss,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Class {
     Standard,
     Tank,

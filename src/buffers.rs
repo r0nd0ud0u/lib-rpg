@@ -19,7 +19,7 @@ pub fn update_heal_by_multi(cur_value: i64, coeff_multi: i64) -> i64 {
     cur_value * coeff_multi
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
 pub struct Buffers {
     /// A buf can be passive, that is without being a change of value

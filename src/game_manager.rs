@@ -1,7 +1,7 @@
 use crate::{common::paths_const::OFFLINE_CHARACTERS, players_manager::PlayerManager};
 use anyhow::Result;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct GameManager {
     pub player_manager: PlayerManager,
 }

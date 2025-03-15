@@ -8,7 +8,7 @@ use crate::{
     utils::list_files_in_dir,
 };
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct PlayerManager {
     pub all_heroes: Vec<Character>,
     pub all_bosses: Vec<Character>,
