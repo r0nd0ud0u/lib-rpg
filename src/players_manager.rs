@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use anyhow::{bail, Result};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     character::{Character, CharacterType},
@@ -8,7 +9,7 @@ use crate::{
     utils::list_files_in_dir,
 };
 
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PlayerManager {
     pub all_heroes: Vec<Character>,
     pub all_bosses: Vec<Character>,

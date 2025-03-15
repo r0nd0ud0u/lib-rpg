@@ -1,7 +1,8 @@
 use crate::{common::paths_const::OFFLINE_CHARACTERS, players_manager::PlayerManager};
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GameManager {
     pub player_manager: PlayerManager,
 }
