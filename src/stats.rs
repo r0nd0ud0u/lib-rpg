@@ -45,7 +45,7 @@ pub struct Stats {
     pub physical_strength: Vec<Attribute>,
 
     #[serde(rename = "HP")]
-    pub hp: Vec<Attribute>,
+    pub hp: Attribute,
 
     #[serde(rename = "Mana")]
     pub mana: Vec<Attribute>,
