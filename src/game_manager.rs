@@ -19,7 +19,7 @@ mod tests {
     use crate::game_manager::GameManager;
 
     #[test]
-    fn unit_build() {
+    fn unit_try_new() {
         let gm = GameManager::try_new().unwrap();
         assert_eq!(1, gm.player_manager.all_heroes.len());
     }
