@@ -13,15 +13,15 @@ pub struct TxRx {
 #[serde(default)]
 pub struct Attribute {
     #[serde(rename = "Current")]
-    current: u32,
-    current_raw: u32,
+    pub current: u32,
+    pub current_raw: u32,
     #[serde(rename = "Max")]
-    max: u32,
-    max_raw: u32,
-    buf_effect_value: u32,
-    buf_effect_percent: u32,
-    buf_equip_value: u32,
-    buf_equip_percent: u32,
+    pub max: u32,
+    pub max_raw: u32,
+    pub buf_effect_value: u32,
+    pub buf_effect_percent: u32,
+    pub buf_equip_value: u32,
+    pub buf_equip_percent: u32,
 }
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
