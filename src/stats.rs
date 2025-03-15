@@ -27,56 +27,56 @@ struct Attribute {
 #[serde(default)]
 pub struct Stats {
     #[serde(rename = "Aggro")]
-    aggro: Vec<Attribute>,
+    pub aggro: Vec<Attribute>,
 
     #[serde(rename = "Aggro rate")]
-    aggro_rate: Vec<Attribute>,
+    pub aggro_rate: Vec<Attribute>,
 
     #[serde(rename = "Magic armor")]
-    magic_armor: Vec<Attribute>,
+    pub magic_armor: Vec<Attribute>,
 
     #[serde(rename = "Physical armor")]
-    physical_armor: Vec<Attribute>,
+    pub physical_armor: Vec<Attribute>,
 
     #[serde(rename = "Magic strength")]
-    magic_strength: Vec<Attribute>,
+    pub magic_strength: Vec<Attribute>,
 
     #[serde(rename = "Physical strength")]
-    physical_strength: Vec<Attribute>,
+    pub physical_strength: Vec<Attribute>,
 
     #[serde(rename = "HP")]
-    hp: Vec<Attribute>,
+    pub hp: Vec<Attribute>,
 
     #[serde(rename = "Mana")]
-    mana: Vec<Attribute>,
+    pub mana: Vec<Attribute>,
 
     #[serde(rename = "Vigor")]
-    vigor: Vec<Attribute>,
+    pub vigor: Vec<Attribute>,
 
     #[serde(rename = "Berseck")]
-    berseck: Vec<Attribute>,
+    pub berseck: Vec<Attribute>,
 
     #[serde(rename = "Berseck rate")]
-    berseck_rate: Vec<Attribute>,
+    pub berseck_rate: Vec<Attribute>,
 
     #[serde(rename = "Speed")]
-    speed: Vec<Attribute>,
+    pub speed: Vec<Attribute>,
 
     #[serde(rename = "Critical strike")]
-    critical_strike: Vec<Attribute>,
+    pub critical_strike: Vec<Attribute>,
 
     #[serde(rename = "Dodge")]
-    dodge: Vec<Attribute>,
+    pub dodge: Vec<Attribute>,
 
     #[serde(rename = "HP regeneration")]
-    regeneration_hp: Vec<Attribute>,
+    pub regeneration_hp: Vec<Attribute>,
 
     #[serde(rename = "Mana regeneration")]
-    regeneration_mana: Vec<Attribute>,
+    pub regeneration_mana: Vec<Attribute>,
 
     #[serde(rename = "Vigor regeneration")]
-    regeneration_vigor: Vec<Attribute>,
+    pub regeneration_vigor: Vec<Attribute>,
 
     #[serde(rename = "Speed regeneration")]
-    regeneration_speed: Vec<Attribute>,
+    pub regeneration_speed: Vec<Attribute>,
 }
