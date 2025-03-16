@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+/// Define all the parameters of a Power.
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
 pub struct Powers {

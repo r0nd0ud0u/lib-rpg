@@ -1,3 +1,4 @@
+/// Define all the parameters of target info during a round
 #[derive(Default, Debug, Clone)]
 pub struct TargetInfo {
     pub name: String,

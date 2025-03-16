@@ -1,8 +1,10 @@
+/// Define the kind of target
 pub mod effect_const {
     pub const TARGET_ENNEMY: &str = "Ennemy";
     pub const TARGET_ALLY: &str = "Ally";
 }
 
+/// Define all the stats of a character you can decode from JSON format
 pub mod stats_const {
     pub const HP: &str = "HP";
     pub const MANA: &str = "Mana";
@@ -24,6 +26,7 @@ pub mod stats_const {
     pub const REGEN_SPEED: &str = "Speed regeneration";
 }
 
+/// Defines all the keys except stats you can decode from the JSON input
 pub mod character_const {
     pub const STANDARD_CLASS: &str = "standard";
     pub const IS_BLOCKING_ATK: &str = "is-blocking-atk";
@@ -50,7 +53,9 @@ pub mod paths_const {
     use std::path::{Path, PathBuf};
 
     lazy_static! {
+        /// Not used yet
         pub static ref OFFLINE_ROOT: &'static Path = Path::new("./offlines");
+        /// Path for directory where all the JSON character files are stored.
         pub static ref OFFLINE_CHARACTERS: PathBuf = PathBuf::from("./offlines/characters");
     }
 }

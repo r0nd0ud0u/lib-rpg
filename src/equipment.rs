@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+/// Define the parameters of an equipment.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(default)]
 pub struct Equipment {

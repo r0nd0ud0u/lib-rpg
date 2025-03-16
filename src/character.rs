@@ -11,12 +11,16 @@ use crate::{
     utils,
 };
 
+/// ExtendedCharacter
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 pub struct ExtendedCharacter {
+    /// Fight information: Is the random character targeted by the current attack of other character
     #[serde(default, rename = "is_random_target")]
     pub is_random_target: bool,
+    /// Fight information: TODO is_heal_atk_blocked
     #[serde(default, rename = "is_heal_atk_blocked")]
     pub is_heal_atk_blocked: bool,
+    /// Fight information: Playing the first round of that tour
     #[serde(default, rename = "is_first_round")]
     pub is_first_round: bool,
 }
@@ -120,6 +124,7 @@ impl Default for Character {
     }
 }
 
+/// Defines the type of player: hero -> player, boss -> computer.
 /// "PascalCase" ensures that "Hero" and "Boss" from JSON map correctly to the Rust enum variants.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "PascalCase")]
@@ -128,6 +133,8 @@ pub enum CharacterType {
     Boss,
 }
 
+/// Defines the class of the character
+/// In the future, bonus and stats will be acquired.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Class {
     Standard,

@@ -9,9 +9,14 @@ use crate::{
     utils::list_files_in_dir,
 };
 
+/// Define all the parameters of a playerManager
+/// Should store all the relative data to all the playABLE characters
+/// /// Should store all the relative data to all the playING characters
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PlayerManager {
+    /// List of all playable heroes -> player
     pub all_heroes: Vec<Character>,
+    /// List of all playable bosses -> computer
     pub all_bosses: Vec<Character>,
 }
 
@@ -24,6 +29,8 @@ impl PlayerManager {
         Ok(pl)
     }
 
+    /// Load all the JSON files in a path `P` which corresponds to a directory.
+    /// Characters are inserted in Hero or Boss lists.
     pub fn load_all_characters<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
         match list_files_in_dir(&path) {
             Ok(list) => list

@@ -2,6 +2,8 @@ use crate::{common::paths_const::OFFLINE_CHARACTERS, players_manager::PlayerMana
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+/// The entry of the library.
+/// That object should be called to access to all the different functionalities.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GameManager {
     pub player_manager: PlayerManager,
