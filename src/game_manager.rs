@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::{common::paths_const::OFFLINE_CHARACTERS, players_manager::PlayerManager};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -10,8 +12,9 @@ pub struct GameManager {
 }
 
 impl GameManager {
-    pub fn try_new() -> Result<GameManager> {
-        let pm = PlayerManager::try_new(OFFLINE_CHARACTERS.as_os_str())?;
+    pub fn try_new<P: AsRef<Path>>(path: P) -> Result<GameManager> {
+        let pm =
+            PlayerManager::try_new(path.as_ref().join(OFFLINE_CHARACTERS.as_path()).as_os_str())?;
         Ok(GameManager { player_manager: pm })
     }
 }
@@ -22,7 +25,7 @@ mod tests {
 
     #[test]
     fn unit_try_new() {
-        let gm = GameManager::try_new().unwrap();
+        let gm = GameManager::try_new("").unwrap();
         assert_eq!(1, gm.player_manager.all_heroes.len());
     }
 }

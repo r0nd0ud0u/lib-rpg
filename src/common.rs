@@ -54,8 +54,8 @@ pub mod paths_const {
 
     lazy_static! {
         /// Not used yet
-        pub static ref OFFLINE_ROOT: &'static Path = Path::new("./offlines");
+        pub static ref OFFLINE_ROOT: &'static Path = Path::new("offlines");
         /// Path for directory where all the JSON character files are stored.
-        pub static ref OFFLINE_CHARACTERS: PathBuf = PathBuf::from("./offlines/characters");
+        pub static ref OFFLINE_CHARACTERS: PathBuf = PathBuf::from("offlines/characters");
     }
 }
