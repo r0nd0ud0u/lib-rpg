@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 #[serde(default)]
 pub struct TxRx {
     #[serde(rename = "Tx-rx-size")]
-    tx_rx_size: u64,
+    pub tx_rx_size: u64,
     #[serde(rename = "Tx-rx-type")]
-    tx_rx_type: u64,
+    pub tx_rx_type: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
@@ -27,56 +27,56 @@ pub struct Attribute {
 #[serde(default)]
 pub struct Stats {
     #[serde(rename = "Aggro")]
-    pub aggro: Vec<Attribute>,
+    pub aggro: Attribute,
 
     #[serde(rename = "Aggro rate")]
-    pub aggro_rate: Vec<Attribute>,
+    pub aggro_rate: Attribute,
 
-    #[serde(rename = "Magic armor")]
-    pub magic_armor: Vec<Attribute>,
+    #[serde(rename = "Magical armor")]
+    pub magical_armor: Attribute,
 
     #[serde(rename = "Physical armor")]
-    pub physical_armor: Vec<Attribute>,
+    pub physical_armor: Attribute,
 
-    #[serde(rename = "Magic strength")]
-    pub magic_strength: Vec<Attribute>,
+    #[serde(rename = "Magical power")]
+    pub magic_power: Attribute,
 
-    #[serde(rename = "Physical strength")]
-    pub physical_strength: Vec<Attribute>,
+    #[serde(rename = "Physical power")]
+    pub physical_power: Attribute,
 
     #[serde(rename = "HP")]
     pub hp: Attribute,
 
     #[serde(rename = "Mana")]
-    pub mana: Vec<Attribute>,
+    pub mana: Attribute,
 
     #[serde(rename = "Vigor")]
-    pub vigor: Vec<Attribute>,
+    pub vigor: Attribute,
 
     #[serde(rename = "Berseck")]
-    pub berseck: Vec<Attribute>,
+    pub berseck: Attribute,
 
     #[serde(rename = "Berseck rate")]
-    pub berseck_rate: Vec<Attribute>,
+    pub berseck_rate: Attribute,
 
     #[serde(rename = "Speed")]
-    pub speed: Vec<Attribute>,
+    pub speed: Attribute,
 
     #[serde(rename = "Critical strike")]
-    pub critical_strike: Vec<Attribute>,
+    pub critical_strike: Attribute,
 
     #[serde(rename = "Dodge")]
-    pub dodge: Vec<Attribute>,
+    pub dodge: Attribute,
 
     #[serde(rename = "HP regeneration")]
-    pub regeneration_hp: Vec<Attribute>,
+    pub hp_regeneration: Attribute,
 
     #[serde(rename = "Mana regeneration")]
-    pub regeneration_mana: Vec<Attribute>,
+    pub mana_regeneration: Attribute,
 
     #[serde(rename = "Vigor regeneration")]
-    pub regeneration_vigor: Vec<Attribute>,
+    pub vigor_regeneration: Attribute,
 
     #[serde(rename = "Speed regeneration")]
-    pub regeneration_speed: Vec<Attribute>,
+    pub speed_regeneration: Attribute,
 }
