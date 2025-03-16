@@ -1,11 +1,11 @@
 {
     "Buf-debuf": [
         {
-            "Buf-all-stats": "",
-            "Buf-is-percent": false,
+            "Buf-all-stats": "hp,mana",
+            "Buf-is-percent": true,
             "Buf-passive-enabled": false,
-            "Buf-type": 0,
-            "Buf-value": 0
+            "Buf-type": 3,
+            "Buf-value": 100
         },
         {
             "Buf-all-stats": "",
@@ -87,131 +87,95 @@
     ],
     "Class": "Standard",
     "Color": "green",
-    "Experience": 0,
+    "Experience": 50,
     "ExtendedCharacter": {
         "is_first_round": false,
-        "is_heal_atk_blocked": false,
+        "is_heal_atk_blocked": true,
         "is_random_target": false
     },
     "Level": 1,
-    "Name": "Test",
-    "Photo": "",
+    "Name": "Super test",
+    "Photo": "phototest",
     "Powers": {
         "is_crit_heal_after_crit": false,
-        "is_damage_tx_heal_needy_ally": false
+        "is_damage_tx_heal_needy_ally": true
     },
     "Rank": 4,
     "Shape": "",
     "Short name": "Test",
     "Stats": {
-        "Aggro": [
-            {
-                "Current": 0,
-                "Max": 9999
-            }
-        ],
-        "Aggro rate": [
-            {
-                "Current": 1,
-                "Max": 1
-            }
-        ],
-        "Berseck": [
-            {
-                "Current": 200,
-                "Max": 200
-            }
-        ],
-        "Berseck rate": [
-            {
-                "Current": 0,
-                "Max": 0
-            }
-        ],
-        "Critical strike": [
-            {
-                "Current": 10,
-                "Max": 10
-            }
-        ],
-        "Dodge": [
-            {
-                "Current": 5,
-                "Max": 5
-            }
-        ],
-        "HP": [
-            {
-                "Current": 1,
-                "Max": 135
-            }
-        ],
-        "HP regeneration": [
-            {
-                "Current": 7,
-                "Max": 7
-            }
-        ],
-        "Magical armor": [
-            {
-                "Current": 0,
-                "Max": 0
-            }
-        ],
-        "Magical power": [
-            {
-                "Current": 20,
-                "Max": 20
-            }
-        ],
-        "Mana": [
-            {
-                "Current": 200,
-                "Max": 200
-            }
-        ],
-        "Mana regeneration": [
-            {
-                "Current": 7,
-                "Max": 7
-            }
-        ],
-        "Physical armor": [
-            {
-                "Current": 0,
-                "Max": 0
-            }
-        ],
-        "Physical power": [
-            {
-                "Current": 10,
-                "Max": 10
-            }
-        ],
-        "Speed": [
-            {
-                "Current": 12,
-                "Max": 12
-            }
-        ],
-        "Speed regeneration": [
-            {
-                "Current": 12,
-                "Max": 12
-            }
-        ],
-        "Vigor": [
-            {
-                "Current": 200,
-                "Max": 200
-            }
-        ],
-        "Vigor regeneration": [
-            {
-                "Current": 5,
-                "Max": 5
-            }
-        ]
+        "Aggro": {
+            "Current": 0,
+            "Max": 9999
+        },
+        "Aggro rate": {
+            "Current": 1,
+            "Max": 1
+        },
+        "Berseck": {
+            "Current": 200,
+            "Max": 200
+        },
+        "Berseck rate": {
+            "Current": 1,
+            "Max": 1
+        },
+        "Critical strike": {
+            "Current": 10,
+            "Max": 10
+        },
+        "Dodge": {
+            "Current": 5,
+            "Max": 5
+        },
+        "HP": {
+            "Current": 1,
+            "Max": 135
+        },
+        "HP regeneration": {
+            "Current": 7,
+            "Max": 7
+        },
+        "Magical armor": {
+            "Current": 10,
+            "Max": 10
+        },
+        "Magical power": {
+            "Current": 20,
+            "Max": 20
+        },
+        "Mana": {
+            "Current": 200,
+            "Max": 200
+        },
+        "Mana regeneration": {
+            "Current": 7,
+            "Max": 7
+        },
+        "Physical armor": {
+            "Current": 5,
+            "Max": 5
+        },
+        "Physical power": {
+            "Current": 10,
+            "Max": 10
+        },
+        "Speed": {
+            "Current": 12,
+            "Max": 12
+        },
+        "Speed regeneration": {
+            "Current": 12,
+            "Max": 12
+        },
+        "Vigor": {
+            "Current": 200,
+            "Max": 200
+        },
+        "Vigor regeneration": {
+            "Current": 5,
+            "Max": 5
+        }
     },
     "Tx-rx": [
         {
@@ -241,7 +205,6 @@
     ],
     "Type": "Hero",
     "is-blocking-atk": false,
-    "max_actions_by_round": 1,
+    "max-actions-by-round": 1,
     "nb-actions-in-round": 0
 }
-

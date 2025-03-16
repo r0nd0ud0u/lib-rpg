@@ -1,3 +1,4 @@
+/// Defines the parameters for a loot
 #[derive(Debug, Clone)]
 pub struct Loot {
     pub deleteme: String,
