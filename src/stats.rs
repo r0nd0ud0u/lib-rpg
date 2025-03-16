@@ -1,82 +1,96 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+/// Define allt the paramaters of tx-rx
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
 pub struct TxRx {
+    /// TODO use?
     #[serde(rename = "Tx-rx-size")]
-    tx_rx_size: u64,
+    pub tx_rx_size: u64,
+    /// TODO enum
     #[serde(rename = "Tx-rx-type")]
-    tx_rx_type: u64,
+    pub tx_rx_type: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+/// Define all the parameter of an attribute of a stat
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
-struct Attribute {
+pub struct Attribute {
+    /// Current value of the stat, with equipment and buf/debuf included
     #[serde(rename = "Current")]
-    current: u32,
-    current_raw: u32,
+    pub current: u32,
+    /// Current raw value of the stat, WITHOUT equipment and buf/debuf included
+    pub current_raw: u32,
+    /// Max value of the stat, with equipment and buf/debuf included
     #[serde(rename = "Max")]
-    max: u32,
-    max_raw: u32,
-    buf_effect_value: u32,
-    buf_effect_percent: u32,
-    buf_equip_value: u32,
-    buf_equip_percent: u32,
+    pub max: u32,
+    /// Raw Max value of the stat, WITHOUT equipment and buf/debuf included
+    pub max_raw: u32,
+    /// All buffer values are added in one value
+    pub buf_effect_value: u32,
+    /// All buffer percentage are added in one percent value
+    pub buf_effect_percent: u32,
+    /// All buffer equipment are added in one value
+    pub buf_equip_value: u32,
+    /// All buffer equipment are added in one value
+    pub buf_equip_percent: u32,
 }
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+
+/// Define all the parameters of the stats of one character
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
 pub struct Stats {
     #[serde(rename = "Aggro")]
-    aggro: Vec<Attribute>,
+    pub aggro: Attribute,
 
     #[serde(rename = "Aggro rate")]
-    aggro_rate: Vec<Attribute>,
+    pub aggro_rate: Attribute,
 
-    #[serde(rename = "Magic armor")]
-    magic_armor: Vec<Attribute>,
+    #[serde(rename = "Magical armor")]
+    pub magical_armor: Attribute,
 
     #[serde(rename = "Physical armor")]
-    physical_armor: Vec<Attribute>,
+    pub physical_armor: Attribute,
 
-    #[serde(rename = "Magic strength")]
-    magic_strength: Vec<Attribute>,
+    #[serde(rename = "Magical power")]
+    pub magic_power: Attribute,
 
-    #[serde(rename = "Physical strength")]
-    physical_strength: Vec<Attribute>,
+    #[serde(rename = "Physical power")]
+    pub physical_power: Attribute,
 
     #[serde(rename = "HP")]
-    hp: Vec<Attribute>,
+    pub hp: Attribute,
 
     #[serde(rename = "Mana")]
-    mana: Vec<Attribute>,
+    pub mana: Attribute,
 
     #[serde(rename = "Vigor")]
-    vigor: Vec<Attribute>,
+    pub vigor: Attribute,
 
     #[serde(rename = "Berseck")]
-    berseck: Vec<Attribute>,
+    pub berseck: Attribute,
 
     #[serde(rename = "Berseck rate")]
-    berseck_rate: Vec<Attribute>,
+    pub berseck_rate: Attribute,
 
     #[serde(rename = "Speed")]
-    speed: Vec<Attribute>,
+    pub speed: Attribute,
 
     #[serde(rename = "Critical strike")]
-    critical_strike: Vec<Attribute>,
+    pub critical_strike: Attribute,
 
     #[serde(rename = "Dodge")]
-    dodge: Vec<Attribute>,
+    pub dodge: Attribute,
 
     #[serde(rename = "HP regeneration")]
-    regeneration_hp: Vec<Attribute>,
+    pub hp_regeneration: Attribute,
 
     #[serde(rename = "Mana regeneration")]
-    regeneration_mana: Vec<Attribute>,
+    pub mana_regeneration: Attribute,
 
     #[serde(rename = "Vigor regeneration")]
-    regeneration_vigor: Vec<Attribute>,
+    pub vigor_regeneration: Attribute,
 
     #[serde(rename = "Speed regeneration")]
-    regeneration_speed: Vec<Attribute>,
+    pub speed_regeneration: Attribute,
 }

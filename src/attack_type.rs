@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+/// Defines the parameters of an attack.
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct AttackType {
+    /// Name of the attack
     pub name: String,
     /* pub level: u8,
     pub mana_cost: u32,
