@@ -56,6 +56,6 @@ pub mod paths_const {
         /// Not used yet
         pub static ref OFFLINE_ROOT: &'static Path = Path::new("offlines");
         /// Path for directory where all the JSON character files are stored.
-        pub static ref OFFLINE_CHARACTERS: PathBuf = PathBuf::from("offlines/characters");
+        pub static ref OFFLINE_CHARACTERS: PathBuf = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/offlines/characters"));
     }
 }
