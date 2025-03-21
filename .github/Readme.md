@@ -19,8 +19,11 @@ Example: https://github.com/r0nd0ud0u/qt-rpg/
 - tag: from 1.0.0: cpp conversions not supported anymore, full rust interface 
 
 ## Description
+
 ```mermaid
+
 flowchart TB
+
 GameManager([GameManager])
 PlayerManager([<br>PlayerManager<br><br>])
 
@@ -28,7 +31,10 @@ GameManager-- <br> ---->PlayerManager
 PlayerManager-- <br> ---->Heroes(character-list)
 PlayerManager-- <br> ---->Bosses(character-list)
 
+```
+
 ```mermaid
+
 flowchart TB
 
 Character([Character])
