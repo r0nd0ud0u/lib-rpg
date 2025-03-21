@@ -23,11 +23,15 @@ Example: https://github.com/r0nd0ud0u/qt-rpg/
 flowchart TB
 GameManager([GameManager])
 PlayerManager([<br>PlayerManager<br><br>])
-Character([Character])
 
 GameManager-- <br> ---->PlayerManager
 PlayerManager-- <br> ---->Heroes(character-list)
 PlayerManager-- <br> ---->Bosses(character-list)
+
+```mermaid
+flowchart TB
+
+Character([Character])
 
 Character-- <br> ---->Stats
 Character-- <br> ---->Description
@@ -49,9 +53,11 @@ Some are written in json format.
 Images are stored as well.
 
 ## Contributing
-Issue -> PR
-Use of clippy and fmt
-Build: `cargo build`
-Test: `cargo test unit`
-Coverage: install tarpaulin `cargo install cargo-tarpaulin` and run `cargo tarpaulin --out Lcov -- unit_test`
+- Issue -> PR
+- Use of clippy and fmt
+- Build: `cargo build`
+- Test: `cargo test unit`
+- Coverage: 
+    - install tarpaulin `cargo install cargo-tarpaulin` 
+    - run `cargo tarpaulin --out Lcov -- unit_test`
 
