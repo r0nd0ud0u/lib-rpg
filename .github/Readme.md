@@ -13,6 +13,11 @@ This library defines the abstraction of the different functions to create a rpg 
 The different functions and object can be called separetely.
 If you want to create a game from scratch, the entrypoint is the `GameManager`.
 
+## Versions
+- tag: 0.1.0 use  to call rust functions into cpp project
+Example: https://github.com/r0nd0ud0u/qt-rpg/
+- tag: from 1.0.0: cpp conversions not supported anymore, full rust interface 
+
 ## Description
 ```mermaid
 flowchart TB
