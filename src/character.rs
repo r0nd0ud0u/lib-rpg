@@ -143,11 +143,16 @@ pub enum Class {
 
 impl Character {
     pub fn try_new_from_json<P: AsRef<Path>>(path: P) -> Result<Character> {
-        if let Ok(value) = utils::read_from_json(&path) {
+        if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
+            value.stats.sync_raw_values();
             Ok(value)
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
         }
+    }
+
+    pub fn is_dead(&self) -> bool {
+        self.stats.hp.current == 0
     }
 }
 
@@ -214,6 +219,8 @@ mod tests {
         // stats - hp
         assert_eq!(1, c.stats.hp.current);
         assert_eq!(135, c.stats.hp.max);
+        assert_eq!(135, c.stats.hp.max_raw);
+        assert_eq!(1, c.stats.hp.current_raw);
         // stats - hp_regeneration
         assert_eq!(7, c.stats.hp_regeneration.current);
         assert_eq!(7, c.stats.hp_regeneration.max);
@@ -236,8 +243,8 @@ mod tests {
         assert_eq!(10, c.stats.physical_power.current);
         assert_eq!(10, c.stats.physical_power.max);
         // stats - speed
-        assert_eq!(12, c.stats.speed.current);
-        assert_eq!(12, c.stats.speed.max);
+        assert_eq!(212, c.stats.speed.current);
+        assert_eq!(212, c.stats.speed.max);
         // stats - speed_regeneration
         assert_eq!(12, c.stats.speed_regeneration.current);
         assert_eq!(12, c.stats.speed_regeneration.max);

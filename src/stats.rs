@@ -1,7 +1,9 @@
+use std::cmp::Ordering;
+
 use serde::{Deserialize, Serialize};
 
 /// Define allt the paramaters of tx-rx
-#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq, Eq)]
 #[serde(default)]
 pub struct TxRx {
     /// TODO use?
@@ -13,7 +15,7 @@ pub struct TxRx {
 }
 
 /// Define all the parameter of an attribute of a stat
-#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq, Eq)]
 #[serde(default)]
 pub struct Attribute {
     /// Current value of the stat, with equipment and buf/debuf included
@@ -34,6 +36,25 @@ pub struct Attribute {
     pub buf_equip_value: u32,
     /// All buffer equipment are added in one value
     pub buf_equip_percent: u32,
+}
+
+impl Ord for Attribute {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.current.cmp(&other.current)
+    }
+}
+
+impl PartialOrd for Attribute {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other)) // Ensures a total order
+    }
+}
+
+impl Attribute {
+    pub fn sync_raw_values(&mut self) {
+        self.current_raw = self.current;
+        self.max_raw = self.max;
+    }
 }
 
 /// Define all the parameters of the stats of one character
@@ -93,4 +114,27 @@ pub struct Stats {
 
     #[serde(rename = "Speed regeneration")]
     pub speed_regeneration: Attribute,
+}
+
+impl Stats {
+    pub fn sync_raw_values(&mut self) {
+        self.aggro.sync_raw_values();
+        self.aggro_rate.sync_raw_values();
+        self.magical_armor.sync_raw_values();
+        self.physical_armor.sync_raw_values();
+        self.magic_power.sync_raw_values();
+        self.physical_power.sync_raw_values();
+        self.hp.sync_raw_values();
+        self.mana.sync_raw_values();
+        self.vigor.sync_raw_values();
+        self.berseck.sync_raw_values();
+        self.berseck_rate.sync_raw_values();
+        self.speed.sync_raw_values();
+        self.critical_strike.sync_raw_values();
+        self.dodge.sync_raw_values();
+        self.hp_regeneration.sync_raw_values();
+        self.mana_regeneration.sync_raw_values();
+        self.vigor_regeneration.sync_raw_values();
+        self.speed_regeneration.sync_raw_values();
+    }
 }

@@ -65,5 +65,5 @@ Images are stored as well.
 - Test: `cargo test unit`
 - Coverage: 
     - install tarpaulin `cargo install cargo-tarpaulin` 
-    - run `cargo tarpaulin --out Lcov -- unit_test`
+    - run `cargo tarpaulin --out Lcov -- unit`
 

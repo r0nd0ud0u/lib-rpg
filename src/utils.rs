@@ -45,6 +45,11 @@ fn _write_to_json<P: AsRef<Path>, T: Serialize>(value: &T, path: P) -> Result<()
     Ok(())
 }
 
+pub fn get_current_time_as_string() -> String {
+    let now = chrono::Local::now();
+    now.format("%Y-%m-%d-%H-%M-%S").to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::Path;
@@ -73,7 +78,13 @@ mod tests {
     fn unit_list_files_in_dir() {
         let all_files = list_files_in_dir(Path::new("./tests/characters"));
         let list = all_files.unwrap();
-        assert_eq!(1, list.len());
-        assert_eq!(list[0], Path::new("./tests/characters/test.json"))
+        assert!(list.len() > 1);
+        assert_eq!(list[0], Path::new("./tests/characters/test boss.json"))
+    }
+
+    #[test]
+    fn unit_get_current_time_as_string() {
+        let time_str = super::get_current_time_as_string();
+        assert_eq!(19, time_str.len());
     }
 }

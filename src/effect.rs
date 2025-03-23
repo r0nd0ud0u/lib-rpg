@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 /// Define the parameters of an effect.
 /// An effect can be enabled from an attack, a passive power or an object.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EffectParam {
     /// Received
     /// Name of the effect

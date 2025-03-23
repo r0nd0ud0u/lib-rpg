@@ -27,7 +27,7 @@ pub mod stats_const {
 }
 
 /// Defines all the keys except stats you can decode from the JSON input
-pub mod character_const {
+pub mod character_json_key {
     pub const STANDARD_CLASS: &str = "standard";
     pub const IS_BLOCKING_ATK: &str = "is-blocking-atk";
     pub const IS_CRIT_HEAL_AFTER_CRIT: &str = "is_crit_heal_after_crit";
@@ -46,6 +46,10 @@ pub mod character_const {
     pub const PHOTO: &str = "Photo";
     pub const TX_RX: &str = "Tx-rx";
     pub const TYPE: &str = "TYPE";
+}
+
+pub mod character_const {
+    pub const SPEED_THRESHOLD: u32 = 100;
 }
 
 pub mod paths_const {

@@ -1,6 +1,8 @@
 use std::path::Path;
 
-use crate::{common::paths_const::OFFLINE_CHARACTERS, players_manager::PlayerManager};
+use crate::{
+    common::paths_const::OFFLINE_CHARACTERS, game_state::GameState, players_manager::PlayerManager,
+};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
@@ -9,13 +11,17 @@ use serde::{Deserialize, Serialize};
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GameManager {
     pub player_manager: PlayerManager,
+    pub game_name: GameState,
 }
 
 impl GameManager {
     pub fn try_new<P: AsRef<Path>>(path: P) -> Result<GameManager> {
         let pm =
             PlayerManager::try_new(path.as_ref().join(OFFLINE_CHARACTERS.as_path()).as_os_str())?;
-        Ok(GameManager { player_manager: pm })
+        Ok(GameManager {
+            player_manager: pm,
+            game_name: GameState::default(),
+        })
     }
 }
 
