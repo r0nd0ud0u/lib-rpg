@@ -8,9 +8,9 @@ pub struct AttackType {
     /// Name of the attack
     pub name: String,
     pub level: u8,
-    pub mana_cost: u32,
-    pub vigor_cost: u32,
-    pub berseck_cost: u32,
+    pub mana_cost: u64,
+    pub vigor_cost: u64,
+    pub berseck_cost: u64,
     pub target: String,
     pub reach: String,
     pub name_photo: String,

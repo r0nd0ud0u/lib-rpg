@@ -50,6 +50,19 @@ pub fn get_current_time_as_string() -> String {
     now.format("%Y-%m-%d-%H-%M-%S").to_string()
 }
 
+/* double Utils::CalcRatio(const int val1, const int val2) {
+  return (val2 > 0) ? static_cast<double>(val1) / static_cast<double>(val2) : 1;
+}
+ */
+
+pub fn calc_ratio(val1: i64, val2: i64) -> f64 {
+    if val2 > 0 {
+        val1 as f64 / val2 as f64
+    } else {
+        1.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::Path;
@@ -86,5 +99,13 @@ mod tests {
     fn unit_get_current_time_as_string() {
         let time_str = super::get_current_time_as_string();
         assert_eq!(19, time_str.len());
+    }
+
+    #[test]
+    fn unit_calc_ratio() {
+        let ratio = super::calc_ratio(10, 20);
+        assert_eq!(0.5, ratio);
+        let ratio = super::calc_ratio(10, 0);
+        assert_eq!(1.0, ratio);
     }
 }

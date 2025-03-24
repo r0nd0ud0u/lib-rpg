@@ -1,6 +1,12 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::HashMap};
 
 use serde::{Deserialize, Serialize};
+
+use crate::common::stats_const::{
+    AGGRO, AGGRO_RATE, BERSECK, BERSECK_RATE, CRITICAL_STRIKE, DODGE, HP, HP_REGEN, MAGICAL_ARMOR,
+    MAGICAL_POWER, MANA, MANA_REGEN, PHYSICAL_ARMOR, PHYSICAL_POWER, SPEED, SPEED_REGEN, VIGOR,
+    VIGOR_REGEN,
+};
 
 /// Define allt the paramaters of tx-rx
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq, Eq)]
@@ -20,22 +26,22 @@ pub struct TxRx {
 pub struct Attribute {
     /// Current value of the stat, with equipment and buf/debuf included
     #[serde(rename = "Current")]
-    pub current: u32,
+    pub current: u64,
     /// Current raw value of the stat, WITHOUT equipment and buf/debuf included
-    pub current_raw: u32,
+    pub current_raw: u64,
     /// Max value of the stat, with equipment and buf/debuf included
     #[serde(rename = "Max")]
-    pub max: u32,
+    pub max: u64,
     /// Raw Max value of the stat, WITHOUT equipment and buf/debuf included
-    pub max_raw: u32,
+    pub max_raw: u64,
     /// All buffer values are added in one value
-    pub buf_effect_value: u32,
+    pub buf_effect_value: u64,
     /// All buffer percentage are added in one percent value
-    pub buf_effect_percent: u32,
+    pub buf_effect_percent: u64,
     /// All buffer equipment are added in one value
-    pub buf_equip_value: u32,
+    pub buf_equip_value: u64,
     /// All buffer equipment are added in one value
-    pub buf_equip_percent: u32,
+    pub buf_equip_percent: u64,
 }
 
 impl Ord for Attribute {
@@ -62,62 +68,64 @@ impl Attribute {
 #[serde(default)]
 pub struct Stats {
     #[serde(rename = "Aggro")]
-    pub aggro: Attribute,
+    aggro: Attribute,
 
     #[serde(rename = "Aggro rate")]
-    pub aggro_rate: Attribute,
+    aggro_rate: Attribute,
 
     #[serde(rename = "Magical armor")]
-    pub magical_armor: Attribute,
+    magical_armor: Attribute,
 
     #[serde(rename = "Physical armor")]
-    pub physical_armor: Attribute,
+    physical_armor: Attribute,
 
     #[serde(rename = "Magical power")]
-    pub magic_power: Attribute,
+    magic_power: Attribute,
 
     #[serde(rename = "Physical power")]
-    pub physical_power: Attribute,
+    physical_power: Attribute,
 
     #[serde(rename = "HP")]
-    pub hp: Attribute,
+    hp: Attribute,
 
     #[serde(rename = "Mana")]
-    pub mana: Attribute,
+    mana: Attribute,
 
     #[serde(rename = "Vigor")]
-    pub vigor: Attribute,
+    vigor: Attribute,
 
     #[serde(rename = "Berseck")]
-    pub berseck: Attribute,
+    berseck: Attribute,
 
     #[serde(rename = "Berseck rate")]
-    pub berseck_rate: Attribute,
+    berseck_rate: Attribute,
 
     #[serde(rename = "Speed")]
-    pub speed: Attribute,
+    speed: Attribute,
 
     #[serde(rename = "Critical strike")]
-    pub critical_strike: Attribute,
+    critical_strike: Attribute,
 
     #[serde(rename = "Dodge")]
-    pub dodge: Attribute,
+    dodge: Attribute,
 
     #[serde(rename = "HP regeneration")]
-    pub hp_regeneration: Attribute,
+    hp_regeneration: Attribute,
 
     #[serde(rename = "Mana regeneration")]
-    pub mana_regeneration: Attribute,
+    mana_regeneration: Attribute,
 
     #[serde(rename = "Vigor regeneration")]
-    pub vigor_regeneration: Attribute,
+    vigor_regeneration: Attribute,
 
     #[serde(rename = "Speed regeneration")]
-    pub speed_regeneration: Attribute,
+    speed_regeneration: Attribute,
+
+    pub all_stats: HashMap<String, Attribute>,
 }
 
 impl Stats {
-    pub fn sync_raw_values(&mut self) {
+    pub fn init(&mut self) {
         self.aggro.sync_raw_values();
         self.aggro_rate.sync_raw_values();
         self.magical_armor.sync_raw_values();
@@ -136,5 +144,42 @@ impl Stats {
         self.mana_regeneration.sync_raw_values();
         self.vigor_regeneration.sync_raw_values();
         self.speed_regeneration.sync_raw_values();
+
+        self.all_stats.insert(AGGRO.to_string(), self.aggro.clone());
+        self.all_stats
+            .insert(AGGRO_RATE.to_string(), self.aggro_rate.clone());
+        self.all_stats
+            .insert(MAGICAL_ARMOR.to_string(), self.magical_armor.clone());
+        self.all_stats
+            .insert(PHYSICAL_ARMOR.to_string(), self.physical_armor.clone());
+        self.all_stats
+            .insert(MAGICAL_POWER.to_string(), self.magic_power.clone());
+        self.all_stats
+            .insert(PHYSICAL_POWER.to_string(), self.physical_power.clone());
+        self.all_stats.insert(HP.to_string(), self.hp.clone());
+        self.all_stats.insert(MANA.to_string(), self.mana.clone());
+        self.all_stats.insert(VIGOR.to_string(), self.vigor.clone());
+        self.all_stats
+            .insert(BERSECK.to_string(), self.berseck.clone());
+        self.all_stats
+            .insert(BERSECK_RATE.to_string(), self.berseck_rate.clone());
+        self.all_stats.insert(SPEED.to_string(), self.speed.clone());
+        self.all_stats
+            .insert(CRITICAL_STRIKE.to_string(), self.critical_strike.clone());
+        self.all_stats.insert(DODGE.to_string(), self.dodge.clone());
+        self.all_stats
+            .insert(HP_REGEN.to_string(), self.hp_regeneration.clone());
+        self.all_stats
+            .insert(MANA_REGEN.to_string(), self.mana_regeneration.clone());
+        self.all_stats
+            .insert(VIGOR_REGEN.to_string(), self.vigor_regeneration.clone());
+        self.all_stats
+            .insert(SPEED_REGEN.to_string(), self.speed_regeneration.clone());
+    }
+
+    pub fn get_mut_value(&mut self, name: &str) -> &mut Attribute {
+        self.all_stats
+            .get_mut(name)
+            .expect("HP key missing in all_stats")
     }
 }

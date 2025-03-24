@@ -1,5 +1,5 @@
 /// Define the kind of target
-pub mod effect_const {
+pub mod target_const {
     pub const TARGET_ENNEMY: &str = "Ennemy";
     pub const TARGET_ALLY: &str = "Ally";
 }
@@ -18,12 +18,12 @@ pub mod stats_const {
     pub const SPEED: &str = "Speed";
     pub const CRITICAL_STRIKE: &str = "Critical strike";
     pub const DODGE: &str = "Dodge";
-    pub const REGEN_HP: &str = "HP regeneration";
-    pub const REGEN_MANA: &str = "Mana regeneration";
-    pub const REGEN_VIGOR: &str = "Vigor regeneration";
-    pub const RATE_BERSECK: &str = "Berserk rate";
-    pub const RATE_AGGRO: &str = "Aggro rate";
-    pub const REGEN_SPEED: &str = "Speed regeneration";
+    pub const HP_REGEN: &str = "HP regeneration";
+    pub const MANA_REGEN: &str = "Mana regeneration";
+    pub const VIGOR_REGEN: &str = "Vigor regeneration";
+    pub const BERSECK_RATE: &str = "Berserk rate";
+    pub const AGGRO_RATE: &str = "Aggro rate";
+    pub const SPEED_REGEN: &str = "Speed regeneration";
 }
 
 /// Defines all the keys except stats you can decode from the JSON input
@@ -49,7 +49,20 @@ pub mod character_json_key {
 }
 
 pub mod character_const {
-    pub const SPEED_THRESHOLD: u32 = 100;
+    pub const SPEED_THRESHOLD: u64 = 100;
+    pub const NB_TURN_SUM_AGGRO: usize = 5;
+}
+
+pub mod effect_const {
+    /// Effect to improve max value of a stat by percent (current value is updated by ratio)
+    pub const EFFECT_IMPROVE_BY_PERCENT_CHANGE: &str = "Up par %";
+    // Effect to improve max value of a stat by value (current value is updated by ratio)
+    pub const EFFECT_IMPROVEMENT_STAT_BY_VALUE: &str = "Up par valeur";
+    pub const EFFECT_BLOCK_HEAL_ATK: &str = "Bloque attaque de soin";
+    pub const EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT: &str = "Up/down degats en %";
+    pub const EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT: &str = "Up/down degats RX en %";
+    pub const EFFECT_CHANGE_HEAL_RX_BY_PERCENT: &str = "Up/down heal RX en %";
+    pub const EFFECT_CHANGE_HEAL_TX_BY_PERCENT: &str = "Up/down heal TX en %";
 }
 
 pub mod paths_const {

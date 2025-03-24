@@ -17,6 +17,8 @@ pub struct EffectParam {
     pub reach: String,
     /// Name of the targeted stat
     pub stats_name: String,
+    /// Value of the effect
+    pub value: i64,
 
     /// Processed
     /// TODO
