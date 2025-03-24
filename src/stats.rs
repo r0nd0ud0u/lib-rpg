@@ -15,9 +15,6 @@ pub struct TxRx {
     /// TODO use?
     #[serde(rename = "Tx-rx-size")]
     pub tx_rx_size: u64,
-    /// TODO enum
-    #[serde(rename = "Tx-rx-type")]
-    pub tx_rx_type: u64,
 }
 
 /// Define all the parameter of an attribute of a stat

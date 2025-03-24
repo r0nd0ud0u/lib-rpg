@@ -75,7 +75,7 @@ impl GameState {
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
         let mut dead_heroes = Vec::new();
         for hero in &self.pm.all_heroes {
-            if !hero.is_dead() {
+            if !hero.is_dead().unwrap_or(false) {
                 self.order_to_play.push(hero.name.clone());
             } else {
                 dead_heroes.push(hero.name.clone());
@@ -105,7 +105,7 @@ impl GameState {
             (&mut self.pm.all_bosses, &self.pm.all_heroes)
         };
         for pl1 in player_list1 {
-            if pl1.is_dead() {
+            if pl1.is_dead().unwrap_or(false) {
                 continue;
             }
             let speed_pl1 = match pl1.stats.all_stats.get_mut(SPEED) {

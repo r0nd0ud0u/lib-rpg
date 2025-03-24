@@ -102,7 +102,7 @@ impl PlayerManager {
             &mut self.all_bosses
         };
         for pl in player_list {
-            if pl.is_dead() {
+            if pl.is_dead().unwrap_or(false) {
                 continue;
             }
 

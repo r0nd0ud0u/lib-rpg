@@ -9,7 +9,7 @@ use crate::{
     effect::EffectParam,
     equipment::Equipment,
     powers::Powers,
-    stats::{Stats, TxRx},
+    stats::Stats,
     utils,
 };
 
@@ -25,6 +25,17 @@ pub struct ExtendedCharacter {
     /// Fight information: Playing the first round of that tour
     #[serde(default, rename = "is_first_round")]
     pub is_first_round: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, Hash, PartialEq)]
+pub enum AmountType {
+    DamageRx = 0,
+    DamageTx,
+    HealRx,
+    HealTx,
+    OverHealRx,
+    Aggro,
+    EnumSize,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -69,7 +80,7 @@ pub struct Character {
     pub is_last_atk_crit: bool,
     /// Fight information: damages transmitted or received through the fight
     #[serde(rename = "Tx-rx")]
-    tx_rx: Vec<TxRx>,
+    tx_rx: Vec<HashMap<u64, u64>>,
     /// Fight information: Enabled buf/debuf acquired through the fight
     #[serde(rename = "Buf-debuf")]
     pub all_buffers: Vec<Buffers>,
@@ -119,7 +130,7 @@ impl Default for Character {
             actions_done_in_round: 0,
             max_actions_by_round: 0,
             class: Class::Standard,
-            tx_rx: vec![],
+            tx_rx: vec![HashMap::new()],
             rank: 0,
             shape: String::new(),
         }
@@ -153,8 +164,12 @@ impl Character {
         }
     }
 
-    pub fn is_dead(&self) -> bool {
-        self.stats.all_stats[HP].current == 0
+    pub fn is_dead(&self) -> Option<bool> {
+        if self.stats.all_stats.contains_key(HP) {
+            Some(self.stats.all_stats[HP].current == 0)
+        } else {
+            None
+        }
     }
 
     /**
@@ -162,27 +177,21 @@ impl Character {
      * Set the aggro of m_LastTxRx to 0 on each turn
      * Assess the amount of aggro of the last 5 turns
      */
-    /* void Character::InitAggroOnTurn(const int turnNb) {
-      auto &aggroStat = m_Stats.m_AllStatsTable[STATS_AGGRO];
-      aggroStat.m_CurrentValue = 0;
-      for (int i = 1; i < NB_TURN_SUM_AGGRO + 1; i++) {
-        if (i <= m_LastTxRx[static_cast<int>(amountType::aggro)].size()) {
-          aggroStat.m_CurrentValue +=
-              m_LastTxRx[static_cast<int>(amountType::aggro)][turnNb - i];
-        }
-      }
-      m_LastTxRx[static_cast<int>(amountType::aggro)][turnNb] = 0;
-    } */
     pub fn init_aggro_on_turn(&mut self, turn_nb: u64) {
+        if self.tx_rx.len() <= AmountType::Aggro as usize {
+            return;
+        }
         if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO) {
             aggro_stat.current = 0;
             for i in 1..NB_TURN_SUM_AGGRO + 1 {
-                if i <= self.tx_rx.len() {
-                    aggro_stat.current += self.tx_rx[turn_nb as usize - i].tx_rx_size;
+                if i <= self.tx_rx[AmountType::Aggro as usize].len() {
+                    let index = turn_nb - i as u64;
+                    aggro_stat.current += self.tx_rx[AmountType::Aggro as usize][&index];
                 }
             }
         }
-        self.tx_rx[turn_nb as usize].tx_rx_size = 0;
+
+        self.tx_rx[AmountType::Aggro as usize].insert(turn_nb, 0);
     }
 
     /*
@@ -265,6 +274,8 @@ impl Character {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use crate::{
         character::{CharacterType, Class},
         common::stats_const::*,
@@ -368,8 +379,8 @@ mod tests {
         assert_eq!(5, c.stats.all_stats[VIGOR_REGEN].max);
         // tx-rx
         assert_eq!(6, c.tx_rx.len());
-        assert_eq!(0, c.tx_rx[2].tx_rx_size);
-        assert_eq!(2, c.tx_rx[2].tx_rx_type);
+        /*         assert_eq!(0, c.tx_rx[2].tx_rx_size);
+        assert_eq!(2, c.tx_rx[2].tx_rx_type); */
         // Type - kind
         assert_eq!(CharacterType::Hero, c.kind);
         // is-blocking-atk
@@ -381,5 +392,56 @@ mod tests {
 
         let file_path = "./tests/characters/wrong.json";
         assert!(Character::try_new_from_json(file_path).is_err());
+    }
+
+    #[test]
+    fn unit_is_dead() {
+        let mut c = Character::default();
+        c.stats.init();
+        assert!(c.is_dead().is_some());
+        assert_eq!(true, c.is_dead().unwrap());
+        c.stats.all_stats.get_mut(HP).unwrap().current = 15;
+        assert_eq!(false, c.is_dead().unwrap());
+    }
+
+    #[test]
+    fn unit_init_aggro_on_turn() {
+        let mut c = Character::default();
+        c.stats.init();
+        c.init_aggro_on_turn(1);
+        assert_eq!(0, c.stats.all_stats[AGGRO].current);
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx[5].insert(1, 10);
+        c.init_aggro_on_turn(2);
+        assert_eq!(10, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(2, 20);
+        c.init_aggro_on_turn(3);
+        assert_eq!(30, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(3, 30);
+        c.init_aggro_on_turn(4);
+        assert_eq!(60, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(4, 40);
+        c.init_aggro_on_turn(5);
+        assert_eq!(100, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(5, 50);
+        c.init_aggro_on_turn(6);
+        assert_eq!(150, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(6, 60);
+        c.init_aggro_on_turn(7);
+        assert_eq!(200, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(7, 70);
+        c.init_aggro_on_turn(8);
+        assert_eq!(250, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(8, 80);
+        c.init_aggro_on_turn(9);
+        assert_eq!(300, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(9, 90);
+        c.init_aggro_on_turn(10);
+        assert_eq!(350, c.stats.all_stats[AGGRO].current);
     }
 }

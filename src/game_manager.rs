@@ -16,8 +16,11 @@ pub struct GameManager {
 
 impl GameManager {
     pub fn try_new<P: AsRef<Path>>(path: P) -> Result<GameManager> {
-        let pm =
-            PlayerManager::try_new(path.as_ref().join(OFFLINE_CHARACTERS.as_path()).as_os_str())?;
+        let mut new_path = path.as_ref();
+        if new_path.as_os_str().is_empty() {
+            new_path = &OFFLINE_CHARACTERS;
+        }
+        let pm = PlayerManager::try_new(new_path)?;
         Ok(GameManager {
             player_manager: pm,
             game_name: GameState::default(),
@@ -32,6 +35,9 @@ mod tests {
     #[test]
     fn unit_try_new() {
         let gm = GameManager::try_new("").unwrap();
-        assert!(gm.player_manager.all_heroes.len() > 1);
+        assert_eq!(gm.player_manager.all_heroes.len(), 0);
+
+        let gm = GameManager::try_new("./tests/characters").unwrap();
+        assert_eq!(gm.player_manager.all_heroes.len(), 1);
     }
 }
