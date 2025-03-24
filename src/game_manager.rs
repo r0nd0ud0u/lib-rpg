@@ -34,8 +34,11 @@ mod tests {
 
     #[test]
     fn unit_try_new() {
+        // if empty path, should use the default path
         let gm = GameManager::try_new("").unwrap();
-        assert_eq!(gm.player_manager.all_heroes.len(), 0);
+        assert_eq!(gm.player_manager.all_heroes.len(), 2);
+
+        assert!(GameManager::try_new("unknown").is_err());
 
         let gm = GameManager::try_new("./tests/characters").unwrap();
         assert_eq!(gm.player_manager.all_heroes.len(), 1);
