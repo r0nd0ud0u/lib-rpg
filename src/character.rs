@@ -533,5 +533,4 @@ mod tests {
         c.remove_malus_effect(&ep);
         assert_eq!(-10, c.all_buffers[BufTypes::HealTx as usize].value);
     }
-
 }
