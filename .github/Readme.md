@@ -28,8 +28,8 @@ GameManager([GameManager])
 PlayerManager([<br>PlayerManager<br><br>])
 
 GameManager-- <br> ---->PlayerManager
-PlayerManager-- <br> ---->Heroes(character-list)
-PlayerManager-- <br> ---->Bosses(character-list)
+PlayerManager-- <br> ---->Heroes-character-list
+PlayerManager-- <br> ---->Bosses-character-list
 
 ```
 
