@@ -240,6 +240,7 @@ impl Character {
         stat.current = (stat.max as f64 * ratio).round() as u64;
     }
 
+    // TODO if i remove a malus percent for DamageTx with EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT, how can if make the difference with a value which is not percent
     pub fn remove_malus_effect(&mut self, ep: &EffectParam) {
         if ep.effect == EFFECT_IMPROVE_BY_PERCENT_CHANGE {
             self.set_stats_on_effect(&ep.stats_name, -ep.value, true, true);
@@ -277,8 +278,7 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::{
-        character::{CharacterType, Class},
-        common::stats_const::*,
+        buffers::BufTypes, character::{CharacterType, Class}, common::{effect_const::*, stats_const::*}, effect::EffectParam
     };
 
     use super::Character;
@@ -444,4 +444,91 @@ mod tests {
         c.init_aggro_on_turn(10);
         assert_eq!(350, c.stats.all_stats[AGGRO].current);
     }
+
+    #[test]
+    fn unit_set_stats_on_effect() {
+        let file_path = "./tests/characters/test.json"; // Path to the JSON file
+        let c = Character::try_new_from_json(file_path);
+        assert!(c.is_ok());
+        let mut c = c.unwrap();
+        c.set_stats_on_effect(HP, 10, false, true);
+        assert_eq!(145, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.set_stats_on_effect(HP, -10, false, true);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.set_stats_on_effect(HP, 10, true, true);
+        assert_eq!(148, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.set_stats_on_effect(HP, -10, true, true);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);        
+    }
+
+    #[test]
+    fn unitremove_malus_effect(){
+        let file_path = "./tests/characters/test.json"; // Path to the JSON file
+        let c = Character::try_new_from_json(file_path);
+        assert!(c.is_ok());
+        let mut c = c.unwrap();
+        let ep = EffectParam {
+            effect: EFFECT_IMPROVE_BY_PERCENT_CHANGE.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        let ep = EffectParam {
+            effect: EFFECT_IMPROVEMENT_STAT_BY_VALUE.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        let ep = EffectParam {
+            effect: EFFECT_BLOCK_HEAL_ATK.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(false, c.extended_character.is_heal_atk_blocked);
+        let ep = EffectParam {
+            effect: EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(-10, c.all_buffers[BufTypes::DamageTx as usize].value);
+        let ep = EffectParam {
+            effect: EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(-10, c.all_buffers[BufTypes::DamageRx as usize].value);
+        let ep = EffectParam {
+            effect: EFFECT_CHANGE_HEAL_RX_BY_PERCENT.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(-10, c.all_buffers[BufTypes::HealRx as usize].value);
+        let ep = EffectParam {
+            effect: EFFECT_CHANGE_HEAL_TX_BY_PERCENT.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(-10, c.all_buffers[BufTypes::HealTx as usize].value);
+    }
+
 }
