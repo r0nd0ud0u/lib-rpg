@@ -161,8 +161,8 @@
             "Max": 10
         },
         "Speed": {
-            "Current": 12,
-            "Max": 12
+            "Current": 212,
+            "Max": 212
         },
         "Speed regeneration": {
             "Current": 12,
@@ -178,29 +178,27 @@
         }
     },
     "Tx-rx": [
-        {
-            "Tx-rx-size": 0,
-            "Tx-rx-type": 0
+        {        
+            "1": 60
         },
         {
-            "Tx-rx-size": 0,
-            "Tx-rx-type": 1
+            "5": 70
         },
         {
-            "Tx-rx-size": 0,
-            "Tx-rx-type": 2
+            "5": 80
         },
         {
-            "Tx-rx-size": 0,
-            "Tx-rx-type": 3
+            "5": 90
         },
         {
-            "Tx-rx-size": 0,
-            "Tx-rx-type": 4
+            "5": 100
         },
         {
-            "Tx-rx-size": 0,
-            "Tx-rx-type": 5
+            "1": 0,
+            "2": 36,
+            "3": 0,
+            "4": 0,
+            "5": 10
         }
     ],
     "Type": "Hero",
