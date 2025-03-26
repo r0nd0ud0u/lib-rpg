@@ -330,8 +330,12 @@ mod tests {
     #[test]
     fn unit_remove_terminated_effect_on_player() {
         let mut pl = PlayerManager::try_new("tests/characters").unwrap();
-        pl.all_effects_on_game.insert("Super test".to_string(), Vec::new());
-        pl.all_effects_on_game.get_mut("Super test").unwrap().push(GameAtkEffects::default());
+        pl.all_effects_on_game
+            .insert("Super test".to_string(), Vec::new());
+        pl.all_effects_on_game
+            .get_mut("Super test")
+            .unwrap()
+            .push(GameAtkEffects::default());
         pl.current_player = pl.active_heroes[0].clone();
         pl.remove_terminated_effect_on_player().unwrap();
         assert_eq!(0, pl.all_effects_on_game.get("Super test").unwrap().len());

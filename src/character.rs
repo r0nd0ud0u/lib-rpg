@@ -278,7 +278,10 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::{
-        buffers::BufTypes, character::{CharacterType, Class}, common::{effect_const::*, stats_const::*}, effect::EffectParam
+        buffers::BufTypes,
+        character::{CharacterType, Class},
+        common::{effect_const::*, stats_const::*},
+        effect::EffectParam,
     };
 
     use super::Character;
@@ -462,11 +465,11 @@ mod tests {
         assert_eq!(1, c.stats.all_stats[HP].current);
         c.set_stats_on_effect(HP, -10, true, true);
         assert_eq!(135, c.stats.all_stats[HP].max);
-        assert_eq!(1, c.stats.all_stats[HP].current);        
+        assert_eq!(1, c.stats.all_stats[HP].current);
     }
 
     #[test]
-    fn unitremove_malus_effect(){
+    fn unitremove_malus_effect() {
         let file_path = "./tests/characters/test.json"; // Path to the JSON file
         let c = Character::try_new_from_json(file_path);
         assert!(c.is_ok());
@@ -530,5 +533,4 @@ mod tests {
         c.remove_malus_effect(&ep);
         assert_eq!(-10, c.all_buffers[BufTypes::HealTx as usize].value);
     }
-
 }
