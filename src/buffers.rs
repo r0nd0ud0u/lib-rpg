@@ -1,5 +1,21 @@
 use serde::{Deserialize, Serialize};
 
+pub enum BufTypes {
+    DefaultBuf = 0,
+    DamageRx,
+    DamageTx,
+    HealTx,
+    HealRx,
+    DamageCritCapped,
+    PowPhyBuf,
+    NextHealAtkIsCrit,
+    MultiValue,
+    ApplyEffectInit,
+    ChangeByHealValue,
+    BoostedByHots,
+    EnumSize,
+}
+
 /// Returns: i64
 /// Returns the buf/debuf on cur_value.
 /// its type {percent, decimal} and the additional value

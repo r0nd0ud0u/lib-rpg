@@ -4,10 +4,12 @@ use std::{collections::HashMap, path::Path};
 
 use crate::{
     attack_type::AttackType,
-    buffers::Buffers,
+    buffers::{BufTypes, Buffers},
+    common::{character_const::NB_TURN_SUM_AGGRO, effect_const::*, stats_const::*},
+    effect::EffectParam,
     equipment::Equipment,
     powers::Powers,
-    stats::{Stats, TxRx},
+    stats::Stats,
     utils,
 };
 
@@ -23,6 +25,17 @@ pub struct ExtendedCharacter {
     /// Fight information: Playing the first round of that tour
     #[serde(default, rename = "is_first_round")]
     pub is_first_round: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, Hash, PartialEq)]
+pub enum AmountType {
+    DamageRx = 0,
+    DamageTx,
+    HealRx,
+    HealTx,
+    OverHealRx,
+    Aggro,
+    EnumSize,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -67,7 +80,7 @@ pub struct Character {
     pub is_last_atk_crit: bool,
     /// Fight information: damages transmitted or received through the fight
     #[serde(rename = "Tx-rx")]
-    tx_rx: Vec<TxRx>,
+    tx_rx: Vec<HashMap<u64, u64>>,
     /// Fight information: Enabled buf/debuf acquired through the fight
     #[serde(rename = "Buf-debuf")]
     pub all_buffers: Vec<Buffers>,
@@ -117,7 +130,7 @@ impl Default for Character {
             actions_done_in_round: 0,
             max_actions_by_round: 0,
             class: Class::Standard,
-            tx_rx: vec![],
+            tx_rx: vec![HashMap::new()],
             rank: 0,
             shape: String::new(),
         }
@@ -143,24 +156,142 @@ pub enum Class {
 
 impl Character {
     pub fn try_new_from_json<P: AsRef<Path>>(path: P) -> Result<Character> {
-        if let Ok(value) = utils::read_from_json(&path) {
+        if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
+            value.stats.init();
             Ok(value)
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
+        }
+    }
+
+    pub fn is_dead(&self) -> Option<bool> {
+        if self.stats.all_stats.contains_key(HP) {
+            Some(self.stats.all_stats[HP].current == 0)
+        } else {
+            None
+        }
+    }
+
+    /**
+     * @brief Character::InitAggroOnTurn
+     * Set the aggro of m_LastTxRx to 0 on each turn
+     * Assess the amount of aggro of the last 5 turns
+     */
+    pub fn init_aggro_on_turn(&mut self, turn_nb: u64) {
+        if self.tx_rx.len() <= AmountType::Aggro as usize {
+            return;
+        }
+        if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO) {
+            aggro_stat.current = 0;
+            for i in 1..NB_TURN_SUM_AGGRO + 1 {
+                if i <= self.tx_rx[AmountType::Aggro as usize].len() {
+                    let index = turn_nb - i as u64;
+                    aggro_stat.current += self.tx_rx[AmountType::Aggro as usize][&index];
+                }
+            }
+        }
+
+        self.tx_rx[AmountType::Aggro as usize].insert(turn_nb, 0);
+    }
+
+    /*
+     * @brief Character::SetStatsOnEffect
+     * @param stat
+     * stat.m_RawMaxValue of a stat cannot be equal to 0.
+     *
+     * @param value
+     * @param isPercent
+     * @param updateEffect: false -> enable to update current value et max value
+     * only with equipments buf.
+     */
+    pub fn set_stats_on_effect(
+        &mut self,
+        attribute_name: &str,
+        value: i64,
+        is_percent: bool,
+        update_effect: bool,
+    ) {
+        let stat = self
+            .stats
+            .all_stats
+            .get_mut(attribute_name)
+            .expect("Stat not found");
+        let ratio = utils::calc_ratio(stat.current as i64, stat.max as i64);
+        if stat.max_raw == 0 {
+            return;
+        }
+        let base_value =
+            stat.max_raw + stat.buf_equip_value + stat.buf_equip_percent * stat.max_raw / 100;
+        stat.max = base_value;
+        if update_effect {
+            if is_percent {
+                if value > 0 {
+                    stat.buf_effect_percent += value as u64;
+                } else {
+                    stat.buf_effect_percent = stat.buf_effect_percent.saturating_sub(value as u64);
+                }
+            } else if value > 0 {
+                stat.buf_effect_value += value as u64;
+            } else {
+                stat.buf_effect_value = stat.buf_effect_percent.saturating_sub(value as u64);
+            }
+        }
+        stat.max = base_value + stat.buf_effect_value + stat.buf_effect_percent * base_value / 100;
+        stat.current = (stat.max as f64 * ratio).round() as u64;
+    }
+
+    // TODO if i remove a malus percent for DamageTx with EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT, how can if make the difference with a value which is not percent
+    pub fn remove_malus_effect(&mut self, ep: &EffectParam) {
+        if ep.effect == EFFECT_IMPROVE_BY_PERCENT_CHANGE {
+            self.set_stats_on_effect(&ep.stats_name, -ep.value, true, true);
+        }
+        if ep.effect == EFFECT_IMPROVEMENT_STAT_BY_VALUE {
+            self.set_stats_on_effect(&ep.stats_name, -ep.value, false, true);
+        }
+        if ep.effect == EFFECT_BLOCK_HEAL_ATK {
+            self.extended_character.is_heal_atk_blocked = false;
+        }
+        if ep.effect == EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT {
+            self.update_buf(BufTypes::DamageTx, -ep.value, true, "");
+        }
+        if ep.effect == EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT {
+            self.update_buf(BufTypes::DamageRx, -ep.value, true, "");
+        }
+        if ep.effect == EFFECT_CHANGE_HEAL_RX_BY_PERCENT {
+            self.update_buf(BufTypes::HealRx, -ep.value, true, "");
+        }
+        if ep.effect == EFFECT_CHANGE_HEAL_TX_BY_PERCENT {
+            self.update_buf(BufTypes::HealTx, -ep.value, true, "");
+        }
+    }
+    pub fn update_buf(&mut self, buf_type: BufTypes, value: i64, is_percent: bool, stat: &str) {
+        if let Some(buf) = self.all_buffers.get_mut(buf_type as usize) {
+            buf.value += value;
+            buf.is_percent = is_percent;
+            buf.all_stat_name = stat.to_string();
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::character::{CharacterType, Class};
+    use std::collections::HashMap;
+
+    use crate::{
+        buffers::BufTypes,
+        character::{CharacterType, Class},
+        common::{effect_const::*, stats_const::*},
+        effect::EffectParam,
+    };
 
     use super::Character;
 
     #[test]
     fn unit_try_new_from_json() {
         let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(file_path).unwrap();
+        let c = Character::try_new_from_json(file_path);
+        assert!(c.is_ok());
+        let c = c.unwrap();
         // name
         assert_eq!("Super test", c.name);
         assert_eq!("Test", c.short_name);
@@ -194,63 +325,65 @@ mod tests {
         assert_eq!("", c.shape);
         // stats
         // stats - aggro
-        assert_eq!(0, c.stats.aggro.current);
-        assert_eq!(9999, c.stats.aggro.max);
+        assert_eq!(0, c.stats.all_stats[AGGRO].current);
+        assert_eq!(9999, c.stats.all_stats[AGGRO].max);
         // stats - aggro rate
-        assert_eq!(1, c.stats.aggro_rate.current);
-        assert_eq!(1, c.stats.aggro_rate.max);
+        assert_eq!(1, c.stats.all_stats[AGGRO_RATE].current);
+        assert_eq!(1, c.stats.all_stats[AGGRO_RATE].max);
         // stats - berseck
-        assert_eq!(200, c.stats.berseck.current);
-        assert_eq!(200, c.stats.berseck.max);
+        assert_eq!(200, c.stats.all_stats[BERSECK].current);
+        assert_eq!(200, c.stats.all_stats[BERSECK].max);
         // stats - berseck_rate
-        assert_eq!(1, c.stats.berseck_rate.current);
-        assert_eq!(1, c.stats.berseck_rate.max);
+        assert_eq!(1, c.stats.all_stats[BERSECK_RATE].current);
+        assert_eq!(1, c.stats.all_stats[BERSECK_RATE].max);
         // stats - critical_strike
-        assert_eq!(10, c.stats.critical_strike.current);
-        assert_eq!(10, c.stats.critical_strike.max);
+        assert_eq!(10, c.stats.all_stats[CRITICAL_STRIKE].current);
+        assert_eq!(10, c.stats.all_stats[CRITICAL_STRIKE].max);
         // stats - dodge
-        assert_eq!(5, c.stats.dodge.current);
-        assert_eq!(5, c.stats.dodge.max);
+        assert_eq!(5, c.stats.all_stats[DODGE].current);
+        assert_eq!(5, c.stats.all_stats[DODGE].max);
         // stats - hp
-        assert_eq!(1, c.stats.hp.current);
-        assert_eq!(135, c.stats.hp.max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(135, c.stats.all_stats[HP].max_raw);
+        assert_eq!(1, c.stats.all_stats[HP].current_raw);
         // stats - hp_regeneration
-        assert_eq!(7, c.stats.hp_regeneration.current);
-        assert_eq!(7, c.stats.hp_regeneration.max);
+        assert_eq!(7, c.stats.all_stats[HP_REGEN].current);
+        assert_eq!(7, c.stats.all_stats[HP_REGEN].max);
         // stats - magic_armor
-        assert_eq!(10, c.stats.magical_armor.current);
-        assert_eq!(10, c.stats.magical_armor.max);
+        assert_eq!(10, c.stats.all_stats[MAGICAL_ARMOR].current);
+        assert_eq!(10, c.stats.all_stats[MAGICAL_ARMOR].max);
         // stats - magic_power
-        assert_eq!(20, c.stats.magic_power.current);
-        assert_eq!(20, c.stats.magic_power.max);
+        assert_eq!(20, c.stats.all_stats[MAGICAL_POWER].current);
+        assert_eq!(20, c.stats.all_stats[MAGICAL_POWER].max);
         // stats - mana
-        assert_eq!(200, c.stats.mana.current);
-        assert_eq!(200, c.stats.mana.max);
+        assert_eq!(200, c.stats.all_stats[MANA].current);
+        assert_eq!(200, c.stats.all_stats[MANA].max);
         // stats - mana_regeneration
-        assert_eq!(7, c.stats.mana_regeneration.current);
-        assert_eq!(7, c.stats.mana_regeneration.max);
+        assert_eq!(7, c.stats.all_stats[MANA_REGEN].current);
+        assert_eq!(7, c.stats.all_stats[MANA_REGEN].max);
         // stats - physical_armor
-        assert_eq!(5, c.stats.physical_armor.current);
-        assert_eq!(5, c.stats.physical_armor.max);
+        assert_eq!(5, c.stats.all_stats[PHYSICAL_ARMOR].current);
+        assert_eq!(5, c.stats.all_stats[PHYSICAL_ARMOR].max);
         // stats - physical_power
-        assert_eq!(10, c.stats.physical_power.current);
-        assert_eq!(10, c.stats.physical_power.max);
+        assert_eq!(10, c.stats.all_stats[PHYSICAL_POWER].current);
+        assert_eq!(10, c.stats.all_stats[PHYSICAL_POWER].max);
         // stats - speed
-        assert_eq!(12, c.stats.speed.current);
-        assert_eq!(12, c.stats.speed.max);
+        assert_eq!(212, c.stats.all_stats[SPEED].current);
+        assert_eq!(212, c.stats.all_stats[SPEED].max);
         // stats - speed_regeneration
-        assert_eq!(12, c.stats.speed_regeneration.current);
-        assert_eq!(12, c.stats.speed_regeneration.max);
+        assert_eq!(12, c.stats.all_stats[SPEED_REGEN].current);
+        assert_eq!(12, c.stats.all_stats[SPEED_REGEN].max);
         // stats - vigor
-        assert_eq!(200, c.stats.vigor.current);
-        assert_eq!(200, c.stats.vigor.max);
+        assert_eq!(200, c.stats.all_stats[VIGOR].current);
+        assert_eq!(200, c.stats.all_stats[VIGOR].max);
         // stats - vigor_regeneration
-        assert_eq!(5, c.stats.vigor_regeneration.current);
-        assert_eq!(5, c.stats.vigor_regeneration.max);
+        assert_eq!(5, c.stats.all_stats[VIGOR_REGEN].current);
+        assert_eq!(5, c.stats.all_stats[VIGOR_REGEN].max);
         // tx-rx
         assert_eq!(6, c.tx_rx.len());
-        assert_eq!(0, c.tx_rx[2].tx_rx_size);
-        assert_eq!(2, c.tx_rx[2].tx_rx_type);
+        /*         assert_eq!(0, c.tx_rx[2].tx_rx_size);
+        assert_eq!(2, c.tx_rx[2].tx_rx_type); */
         // Type - kind
         assert_eq!(CharacterType::Hero, c.kind);
         // is-blocking-atk
@@ -262,5 +395,142 @@ mod tests {
 
         let file_path = "./tests/characters/wrong.json";
         assert!(Character::try_new_from_json(file_path).is_err());
+    }
+
+    #[test]
+    fn unit_is_dead() {
+        let mut c = Character::default();
+        c.stats.init();
+        assert!(c.is_dead().is_some());
+        assert_eq!(true, c.is_dead().unwrap());
+        c.stats.all_stats.get_mut(HP).unwrap().current = 15;
+        assert_eq!(false, c.is_dead().unwrap());
+    }
+
+    #[test]
+    fn unit_init_aggro_on_turn() {
+        let mut c = Character::default();
+        c.stats.init();
+        c.init_aggro_on_turn(1);
+        assert_eq!(0, c.stats.all_stats[AGGRO].current);
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx.push(HashMap::new());
+        c.tx_rx[5].insert(1, 10);
+        c.init_aggro_on_turn(2);
+        assert_eq!(10, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(2, 20);
+        c.init_aggro_on_turn(3);
+        assert_eq!(30, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(3, 30);
+        c.init_aggro_on_turn(4);
+        assert_eq!(60, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(4, 40);
+        c.init_aggro_on_turn(5);
+        assert_eq!(100, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(5, 50);
+        c.init_aggro_on_turn(6);
+        assert_eq!(150, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(6, 60);
+        c.init_aggro_on_turn(7);
+        assert_eq!(200, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(7, 70);
+        c.init_aggro_on_turn(8);
+        assert_eq!(250, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(8, 80);
+        c.init_aggro_on_turn(9);
+        assert_eq!(300, c.stats.all_stats[AGGRO].current);
+        c.tx_rx[5].insert(9, 90);
+        c.init_aggro_on_turn(10);
+        assert_eq!(350, c.stats.all_stats[AGGRO].current);
+    }
+
+    #[test]
+    fn unit_set_stats_on_effect() {
+        let file_path = "./tests/characters/test.json"; // Path to the JSON file
+        let c = Character::try_new_from_json(file_path);
+        assert!(c.is_ok());
+        let mut c = c.unwrap();
+        c.set_stats_on_effect(HP, 10, false, true);
+        assert_eq!(145, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.set_stats_on_effect(HP, -10, false, true);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.set_stats_on_effect(HP, 10, true, true);
+        assert_eq!(148, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.set_stats_on_effect(HP, -10, true, true);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+    }
+
+    #[test]
+    fn unitremove_malus_effect() {
+        let file_path = "./tests/characters/test.json"; // Path to the JSON file
+        let c = Character::try_new_from_json(file_path);
+        assert!(c.is_ok());
+        let mut c = c.unwrap();
+        let ep = EffectParam {
+            effect: EFFECT_IMPROVE_BY_PERCENT_CHANGE.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        let ep = EffectParam {
+            effect: EFFECT_IMPROVEMENT_STAT_BY_VALUE.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        let ep = EffectParam {
+            effect: EFFECT_BLOCK_HEAL_ATK.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(false, c.extended_character.is_heal_atk_blocked);
+        let ep = EffectParam {
+            effect: EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(-10, c.all_buffers[BufTypes::DamageTx as usize].value);
+        let ep = EffectParam {
+            effect: EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(-10, c.all_buffers[BufTypes::DamageRx as usize].value);
+        let ep = EffectParam {
+            effect: EFFECT_CHANGE_HEAL_RX_BY_PERCENT.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(-10, c.all_buffers[BufTypes::HealRx as usize].value);
+        let ep = EffectParam {
+            effect: EFFECT_CHANGE_HEAL_TX_BY_PERCENT.to_string(),
+            stats_name: HP.to_string(),
+            value: 10,
+            ..Default::default()
+        };
+        c.remove_malus_effect(&ep);
+        assert_eq!(-10, c.all_buffers[BufTypes::HealTx as usize].value);
     }
 }

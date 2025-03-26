@@ -28,8 +28,8 @@ GameManager([GameManager])
 PlayerManager([<br>PlayerManager<br><br>])
 
 GameManager-- <br> ---->PlayerManager
-PlayerManager-- <br> ---->Heroes(character-list)
-PlayerManager-- <br> ---->Bosses(character-list)
+PlayerManager-- <br> ---->Heroes-character-list
+PlayerManager-- <br> ---->Bosses-character-list
 
 ```
 
@@ -65,5 +65,5 @@ Images are stored as well.
 - Test: `cargo test unit`
 - Coverage: 
     - install tarpaulin `cargo install cargo-tarpaulin` 
-    - run `cargo tarpaulin --out Lcov -- unit_test`
+    - run `cargo tarpaulin --out Lcov -- unit`
 

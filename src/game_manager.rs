@@ -1,6 +1,8 @@
 use std::path::Path;
 
-use crate::{common::paths_const::OFFLINE_CHARACTERS, players_manager::PlayerManager};
+use crate::{
+    common::paths_const::OFFLINE_CHARACTERS, game_state::GameState, players_manager::PlayerManager,
+};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
@@ -9,13 +11,20 @@ use serde::{Deserialize, Serialize};
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GameManager {
     pub player_manager: PlayerManager,
+    pub game_name: GameState,
 }
 
 impl GameManager {
     pub fn try_new<P: AsRef<Path>>(path: P) -> Result<GameManager> {
-        let pm =
-            PlayerManager::try_new(path.as_ref().join(OFFLINE_CHARACTERS.as_path()).as_os_str())?;
-        Ok(GameManager { player_manager: pm })
+        let mut new_path = path.as_ref();
+        if new_path.as_os_str().is_empty() {
+            new_path = &OFFLINE_CHARACTERS;
+        }
+        let pm = PlayerManager::try_new(new_path)?;
+        Ok(GameManager {
+            player_manager: pm,
+            game_name: GameState::default(),
+        })
     }
 }
 
@@ -25,7 +34,13 @@ mod tests {
 
     #[test]
     fn unit_try_new() {
+        // if empty path, should use the default path
         let gm = GameManager::try_new("").unwrap();
-        assert_eq!(1, gm.player_manager.all_heroes.len());
+        assert_eq!(gm.player_manager.all_heroes.len(), 2);
+
+        assert!(GameManager::try_new("unknown").is_err());
+
+        let gm = GameManager::try_new("./tests/characters").unwrap();
+        assert_eq!(gm.player_manager.all_heroes.len(), 1);
     }
 }

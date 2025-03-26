@@ -1,4 +1,4 @@
-use crate::common::{effect_const::TARGET_ENNEMY, stats_const::HP};
+use crate::common::{stats_const::HP, target_const::TARGET_ENNEMY};
 
 /// Return true if changing stats is HP and if it is from an ally
 /// Otherwise false.
@@ -14,8 +14,8 @@ mod tests {
     use crate::{
         attaque::is_heal_effect,
         common::{
-            effect_const::{TARGET_ALLY, TARGET_ENNEMY},
             stats_const::HP,
+            target_const::{TARGET_ALLY, TARGET_ENNEMY},
         },
     };
 
