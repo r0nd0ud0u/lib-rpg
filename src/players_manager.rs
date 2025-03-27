@@ -210,6 +210,16 @@ impl PlayerManager {
             });
         Ok(())
     }
+
+    pub fn apply_effects_on_player(&mut self, current_turn_nb: i64, from_launch : bool){
+        if !self.all_effects_on_game.contains_key(&self.current_player.name){
+            return
+        }
+        let mut hot_and_dot = 0;
+        for gae in self.all_effects_on_game.get_mut(&self.current_player).unwrap(){
+            
+        }
+    }
 }
 
 #[cfg(test)]
