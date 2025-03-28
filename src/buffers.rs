@@ -51,7 +51,7 @@ pub struct Buffers {
     /// Potentially, a buffer can be applied on a stat, otherwise empty
     /// TODO: encode a list of string or try to decode with delimiter
     #[serde(rename = "Buf-all-stats")]
-    pub all_stat_name: String,
+    pub all_stats_name: Vec<String>,
     /// TODO buf-type
     #[serde(rename = "Buf-type")]
     pub buf_type: i64,

@@ -56,13 +56,34 @@ pub mod character_const {
 pub mod effect_const {
     /// Effect to improve max value of a stat by percent (current value is updated by ratio)
     pub const EFFECT_IMPROVE_BY_PERCENT_CHANGE: &str = "Up par %";
-    // Effect to improve max value of a stat by value (current value is updated by ratio)
+    /// Effect to improve max value of a stat by value (current value is updated by ratio)
     pub const EFFECT_IMPROVEMENT_STAT_BY_VALUE: &str = "Up par valeur";
     pub const EFFECT_BLOCK_HEAL_ATK: &str = "Bloque attaque de soin";
     pub const EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT: &str = "Up/down degats en %";
     pub const EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT: &str = "Up/down degats RX en %";
     pub const EFFECT_CHANGE_HEAL_RX_BY_PERCENT: &str = "Up/down heal RX en %";
     pub const EFFECT_CHANGE_HEAL_TX_BY_PERCENT: &str = "Up/down heal TX en %";
+
+    /// Effect to improve cuurent value of a stat by value
+    pub const EFFECT_VALUE_CHANGE: &str = "Changement par valeur";
+    /// Effect to improve cuurent value of a stat by percent
+    pub const EFFECT_PERCENT_CHANGE: &str = "Changement par %";
+    /// Assess the amount of applies for a stat
+    pub const EFFECT_REPEAT_AS_MANY_AS: &str = "Répète tant que possible";
+    /// Effect to execute an atk with a decreasing success rate defined by a step on effect value
+    pub const EFFECT_NB_DECREASE_ON_TURN: &str = "Decroissement pendant le tour";
+    pub const EFFECT_NB_DECREASE_BY_TURN: &str = "Decroissement par tour";
+    pub const CONDITION_ENNEMIES_DIED: &str = "Ennemis morts tours précédents";
+
+    pub const EFFECT_NB_COOL_DOWN: &str = "Tours de recharge";
+    pub const EFFECT_REINIT: &str = "Reinit";
+    pub const EFFECT_DELETE_BAD: &str = "Supprime effet néfaste";
+    pub const EFFECT_IMPROVE_HOTS: &str = "Boost chaque HOT de .. %";
+    pub const EFFECT_BOOSTED_BY_HOTS: &str = "Boost l'effet par nb HOTS presents en %";
+    pub const EFFECT_INTO_DAMAGE: &str = "% (stats) en dégâts";
+    pub const EFFECT_NEXT_HEAL_IS_CRIT: &str = "Prochaine attaque heal est crit";
+    pub const EFFECT_BUF_MULTI: &str = "Buf multi";
+    pub const EFFECT_BUF_VALUE_AS_MUCH_AS_HEAL: &str = "Buf par valeur d'autant de PV";
 }
 
 pub mod paths_const {
@@ -75,4 +96,9 @@ pub mod paths_const {
         /// Path for directory where all the JSON character files are stored.
         pub static ref OFFLINE_CHARACTERS: PathBuf = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/offlines/characters"));
     }
+}
+
+pub mod attak_const {
+    pub const COEFF_CRIT_DMG: f64 = 2.0;
+    pub const COEFF_CRIT_STATS: f64 = 1.5;
 }
