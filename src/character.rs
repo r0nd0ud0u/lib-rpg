@@ -403,7 +403,7 @@ impl Character {
             }
             EFFECT_NB_DECREASE_ON_TURN => {
                 // TODO
-                new_effect_param.number_of_applies = process_decrease_on_turn(&ep);
+                new_effect_param.number_of_applies = process_decrease_on_turn(ep);
                 self.update_buf(
                     BufTypes::ApplyEffectInit,
                     new_effect_param.number_of_applies,

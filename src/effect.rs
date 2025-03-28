@@ -147,6 +147,8 @@ pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
 
 #[cfg(test)]
 mod tests {
+    use crate::{common::all_target_const::TARGET_ALLY, target::is_target_ally};
+
     use super::*;
 
     #[test]
@@ -192,5 +194,20 @@ mod tests {
         };
         let result = process_decrease_on_turn(&ep);
         assert!(result <= 3 && result >= 0);
+    }
+
+    #[test]
+    fn test_is_effect_only_at_atk_launch() {
+        assert_eq!(
+            is_effect_only_at_atk_launch(EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE),
+            true
+        );
+        assert_eq!(is_effect_only_at_atk_launch("hehe"), false);
+    }
+
+    #[test]
+    fn test_is_target_ally() {
+        assert_eq!(is_target_ally(TARGET_ALLY), true);
+        assert_eq!(is_target_ally("hehe"), false);
     }
 }

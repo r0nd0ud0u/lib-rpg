@@ -118,15 +118,27 @@ impl PlayerManager {
                 continue;
             }
 
-            let mut hp = pl.stats.all_stats.remove(HP).expect("hp is missing");
-            let mut mana = pl.stats.all_stats.remove(MANA).expect("mana is missing");
+            let mut hp = pl.stats.all_stats.swap_remove(HP).expect("hp is missing");
+            let mut mana = pl
+                .stats
+                .all_stats
+                .swap_remove(MANA)
+                .expect("mana is missing");
             let mut berseck = pl
                 .stats
                 .all_stats
-                .remove(BERSECK)
+                .swap_remove(BERSECK)
                 .expect("berseck is missing");
-            let mut vigor = pl.stats.all_stats.remove(VIGOR).expect("vigor is missing");
-            let mut speed = pl.stats.all_stats.remove(SPEED).expect("speed is missing");
+            let mut vigor = pl
+                .stats
+                .all_stats
+                .swap_remove(VIGOR)
+                .expect("vigor is missing");
+            let mut speed = pl
+                .stats
+                .all_stats
+                .swap_remove(SPEED)
+                .expect("speed is missing");
 
             let regen_hp = &pl.stats.all_stats[HP_REGEN];
             let regen_mana = &pl.stats.all_stats[MANA_REGEN];
@@ -270,7 +282,7 @@ impl PlayerManager {
             .all_effects_on_game
             .get(&self.current_player.name)
             .cloned()
-            .unwrap_or_else(|| vec![]);
+            .unwrap_or_else(|| vec![GameAtkEffects::default()]);
         let mut hot_and_dot = 0;
         let mut output_new_effects = Vec::new();
         let target_pl = self.current_player.clone();
