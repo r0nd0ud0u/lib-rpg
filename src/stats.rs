@@ -1,4 +1,5 @@
-use std::{cmp::Ordering, collections::HashMap};
+use indexmap::IndexMap;
+use std::cmp::Ordering;
 
 use serde::{Deserialize, Serialize};
 
@@ -118,7 +119,7 @@ pub struct Stats {
     #[serde(rename = "Speed regeneration")]
     speed_regeneration: Attribute,
 
-    pub all_stats: HashMap<String, Attribute>,
+    pub all_stats: IndexMap<String, Attribute>,
 }
 
 impl Stats {
@@ -177,6 +178,29 @@ impl Stats {
     pub fn get_mut_value(&mut self, name: &str) -> &mut Attribute {
         self.all_stats
             .get_mut(name)
-            .expect("HP key missing in all_stats")
+            .expect("key missing in all_stats")
+    }
+
+    pub fn is_energy_stat(name: &str) -> bool {
+        name == HP || name == MANA || name == VIGOR || name == BERSECK
+    }
+
+    pub fn get_power_stat(&self, is_magic: bool) -> i64 {
+        let pow;
+        if is_magic {
+            pow = &self.all_stats[MAGICAL_POWER];
+        } else {
+            pow = &self.all_stats[PHYSICAL_POWER];
+        }
+        pow.current as i64
+    }
+    pub fn get_armor_stat(&self, is_magic: bool) -> i64 {
+        let armor;
+        if is_magic {
+            armor = &self.all_stats[MAGICAL_ARMOR];
+        } else {
+            armor = &self.all_stats[PHYSICAL_ARMOR];
+        }
+        armor.current as i64
     }
 }

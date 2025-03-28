@@ -20,6 +20,8 @@ pub struct GameState {
 impl GameState {
     pub fn new() -> Self {
         GameState {
+            died_ennemies: HashMap::new(),
+            order_to_play: Vec::new(),
             ..Default::default()
         }
     }

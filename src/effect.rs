@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 use crate::common::{effect_const::*, stats_const::*};
@@ -70,8 +71,8 @@ pub fn is_active_effect_from_launch(effect_name: &str) -> bool {
         EFFECT_IMPROVE_HOTS,
         EFFECT_BOOSTED_BY_HOTS,
         EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT,
-        EFFECT_IMPROVEMENT_STAT_BY_VALUE,
-        EFFECT_IMPROVE_BY_PERCENT_CHANGE,
+        EFFECT_IMPROVE_MAX_STAT_BY_VALUE,
+        EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
         EFFECT_INTO_DAMAGE,
         EFFECT_NEXT_HEAL_IS_CRIT,
         EFFECT_BUF_MULTI,
@@ -86,8 +87,8 @@ pub fn is_active_effect_from_launch(effect_name: &str) -> bool {
 
 pub fn is_boosted_by_crit(effect_name: &str) -> bool {
     let boosted_effects_by_crit: HashSet<&str> = [
-        EFFECT_IMPROVE_BY_PERCENT_CHANGE,
-        EFFECT_IMPROVEMENT_STAT_BY_VALUE,
+        EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
+        EFFECT_IMPROVE_MAX_STAT_BY_VALUE,
         EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT,
         EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT,
         EFFECT_CHANGE_HEAL_RX_BY_PERCENT,
@@ -113,6 +114,37 @@ pub fn is_effect_processed(ep: &EffectParam, from_launch: bool, reload: bool) ->
     false
 }
 
+pub fn is_effect_only_at_atk_launch(effect_name: &str) -> bool {
+    let effects: HashSet<&str> = [
+        EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
+        EFFECT_IMPROVE_MAX_STAT_BY_VALUE,
+        EFFECT_BUF_VALUE_AS_MUCH_AS_HEAL,
+    ]
+    .iter()
+    .cloned()
+    .collect();
+    effects.contains(effect_name)
+}
+
+pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
+    let mut nb_of_applies = 0;
+    let mut counter = ep.sub_value_effect;
+    let step_limit = (100 / counter) + 1; // Calculate once
+
+    let mut rng = rand::rng();
+
+    while counter > 0 {
+        let max_limit = step_limit * counter;
+        if rng.random_range(0..=100) <= max_limit {
+            nb_of_applies += 1;
+        } else {
+            break;
+        }
+        counter -= 1;
+    }
+    nb_of_applies
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -134,7 +166,31 @@ mod tests {
 
     #[test]
     fn test_is_boosted_by_crit() {
-        assert_eq!(is_boosted_by_crit(EFFECT_IMPROVE_BY_PERCENT_CHANGE), true);
+        assert_eq!(
+            is_boosted_by_crit(EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE),
+            true
+        );
         assert_eq!(is_effet_hot_or_dot("hehe"), false);
+    }
+
+    #[test]
+    fn test_is_effect_processed() {
+        let ep = EffectParam {
+            effect_type: EFFECT_NB_DECREASE_BY_TURN.to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(is_effect_processed(&ep, false, false), true);
+        assert_eq!(is_effect_processed(&ep, true, false), false);
+        assert_eq!(is_effect_processed(&ep, false, true), true);
+    }
+
+    #[test]
+    fn test_process_decrease_on_turn() {
+        let ep = EffectParam {
+            sub_value_effect: 3,
+            ..Default::default()
+        };
+        let result = process_decrease_on_turn(&ep);
+        assert!(result <= 3 && result >= 0);
     }
 }

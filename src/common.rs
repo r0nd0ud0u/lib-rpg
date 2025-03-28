@@ -1,7 +1,14 @@
 /// Define the kind of target
-pub mod target_const {
+pub mod all_target_const {
     pub const TARGET_ENNEMY: &str = "Ennemy";
     pub const TARGET_ALLY: &str = "Ally";
+    pub const TARGET_ALL_HEROES: &str = "Tous les heroes";
+    pub const TARGET_HIMSELF: &str = "Soi-même";
+    pub const TARGET_ONLY_ALLY: &str = "Seulement les alliés";
+}
+
+pub mod reach_const {
+    pub const INDIVIDUAL: &str = "Individuel";
 }
 
 /// Define all the stats of a character you can decode from JSON format
@@ -55,9 +62,9 @@ pub mod character_const {
 
 pub mod effect_const {
     /// Effect to improve max value of a stat by percent (current value is updated by ratio)
-    pub const EFFECT_IMPROVE_BY_PERCENT_CHANGE: &str = "Up par %";
+    pub const EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE: &str = "Up par %";
     /// Effect to improve max value of a stat by value (current value is updated by ratio)
-    pub const EFFECT_IMPROVEMENT_STAT_BY_VALUE: &str = "Up par valeur";
+    pub const EFFECT_IMPROVE_MAX_STAT_BY_VALUE: &str = "Up par valeur";
     pub const EFFECT_BLOCK_HEAL_ATK: &str = "Bloque attaque de soin";
     pub const EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT: &str = "Up/down degats en %";
     pub const EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT: &str = "Up/down degats RX en %";
