@@ -292,7 +292,7 @@ impl Character {
         game_state: &GameState,
         is_crit: bool,
     ) -> (EffectParam, String) {
-        let mut output: EffectParam = EffectParam::default();
+        let mut output = ep.clone(); // EffectParam
         let mut result: String = String::new();
 
         // Preprocess effectParam before applying it
@@ -952,5 +952,40 @@ mod tests {
         };
         c.remove_malus_effect(&ep);
         assert_eq!(-10, c.all_buffers[BufTypes::HealTx as usize].value);
+    }
+
+    #[test]
+    fn unit_update_buf() {
+        let file_path = "./tests/characters/test.json"; // Path to the JSON file
+        let c = Character::try_new_from_json(file_path);
+        assert!(c.is_ok());
+        let mut c = c.unwrap();
+        c.update_buf(BufTypes::DamageTx, 10, false, HP);
+        assert_eq!(10, c.all_buffers[BufTypes::DamageTx as usize].value);
+        assert_eq!(false, c.all_buffers[BufTypes::DamageTx as usize].is_percent);
+        assert_eq!(HP, c.all_buffers[BufTypes::DamageTx as usize].all_stats_name[0]);
+    }
+
+    #[test]
+    fn unit_process_one_effect() {
+        let file_path = "./tests/characters/test.json"; // Path to the JSON file
+        let c = Character::try_new_from_json(file_path);
+        assert!(c.is_ok());
+        let mut c = c.unwrap();
+        let target = c.clone();
+        let ep = EffectParam {
+            effect_type: EFFECT_NB_COOL_DOWN.to_string(),
+            nb_turns: 10,
+            target: c.name.clone(),
+            ..Default::default()
+        };
+        let atk = Default::default();
+        let game_state = Default::default();
+        // target is himself
+        let (ep, result) = c.process_one_effect(&target, &ep, false, &atk, &game_state, false);
+        assert_eq!(EFFECT_NB_COOL_DOWN, ep.effect_type);
+        assert_eq!(10, ep.nb_turns);
+        assert_eq!(c.name, ep.target);
+        assert_eq!("Cooldown actif sur  de 10 tours.", result);
     }
 }
