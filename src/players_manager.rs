@@ -362,10 +362,8 @@ fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &
 #[cfg(test)]
 mod tests {
     use crate::{
-        common::stats_const::*,
-        game_state::GameState,
-        players_manager::GameAtkEffects,
-        testing_effect::{build_cooldown_effect, build_hot_effect_individual},
+        common::stats_const::*, game_state::GameState, players_manager::GameAtkEffects,
+        testing_effect::*,
     };
 
     use super::PlayerManager;
@@ -521,5 +519,13 @@ mod tests {
         let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(1, logs.len());
         assert_eq!(30, hot_and_dot);
+        // add test DOT on different turn
+        pl.current_player.all_effects.push(GameAtkEffects {
+            all_atk_effects: build_dot_effect_individual(),
+            ..Default::default()
+        });
+        let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
+        assert_eq!(2, logs.len()); // hot + dot
+        assert_eq!(10, hot_and_dot); // 30(hot) - 20 (dot)
     }
 }
