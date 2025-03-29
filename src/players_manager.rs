@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path, vec};
+use std::path::Path;
 
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
@@ -34,8 +34,6 @@ pub struct PlayerManager {
     pub active_heroes: Vec<Character>,
     /// List of all selected bosses by computer
     pub active_bosses: Vec<Character>,
-    /// key target character name, value: all the effects on the game
-    pub all_effects_on_game: HashMap<String, Vec<GameAtkEffects>>,
     pub current_player: Character,
 }
 
@@ -46,7 +44,6 @@ impl PlayerManager {
             all_bosses: Vec::new(),
             active_heroes: Vec::new(),
             active_bosses: Vec::new(),
-            all_effects_on_game: HashMap::new(),
             current_player: Character::default(),
         };
         pl.load_all_characters(path)?;
@@ -87,10 +84,8 @@ impl PlayerManager {
     }
 
     pub fn increment_counter_effect(&mut self) {
-        for gae_table in self.all_effects_on_game.values_mut() {
-            for gae in gae_table {
-                gae.all_atk_effects.counter_turn += 1;
-            }
+        for c in self.active_heroes.iter_mut() {
+            c.increment_counter_effect();
         }
     }
 
@@ -216,7 +211,7 @@ impl PlayerManager {
             // aggro is initialized before any action
             self.current_player
                 .init_aggro_on_turn(game_state.current_turn_nb);
-            self.remove_terminated_effect_on_player()?;
+            self.current_player.remove_terminated_effect_on_player();
             // process all the effects
             let (process_logs, hot_or_dot, process_updated_effects) =
                 self.process_all_effects_on_player(game_state, false);
@@ -224,6 +219,9 @@ impl PlayerManager {
             let (apply_logs, apply_updated_effects) =
                 self.apply_all_effects_on_player(game_state, false, &process_updated_effects);
             updated_effects = apply_updated_effects;
+
+            // TODO apply passive power
+
             // apply hot and dot
             self.apply_hot_or_dot(game_state, hot_or_dot);
             // process logs
@@ -233,7 +231,7 @@ impl PlayerManager {
 
         // update the active character
         self.modify_active_character(name);
-        self.modify_effects(name, updated_effects);
+        self.modify_effects(updated_effects);
         Ok(())
     }
 
@@ -255,39 +253,17 @@ impl PlayerManager {
         }
     }
 
-    pub fn remove_terminated_effect_on_player(&mut self) -> Result<()> {
-        for gae in self.all_effects_on_game[&self.current_player.name].clone() {
-            if gae.all_atk_effects.counter_turn == gae.all_atk_effects.nb_turns {
-                // TODO add log: effect is terminated
-                self.current_player
-                    .remove_malus_effect(&gae.all_atk_effects);
-            }
-        }
-        self.all_effects_on_game
-            .get_mut(&self.current_player.name)
-            .expect("no effect")
-            .retain(|element| {
-                element.all_atk_effects.nb_turns != element.all_atk_effects.counter_turn
-            });
-        Ok(())
-    }
-
     pub fn process_all_effects_on_player(
         &mut self,
         game_state: &GameState,
         from_launch: bool,
     ) -> (Vec<String>, i64, Vec<GameAtkEffects>) {
         let mut logs = Vec::new();
-        let gae_table = self
-            .all_effects_on_game
-            .get(&self.current_player.name)
-            .cloned()
-            .unwrap_or_else(|| vec![GameAtkEffects::default()]);
         let mut hot_and_dot = 0;
         let mut output_new_effects = Vec::new();
         let target_pl = self.current_player.clone();
         // First process all the effects whatever their order
-        for gae in gae_table {
+        for gae in target_pl.all_effects.iter() {
             if gae.launching_turn == game_state.current_turn_nb {
                 continue;
             }
@@ -295,7 +271,7 @@ impl PlayerManager {
             if gae.all_atk_effects.stats_name == HP
                 && is_effet_hot_or_dot(&gae.all_atk_effects.effect_type)
             {
-                process_hot_or_dot(&mut logs, &mut hot_and_dot, &gae);
+                process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
             } else if let Some(launcher_pl) = self.get_active_character(&gae.launcher) {
                 if !effect::is_effect_processed(&gae.all_atk_effects, from_launch, false) {
                     continue;
@@ -320,14 +296,9 @@ impl PlayerManager {
         (logs, hot_and_dot, output_new_effects)
     }
 
-    pub fn modify_effects(&mut self, name: &str, updated_effects: Vec<GameAtkEffects>) {
-        if let Some(all_effects) = self.all_effects_on_game.get_mut(name) {
-            all_effects.clear();
-            all_effects.extend(updated_effects);
-        } else {
-            self.all_effects_on_game
-                .insert(name.to_owned(), updated_effects);
-        }
+    pub fn modify_effects(&mut self, updated_effects: Vec<GameAtkEffects>) {
+        self.current_player.all_effects.clear();
+        self.current_player.all_effects = updated_effects;
     }
 
     pub fn apply_all_effects_on_player(
@@ -425,8 +396,8 @@ fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &
 #[cfg(test)]
 mod tests {
     use crate::{
-        common::stats_const::*, game_state::GameState, players_manager::GameAtkEffects,
-        testing_effect::build_cooldown_effect,
+        character::Character, common::stats_const::*, game_state::GameState,
+        players_manager::GameAtkEffects, testing_effect::build_cooldown_effect,
     };
 
     use super::PlayerManager;
@@ -442,11 +413,16 @@ mod tests {
     #[test]
     fn unit_increment_counter_effect() {
         let mut pl = PlayerManager::try_new("tests/characters").unwrap();
-        let mut gaes = Vec::new();
-        gaes.push(GameAtkEffects::default());
-        pl.all_effects_on_game.insert("target".to_string(), gaes);
+        pl.active_heroes[0].all_effects.push(GameAtkEffects {
+            all_atk_effects: build_cooldown_effect(),
+            ..Default::default()
+        });
+        let old_counter_turn = pl.active_heroes[0].all_effects[0].all_atk_effects.counter_turn;
         pl.increment_counter_effect();
-        assert_eq!(1, pl.all_effects_on_game.get("target").unwrap().len());
+        assert_eq!(
+            pl.active_heroes[0].all_effects[0].all_atk_effects.counter_turn,
+            old_counter_turn + 1
+        );
     }
 
     #[test]
@@ -542,42 +518,21 @@ mod tests {
     }
 
     #[test]
-    fn unit_remove_terminated_effect_on_player() {
-        let mut pl = PlayerManager::testing_pm();
-        pl.all_effects_on_game
-            .insert("Super test".to_string(), Vec::new());
-        pl.all_effects_on_game
-            .get_mut("Super test")
-            .unwrap()
-            .push(GameAtkEffects::default());
-        pl.remove_terminated_effect_on_player().unwrap();
-        assert_eq!(0, pl.all_effects_on_game.get("Super test").unwrap().len());
-        // TODO improve the test  by checking if the effect is removed on character stats
-    }
-
-    #[test]
     fn unit_process_all_effects_on_player_default_and_cooldown() {
         let mut pl = PlayerManager::testing_pm();
-        pl.all_effects_on_game
-            .insert("Super test".to_string(), Vec::new());
+        let mut c = Character::testing_character();
         // push default effect
-        pl.all_effects_on_game
-            .get_mut("Super test")
-            .unwrap()
-            .push(GameAtkEffects::default());
+        c.all_effects.push(GameAtkEffects::default());
         let gs = GameState::new();
         let (logs, hot_and_dot, new_game_effects) = pl.process_all_effects_on_player(&gs, false);
         assert_eq!(0, logs.len());
         assert_eq!(0, hot_and_dot);
         assert_eq!(0, new_game_effects.len());
         // test cooldown effect
-        pl.all_effects_on_game
-            .get_mut("Super test")
-            .unwrap()
-            .push(GameAtkEffects {
-                all_atk_effects: build_cooldown_effect(),
-                ..Default::default()
-            });
+        c.all_effects.push(GameAtkEffects {
+            all_atk_effects: build_cooldown_effect(),
+            ..Default::default()
+        });
         let (logs, hot_and_dot, new_game_effects) = pl.process_all_effects_on_player(&gs, false);
         assert_eq!(0, logs.len());
         assert_eq!(0, hot_and_dot);

@@ -84,7 +84,6 @@ impl GameManager {
         let supp_rounds_bosses = self.pm.compute_sup_atk_turn(CharacterType::Boss);
         self.game_state.order_to_play.extend(supp_rounds_heroes);
         self.game_state.order_to_play.extend(supp_rounds_bosses);
-        // self.add_sup_atk_turn(CharacterType::Boss, &mut self.order_to_play);
     }
 
     pub fn new_round(&mut self) -> Result<()> {
@@ -98,6 +97,11 @@ impl GameManager {
             &self.game_state,
             &self.game_state.order_to_play[self.game_state.current_round],
         )?;
+
+        // Those 2 TODO are logs to give info
+        // TODO case BOSS: random atk to choose
+        // TODO who has the most aggro ?
+
         // TODO update game status
         // TODO channels for logss
 

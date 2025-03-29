@@ -17,6 +17,7 @@ use crate::{
     },
     equipment::Equipment,
     game_state::GameState,
+    players_manager::GameAtkEffects,
     powers::Powers,
     stats::Stats,
     target::is_target_ally,
@@ -115,6 +116,8 @@ pub struct Character {
     /// TODO shape
     #[serde(rename = "Shape")]
     pub shape: String,
+    #[serde(default, rename = "Effects")]
+    pub all_effects: Vec<GameAtkEffects>,
 }
 
 impl Default for Character {
@@ -143,6 +146,7 @@ impl Default for Character {
             tx_rx: vec![HashMap::new()],
             rank: 0,
             shape: String::new(),
+            all_effects: vec![],
         }
     }
 }
@@ -172,6 +176,12 @@ impl Character {
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
         }
+    }
+
+    pub fn testing_character() -> Character {
+        let file_path = "./tests/characters/test.json"; // Path to the JSON file
+        let c = Character::try_new_from_json(file_path);
+        c.unwrap()
     }
 
     pub fn is_dead(&self) -> Option<bool> {
@@ -393,6 +403,10 @@ impl Character {
         let mut output_log: String = String::new();
         let mut new_effect_param = ep.clone();
         new_effect_param.number_of_applies = 1;
+        let bug_apply_init = &self.all_buffers[BufTypes::ApplyEffectInit as usize];
+        if bug_apply_init.value > 0 {
+            new_effect_param.number_of_applies = bug_apply_init.value;
+        }
 
         match ep.effect_type.as_str() {
             EFFECT_NB_COOL_DOWN => {
@@ -410,14 +424,12 @@ impl Character {
                     false,
                     "",
                 );
-                /*
-                // At the moment. condition on "value == 0" to apply 'nbOfApplies' for all
-                // the effects of the current atk
-                if (effect.value == 0) {
-                  UpdateBuf(BufTypes::applyEffectInit, nbOfApplies, false, "");
-                  output = QString("L'attaque sera effectuée %1 fois.").arg(nbOfApplies);
-                } */
+                output_log = format!(
+                    "L'attaque sera effectuée {} fois.",
+                    new_effect_param.number_of_applies
+                );
             }
+            EFFECT_REINIT => {}
             _ => {}
         }
         // Must be filled before changing value of nbTurns
@@ -666,6 +678,24 @@ impl Character {
     pub fn regen_into_damage(_real_amount_sent: i64, _stats_name: &str) -> String {
         String::new()
     }
+
+    pub fn increment_counter_effect(&mut self) {
+        for gae in self.all_effects.iter_mut() {
+            gae.all_atk_effects.counter_turn += 1;
+        }
+    }
+
+    pub fn remove_terminated_effect_on_player(&mut self) {
+        for gae in self.all_effects.clone() {
+            if gae.all_atk_effects.counter_turn == gae.all_atk_effects.nb_turns {
+                // TODO add log: effect is terminated
+                self.remove_malus_effect(&gae.all_atk_effects);
+            }
+        }
+        self.all_effects.retain(|element| {
+            element.all_atk_effects.nb_turns != element.all_atk_effects.counter_turn
+        });
+    }
 }
 
 fn process_real_amount(ep: &EffectParam, target: &mut Character, full_amount: i64) -> i64 {
@@ -701,6 +731,7 @@ mod tests {
         character::{CharacterType, Class},
         common::{effect_const::*, stats_const::*},
         effect::EffectParam,
+        players_manager::GameAtkEffects,
     };
 
     use super::Character;
@@ -963,7 +994,10 @@ mod tests {
         c.update_buf(BufTypes::DamageTx, 10, false, HP);
         assert_eq!(10, c.all_buffers[BufTypes::DamageTx as usize].value);
         assert_eq!(false, c.all_buffers[BufTypes::DamageTx as usize].is_percent);
-        assert_eq!(HP, c.all_buffers[BufTypes::DamageTx as usize].all_stats_name[0]);
+        assert_eq!(
+            HP,
+            c.all_buffers[BufTypes::DamageTx as usize].all_stats_name[0]
+        );
     }
 
     #[test]
@@ -987,5 +1021,14 @@ mod tests {
         assert_eq!(10, ep.nb_turns);
         assert_eq!(c.name, ep.target);
         assert_eq!("Cooldown actif sur  de 10 tours.", result);
+    }
+
+    #[test]
+    fn unit_remove_terminated_effect_on_player() {
+        let mut c = Character::testing_character();
+        c.all_effects.push(GameAtkEffects::default());
+        c.remove_terminated_effect_on_player();
+        assert_eq!(0, c.all_effects.len());
+        // TODO improve the test  by checking if the effect is removed on character stats
     }
 }
