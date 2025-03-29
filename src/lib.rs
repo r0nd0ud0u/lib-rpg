@@ -11,5 +11,6 @@ pub mod loot;
 pub mod players_manager;
 pub mod powers;
 pub mod stats;
-pub mod target_info;
+pub mod target;
+pub mod testing_effect;
 pub mod utils;
