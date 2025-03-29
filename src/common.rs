@@ -9,6 +9,7 @@ pub mod all_target_const {
 
 pub mod reach_const {
     pub const INDIVIDUAL: &str = "Individuel";
+    pub const ZONE: &str = "Zone";
 }
 
 /// Define all the stats of a character you can decode from JSON format

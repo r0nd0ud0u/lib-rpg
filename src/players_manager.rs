@@ -362,8 +362,10 @@ fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &
 #[cfg(test)]
 mod tests {
     use crate::{
-        character::Character, common::stats_const::*, game_state::GameState,
-        players_manager::GameAtkEffects, testing_effect::build_cooldown_effect,
+        common::stats_const::*,
+        game_state::GameState,
+        players_manager::GameAtkEffects,
+        testing_effect::{build_cooldown_effect, build_hot_effect_individual},
     };
 
     use super::PlayerManager;
@@ -490,21 +492,34 @@ mod tests {
     #[test]
     fn unit_process_hot_and_dot() {
         let mut pl = PlayerManager::testing_pm();
-        let mut c = Character::testing_character();
         // push default effect
-        c.all_effects.push(GameAtkEffects::default());
-        let gs = GameState::new();
+        pl.current_player
+            .all_effects
+            .push(GameAtkEffects::default());
+        let mut gs = GameState::new();
         let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(0, logs.len());
         assert_eq!(0, hot_and_dot);
         // test cooldown effect
-        c.all_effects.push(GameAtkEffects {
+        pl.current_player.all_effects.push(GameAtkEffects {
             all_atk_effects: build_cooldown_effect(),
             ..Default::default()
         });
         let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(0, logs.len());
         assert_eq!(0, hot_and_dot);
-        // TODO add test with HOT then DOT
+        // add test HOT but on same turn
+        pl.current_player.all_effects.push(GameAtkEffects {
+            all_atk_effects: build_hot_effect_individual(),
+            ..Default::default()
+        });
+        let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
+        assert_eq!(0, logs.len());
+        assert_eq!(0, hot_and_dot);
+        // add test HOT on different turn
+        let _ = gs.start_new_turn();
+        let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
+        assert_eq!(1, logs.len());
+        assert_eq!(30, hot_and_dot);
     }
 }
