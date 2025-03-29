@@ -1,13 +1,14 @@
-use std::{collections::HashMap, path::Path};
+use std::path::Path;
 
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     attack_type::AttackType,
-    character::{Character, CharacterType},
-    common::{paths_const::OFFLINE_CHARACTERS, stats_const::*},
-    effect::EffectParam,
+    character::{AmountType, Character, CharacterType},
+    common::{character_const::*, paths_const::OFFLINE_CHARACTERS, stats_const::*},
+    effect::{is_effet_hot_or_dot, EffectParam},
+    game_state::GameState,
     utils::list_files_in_dir,
 };
 
@@ -17,7 +18,7 @@ pub struct GameAtkEffects {
     pub atk: AttackType,
     pub launcher: String,
     pub target: String,
-    pub launching_turn: i32,
+    pub launching_turn: usize,
 }
 
 /// Define all the parameters of a playerManager
@@ -33,20 +34,28 @@ pub struct PlayerManager {
     pub active_heroes: Vec<Character>,
     /// List of all selected bosses by computer
     pub active_bosses: Vec<Character>,
-    /// key target character name, value: all the effects on the game
-    pub all_effects_on_game: HashMap<String, Vec<GameAtkEffects>>,
     pub current_player: Character,
 }
 
 impl PlayerManager {
     pub fn try_new<P: AsRef<Path>>(path: P) -> Result<PlayerManager> {
         let mut pl = PlayerManager {
-            ..Default::default()
+            all_heroes: Vec::new(),
+            all_bosses: Vec::new(),
+            active_heroes: Vec::new(),
+            active_bosses: Vec::new(),
+            current_player: Character::default(),
         };
         pl.load_all_characters(path)?;
         pl.active_heroes = pl.all_heroes.clone();
         pl.active_bosses = pl.all_bosses.clone();
         Ok(pl)
+    }
+
+    pub fn testing_pm() -> PlayerManager {
+        let mut pl = PlayerManager::try_new("tests/characters").unwrap();
+        pl.current_player = pl.active_heroes[0].clone();
+        pl
     }
 
     /// Load all the JSON files in a path `P` which corresponds to a directory.
@@ -75,10 +84,8 @@ impl PlayerManager {
     }
 
     pub fn increment_counter_effect(&mut self) {
-        for gae_table in self.all_effects_on_game.values_mut() {
-            for gae in gae_table {
-                gae.all_atk_effects.counter_turn += 1;
-            }
+        for c in self.active_heroes.iter_mut() {
+            c.increment_counter_effect();
         }
     }
 
@@ -106,15 +113,27 @@ impl PlayerManager {
                 continue;
             }
 
-            let mut hp = pl.stats.all_stats.remove(HP).expect("hp is missing");
-            let mut mana = pl.stats.all_stats.remove(MANA).expect("mana is missing");
+            let mut hp = pl.stats.all_stats.swap_remove(HP).expect("hp is missing");
+            let mut mana = pl
+                .stats
+                .all_stats
+                .swap_remove(MANA)
+                .expect("mana is missing");
             let mut berseck = pl
                 .stats
                 .all_stats
-                .remove(BERSECK)
+                .swap_remove(BERSECK)
                 .expect("berseck is missing");
-            let mut vigor = pl.stats.all_stats.remove(VIGOR).expect("vigor is missing");
-            let mut speed = pl.stats.all_stats.remove(SPEED).expect("speed is missing");
+            let mut vigor = pl
+                .stats
+                .all_stats
+                .swap_remove(VIGOR)
+                .expect("vigor is missing");
+            let mut speed = pl
+                .stats
+                .all_stats
+                .swap_remove(SPEED)
+                .expect("speed is missing");
 
             let regen_hp = &pl.stats.all_stats[HP_REGEN];
             let regen_mana = &pl.stats.all_stats[MANA_REGEN];
@@ -174,7 +193,8 @@ impl PlayerManager {
     pub fn get_active_boss_character(&mut self, name: &str) -> Option<&mut Character> {
         self.active_bosses.iter_mut().find(|c| c.name == name)
     }
-    pub fn update_current_player(&mut self, current_turn: u64, name: &str) -> Result<()> {
+
+    pub fn update_current_player(&mut self, game_state: &GameState, name: &str) -> Result<()> {
         let c = self
             .get_active_character(name)
             .expect("no active character");
@@ -183,10 +203,22 @@ impl PlayerManager {
         // update the shadow current player
         self.current_player.actions_done_in_round = 0;
 
+        let mut _logs = Vec::new();
+
         if self.current_player.extended_character.is_first_round {
             self.current_player.extended_character.is_first_round = false;
-            self.current_player.init_aggro_on_turn(current_turn);
-            self.remove_terminated_effect_on_player()?;
+            // aggro is initialized before any action
+            self.current_player
+                .init_aggro_on_turn(game_state.current_turn_nb);
+            self.current_player.remove_terminated_effect_on_player();
+
+            // TODO apply passive power
+
+            // apply hot and dot
+            let (process_logs, hot_or_dot) = self.process_hot_and_dot(game_state);
+            self.apply_hot_or_dot(game_state, hot_or_dot);
+            // process logs
+            _logs = process_logs;
         }
 
         // update the active character
@@ -194,27 +226,145 @@ impl PlayerManager {
         Ok(())
     }
 
-    pub fn remove_terminated_effect_on_player(&mut self) -> Result<()> {
-        for gae in self.all_effects_on_game[&self.current_player.name].clone() {
-            if gae.all_atk_effects.counter_turn == gae.all_atk_effects.nb_turns {
-                // TODO add log: effect is terminated
-                self.current_player
-                    .remove_malus_effect(&gae.all_atk_effects);
+    fn apply_hot_or_dot(&mut self, game_state: &GameState, hot_or_dot: i64) {
+        if hot_or_dot != 0 {
+            let hp = self.current_player.stats.all_stats.get_mut(HP).unwrap();
+            hp.current += hot_or_dot as u64;
+            // localLog.append(QString("HOT et DOT totaux: %1").arg(hotAndDot));
+            // update buf overheal
+            let delta_over_heal = hp.current - hp.max;
+            if delta_over_heal > 0 {
+                // update txrx
+                self.current_player.tx_rx[AmountType::OverHealRx as usize]
+                    .insert(game_state.current_turn_nb as u64, delta_over_heal);
+            }
+            // current value must be included between 0 and max value
+            hp.current = std::cmp::min(hp.current, hp.max);
+            hp.current = std::cmp::max(hp.current, 0);
+        }
+    }
+
+    pub fn process_hot_and_dot(&mut self, game_state: &GameState) -> (Vec<String>, i64) {
+        let mut logs = Vec::new();
+        let mut hot_and_dot = 0;
+        // First process all the effects whatever their order
+        for gae in self.current_player.all_effects.iter() {
+            if gae.launching_turn == game_state.current_turn_nb {
+                continue;
+            }
+            // Process hot or dot
+            if gae.all_atk_effects.stats_name == HP
+                && is_effet_hot_or_dot(&gae.all_atk_effects.effect_type)
+            {
+                process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
             }
         }
-        self.all_effects_on_game
-            .get_mut(&self.current_player.name)
-            .expect("no effect")
-            .retain(|element| {
-                element.all_atk_effects.nb_turns != element.all_atk_effects.counter_turn
-            });
-        Ok(())
+        (logs, hot_and_dot)
     }
+
+    pub fn modify_effects(&mut self, updated_effects: Vec<GameAtkEffects>) {
+        self.current_player.all_effects.clear();
+        self.current_player.all_effects = updated_effects;
+    }
+
+    pub fn apply_all_effects_on_player(
+        &mut self,
+        game_state: &GameState,
+        from_launch: bool,
+        new_effects: Vec<GameAtkEffects>,
+    ) -> (Vec<String>, Vec<GameAtkEffects>) {
+        let mut local_log = Vec::new();
+        let mut output_new_effects = Vec::new();
+        let mut target_pl = self.current_player.clone();
+        // First process all the effects whatever their order
+        for gae in new_effects {
+            if gae.launching_turn == game_state.current_turn_nb {
+                continue;
+            }
+            if let Some(launcher_pl) = self.get_active_character(&gae.launcher) {
+                let effect_outcome = launcher_pl.apply_one_effect(
+                    &mut target_pl,
+                    &gae.all_atk_effects,
+                    from_launch,
+                    &gae.atk,
+                    false,
+                    false,
+                );
+                if !effect_outcome.log_display.is_empty() {
+                    local_log.push(effect_outcome.log_display);
+                }
+                // update the  big effect table
+                // TODO see if needed or not, maybe all the effects can be made in the "process effect" function
+                let mut new_game_atk_effect = gae.clone();
+                new_game_atk_effect.all_atk_effects = effect_outcome.new_effect_param;
+                output_new_effects.push(new_game_atk_effect);
+            }
+        }
+        (local_log, output_new_effects)
+    }
+
+    pub fn start_new_turn(&mut self) {
+        // Increment turn effects
+        self.increment_counter_effect();
+        // Reset new round boolean for characters
+        self.reset_is_first_round();
+        // Apply regen stats
+        self.apply_regen_stats(CharacterType::Boss);
+        self.apply_regen_stats(CharacterType::Hero);
+    }
+
+    pub fn compute_sup_atk_turn(&mut self, launcher_type: CharacterType) -> Vec<String> {
+        let mut output = Vec::new();
+        let (player_list1, player_list2) = if launcher_type == CharacterType::Hero {
+            (&mut self.active_heroes, &self.active_bosses)
+        } else {
+            (&mut self.active_bosses, &self.active_heroes)
+        };
+        for pl1 in player_list1 {
+            if pl1.is_dead().unwrap_or(false) {
+                continue;
+            }
+            let speed_pl1 = match pl1.stats.all_stats.get_mut(SPEED) {
+                Some(speed) => speed,
+                None => continue,
+            };
+            for pl2 in player_list2 {
+                let speed_pl2_current = pl2.stats.all_stats[SPEED].current;
+                let delta = speed_pl1.current.saturating_sub(speed_pl2_current);
+                if delta >= SPEED_THRESHOLD {
+                    // Update of current value aspeed_threshold
+                    speed_pl1.current = speed_pl1.current.saturating_sub(SPEED_THRESHOLD);
+                    speed_pl1.max = speed_pl1.max.saturating_sub(SPEED_THRESHOLD);
+                    speed_pl1.max_raw = speed_pl1.max_raw.saturating_sub(SPEED_THRESHOLD);
+                    speed_pl1.current_raw = speed_pl1.current_raw.saturating_sub(SPEED_THRESHOLD);
+                    output.push(pl1.name.clone());
+                    break;
+                }
+            }
+        }
+        output
+    }
+}
+
+fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &GameAtkEffects) {
+    *hot_and_dot += gae.all_atk_effects.value;
+    let effect_type = if gae.all_atk_effects.value > 0 {
+        "HOT->"
+    } else {
+        "DOT->"
+    };
+    local_log.push(format!(
+        "{} valeur: {}, atk: {}",
+        effect_type, gae.all_atk_effects.value, gae.atk.name
+    ));
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{common::stats_const::*, players_manager::GameAtkEffects};
+    use crate::{
+        common::stats_const::*, game_state::GameState, players_manager::GameAtkEffects,
+        testing_effect::*,
+    };
 
     use super::PlayerManager;
 
@@ -229,11 +379,20 @@ mod tests {
     #[test]
     fn unit_increment_counter_effect() {
         let mut pl = PlayerManager::try_new("tests/characters").unwrap();
-        let mut gaes = Vec::new();
-        gaes.push(GameAtkEffects::default());
-        pl.all_effects_on_game.insert("target".to_string(), gaes);
+        pl.active_heroes[0].all_effects.push(GameAtkEffects {
+            all_atk_effects: build_cooldown_effect(),
+            ..Default::default()
+        });
+        let old_counter_turn = pl.active_heroes[0].all_effects[0]
+            .all_atk_effects
+            .counter_turn;
         pl.increment_counter_effect();
-        assert_eq!(1, pl.all_effects_on_game.get("target").unwrap().len());
+        assert_eq!(
+            pl.active_heroes[0].all_effects[0]
+                .all_atk_effects
+                .counter_turn,
+            old_counter_turn + 1
+        );
     }
 
     #[test]
@@ -320,25 +479,53 @@ mod tests {
 
     #[test]
     fn unit_update_current_player() {
-        let mut pl = PlayerManager::try_new("tests/characters").unwrap();
+        let mut pl = PlayerManager::testing_pm();
         pl.active_heroes[0].extended_character.is_first_round = false;
         pl.active_heroes[0].actions_done_in_round = 100;
-        pl.update_current_player(1, "Super test").unwrap();
+        let gs = GameState::default();
+        pl.update_current_player(&gs, "Super test").unwrap();
         assert_eq!(0, pl.active_heroes[0].actions_done_in_round);
     }
 
     #[test]
-    fn unit_remove_terminated_effect_on_player() {
-        let mut pl = PlayerManager::try_new("tests/characters").unwrap();
-        pl.all_effects_on_game
-            .insert("Super test".to_string(), Vec::new());
-        pl.all_effects_on_game
-            .get_mut("Super test")
-            .unwrap()
+    fn unit_process_hot_and_dot() {
+        let mut pl = PlayerManager::testing_pm();
+        // push default effect
+        pl.current_player
+            .all_effects
             .push(GameAtkEffects::default());
-        pl.current_player = pl.active_heroes[0].clone();
-        pl.remove_terminated_effect_on_player().unwrap();
-        assert_eq!(0, pl.all_effects_on_game.get("Super test").unwrap().len());
-        // TODO improve the test  by checking if the effect is removed on character stats
+        let mut gs = GameState::new();
+        let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
+        assert_eq!(0, logs.len());
+        assert_eq!(0, hot_and_dot);
+        // test cooldown effect
+        pl.current_player.all_effects.push(GameAtkEffects {
+            all_atk_effects: build_cooldown_effect(),
+            ..Default::default()
+        });
+        let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
+        assert_eq!(0, logs.len());
+        assert_eq!(0, hot_and_dot);
+        // add test HOT but on same turn
+        pl.current_player.all_effects.push(GameAtkEffects {
+            all_atk_effects: build_hot_effect_individual(),
+            ..Default::default()
+        });
+        let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
+        assert_eq!(0, logs.len());
+        assert_eq!(0, hot_and_dot);
+        // add test HOT on different turn
+        let _ = gs.start_new_turn();
+        let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
+        assert_eq!(1, logs.len());
+        assert_eq!(30, hot_and_dot);
+        // add test DOT on different turn
+        pl.current_player.all_effects.push(GameAtkEffects {
+            all_atk_effects: build_dot_effect_individual(),
+            ..Default::default()
+        });
+        let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
+        assert_eq!(2, logs.len()); // hot + dot
+        assert_eq!(10, hot_and_dot); // 30(hot) - 20 (dot)
     }
 }
