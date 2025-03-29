@@ -42,6 +42,19 @@ pub fn build_dot_effect_zone() -> EffectParam {
     }
 }
 
+pub fn build_dmg_effect_individual() -> EffectParam {
+    EffectParam {
+        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+        nb_turns: 1,
+        sub_value_effect: 0,
+        target: TARGET_ENNEMY.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        stats_name: HP.to_owned(),
+        value: -30,
+        ..Default::default()
+    }
+}
+
 pub fn build_hot_effect_individual() -> EffectParam {
     EffectParam {
         effect_type: EFFECT_VALUE_CHANGE.to_owned(),

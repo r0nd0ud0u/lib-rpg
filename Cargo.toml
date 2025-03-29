@@ -14,7 +14,7 @@ panic = "abort"
 [dependencies]
 anyhow = "1.0.97"
 chrono = "0.4.34"
-indexmap = { version = "2.8.0", features = ["serde"] }
+indexmap = { version = "2.7.0", features = ["serde"] }
 lazy_static = "1.5.0"
 rand = "0.9.0"
 serde = { version = "1.0.217", features = ["derive"] }

@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, vec};
 
@@ -21,6 +22,7 @@ use crate::{
     powers::Powers,
     stats::Stats,
     target::is_target_ally,
+    testing_atk::*,
     utils,
 };
 
@@ -81,7 +83,7 @@ pub struct Character {
     /// key: body, value: equipmentName
     pub equipment_on: HashMap<String, Equipment>,
     /// key: attak name, value: AttakType struct
-    pub attacks_list: HashMap<String, AttackType>,
+    pub attacks_list: IndexMap<String, AttackType>,
     /// That vector contains all the atks from m_AttakList and is sorted by level.
     pub attacks_by_lvl: Vec<AttackType>,
     /// Main color theme of the character
@@ -129,7 +131,7 @@ impl Default for Character {
             stats: Stats::default(),
             kind: CharacterType::Hero,
             equipment_on: HashMap::new(),
-            attacks_list: HashMap::new(),
+            attacks_list: IndexMap::new(),
             level: 1,
             exp: 0,
             next_exp_level: 100,
@@ -181,7 +183,11 @@ impl Character {
     pub fn testing_character() -> Character {
         let file_path = "./tests/characters/test.json"; // Path to the JSON file
         let c = Character::try_new_from_json(file_path);
-        c.unwrap()
+        let mut c = c.unwrap();
+        let atk = build_atk_damage1();
+        c.attacks_list.insert(atk.name.clone(), atk);
+
+        c
     }
 
     pub fn is_dead(&self) -> Option<bool> {
@@ -696,6 +702,24 @@ impl Character {
             element.all_atk_effects.nb_turns != element.all_atk_effects.counter_turn
         });
     }
+
+    pub fn process_atk_cost(&mut self, atk_name: &str) {
+        if let Some(atk) = self.attacks_list.get(atk_name) {
+            if let Some(mana) = self.stats.all_stats.get_mut(MANA) {
+                mana.current = std::cmp::max(0, mana.current - atk.mana_cost * mana.current / 100);
+            }
+            if let Some(vigor) = self.stats.all_stats.get_mut(VIGOR) {
+                vigor.current =
+                    std::cmp::max(0, vigor.current - atk.vigor_cost * vigor.current / 100);
+            }
+            if let Some(berseck) = self.stats.all_stats.get_mut(BERSECK) {
+                berseck.current = std::cmp::max(
+                    0,
+                    berseck.current - atk.berseck_cost * berseck.current / 100,
+                );
+            }
+        }
+    }
 }
 
 fn process_real_amount(ep: &EffectParam, target: &mut Character, full_amount: i64) -> i64 {
@@ -1030,5 +1054,13 @@ mod tests {
         c.remove_terminated_effect_on_player();
         assert_eq!(0, c.all_effects.len());
         // TODO improve the test  by checking if the effect is removed on character stats
+    }
+
+    #[test]
+    fn unit_process_atk_cost() {
+        let mut c = Character::testing_character();
+        let old_mana = c.stats.all_stats[MANA].current;
+        c.process_atk_cost("atk1"); // 10% mana cost
+        assert_eq!(old_mana - 20, c.stats.all_stats[MANA].current);
     }
 }
