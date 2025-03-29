@@ -7,7 +7,7 @@ use crate::{
     attack_type::AttackType,
     character::{AmountType, Character, CharacterType},
     common::{character_const::*, paths_const::OFFLINE_CHARACTERS, stats_const::*},
-    effect::{self, is_effet_hot_or_dot, EffectParam},
+    effect::{is_effet_hot_or_dot, EffectParam},
     game_state::GameState,
     utils::list_files_in_dir,
 };
@@ -203,7 +203,6 @@ impl PlayerManager {
         // update the shadow current player
         self.current_player.actions_done_in_round = 0;
 
-        let mut updated_effects = Vec::new();
         let mut _logs = Vec::new();
 
         if self.current_player.extended_character.is_first_round {
@@ -212,26 +211,18 @@ impl PlayerManager {
             self.current_player
                 .init_aggro_on_turn(game_state.current_turn_nb);
             self.current_player.remove_terminated_effect_on_player();
-            // process all the effects
-            let (process_logs, hot_or_dot, process_updated_effects) =
-                self.process_all_effects_on_player(game_state, false);
-            // apply all the effects
-            let (apply_logs, apply_updated_effects) =
-                self.apply_all_effects_on_player(game_state, false, &process_updated_effects);
-            updated_effects = apply_updated_effects;
 
             // TODO apply passive power
 
             // apply hot and dot
+            let (process_logs, hot_or_dot) = self.process_hot_and_dot(game_state);
             self.apply_hot_or_dot(game_state, hot_or_dot);
             // process logs
             _logs = process_logs;
-            _logs.extend(apply_logs);
         }
 
         // update the active character
         self.modify_active_character(name);
-        self.modify_effects(updated_effects);
         Ok(())
     }
 
@@ -253,17 +244,11 @@ impl PlayerManager {
         }
     }
 
-    pub fn process_all_effects_on_player(
-        &mut self,
-        game_state: &GameState,
-        from_launch: bool,
-    ) -> (Vec<String>, i64, Vec<GameAtkEffects>) {
+    pub fn process_hot_and_dot(&mut self, game_state: &GameState) -> (Vec<String>, i64) {
         let mut logs = Vec::new();
         let mut hot_and_dot = 0;
-        let mut output_new_effects = Vec::new();
-        let target_pl = self.current_player.clone();
         // First process all the effects whatever their order
-        for gae in target_pl.all_effects.iter() {
+        for gae in self.current_player.all_effects.iter() {
             if gae.launching_turn == game_state.current_turn_nb {
                 continue;
             }
@@ -272,28 +257,9 @@ impl PlayerManager {
                 && is_effet_hot_or_dot(&gae.all_atk_effects.effect_type)
             {
                 process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
-            } else if let Some(launcher_pl) = self.get_active_character(&gae.launcher) {
-                if !effect::is_effect_processed(&gae.all_atk_effects, from_launch, false) {
-                    continue;
-                }
-                let (effect_param, log) = launcher_pl.process_one_effect(
-                    &target_pl,
-                    &gae.all_atk_effects,
-                    from_launch,
-                    &gae.atk,
-                    game_state,
-                    false,
-                );
-                if !log.is_empty() {
-                    logs.push(log);
-                }
-                // update the big effect table
-                let mut new_game_atk_effect = gae.clone();
-                new_game_atk_effect.all_atk_effects = effect_param;
-                output_new_effects.push(new_game_atk_effect);
             }
         }
-        (logs, hot_and_dot, output_new_effects)
+        (logs, hot_and_dot)
     }
 
     pub fn modify_effects(&mut self, updated_effects: Vec<GameAtkEffects>) {
@@ -305,7 +271,7 @@ impl PlayerManager {
         &mut self,
         game_state: &GameState,
         from_launch: bool,
-        new_effects: &Vec<GameAtkEffects>,
+        new_effects: Vec<GameAtkEffects>,
     ) -> (Vec<String>, Vec<GameAtkEffects>) {
         let mut local_log = Vec::new();
         let mut output_new_effects = Vec::new();
@@ -417,10 +383,14 @@ mod tests {
             all_atk_effects: build_cooldown_effect(),
             ..Default::default()
         });
-        let old_counter_turn = pl.active_heroes[0].all_effects[0].all_atk_effects.counter_turn;
+        let old_counter_turn = pl.active_heroes[0].all_effects[0]
+            .all_atk_effects
+            .counter_turn;
         pl.increment_counter_effect();
         assert_eq!(
-            pl.active_heroes[0].all_effects[0].all_atk_effects.counter_turn,
+            pl.active_heroes[0].all_effects[0]
+                .all_atk_effects
+                .counter_turn,
             old_counter_turn + 1
         );
     }
@@ -518,24 +488,23 @@ mod tests {
     }
 
     #[test]
-    fn unit_process_all_effects_on_player_default_and_cooldown() {
+    fn unit_process_hot_and_dot() {
         let mut pl = PlayerManager::testing_pm();
         let mut c = Character::testing_character();
         // push default effect
         c.all_effects.push(GameAtkEffects::default());
         let gs = GameState::new();
-        let (logs, hot_and_dot, new_game_effects) = pl.process_all_effects_on_player(&gs, false);
+        let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(0, logs.len());
         assert_eq!(0, hot_and_dot);
-        assert_eq!(0, new_game_effects.len());
         // test cooldown effect
         c.all_effects.push(GameAtkEffects {
             all_atk_effects: build_cooldown_effect(),
             ..Default::default()
         });
-        let (logs, hot_and_dot, new_game_effects) = pl.process_all_effects_on_player(&gs, false);
+        let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(0, logs.len());
         assert_eq!(0, hot_and_dot);
-        assert_eq!(0, new_game_effects.len());
+        // TODO add test with HOT then DOT
     }
 }

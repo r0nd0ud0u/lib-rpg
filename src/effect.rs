@@ -62,7 +62,7 @@ pub fn is_effet_hot_or_dot(effect_name: &str) -> bool {
     effects_hot_or_dot.contains(effect_name)
 }
 
-pub fn is_active_effect_from_launch(effect_name: &str) -> bool {
+pub fn is_active_effect_only_from_launch(effect_name: &str) -> bool {
     let active_effects_on_launch: HashSet<&str> = [
         EFFECT_NB_DECREASE_BY_TURN,
         EFFECT_NB_COOL_DOWN,
@@ -102,16 +102,16 @@ pub fn is_boosted_by_crit(effect_name: &str) -> bool {
 }
 
 pub fn is_effect_processed(ep: &EffectParam, from_launch: bool, reload: bool) -> bool {
-    if !from_launch && is_active_effect_from_launch(&ep.effect_type) {
-        return true;
+    if !from_launch && is_active_effect_only_from_launch(&ep.effect_type) {
+        return false;
     }
-    if (ep.stats_name == DODGE || ep.stats_name == CRITICAL_STRIKE) && (!from_launch && !reload) {
-        return true;
+    if (ep.stats_name == DODGE || ep.stats_name == CRITICAL_STRIKE) && (from_launch || reload) {
+        return false;
     }
     if ep.stats_name != HP && ep.effect_type == EFFECT_VALUE_CHANGE && (!from_launch && !reload) {
-        return true;
+        return false;
     }
-    false
+    true
 }
 
 pub fn is_effect_only_at_atk_launch(effect_name: &str) -> bool {
@@ -160,7 +160,7 @@ mod tests {
     #[test]
     fn test_is_active_effect_from_launch() {
         assert_eq!(
-            is_active_effect_from_launch(EFFECT_NB_DECREASE_BY_TURN),
+            is_active_effect_only_from_launch(EFFECT_NB_DECREASE_BY_TURN),
             true
         );
         assert_eq!(is_effet_hot_or_dot("hehe"), false);
