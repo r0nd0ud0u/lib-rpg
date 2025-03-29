@@ -12,5 +12,6 @@ pub mod players_manager;
 pub mod powers;
 pub mod stats;
 pub mod target;
+pub mod testing_atk;
 pub mod testing_effect;
 pub mod utils;
