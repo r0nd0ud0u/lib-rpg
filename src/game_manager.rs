@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::{
     character::CharacterType,
-    common::{paths_const::OFFLINE_CHARACTERS, stats_const::*},
+    common::{all_target_const::TARGET_ENNEMY, paths_const::OFFLINE_CHARACTERS, stats_const::*},
     game_state::GameState,
     players_manager::PlayerManager,
     target::TargetInfo,
@@ -114,14 +114,27 @@ impl GameManager {
      * Atk of the launcher is processed first to enable the potential bufs
      * then the effets are processed on the other targets(ennemy and allies)
      */
-    pub fn launch_attack(&mut self, atk_name: &str, _all_targets: Vec<TargetInfo>) {
+    pub fn launch_attack(&mut self, atk_name: &str, all_targets: Vec<TargetInfo>) {
         self.pm.current_player.actions_done_in_round += 1;
         if !self.pm.current_player.attacks_list.contains_key(atk_name) {
             // TODO log
             return;
         }
-        let _current_atk = &self.pm.current_player.attacks_list[atk_name];
+
+        if !self.pm.current_player.attacks_list.contains_key(atk_name) {
+            // TODO log
+            return;
+        }
         self.pm.current_player.process_atk_cost(atk_name);
+
+        let _is_dodging = if self.pm.current_player.attacks_list[atk_name].target == TARGET_ENNEMY {
+            self.pm.is_dodging(
+                all_targets,
+                self.pm.current_player.attacks_list[atk_name].level.into(),
+            )
+        } else {
+            vec![]
+        };
     }
 }
 

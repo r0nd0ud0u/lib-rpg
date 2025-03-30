@@ -9,6 +9,7 @@ use crate::{
     common::{character_const::*, paths_const::OFFLINE_CHARACTERS, stats_const::*},
     effect::{is_effet_hot_or_dot, EffectParam},
     game_state::GameState,
+    target::TargetInfo,
     utils::list_files_in_dir,
 };
 
@@ -19,6 +20,13 @@ pub struct GameAtkEffects {
     pub launcher: String,
     pub target: String,
     pub launching_turn: usize,
+}
+
+#[derive(Default)]
+pub struct DodgeInfo {
+    pub name: String,
+    pub is_dodging: bool,
+    pub is_blocking: bool,
 }
 
 /// Define all the parameters of a playerManager
@@ -169,11 +177,21 @@ impl PlayerManager {
         }
     }
 
-    pub fn get_active_character(&mut self, name: &str) -> Option<&mut Character> {
+    pub fn get_mut_active_character(&mut self, name: &str) -> Option<&mut Character> {
         if let Some(hero) = self.active_heroes.iter_mut().find(|c| c.name == name) {
             return Some(hero);
         }
         if let Some(boss) = self.active_bosses.iter_mut().find(|c| c.name == name) {
+            return Some(boss);
+        }
+        None
+    }
+
+    pub fn get_active_character(&self, name: &str) -> Option<&Character> {
+        if let Some(hero) = self.get_active_hero_character(name) {
+            return Some(hero);
+        }
+        if let Some(boss) = self.get_active_boss_character(name) {
             return Some(boss);
         }
         None
@@ -188,17 +206,25 @@ impl PlayerManager {
         }
     }
 
-    pub fn get_active_hero_character(&mut self, name: &str) -> Option<&mut Character> {
+    pub fn get_mut_active_hero_character(&mut self, name: &str) -> Option<&mut Character> {
         self.active_heroes.iter_mut().find(|c| c.name == name)
     }
 
-    pub fn get_active_boss_character(&mut self, name: &str) -> Option<&mut Character> {
+    pub fn get_mut_active_boss_character(&mut self, name: &str) -> Option<&mut Character> {
         self.active_bosses.iter_mut().find(|c| c.name == name)
+    }
+
+    pub fn get_active_hero_character(&self, name: &str) -> Option<&Character> {
+        self.active_heroes.iter().find(|c| c.name == name)
+    }
+
+    pub fn get_active_boss_character(&self, name: &str) -> Option<&Character> {
+        self.active_bosses.iter().find(|c| c.name == name)
     }
 
     pub fn update_current_player(&mut self, game_state: &GameState, name: &str) -> Result<()> {
         let c = self
-            .get_active_character(name)
+            .get_mut_active_character(name)
             .expect("no active character");
         self.current_player = c.clone();
 
@@ -283,7 +309,7 @@ impl PlayerManager {
             if gae.launching_turn == game_state.current_turn_nb {
                 continue;
             }
-            if let Some(launcher_pl) = self.get_active_character(&gae.launcher) {
+            if let Some(launcher_pl) = self.get_mut_active_character(&gae.launcher) {
                 let effect_outcome = launcher_pl.apply_one_effect(
                     &mut target_pl,
                     &gae.all_atk_effects,
@@ -342,6 +368,19 @@ impl PlayerManager {
                     output.push(pl1.name.clone());
                     break;
                 }
+            }
+        }
+        output
+    }
+
+    pub fn is_dodging(&self, all_targets: Vec<TargetInfo>, atk_level: i64) -> Vec<DodgeInfo> {
+        let mut output: Vec<DodgeInfo> = vec![];
+        for t in all_targets {
+            match self.get_active_character(&t.name) {
+                Some(c) => {
+                    output.push(c.is_dodging(atk_level));
+                }
+                _ => output.push(DodgeInfo::default()),
             }
         }
         output
@@ -474,9 +513,9 @@ mod tests {
     #[test]
     fn unit_get_active_character() {
         let mut pl = PlayerManager::try_new("tests/characters").unwrap();
-        assert!(pl.get_active_character("Super test").is_some());
-        assert!(pl.get_active_character("Boss1").is_some());
-        assert!(pl.get_active_character("unknown").is_none());
+        assert!(pl.get_mut_active_character("Super test").is_some());
+        assert!(pl.get_mut_active_character("Boss1").is_some());
+        assert!(pl.get_mut_active_character("unknown").is_none());
     }
 
     #[test]

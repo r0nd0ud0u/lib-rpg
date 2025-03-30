@@ -1,4 +1,5 @@
 use anyhow::Result;
+use rand::Rng;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     fs, io,
@@ -50,17 +51,17 @@ pub fn get_current_time_as_string() -> String {
     now.format("%Y-%m-%d-%H-%M-%S").to_string()
 }
 
-/* double Utils::CalcRatio(const int val1, const int val2) {
-  return (val2 > 0) ? static_cast<double>(val1) / static_cast<double>(val2) : 1;
-}
- */
-
 pub fn calc_ratio(val1: i64, val2: i64) -> f64 {
     if val2 > 0 {
         val1 as f64 / val2 as f64
     } else {
         1.0
     }
+}
+
+pub fn get_random_nb(min: i64, max: i64) -> i64 {
+    let mut rng = rand::rng();
+    rng.random_range(min..=max)
 }
 
 #[cfg(test)]

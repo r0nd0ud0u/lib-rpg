@@ -8,7 +8,7 @@ use crate::{
     buffers::{update_damage_by_buf, update_heal_by_multi, BufTypes, Buffers},
     common::{
         attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
-        character_const::NB_TURN_SUM_AGGRO,
+        character_const::{NB_TURN_SUM_AGGRO, ULTIMATE_LEVEL},
         effect_const::*,
         stats_const::*,
     },
@@ -18,12 +18,12 @@ use crate::{
     },
     equipment::Equipment,
     game_state::GameState,
-    players_manager::GameAtkEffects,
+    players_manager::{DodgeInfo, GameAtkEffects},
     powers::Powers,
     stats::Stats,
     target::is_target_ally,
     testing_atk::*,
-    utils,
+    utils::{self, get_random_nb},
 };
 
 /// ExtendedCharacter
@@ -718,6 +718,25 @@ impl Character {
                     berseck.current - atk.berseck_cost * berseck.current / 100,
                 );
             }
+        }
+    }
+
+    pub fn is_dodging(&self, atk_level: i64) -> DodgeInfo {
+        if atk_level == ULTIMATE_LEVEL {
+            return DodgeInfo {
+                name: self.name.clone(),
+                is_dodging: false,
+                is_blocking: false,
+            };
+        }
+        let rand_nb = get_random_nb(0, 100);
+        let is_dodging =
+            self.class != Class::Tank && rand_nb <= self.stats.all_stats[DODGE].current as i64;
+        let is_blocking = self.class == Class::Tank;
+        DodgeInfo {
+            name: self.name.clone(),
+            is_dodging,
+            is_blocking,
         }
     }
 }
