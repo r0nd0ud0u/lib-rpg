@@ -93,7 +93,7 @@ pub struct Character {
     pub is_last_atk_crit: bool,
     /// Fight information: damages transmitted or received through the fight
     #[serde(rename = "Tx-rx")]
-    pub tx_rx: Vec<HashMap<u64, u64>>,
+    pub tx_rx: Vec<HashMap<u64, i64>>,
     /// Fight information: Enabled buf/debuf acquired through the fight
     #[serde(rename = "Buf-debuf")]
     pub all_buffers: Vec<Buffers>,
@@ -212,7 +212,9 @@ impl Character {
             for i in 1..NB_TURN_SUM_AGGRO + 1 {
                 if i <= self.tx_rx[AmountType::Aggro as usize].len() {
                     let index = turn_nb - i;
-                    aggro_stat.current += self.tx_rx[AmountType::Aggro as usize][&(index as u64)];
+                    aggro_stat.current = aggro_stat.current.saturating_add(
+                        self.tx_rx[AmountType::Aggro as usize][&(index as u64)] as u64,
+                    );
                 }
             }
         }
@@ -1081,5 +1083,42 @@ mod tests {
         let old_mana = c.stats.all_stats[MANA].current;
         c.process_atk_cost("atk1"); // 10% mana cost
         assert_eq!(old_mana - 20, c.stats.all_stats[MANA].current);
+    }
+
+    #[test]
+    fn unit_is_dodging() {
+        let mut c = Character::testing_character();
+
+        // ultimate atk cannot be dodged
+        let atk_level = 13;
+        let dodge_info = c.is_dodging(atk_level);
+        assert_eq!(c.name, dodge_info.name);
+        assert_eq!(false, dodge_info.is_dodging);
+        assert_eq!(false, dodge_info.is_blocking);
+
+        // impossible to dodge
+        let atk_level = 1;
+        c.stats.all_stats[DODGE].current = 0;
+        let dodge_info = c.is_dodging(atk_level);
+        assert_eq!(c.name, dodge_info.name);
+        assert_eq!(false, dodge_info.is_dodging);
+        assert_eq!(false, dodge_info.is_blocking);
+
+        // total dodge
+        let atk_level = 1;
+        c.stats.all_stats[DODGE].current = 100;
+        let dodge_info = c.is_dodging(atk_level);
+        assert_eq!(c.name, dodge_info.name);
+        assert_eq!(true, dodge_info.is_dodging);
+        assert_eq!(false, dodge_info.is_blocking);
+
+        // A tank is not dodging, he is blocking
+        let atk_level = 1;
+        c.stats.all_stats[DODGE].current = 100;
+        c.class = Class::Tank;
+        let dodge_info = c.is_dodging(atk_level);
+        assert_eq!(c.name, dodge_info.name);
+        assert_eq!(false, dodge_info.is_dodging);
+        assert_eq!(true, dodge_info.is_blocking);
     }
 }

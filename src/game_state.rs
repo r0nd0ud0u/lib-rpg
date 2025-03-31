@@ -36,8 +36,6 @@ impl GameState {
         // Reset to round 0
         self.current_round = 0;
 
-        self.new_round();
-
         Ok(())
     }
 
@@ -61,7 +59,7 @@ mod tests {
     fn unit_start_new_turn() {
         let mut gs = GameState::new();
         assert!(gs.start_new_turn().is_ok());
-        assert_eq!(gs.current_round, 1);
+        assert_eq!(gs.current_round, 0);
         assert_eq!(gs.current_turn_nb, 1);
     }
 }

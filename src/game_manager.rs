@@ -35,11 +35,11 @@ impl GameManager {
         self.game_state.init();
     }
     pub fn start_new_turn(&mut self) -> Result<()> {
-        self.game_state.start_new_turn()?;
-
         // For each turn now
         // Process the order of the players
         self.process_order_to_play();
+
+        self.game_state.start_new_turn()?;
 
         self.new_round()?;
 
@@ -143,7 +143,10 @@ mod tests {
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::SPEED},
         game_manager::GameManager,
+        testing_atk::build_atk_damage1,
     };
+
+    use crate::testing_target::build_target_boss_indiv;
 
     #[test]
     fn unit_try_new() {
@@ -205,5 +208,28 @@ mod tests {
             .pm
             .compute_sup_atk_turn(crate::character::CharacterType::Hero);
         assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn unit_new_round() {
+        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        gm.start_game();
+        gm.start_new_turn().unwrap();
+        assert_eq!(gm.game_state.current_round, 1);
+        gm.new_round().unwrap();
+        assert_eq!(gm.game_state.current_round, 2);
+    }
+
+    #[test]
+    fn unit_launch_attack() {
+        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        gm.start_game();
+        gm.start_new_turn().unwrap();
+        gm.launch_attack(&build_atk_damage1().name, vec![build_target_boss_indiv()]);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+
+        // TODO check cost
+
+        // TODO check
     }
 }

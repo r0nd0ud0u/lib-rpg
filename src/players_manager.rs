@@ -257,10 +257,15 @@ impl PlayerManager {
     fn apply_hot_or_dot(&mut self, game_state: &GameState, hot_or_dot: i64) {
         if hot_or_dot != 0 {
             let hp = self.current_player.stats.all_stats.get_mut(HP).unwrap();
-            hp.current += hot_or_dot as u64;
+            if hot_or_dot < 0 {
+                hp.current = hp.current.saturating_sub(hot_or_dot.unsigned_abs());
+            } else {
+                hp.current = hp.current.saturating_add(hot_or_dot as u64);
+            }
+
             // localLog.append(QString("HOT et DOT totaux: %1").arg(hotAndDot));
             // update buf overheal
-            let delta_over_heal = hp.current - hp.max;
+            let delta_over_heal: i64 = hp.current as i64 - hp.max as i64;
             if delta_over_heal > 0 {
                 // update txrx
                 self.current_player.tx_rx[AmountType::OverHealRx as usize]
@@ -568,5 +573,21 @@ mod tests {
         let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(2, logs.len()); // hot + dot
         assert_eq!(10, hot_and_dot); // 30(hot) - 20 (dot)
+    }
+
+    #[test]
+    fn unit_apply_hot_or_dot() {
+        let mut pl = PlayerManager::testing_pm();
+        let gs = GameState::default();
+        pl.current_player.stats.all_stats[HP].current = 100;
+        pl.current_player.stats.all_stats[HP].max = 100;
+        pl.current_player.stats.all_stats[HP].max_raw = 100;
+        pl.current_player.stats.all_stats[HP].current_raw = 100;
+        // max value is topped, 100 and not 100 + 30
+        pl.apply_hot_or_dot(&gs, 30);
+        assert_eq!(100, pl.current_player.stats.all_stats[HP].current);
+
+        pl.apply_hot_or_dot(&gs, -30);
+        assert_eq!(70, pl.current_player.stats.all_stats[HP].current);
     }
 }

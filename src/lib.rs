@@ -14,4 +14,5 @@ pub mod stats;
 pub mod target;
 pub mod testing_atk;
 pub mod testing_effect;
+pub mod testing_target;
 pub mod utils;
