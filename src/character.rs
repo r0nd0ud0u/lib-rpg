@@ -304,7 +304,6 @@ impl Character {
 
     pub fn process_one_effect(
         &mut self,
-        target: &Character,
         ep: &EffectParam,
         _from_launch: bool,
         atk: &AttackType,
@@ -329,7 +328,7 @@ impl Character {
         }
 
         // Process effect param
-        let (effect_log, _new_effect_param) = self.process_effect_type(ep, target, atk);
+        let (effect_log, _new_effect_param) = self.process_effect_type(ep, atk);
         result += &effect_log;
 
         (output, result)
@@ -383,7 +382,7 @@ impl Character {
                         nb_turns: value,
                         ..Default::default()
                     };
-                    let (effect_log, new_effect_param) = self.process_effect_type(&ep, target, atk);
+                    let (effect_log, new_effect_param) = self.process_effect_type(&ep, atk);
                     result += &effect_log;
                     // TODO add log
                     // result += target->ProcessOutputLogOnEffect(ep, ep.value, fromLaunch, 1,atk.name, ep.value);
@@ -403,12 +402,8 @@ impl Character {
     pub fn process_effect_type(
         &mut self,
         ep: &EffectParam,
-        target: &Character,
         atk: &AttackType,
     ) -> (String, EffectParam) {
-        if target.is_dead().unwrap_or(false) {
-            return (String::new(), ep.clone());
-        }
         let mut output_log: String = String::new();
         let mut new_effect_param = ep.clone();
         new_effect_param.number_of_applies = 1;
@@ -419,10 +414,7 @@ impl Character {
 
         match ep.effect_type.as_str() {
             EFFECT_NB_COOL_DOWN => {
-                if self.name == target.name {
-                    output_log =
-                        format!("Cooldown actif sur {} de {} tours.", atk.name, ep.nb_turns);
-                }
+                output_log = format!("Cooldown actif sur {} de {} tours.", atk.name, ep.nb_turns);
             }
             EFFECT_NB_DECREASE_ON_TURN => {
                 // TODO
@@ -776,6 +768,34 @@ impl Character {
             false
         }
     }
+
+    pub fn build_effect_outcome(
+        &mut self,
+        ep: &EffectParam,
+        _from_launch: bool,
+        atk: &AttackType,
+        game_state: &GameState,
+        is_crit: bool,
+    ) -> EffectOutcome {
+        let (ec, log) = self.process_one_effect(ep, true, atk, game_state, is_crit);
+
+        EffectOutcome::default()
+    }
+
+    pub fn apply_effect_outcome(&mut self, effect_outcome: &EffectOutcome) {}
+
+    pub fn process_atk(&mut self, atk_name: &str, game_state: &GameState) -> Vec<EffectOutcome> {
+        let atk_list = self.attacks_list.clone();
+        let atk = if let Some(atk) = atk_list.get(atk_name) {
+            atk
+        } else {
+            return vec![];
+        };
+        for effect in atk.all_effects.clone() {
+            let effect_outcome = self.build_effect_outcome(&effect, true, &atk, game_state, false);
+        }
+        vec![EffectOutcome::default()]
+    }
 }
 
 fn process_real_amount(ep: &EffectParam, target: &mut Character, full_amount: i64) -> i64 {
@@ -1086,7 +1106,6 @@ mod tests {
         let c = Character::try_new_from_json(file_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
-        let target = c.clone();
         let ep = EffectParam {
             effect_type: EFFECT_NB_COOL_DOWN.to_string(),
             nb_turns: 10,
@@ -1096,7 +1115,7 @@ mod tests {
         let atk = Default::default();
         let game_state = Default::default();
         // target is himself
-        let (ep, result) = c.process_one_effect(&target, &ep, false, &atk, &game_state, false);
+        let (ep, result) = c.process_one_effect(&ep, false, &atk, &game_state, false);
         assert_eq!(EFFECT_NB_COOL_DOWN, ep.effect_type);
         assert_eq!(10, ep.nb_turns);
         assert_eq!(c.name, ep.target);

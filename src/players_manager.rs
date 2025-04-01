@@ -245,6 +245,8 @@ impl PlayerManager {
             // apply hot and dot
             let (process_logs, hot_or_dot) = self.process_hot_and_dot(game_state);
             self.apply_hot_or_dot(game_state, hot_or_dot);
+
+            //self.apply_all_effects_on_player(game_state, false);
             // process logs
             _logs = process_logs;
         }
@@ -300,32 +302,29 @@ impl PlayerManager {
         self.current_player.all_effects = updated_effects;
     }
 
-    pub fn apply_all_effects_on_player(
+    /*     pub fn apply_all_effects_on_player(
         &mut self,
         game_state: &GameState,
         from_launch: bool,
-        new_effects: Vec<GameAtkEffects>,
     ) -> (Vec<String>, Vec<GameAtkEffects>) {
         let mut local_log = Vec::new();
         let mut output_new_effects = Vec::new();
-        let mut target_pl = self.current_player.clone();
+        let all_effects = self.current_player.clone().all_effects;
         // First process all the effects whatever their order
-        for gae in new_effects {
+        for gae in all_effects {
             if gae.launching_turn == game_state.current_turn_nb {
                 continue;
             }
             if let Some(launcher_pl) = self.get_mut_active_character(&gae.launcher) {
-                let effect_outcome = launcher_pl.apply_one_effect(
-                    &mut target_pl,
-                    &gae.all_atk_effects,
+                let effect_outcome = launcher_pl.build_effect_outcome(&gae.all_atk_effects,
                     from_launch,
                     &gae.atk,
                     false,
-                    false,
-                );
-                if !effect_outcome.log_display.is_empty() {
+                    false);
+                self.current_player.apply_effect_outcome(&effect_outcome);
+                /* if !effect_outcome.log_display.is_empty() {
                     local_log.push(effect_outcome.log_display);
-                }
+                } */
                 // update the  big effect table
                 // TODO see if needed or not, maybe all the effects can be made in the "process effect" function
                 let mut new_game_atk_effect = gae.clone();
@@ -334,7 +333,7 @@ impl PlayerManager {
             }
         }
         (local_log, output_new_effects)
-    }
+    } */
 
     pub fn start_new_turn(&mut self) {
         // Increment turn effects
@@ -378,7 +377,7 @@ impl PlayerManager {
         output
     }
 
-    pub fn is_dodging(&self, all_targets: Vec<TargetInfo>, atk_level: i64) -> Vec<DodgeInfo> {
+    pub fn is_dodging(&self, all_targets: &Vec<TargetInfo>, atk_level: i64) -> Vec<DodgeInfo> {
         let mut output: Vec<DodgeInfo> = vec![];
         for t in all_targets {
             match self.get_active_character(&t.name) {

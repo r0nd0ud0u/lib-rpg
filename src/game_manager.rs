@@ -130,7 +130,7 @@ impl GameManager {
         // is dodging ?
         let _is_dodging = if self.pm.current_player.attacks_list[atk_name].target == TARGET_ENNEMY {
             self.pm.is_dodging(
-                all_targets,
+                &all_targets,
                 self.pm.current_player.attacks_list[atk_name].level.into(),
             )
         } else {
@@ -142,6 +142,23 @@ impl GameManager {
         // TODO ProcessIsRandomTarget
 
         // ProcessAtk
+        let atk_list = self.pm.current_player.attacks_list.clone();
+        let atk = if let Some(atk) = atk_list.get(atk_name) {
+            atk
+        } else {
+            return;
+        };
+        let all_effect_outcome = self
+            .pm
+            .current_player
+            .process_atk(atk_name, &self.game_state);
+        for target in all_targets {
+            for eo in &all_effect_outcome {
+                if let Some(c) = self.pm.get_mut_active_character(&target.name) {
+                    //c.apply_effect_outcome(&eo);
+                }
+            }
+        }
 
         // other function
         // update tx rx
