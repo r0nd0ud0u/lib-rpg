@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::{
-    character::CharacterType,
+    character::{AmountType, CharacterType},
     common::{all_target_const::TARGET_ENNEMY, paths_const::OFFLINE_CHARACTERS, stats_const::*},
     game_state::GameState,
     players_manager::PlayerManager,
@@ -127,6 +127,7 @@ impl GameManager {
         }
         self.pm.current_player.process_atk_cost(atk_name);
 
+        // is dodging ?
         let _is_dodging = if self.pm.current_player.attacks_list[atk_name].target == TARGET_ENNEMY {
             self.pm.is_dodging(
                 all_targets,
@@ -135,6 +136,28 @@ impl GameManager {
         } else {
             vec![]
         };
+
+        // critical strike
+        let is_crit = self.pm.current_player.process_critical_strike(atk_name);
+        // TODO ProcessIsRandomTarget
+
+        // ProcessAtk
+
+        // other function
+        // update tx rx
+        if is_crit {
+            *self.pm.current_player.tx_rx[AmountType::CriticalStrike as usize]
+                .entry(self.game_state.current_turn_nb as u64)
+                .or_insert(1) += 1;
+        }
+        // end of buf
+
+        // new effects to add on the different players
+        // RemoveTerminatedEffectsOnPlayer which last only that turn
+
+        // check who died
+        // if boss -> loot
+        // handle end of game if all bosses are dead
     }
 }
 

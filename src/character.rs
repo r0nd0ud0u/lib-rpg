@@ -48,6 +48,7 @@ pub enum AmountType {
     HealTx,
     OverHealRx,
     Aggro,
+    CriticalStrike,
     EnumSize,
 }
 
@@ -739,6 +740,40 @@ impl Character {
             name: self.name.clone(),
             is_dodging,
             is_blocking,
+        }
+    }
+
+    pub fn is_critical_strike(&self) -> bool {
+        let crit_capped = std::cmp::min(60, self.stats.all_stats[CRITICAL_STRIKE].current);
+        let rand_nb = get_random_nb(0, 100);
+        crit_capped as i64 >= rand_nb
+    }
+
+    pub fn process_critical_strike(&mut self, atk_name: &str) -> bool {
+        let atk = if let Some(atk) = self.attacks_list.get(atk_name) {
+            atk
+        } else {
+            return false;
+        };
+        // process passive power
+        let is_crit_by_passive = self.all_buffers[BufTypes::NextHealAtkIsCrit as usize]
+            .is_passive_enabled
+            && atk.has_only_heal_effect();
+        let crit_capped = std::cmp::min(60, self.stats.all_stats[CRITICAL_STRIKE].current);
+        let rand_nb = get_random_nb(0, 100);
+        let is_crit = crit_capped as i64 >= rand_nb;
+
+        // priority to passive
+        let delta_capped =
+            std::cmp::min(0, self.stats.all_stats[CRITICAL_STRIKE].current as i64 - 60);
+        if is_crit && !is_crit_by_passive && delta_capped > 0 {
+            self.update_buf(BufTypes::DamageCritCapped, delta_capped, false, "");
+            true
+        } else if is_crit_by_passive {
+            self.all_buffers[BufTypes::NextHealAtkIsCrit as usize].is_passive_enabled = false;
+            true
+        } else {
+            false
         }
     }
 }

@@ -3,7 +3,11 @@ use std::vec;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    common::{all_target_const::TARGET_ALLY, reach_const::INDIVIDUAL},
+    common::{
+        all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+        reach_const::INDIVIDUAL,
+        stats_const::HP,
+    },
     effect::EffectParam,
 };
 
@@ -37,5 +41,23 @@ impl Default for AttackType {
             all_effects: vec![],
             form: "".to_owned(),
         }
+    }
+}
+
+impl AttackType {
+    pub fn has_only_heal_effect(&self) -> bool {
+        let mut is_only_heal_effect = false;
+        for e in &self.all_effects {
+            if e.stats_name == HP && e.value < 0 {
+                return false;
+            }
+            if e.stats_name == HP && e.value > 0 {
+                is_only_heal_effect = true;
+            }
+        }
+        if self.target != TARGET_ENNEMY && is_only_heal_effect {
+            return true;
+        }
+        false
     }
 }
