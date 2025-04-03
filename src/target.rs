@@ -6,7 +6,7 @@ use crate::common::all_target_const::*;
 #[derive(Default, Debug, Clone)]
 pub struct TargetInfo {
     pub name: String,
-    pub _is_targeted: bool,
+    pub is_targeted: bool,
     pub _is_boss: bool,
     pub _is_reach_rand: bool,
 }

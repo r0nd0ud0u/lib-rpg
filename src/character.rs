@@ -7,9 +7,11 @@ use crate::{
     attack_type::AttackType,
     buffers::{update_damage_by_buf, update_heal_by_multi, BufTypes, Buffers},
     common::{
+        all_target_const::*,
         attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
         character_const::{NB_TURN_SUM_AGGRO, ULTIMATE_LEVEL},
         effect_const::*,
+        reach_const::*,
         stats_const::*,
     },
     effect::{
@@ -647,6 +649,44 @@ impl Character {
         let (ec, _log) = self.process_one_effect(ep, true, atk, game_state, is_crit);
 
         ec
+    }
+
+    pub fn is_targeted(
+        &self,
+        effect: &EffectParam,
+        launcher_name: &str,
+        launcher_kind: &CharacterType,
+        targeted_on_main_atk: bool,
+    ) -> bool {
+        let is_ally = self.kind == *launcher_kind;
+        if effect.target == TARGET_HIMSELF && launcher_name != self.name {
+            return false;
+        }
+        if effect.target == TARGET_ONLY_ALLY && launcher_name == self.name {
+            return false;
+        }
+        if !is_ally && is_target_ally(&effect.target) {
+            return false;
+        }
+        if is_ally && effect.target == TARGET_ENNEMY {
+            return false;
+        }
+        // is targeted ?
+        if effect.target == TARGET_ALLY && effect.reach == INDIVIDUAL && !targeted_on_main_atk {
+            return false;
+        }
+        if effect.target == TARGET_ALLY && effect.reach == ZONE && !targeted_on_main_atk {
+            return false;
+        }
+        if effect.target == TARGET_ENNEMY && effect.reach == INDIVIDUAL && !targeted_on_main_atk {
+            return false;
+        }
+        // TODO reach random
+        /* if effect.reach == REACH_RAND_INDIVIDUAL && target.m_ext_character.is_some()
+            && !target.m_ext_character.as_ref().unwrap().get_is_random_target() {
+                return false;
+        } */
+        true
     }
 
     pub fn apply_effect_outcome(

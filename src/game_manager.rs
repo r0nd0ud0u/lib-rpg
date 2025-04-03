@@ -153,10 +153,14 @@ impl GameManager {
             .current_player
             .process_atk(&self.game_state, is_crit, atk);
         let launcher_stats = self.pm.current_player.stats.clone();
-        for target in all_targets {
-            for ep in &all_effects_param {
+        let name = self.pm.current_player.name.clone();
+        let kind = self.pm.current_player.kind.clone();
+        for ep in &all_effects_param {
+            for target in &all_targets {
                 if let Some(c) = self.pm.get_mut_active_character(&target.name) {
-                    c.apply_effect_outcome(ep, &launcher_stats, is_crit);
+                    if c.is_targeted(ep, &name, &kind, target.is_targeted) {
+                        c.apply_effect_outcome(ep, &launcher_stats, is_crit);
+                    }
                 }
             }
         }
