@@ -13,8 +13,8 @@ use crate::{
         stats_const::*,
     },
     effect::{
-        is_boosted_by_crit, is_effect_only_at_atk_launch, is_effet_hot_or_dot,
-        process_decrease_on_turn, EffectOutcome, EffectParam,
+        is_boosted_by_crit, is_effect_only_at_atk_launch, process_decrease_on_turn, EffectOutcome,
+        EffectParam,
     },
     equipment::Equipment,
     game_state::GameState,
@@ -334,70 +334,6 @@ impl Character {
         (output, result)
     }
 
-    // TODO do not change ep but update output
-    pub fn apply_one_effect(
-        &mut self,
-        target: &mut Character,
-        ep: &EffectParam,
-        from_launch: bool,
-        atk: &AttackType,
-        reload: bool,
-        is_crit: bool,
-    ) -> EffectOutcome {
-        let mut output = EffectOutcome::default();
-        let mut result = String::new();
-
-        // init effect param
-        output.new_effect_param = ep.clone();
-
-        let (_max_amount_sent, real_amount_sent);
-        if !from_launch {
-            (_max_amount_sent, real_amount_sent) =
-                self.process_effect_value_on_new_round(ep, target);
-        } else {
-            (_max_amount_sent, real_amount_sent, output.new_effect_param) =
-                self.process_effect_value_on_atk(ep, target, is_crit)
-        }
-
-        // TODO extract that as something more general
-        if !reload {
-            result += &Self::regen_into_damage(real_amount_sent, &ep.stats_name);
-            if real_amount_sent > 0 {
-                let buf_opt = self
-                    .all_buffers
-                    .get(BufTypes::ChangeByHealValue as usize)
-                    .filter(|buf| buf.is_passive_enabled);
-                let mut all_stats: Vec<String> = vec![];
-                let mut value = 0;
-                if let Some(buf) = buf_opt {
-                    all_stats = buf.all_stats_name.clone();
-                    value = buf.value;
-                }
-                for stat in all_stats {
-                    let ep = EffectParam {
-                        effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_string(),
-                        value: real_amount_sent,
-                        is_magic_atk: true,
-                        stats_name: stat.clone(),
-                        nb_turns: value,
-                        ..Default::default()
-                    };
-                    let (effect_log, new_effect_param) = self.process_effect_type(&ep, atk);
-                    result += &effect_log;
-                    // TODO add log
-                    // result += target->ProcessOutputLogOnEffect(ep, ep.value, fromLaunch, 1,atk.name, ep.value);
-                    output.new_effects.push(new_effect_param);
-                }
-            }
-        }
-        if ep.stats_name == HP && is_effet_hot_or_dot(&ep.effect_type) {
-            // process effect and return it in EffectOutcome
-            // ep.value = max_amount_sent;
-            // TODO
-        }
-        output
-    }
-
     /// Update all the bufs
     pub fn process_effect_type(
         &mut self,
@@ -530,78 +466,9 @@ impl Character {
             return (full_amount, full_amount);
         }
         // Calculation of the real amount of the value of the effect
-        let real_amount = process_real_amount(ep, target, full_amount);
+        let real_amount = self.process_real_amount(ep, full_amount);
 
         (full_amount, real_amount)
-    }
-
-    pub fn process_effect_value_on_atk(
-        &mut self,
-        ep: &EffectParam,
-        target: &mut Character,
-        is_crit: bool,
-    ) -> (i64, i64, EffectParam) {
-        if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
-            return (0, 0, ep.clone());
-        }
-        let mut full_amount;
-        let mut new_effect_param = ep.clone();
-        let pow_current = self.stats.get_power_stat(ep.is_magic_atk);
-        if ep.stats_name == HP && ep.effect_type == EFFECT_NB_DECREASE_ON_TURN {
-            // prepare for HOT
-            full_amount = ep.number_of_applies * (ep.value + pow_current / ep.nb_turns);
-            // update effect value
-            new_effect_param.value = full_amount;
-        } else if ep.stats_name == HP && ep.effect_type == EFFECT_VALUE_CHANGE
-            || ep.effect_type == EFFECT_PERCENT_CHANGE
-        {
-            if ep.value > 0 {
-                // HOT
-                full_amount = ep.number_of_applies * (ep.value + pow_current / ep.nb_turns);
-            } else {
-                // DOT
-                full_amount = ep.number_of_applies
-                    * self.damage_by_atk(&target.stats, ep.is_magic_atk, ep.value, ep.nb_turns);
-            }
-        } else if ep.effect_type == EFFECT_PERCENT_CHANGE && Stats::is_energy_stat(&ep.stats_name) {
-            full_amount = ep.number_of_applies
-                * self.stats.all_stats.get(&ep.stats_name).unwrap().max as i64
-                * ep.value
-                / 100;
-        } else {
-            full_amount = ep.number_of_applies * ep.value;
-        }
-        // Return now if the full amount is 0
-        if full_amount == 0 {
-            return (0, 0, new_effect_param);
-        }
-
-        // apply buf/debuf to full_amount in case of damages/heal
-        if ep.stats_name == HP {
-            full_amount = self.apply_buf_debuf(full_amount, &ep.target, is_crit);
-            new_effect_param.value = full_amount;
-        }
-
-        // Otherwise update the current value of the stats or the HOT/DOT
-        // stats update
-        if !Stats::is_energy_stat(&ep.stats_name) {
-            target.set_stats_on_effect(
-                &ep.stats_name,
-                full_amount,
-                ep.effect_type == EFFECT_PERCENT_CHANGE,
-                true,
-            );
-            return (full_amount, full_amount, new_effect_param);
-        }
-
-        // blocking the atk
-        if target.is_blocking_atk && ep.stats_name == HP {
-            full_amount = 10 * full_amount / 100;
-        }
-        // Calculation of the real amount of the value of the effect
-        let real_amount = process_real_amount(ep, target, full_amount);
-
-        (full_amount, real_amount, new_effect_param)
     }
 
     pub fn apply_buf_debuf(&self, full_amount: i64, target: &str, is_crit: bool) -> i64 {
@@ -661,14 +528,14 @@ impl Character {
     }
 
     pub fn damage_by_atk(
-        &self,
         target_stats: &Stats,
+        launcher_stats: &Stats,
         is_magic: bool,
         atk_value: i64,
         nb_of_turns: i64,
     ) -> i64 {
         let target_armor = target_stats.get_armor_stat(is_magic);
-        let launcher_pow = self.stats.get_power_stat(is_magic);
+        let launcher_pow = launcher_stats.get_power_stat(is_magic);
 
         let damage = atk_value - launcher_pow / nb_of_turns;
         let protection = 1000.0 / (1000.0 + target_armor as f64);
@@ -769,57 +636,140 @@ impl Character {
         }
     }
 
-    pub fn build_effect_outcome(
+    pub fn assess_effect_param(
         &mut self,
         ep: &EffectParam,
         _from_launch: bool,
         atk: &AttackType,
         game_state: &GameState,
         is_crit: bool,
+    ) -> EffectParam {
+        let (ec, _log) = self.process_one_effect(ep, true, atk, game_state, is_crit);
+
+        ec
+    }
+
+    pub fn apply_effect_outcome(
+        &mut self,
+        ep: &EffectParam,
+        launcher_stats: &Stats,
+        is_crit: bool,
     ) -> EffectOutcome {
-        let (ec, log) = self.process_one_effect(ep, true, atk, game_state, is_crit);
-
-        EffectOutcome::default()
-    }
-
-    pub fn apply_effect_outcome(&mut self, effect_outcome: &EffectOutcome) {}
-
-    pub fn process_atk(&mut self, atk_name: &str, game_state: &GameState) -> Vec<EffectOutcome> {
-        let atk_list = self.attacks_list.clone();
-        let atk = if let Some(atk) = atk_list.get(atk_name) {
-            atk
-        } else {
-            return vec![];
-        };
-        for effect in atk.all_effects.clone() {
-            let effect_outcome = self.build_effect_outcome(&effect, true, &atk, game_state, false);
+        if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
+            return EffectOutcome::default();
         }
-        vec![EffectOutcome::default()]
-    }
-}
+        let mut full_amount;
+        let mut new_effect_param = ep.clone();
+        let pow_current = self.stats.get_power_stat(ep.is_magic_atk);
+        if ep.stats_name == HP && ep.effect_type == EFFECT_NB_DECREASE_ON_TURN {
+            // prepare for HOT
+            full_amount = ep.number_of_applies * (ep.value + pow_current / ep.nb_turns);
+            // update effect value
+            new_effect_param.value = full_amount;
+        } else if ep.stats_name == HP && ep.effect_type == EFFECT_VALUE_CHANGE
+            || ep.effect_type == EFFECT_PERCENT_CHANGE
+        {
+            if ep.value > 0 {
+                // HOT
+                full_amount = ep.number_of_applies * (ep.value + pow_current / ep.nb_turns);
+            } else {
+                // DOT
+                full_amount = ep.number_of_applies
+                    * Self::damage_by_atk(
+                        &self.stats,
+                        launcher_stats,
+                        ep.is_magic_atk,
+                        ep.value,
+                        ep.nb_turns,
+                    );
+            }
+        } else if ep.effect_type == EFFECT_PERCENT_CHANGE && Stats::is_energy_stat(&ep.stats_name) {
+            full_amount = ep.number_of_applies
+                * self.stats.all_stats.get(&ep.stats_name).unwrap().max as i64
+                * ep.value
+                / 100;
+        } else {
+            full_amount = ep.number_of_applies * ep.value;
+        }
+        // Return now if the full amount is 0
+        if full_amount == 0 {
+            return EffectOutcome::default();
+        }
 
-fn process_real_amount(ep: &EffectParam, target: &mut Character, full_amount: i64) -> i64 {
-    if ep.stats_name != HP {
-        return 0;
+        // apply buf/debuf to full_amount in case of damages/heal
+        if ep.stats_name == HP {
+            full_amount = self.apply_buf_debuf(full_amount, &ep.target, is_crit);
+            new_effect_param.value = full_amount;
+        }
+
+        // Otherwise update the current value of the stats or the HOT/DOT
+        // stats update
+        if !Stats::is_energy_stat(&ep.stats_name) {
+            self.set_stats_on_effect(
+                &ep.stats_name,
+                full_amount,
+                ep.effect_type == EFFECT_PERCENT_CHANGE,
+                true,
+            );
+            return EffectOutcome {
+                full_atk_amount_tx: full_amount,
+                real_amount_tx: full_amount,
+                new_effect_param,
+                ..Default::default()
+            };
+        }
+
+        // blocking the atk
+        if self.is_blocking_atk && ep.stats_name == HP {
+            full_amount = 10 * full_amount / 100;
+        }
+        // Calculation of the real amount of the value of the effect
+        let real_amount = self.process_real_amount(ep, full_amount);
+
+        EffectOutcome {
+            full_atk_amount_tx: full_amount,
+            real_amount_tx: real_amount,
+            new_effect_param,
+            ..Default::default()
+        }
     }
-    let real_amount;
-    if full_amount > 0 {
-        // heal
-        let delta =
-            target.stats.all_stats[HP].max as i64 - target.stats.all_stats[HP].current as i64;
-        target.stats.all_stats[HP].current = std::cmp::min(
-            full_amount + target.stats.all_stats[HP].current as i64,
-            target.stats.all_stats[HP].max as i64,
-        ) as u64;
-        real_amount = std::cmp::min(delta, full_amount);
-    } else {
-        // damage
-        let tmp = target.stats.all_stats[HP].current as i64;
-        target.stats.all_stats[HP].current =
-            std::cmp::max(0, target.stats.all_stats[HP].current as i64 + full_amount) as u64;
-        real_amount = std::cmp::min(tmp, full_amount);
+
+    pub fn process_atk(
+        &mut self,
+        game_state: &GameState,
+        is_crit: bool,
+        atk: &AttackType,
+    ) -> Vec<EffectParam> {
+        let mut output: Vec<EffectParam> = vec![];
+        for effect in atk.all_effects.clone() {
+            output.push(self.assess_effect_param(&effect, true, atk, game_state, is_crit));
+        }
+        output
     }
-    real_amount
+
+    pub fn process_real_amount(&mut self, ep: &EffectParam, full_amount: i64) -> i64 {
+        if ep.stats_name != HP {
+            return 0;
+        }
+        let real_amount;
+        if full_amount > 0 {
+            // heal
+            let delta =
+                self.stats.all_stats[HP].max as i64 - self.stats.all_stats[HP].current as i64;
+            self.stats.all_stats[HP].current = std::cmp::min(
+                full_amount + self.stats.all_stats[HP].current as i64,
+                self.stats.all_stats[HP].max as i64,
+            ) as u64;
+            real_amount = std::cmp::min(delta, full_amount);
+        } else {
+            // damage
+            let tmp = self.stats.all_stats[HP].current as i64;
+            self.stats.all_stats[HP].current =
+                std::cmp::max(0, self.stats.all_stats[HP].current as i64 + full_amount) as u64;
+            real_amount = std::cmp::min(tmp, full_amount);
+        }
+        real_amount
+    }
 }
 
 #[cfg(test)]

@@ -148,14 +148,15 @@ impl GameManager {
         } else {
             return;
         };
-        let all_effect_outcome = self
+        let all_effects_param = self
             .pm
             .current_player
-            .process_atk(atk_name, &self.game_state);
+            .process_atk(&self.game_state, is_crit, atk);
+        let launcher_stats = self.pm.current_player.stats.clone();
         for target in all_targets {
-            for eo in &all_effect_outcome {
+            for ep in &all_effects_param {
                 if let Some(c) = self.pm.get_mut_active_character(&target.name) {
-                    //c.apply_effect_outcome(&eo);
+                    c.apply_effect_outcome(ep, &launcher_stats, is_crit);
                 }
             }
         }
