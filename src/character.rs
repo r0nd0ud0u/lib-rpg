@@ -482,7 +482,9 @@ impl Character {
             // Launcher TX
             // To place first
             if let Some(buf_multi) = self.all_buffers.get(BufTypes::MultiValue as usize) {
-                real_amount = update_heal_by_multi(full_amount, buf_multi.value);
+                if buf_multi.value > 0 {
+                    real_amount = update_heal_by_multi(full_amount, buf_multi.value);
+                }
             }
             // Launcher TX
             if let Some(buf_hp_tx) = self.all_buffers.get(BufTypes::HealTx as usize) {
@@ -626,7 +628,7 @@ impl Character {
 
         // priority to passive
         let delta_capped =
-            std::cmp::min(0, self.stats.all_stats[CRITICAL_STRIKE].current as i64 - 60);
+            std::cmp::max(0, self.stats.all_stats[CRITICAL_STRIKE].current as i64 - 60);
         if is_crit && !is_crit_by_passive && delta_capped > 0 {
             self.update_buf(BufTypes::DamageCritCapped, delta_capped, false, "");
             true
@@ -675,10 +677,10 @@ impl Character {
         if effect.target == TARGET_ALLY && effect.reach == INDIVIDUAL && !targeted_on_main_atk {
             return false;
         }
-        if effect.target == TARGET_ALLY && effect.reach == ZONE && !targeted_on_main_atk {
+        if effect.target == TARGET_ENNEMY && effect.reach == INDIVIDUAL && !targeted_on_main_atk {
             return false;
         }
-        if effect.target == TARGET_ENNEMY && effect.reach == INDIVIDUAL && !targeted_on_main_atk {
+        if effect.target == TARGET_ALLY && effect.reach == ZONE && launcher_name == self.name {
             return false;
         }
         // TODO reach random
@@ -700,7 +702,7 @@ impl Character {
         }
         let mut full_amount;
         let mut new_effect_param = ep.clone();
-        let pow_current = self.stats.get_power_stat(ep.is_magic_atk);
+        let pow_current = launcher_stats.get_power_stat(ep.is_magic_atk);
         if ep.stats_name == HP && ep.effect_type == EFFECT_NB_DECREASE_ON_TURN {
             // prepare for HOT
             full_amount = ep.number_of_applies * (ep.value + pow_current / ep.nb_turns);
@@ -711,7 +713,7 @@ impl Character {
         {
             if ep.value > 0 {
                 // HOT
-                full_amount = ep.number_of_applies * (ep.value + pow_current / ep.nb_turns);
+                full_amount = ep.number_of_applies * (ep.value + pow_current) / ep.nb_turns;
             } else {
                 // DOT
                 full_amount = ep.number_of_applies
@@ -763,7 +765,7 @@ impl Character {
         if self.is_blocking_atk && ep.stats_name == HP {
             full_amount = 10 * full_amount / 100;
         }
-        // Calculation of the real amount of the value of the effect
+        // Calculation of the real amount of the value of the effect and update the energy stats
         let real_amount = self.process_real_amount(ep, full_amount);
 
         EffectOutcome {
@@ -816,12 +818,14 @@ impl Character {
 mod tests {
     use std::collections::HashMap;
 
+    use crate::effect::EffectOutcome;
     use crate::{
         buffers::BufTypes,
         character::{CharacterType, Class},
-        common::{effect_const::*, stats_const::*},
+        common::{all_target_const::TARGET_ALLY, effect_const::*, stats_const::*},
         effect::EffectParam,
         players_manager::GameAtkEffects,
+        testing_effect::*,
     };
 
     use super::Character;
@@ -1164,5 +1168,160 @@ mod tests {
         assert_eq!(c.name, dodge_info.name);
         assert_eq!(false, dodge_info.is_dodging);
         assert_eq!(true, dodge_info.is_blocking);
+    }
+
+    #[test]
+    fn unit_is_critical_strike() {
+        let mut c = Character::testing_character();
+        c.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        assert_eq!(false, c.is_critical_strike());
+        c.stats.all_stats[CRITICAL_STRIKE].current = 100;
+        assert_eq!(true, c.is_critical_strike());
+    }
+
+    #[test]
+    fn unit_process_critical_strike() {
+        let mut c = Character::testing_character();
+        c.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        assert_eq!(false, c.process_critical_strike("atk1"));
+        c.stats.all_stats[CRITICAL_STRIKE].current = 100;
+        assert_eq!(true, c.process_critical_strike("atk1"));
+        assert_eq!(
+            false,
+            c.all_buffers[BufTypes::NextHealAtkIsCrit as usize].is_passive_enabled
+        );
+    }
+
+    #[test]
+    fn unit_assess_effect_param() {
+        let file_path = "./tests/characters/test.json"; // Path to the JSON file
+        let c = Character::try_new_from_json(file_path);
+        assert!(c.is_ok());
+        let mut c = c.unwrap();
+        let ep = EffectParam {
+            effect_type: EFFECT_NB_COOL_DOWN.to_string(),
+            nb_turns: 10,
+            target: c.name.clone(),
+            ..Default::default()
+        };
+        let atk = Default::default();
+        let game_state = Default::default();
+        // target is himself
+        let ep = c.assess_effect_param(&ep, false, &atk, &game_state, false);
+        assert_eq!(EFFECT_NB_COOL_DOWN, ep.effect_type);
+        assert_eq!(10, ep.nb_turns);
+        assert_eq!(c.name, ep.target);
+    }
+
+    #[test]
+    fn unit_is_targeted() {
+        let c1 = Character::try_new_from_json("./tests/characters/test.json").unwrap();
+        let mut c2 = Character::try_new_from_json("./tests/characters/test.json").unwrap();
+        c2.name = "other".to_string();
+        let boss1 = Character::try_new_from_json("./tests/characters/test_boss.json").unwrap();
+        // effect on himself
+        let mut ep = build_cooldown_effect();
+        // target is himself
+        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // other ally
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // boss
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+
+        // effect on ally individual
+        ep = build_hot_effect_individual();
+        // target is himself
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // other ally
+        // not targeted on main atk
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // not targeted on main atk
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // boss
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+
+        // effect on ennemy individual
+        ep = build_dmg_effect_individual();
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // other ally
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // boss
+        // targeted on main atk
+        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // not targeted on main atk
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+
+        // effect on ally ZONE
+        ep = build_hot_effect_zone();
+        // target is himself
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // other ally
+        // not targeted on main atk
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // not targeted on main atk
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // boss
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+
+        // effect on ennemy ZONE
+        ep = build_dot_effect_zone();
+        // target is himself
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // other ally
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // boss
+        // targeted on main atk
+        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // not targeted on main atk
+        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+
+        // effect on all allies
+        ep = build_hot_effect_all();
+        // target is himself
+        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // other ally
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // boss
+        // targeted on main atk
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+    }
+
+    #[test]
+    fn unit_apply_effect_outcome() {
+        let mut c = Character::try_new_from_json("./tests/characters/test.json").unwrap();
+        let mut c2 = Character::try_new_from_json("./tests/characters/test.json").unwrap();
+        let mut ep = build_cooldown_effect();
+        let launcher_stats = c.stats.clone();
+        // target is himself
+        let eo = c.apply_effect_outcome(&ep, &launcher_stats, false);
+        assert_eq!(eo, EffectOutcome::default());
+
+        // target is other ally
+        ep = build_hot_effect_individual();
+        let old_hp = c2.stats.all_stats[HP].current;
+        let eo = c2.apply_effect_outcome(&ep, &launcher_stats, false);
+        assert_eq!(eo.full_atk_amount_tx, 20);
+        assert_eq!(eo.real_amount_tx, 20);
+        assert_eq!(eo.new_effect_param.value, 20);
+        assert_eq!(old_hp + 20, c2.stats.all_stats[HP].current);
+        assert_eq!(eo.new_effect_param.effect_type, EFFECT_VALUE_CHANGE);
+        assert_eq!(eo.new_effect_param.stats_name, HP);
+        assert_eq!(eo.new_effect_param.nb_turns, 2);
+        assert_eq!(eo.new_effect_param.number_of_applies, 1);
+        assert_eq!(eo.new_effect_param.is_magic_atk, false);
+        assert_eq!(eo.new_effect_param.target, TARGET_ALLY);
+
+        // target is ennemy
+        let mut boss1 = Character::try_new_from_json("./tests/characters/test_boss.json").unwrap();
+        ep = build_dmg_effect_individual();
+        let old_hp = boss1.stats.all_stats[HP].current;
+        let eo = boss1.apply_effect_outcome(&ep, &launcher_stats, false);
+        assert_eq!(eo.full_atk_amount_tx, -40);
+        assert_eq!(eo.real_amount_tx, -40);
+        assert_eq!(eo.new_effect_param.value, -40);
+        assert_eq!(old_hp - 40, boss1.stats.all_stats[HP].current);
     }
 }

@@ -12,6 +12,7 @@ pub fn build_cooldown_effect() -> EffectParam {
         reach: INDIVIDUAL.to_owned(),
         stats_name: "".to_owned(),
         value: 0,
+        number_of_applies: 1,
         ..Default::default()
     }
 }
@@ -25,6 +26,7 @@ pub fn build_dot_effect_individual() -> EffectParam {
         reach: INDIVIDUAL.to_owned(),
         stats_name: HP.to_owned(),
         value: -20,
+        number_of_applies: 1,
         ..Default::default()
     }
 }
@@ -38,6 +40,7 @@ pub fn build_dot_effect_zone() -> EffectParam {
         reach: ZONE.to_owned(),
         stats_name: HP.to_owned(),
         value: -20,
+        number_of_applies: 1,
         ..Default::default()
     }
 }
@@ -51,6 +54,7 @@ pub fn build_dmg_effect_individual() -> EffectParam {
         reach: INDIVIDUAL.to_owned(),
         stats_name: HP.to_owned(),
         value: -30,
+        number_of_applies: 1,
         ..Default::default()
     }
 }
@@ -64,6 +68,7 @@ pub fn build_hot_effect_individual() -> EffectParam {
         reach: INDIVIDUAL.to_owned(),
         stats_name: HP.to_owned(),
         value: 30,
+        number_of_applies: 1,
         ..Default::default()
     }
 }
@@ -77,6 +82,7 @@ pub fn build_hot_effect_zone() -> EffectParam {
         reach: ZONE.to_owned(),
         stats_name: HP.to_owned(),
         value: 40,
+        number_of_applies: 1,
         ..Default::default()
     }
 }
@@ -90,6 +96,7 @@ pub fn build_hot_effect_all() -> EffectParam {
         reach: ZONE.to_owned(),
         stats_name: HP.to_owned(),
         value: 20,
+        number_of_applies: 1,
         ..Default::default()
     }
 }
