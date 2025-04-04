@@ -607,7 +607,7 @@ impl Character {
                 is_blocking: false,
             }
         } else {
-            let rand_nb = get_random_nb(0, 100);
+            let rand_nb = get_random_nb(1, 100);
             let is_dodging =
                 self.class != Class::Tank && rand_nb <= self.stats.all_stats[DODGE].current as i64;
             let is_blocking = self.class == Class::Tank;
@@ -631,7 +631,7 @@ impl Character {
             .is_passive_enabled
             && atk.has_only_heal_effect();
         let crit_capped = 60;
-        let rand_nb = get_random_nb(0, 100);
+        let rand_nb = get_random_nb(1, 100);
         let is_crit = rand_nb <= self.stats.all_stats[CRITICAL_STRIKE].current as i64;
 
         // priority to passive
