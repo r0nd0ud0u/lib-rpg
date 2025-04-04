@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, vec};
 
@@ -6,26 +7,28 @@ use crate::{
     attack_type::AttackType,
     buffers::{update_damage_by_buf, update_heal_by_multi, BufTypes, Buffers},
     common::{
+        all_target_const::*,
         attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
-        character_const::NB_TURN_SUM_AGGRO,
+        character_const::{NB_TURN_SUM_AGGRO, ULTIMATE_LEVEL},
         effect_const::*,
+        reach_const::*,
         stats_const::*,
     },
     effect::{
-        is_boosted_by_crit, is_effect_only_at_atk_launch, is_effet_hot_or_dot,
-        process_decrease_on_turn, EffectOutcome, EffectParam,
+        is_boosted_by_crit, is_effect_only_at_atk_launch, process_decrease_on_turn, EffectOutcome,
+        EffectParam,
     },
     equipment::Equipment,
     game_state::GameState,
-    players_manager::GameAtkEffects,
+    players_manager::{DodgeInfo, GameAtkEffects},
     powers::Powers,
     stats::Stats,
     target::is_target_ally,
-    utils,
+    utils::{self, get_random_nb},
 };
 
 /// ExtendedCharacter
-#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ExtendedCharacter {
     /// Fight information: Is the random character targeted by the current attack of other character
     #[serde(default, rename = "is_random_target")]
@@ -38,6 +41,16 @@ pub struct ExtendedCharacter {
     pub is_first_round: bool,
 }
 
+impl Default for ExtendedCharacter {
+    fn default() -> Self {
+        ExtendedCharacter {
+            is_random_target: false,
+            is_heal_atk_blocked: false,
+            is_first_round: true,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, Hash, PartialEq)]
 pub enum AmountType {
     DamageRx = 0,
@@ -46,6 +59,7 @@ pub enum AmountType {
     HealTx,
     OverHealRx,
     Aggro,
+    CriticalStrike,
     EnumSize,
 }
 
@@ -81,7 +95,7 @@ pub struct Character {
     /// key: body, value: equipmentName
     pub equipment_on: HashMap<String, Equipment>,
     /// key: attak name, value: AttakType struct
-    pub attacks_list: HashMap<String, AttackType>,
+    pub attacks_list: IndexMap<String, AttackType>,
     /// That vector contains all the atks from m_AttakList and is sorted by level.
     pub attacks_by_lvl: Vec<AttackType>,
     /// Main color theme of the character
@@ -91,7 +105,7 @@ pub struct Character {
     pub is_last_atk_crit: bool,
     /// Fight information: damages transmitted or received through the fight
     #[serde(rename = "Tx-rx")]
-    pub tx_rx: Vec<HashMap<u64, u64>>,
+    pub tx_rx: Vec<HashMap<u64, i64>>,
     /// Fight information: Enabled buf/debuf acquired through the fight
     #[serde(rename = "Buf-debuf")]
     pub all_buffers: Vec<Buffers>,
@@ -118,6 +132,9 @@ pub struct Character {
     pub shape: String,
     #[serde(default, rename = "Effects")]
     pub all_effects: Vec<GameAtkEffects>,
+    /// Fight information: dodge information on atk
+    #[serde(default, rename = "dodge-info")]
+    pub dodge_info: DodgeInfo,
 }
 
 impl Default for Character {
@@ -129,7 +146,7 @@ impl Default for Character {
             stats: Stats::default(),
             kind: CharacterType::Hero,
             equipment_on: HashMap::new(),
-            attacks_list: HashMap::new(),
+            attacks_list: IndexMap::new(),
             level: 1,
             exp: 0,
             next_exp_level: 100,
@@ -147,6 +164,7 @@ impl Default for Character {
             rank: 0,
             shape: String::new(),
             all_effects: vec![],
+            dodge_info: DodgeInfo::default(),
         }
     }
 }
@@ -172,16 +190,14 @@ impl Character {
     pub fn try_new_from_json<P: AsRef<Path>>(path: P) -> Result<Character> {
         if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
             value.stats.init();
+            let txrxlen = value.tx_rx.len();
+            for _ in 0..AmountType::EnumSize as usize - txrxlen {
+                value.tx_rx.push(HashMap::new());
+            }
             Ok(value)
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
         }
-    }
-
-    pub fn testing_character() -> Character {
-        let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(file_path);
-        c.unwrap()
     }
 
     pub fn is_dead(&self) -> Option<bool> {
@@ -203,10 +219,17 @@ impl Character {
         }
         if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO) {
             aggro_stat.current = 0;
+            let mut index: i64;
             for i in 1..NB_TURN_SUM_AGGRO + 1 {
+                index = turn_nb as i64 - i as i64;
+                if index < 0 {
+                    break;
+                }
                 if i <= self.tx_rx[AmountType::Aggro as usize].len() {
-                    let index = turn_nb - i;
-                    aggro_stat.current += self.tx_rx[AmountType::Aggro as usize][&(index as u64)];
+                    let aggro = *self.tx_rx[AmountType::Aggro as usize]
+                        .get(&(index as u64))
+                        .unwrap_or(&0);
+                    aggro_stat.current = aggro_stat.current.saturating_add(aggro as u64);
                 }
             }
         }
@@ -295,7 +318,6 @@ impl Character {
 
     pub fn process_one_effect(
         &mut self,
-        target: &Character,
         ep: &EffectParam,
         _from_launch: bool,
         atk: &AttackType,
@@ -320,86 +342,18 @@ impl Character {
         }
 
         // Process effect param
-        let (effect_log, _new_effect_param) = self.process_effect_type(ep, target, atk);
+        let (effect_log, _new_effect_param) = self.process_effect_type(ep, atk);
         result += &effect_log;
 
         (output, result)
-    }
-
-    // TODO do not change ep but update output
-    pub fn apply_one_effect(
-        &mut self,
-        target: &mut Character,
-        ep: &EffectParam,
-        from_launch: bool,
-        atk: &AttackType,
-        reload: bool,
-        is_crit: bool,
-    ) -> EffectOutcome {
-        let mut output = EffectOutcome::default();
-        let mut result = String::new();
-
-        // init effect param
-        output.new_effect_param = ep.clone();
-
-        let (_max_amount_sent, real_amount_sent);
-        if !from_launch {
-            (_max_amount_sent, real_amount_sent) =
-                self.process_effect_value_on_new_round(ep, target);
-        } else {
-            (_max_amount_sent, real_amount_sent, output.new_effect_param) =
-                self.process_effect_value_on_atk(ep, target, is_crit)
-        }
-
-        // TODO extract that as something more general
-        if !reload {
-            result += &Self::regen_into_damage(real_amount_sent, &ep.stats_name);
-            if real_amount_sent > 0 {
-                let buf_opt = self
-                    .all_buffers
-                    .get(BufTypes::ChangeByHealValue as usize)
-                    .filter(|buf| buf.is_passive_enabled);
-                let mut all_stats: Vec<String> = vec![];
-                let mut value = 0;
-                if let Some(buf) = buf_opt {
-                    all_stats = buf.all_stats_name.clone();
-                    value = buf.value;
-                }
-                for stat in all_stats {
-                    let ep = EffectParam {
-                        effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_string(),
-                        value: real_amount_sent,
-                        is_magic_atk: true,
-                        stats_name: stat.clone(),
-                        nb_turns: value,
-                        ..Default::default()
-                    };
-                    let (effect_log, new_effect_param) = self.process_effect_type(&ep, target, atk);
-                    result += &effect_log;
-                    // TODO add log
-                    // result += target->ProcessOutputLogOnEffect(ep, ep.value, fromLaunch, 1,atk.name, ep.value);
-                    output.new_effects.push(new_effect_param);
-                }
-            }
-        }
-        if ep.stats_name == HP && is_effet_hot_or_dot(&ep.effect_type) {
-            // process effect and return it in EffectOutcome
-            // ep.value = max_amount_sent;
-            // TODO
-        }
-        output
     }
 
     /// Update all the bufs
     pub fn process_effect_type(
         &mut self,
         ep: &EffectParam,
-        target: &Character,
         atk: &AttackType,
     ) -> (String, EffectParam) {
-        if target.is_dead().unwrap_or(false) {
-            return (String::new(), ep.clone());
-        }
         let mut output_log: String = String::new();
         let mut new_effect_param = ep.clone();
         new_effect_param.number_of_applies = 1;
@@ -410,10 +364,7 @@ impl Character {
 
         match ep.effect_type.as_str() {
             EFFECT_NB_COOL_DOWN => {
-                if self.name == target.name {
-                    output_log =
-                        format!("Cooldown actif sur {} de {} tours.", atk.name, ep.nb_turns);
-                }
+                output_log = format!("Cooldown actif sur {} de {} tours.", atk.name, ep.nb_turns);
             }
             EFFECT_NB_DECREASE_ON_TURN => {
                 // TODO
@@ -529,78 +480,9 @@ impl Character {
             return (full_amount, full_amount);
         }
         // Calculation of the real amount of the value of the effect
-        let real_amount = process_real_amount(ep, target, full_amount);
+        let real_amount = self.process_real_amount(ep, full_amount);
 
         (full_amount, real_amount)
-    }
-
-    pub fn process_effect_value_on_atk(
-        &mut self,
-        ep: &EffectParam,
-        target: &mut Character,
-        is_crit: bool,
-    ) -> (i64, i64, EffectParam) {
-        if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
-            return (0, 0, ep.clone());
-        }
-        let mut full_amount;
-        let mut new_effect_param = ep.clone();
-        let pow_current = self.stats.get_power_stat(ep.is_magic_atk);
-        if ep.stats_name == HP && ep.effect_type == EFFECT_NB_DECREASE_ON_TURN {
-            // prepare for HOT
-            full_amount = ep.number_of_applies * (ep.value + pow_current / ep.nb_turns);
-            // update effect value
-            new_effect_param.value = full_amount;
-        } else if ep.stats_name == HP && ep.effect_type == EFFECT_VALUE_CHANGE
-            || ep.effect_type == EFFECT_PERCENT_CHANGE
-        {
-            if ep.value > 0 {
-                // HOT
-                full_amount = ep.number_of_applies * (ep.value + pow_current / ep.nb_turns);
-            } else {
-                // DOT
-                full_amount = ep.number_of_applies
-                    * self.damage_by_atk(&target.stats, ep.is_magic_atk, ep.value, ep.nb_turns);
-            }
-        } else if ep.effect_type == EFFECT_PERCENT_CHANGE && Stats::is_energy_stat(&ep.stats_name) {
-            full_amount = ep.number_of_applies
-                * self.stats.all_stats.get(&ep.stats_name).unwrap().max as i64
-                * ep.value
-                / 100;
-        } else {
-            full_amount = ep.number_of_applies * ep.value;
-        }
-        // Return now if the full amount is 0
-        if full_amount == 0 {
-            return (0, 0, new_effect_param);
-        }
-
-        // apply buf/debuf to full_amount in case of damages/heal
-        if ep.stats_name == HP {
-            full_amount = self.apply_buf_debuf(full_amount, &ep.target, is_crit);
-            new_effect_param.value = full_amount;
-        }
-
-        // Otherwise update the current value of the stats or the HOT/DOT
-        // stats update
-        if !Stats::is_energy_stat(&ep.stats_name) {
-            target.set_stats_on_effect(
-                &ep.stats_name,
-                full_amount,
-                ep.effect_type == EFFECT_PERCENT_CHANGE,
-                true,
-            );
-            return (full_amount, full_amount, new_effect_param);
-        }
-
-        // blocking the atk
-        if target.is_blocking_atk && ep.stats_name == HP {
-            full_amount = 10 * full_amount / 100;
-        }
-        // Calculation of the real amount of the value of the effect
-        let real_amount = process_real_amount(ep, target, full_amount);
-
-        (full_amount, real_amount, new_effect_param)
     }
 
     pub fn apply_buf_debuf(&self, full_amount: i64, target: &str, is_crit: bool) -> i64 {
@@ -612,7 +494,9 @@ impl Character {
             // Launcher TX
             // To place first
             if let Some(buf_multi) = self.all_buffers.get(BufTypes::MultiValue as usize) {
-                real_amount = update_heal_by_multi(full_amount, buf_multi.value);
+                if buf_multi.value > 0 {
+                    real_amount = update_heal_by_multi(full_amount, buf_multi.value);
+                }
             }
             // Launcher TX
             if let Some(buf_hp_tx) = self.all_buffers.get(BufTypes::HealTx as usize) {
@@ -660,14 +544,14 @@ impl Character {
     }
 
     pub fn damage_by_atk(
-        &self,
         target_stats: &Stats,
+        launcher_stats: &Stats,
         is_magic: bool,
         atk_value: i64,
         nb_of_turns: i64,
     ) -> i64 {
         let target_armor = target_stats.get_armor_stat(is_magic);
-        let launcher_pow = self.stats.get_power_stat(is_magic);
+        let launcher_pow = launcher_stats.get_power_stat(is_magic);
 
         let damage = atk_value - launcher_pow / nb_of_turns;
         let protection = 1000.0 / (1000.0 + target_armor as f64);
@@ -696,45 +580,270 @@ impl Character {
             element.all_atk_effects.nb_turns != element.all_atk_effects.counter_turn
         });
     }
-}
 
-fn process_real_amount(ep: &EffectParam, target: &mut Character, full_amount: i64) -> i64 {
-    if ep.stats_name != HP {
-        return 0;
+    pub fn process_atk_cost(&mut self, atk_name: &str) {
+        if let Some(atk) = self.attacks_list.get(atk_name) {
+            if let Some(mana) = self.stats.all_stats.get_mut(MANA) {
+                mana.current = std::cmp::max(0, mana.current - atk.mana_cost * mana.current / 100);
+            }
+            if let Some(vigor) = self.stats.all_stats.get_mut(VIGOR) {
+                vigor.current =
+                    std::cmp::max(0, vigor.current - atk.vigor_cost * vigor.current / 100);
+            }
+            if let Some(berseck) = self.stats.all_stats.get_mut(BERSECK) {
+                berseck.current = std::cmp::max(
+                    0,
+                    berseck.current - atk.berseck_cost * berseck.current / 100,
+                );
+            }
+        }
     }
-    let real_amount;
-    if full_amount > 0 {
-        // heal
-        let delta =
-            target.stats.all_stats[HP].max as i64 - target.stats.all_stats[HP].current as i64;
-        target.stats.all_stats[HP].current = std::cmp::min(
-            full_amount + target.stats.all_stats[HP].current as i64,
-            target.stats.all_stats[HP].max as i64,
-        ) as u64;
-        real_amount = std::cmp::min(delta, full_amount);
-    } else {
-        // damage
-        let tmp = target.stats.all_stats[HP].current as i64;
-        target.stats.all_stats[HP].current =
-            std::cmp::max(0, target.stats.all_stats[HP].current as i64 + full_amount) as u64;
-        real_amount = std::cmp::min(tmp, full_amount);
+
+    pub fn process_dodging(&mut self, atk_level: i64) {
+        let dodge_info = if atk_level == ULTIMATE_LEVEL {
+            DodgeInfo {
+                name: self.name.clone(),
+                is_dodging: false,
+                is_blocking: false,
+            }
+        } else {
+            let rand_nb = get_random_nb(1, 100);
+            let is_dodging =
+                self.class != Class::Tank && rand_nb <= self.stats.all_stats[DODGE].current as i64;
+            let is_blocking = self.class == Class::Tank;
+            DodgeInfo {
+                name: self.name.clone(),
+                is_dodging,
+                is_blocking,
+            }
+        };
+        self.dodge_info = dodge_info;
     }
-    real_amount
+
+    pub fn process_critical_strike(&mut self, atk_name: &str) -> bool {
+        let atk = if let Some(atk) = self.attacks_list.get(atk_name) {
+            atk
+        } else {
+            return false;
+        };
+        // process passive power
+        let is_crit_by_passive = self.all_buffers[BufTypes::NextHealAtkIsCrit as usize]
+            .is_passive_enabled
+            && atk.has_only_heal_effect();
+        let crit_capped = 60;
+        let rand_nb = get_random_nb(1, 100);
+        let is_crit = rand_nb <= self.stats.all_stats[CRITICAL_STRIKE].current as i64;
+
+        // priority to passive
+        let delta_capped = std::cmp::max(
+            0,
+            self.stats.all_stats[CRITICAL_STRIKE].current as i64 - crit_capped,
+        );
+        if is_crit && !is_crit_by_passive {
+            if delta_capped > 0 {
+                self.update_buf(BufTypes::DamageCritCapped, delta_capped, false, "");
+            }
+            true
+        } else if is_crit_by_passive {
+            self.all_buffers[BufTypes::NextHealAtkIsCrit as usize].is_passive_enabled = false;
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn assess_effect_param(
+        &mut self,
+        ep: &EffectParam,
+        _from_launch: bool,
+        atk: &AttackType,
+        game_state: &GameState,
+        is_crit: bool,
+    ) -> EffectParam {
+        let (ec, _log) = self.process_one_effect(ep, true, atk, game_state, is_crit);
+
+        ec
+    }
+
+    pub fn is_targeted(
+        &self,
+        effect: &EffectParam,
+        launcher_name: &str,
+        launcher_kind: &CharacterType,
+        targeted_on_main_atk: bool,
+    ) -> bool {
+        let is_ally = self.kind == *launcher_kind;
+        if effect.target == TARGET_HIMSELF && launcher_name != self.name {
+            return false;
+        }
+        if effect.target == TARGET_ONLY_ALLY && launcher_name == self.name {
+            return false;
+        }
+        if !is_ally && is_target_ally(&effect.target) {
+            return false;
+        }
+        if is_ally && effect.target == TARGET_ENNEMY {
+            return false;
+        }
+        // is targeted ?
+        if effect.target == TARGET_ALLY && effect.reach == INDIVIDUAL && !targeted_on_main_atk {
+            return false;
+        }
+        if effect.target == TARGET_ENNEMY && effect.reach == INDIVIDUAL && !targeted_on_main_atk {
+            return false;
+        }
+        if effect.target == TARGET_ALLY && effect.reach == ZONE && launcher_name == self.name {
+            return false;
+        }
+        if self.dodge_info.is_dodging && effect.target == TARGET_ENNEMY {
+            return false;
+        }
+        // TODO reach random
+        /* if effect.reach == REACH_RAND_INDIVIDUAL && target.m_ext_character.is_some()
+            && !target.m_ext_character.as_ref().unwrap().get_is_random_target() {
+                return false;
+        } */
+        true
+    }
+
+    pub fn apply_effect_outcome(
+        &mut self,
+        ep: &EffectParam,
+        launcher_stats: &Stats,
+        is_crit: bool,
+    ) -> EffectOutcome {
+        if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
+            return EffectOutcome::default();
+        }
+        let mut full_amount;
+        let mut new_effect_param = ep.clone();
+        let pow_current = launcher_stats.get_power_stat(ep.is_magic_atk);
+        if ep.stats_name == HP && ep.effect_type == EFFECT_NB_DECREASE_ON_TURN {
+            // prepare for HOT
+            full_amount = ep.number_of_applies * (ep.value + pow_current / ep.nb_turns);
+            // update effect value
+            new_effect_param.value = full_amount;
+        } else if ep.stats_name == HP && ep.effect_type == EFFECT_VALUE_CHANGE
+            || ep.effect_type == EFFECT_PERCENT_CHANGE
+        {
+            if ep.value > 0 {
+                // HOT
+                full_amount = ep.number_of_applies * (ep.value + pow_current) / ep.nb_turns;
+            } else {
+                // DOT
+                full_amount = ep.number_of_applies
+                    * Self::damage_by_atk(
+                        &self.stats,
+                        launcher_stats,
+                        ep.is_magic_atk,
+                        ep.value,
+                        ep.nb_turns,
+                    );
+            }
+        } else if ep.effect_type == EFFECT_PERCENT_CHANGE && Stats::is_energy_stat(&ep.stats_name) {
+            full_amount = ep.number_of_applies
+                * self.stats.all_stats.get(&ep.stats_name).unwrap().max as i64
+                * ep.value
+                / 100;
+        } else {
+            full_amount = ep.number_of_applies * ep.value;
+        }
+        // Return now if the full amount is 0
+        if full_amount == 0 {
+            return EffectOutcome::default();
+        }
+
+        // apply buf/debuf to full_amount in case of damages/heal
+        if ep.stats_name == HP {
+            full_amount = self.apply_buf_debuf(full_amount, &ep.target, is_crit);
+            new_effect_param.value = full_amount;
+        }
+
+        // Otherwise update the current value of the stats or the HOT/DOT
+        // stats update
+        if !Stats::is_energy_stat(&ep.stats_name) {
+            self.set_stats_on_effect(
+                &ep.stats_name,
+                full_amount,
+                ep.effect_type == EFFECT_PERCENT_CHANGE,
+                true,
+            );
+            return EffectOutcome {
+                full_atk_amount_tx: full_amount,
+                real_amount_tx: full_amount,
+                new_effect_param,
+                ..Default::default()
+            };
+        }
+
+        // blocking the atk
+        if self.dodge_info.is_blocking && ep.stats_name == HP && ep.target == TARGET_ENNEMY {
+            full_amount = 10 * full_amount / 100;
+        }
+        // Calculation of the real amount of the value of the effect and update the energy stats
+        let real_amount = self.process_real_amount(ep, full_amount);
+
+        EffectOutcome {
+            full_atk_amount_tx: full_amount,
+            real_amount_tx: real_amount,
+            new_effect_param,
+            ..Default::default()
+        }
+    }
+
+    pub fn process_atk(
+        &mut self,
+        game_state: &GameState,
+        is_crit: bool,
+        atk: &AttackType,
+    ) -> Vec<EffectParam> {
+        let mut output: Vec<EffectParam> = vec![];
+        for effect in atk.all_effects.clone() {
+            output.push(self.assess_effect_param(&effect, true, atk, game_state, is_crit));
+        }
+        output
+    }
+
+    pub fn process_real_amount(&mut self, ep: &EffectParam, full_amount: i64) -> i64 {
+        if ep.stats_name != HP {
+            return 0;
+        }
+        let real_amount;
+        if full_amount > 0 {
+            // heal
+            let delta =
+                self.stats.all_stats[HP].max as i64 - self.stats.all_stats[HP].current as i64;
+            self.stats.all_stats[HP].current = std::cmp::min(
+                full_amount + self.stats.all_stats[HP].current as i64,
+                self.stats.all_stats[HP].max as i64,
+            ) as u64;
+            real_amount = std::cmp::min(delta, full_amount);
+        } else {
+            // damage
+            let tmp = self.stats.all_stats[HP].current as i64;
+            self.stats.all_stats[HP].current =
+                std::cmp::max(0, self.stats.all_stats[HP].current as i64 + full_amount) as u64;
+            real_amount = std::cmp::min(tmp, full_amount);
+        }
+        real_amount
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
 
+    use super::Character;
+    use crate::effect::EffectOutcome;
+    use crate::testing_all_characters::testing_character;
     use crate::{
         buffers::BufTypes,
         character::{CharacterType, Class},
-        common::{effect_const::*, stats_const::*},
+        common::{all_target_const::TARGET_ALLY, effect_const::*, stats_const::*},
         effect::EffectParam,
         players_manager::GameAtkEffects,
+        testing_effect::*,
     };
-
-    use super::Character;
 
     #[test]
     fn unit_try_new_from_json() {
@@ -760,7 +869,7 @@ mod tests {
         // Experience
         assert_eq!(50, c.exp);
         // extended character
-        assert_eq!(false, c.extended_character.is_first_round);
+        assert_eq!(true, c.extended_character.is_first_round);
         assert_eq!(true, c.extended_character.is_heal_atk_blocked);
         assert_eq!(false, c.extended_character.is_random_target);
         // level
@@ -832,7 +941,7 @@ mod tests {
         assert_eq!(5, c.stats.all_stats[VIGOR_REGEN].current);
         assert_eq!(5, c.stats.all_stats[VIGOR_REGEN].max);
         // tx-rx
-        assert_eq!(6, c.tx_rx.len());
+        assert_eq!(7, c.tx_rx.len());
         /*         assert_eq!(0, c.tx_rx[2].tx_rx_size);
         assert_eq!(2, c.tx_rx[2].tx_rx_type); */
         // Type - kind
@@ -1006,7 +1115,6 @@ mod tests {
         let c = Character::try_new_from_json(file_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
-        let target = c.clone();
         let ep = EffectParam {
             effect_type: EFFECT_NB_COOL_DOWN.to_string(),
             nb_turns: 10,
@@ -1016,7 +1124,7 @@ mod tests {
         let atk = Default::default();
         let game_state = Default::default();
         // target is himself
-        let (ep, result) = c.process_one_effect(&target, &ep, false, &atk, &game_state, false);
+        let (ep, result) = c.process_one_effect(&ep, false, &atk, &game_state, false);
         assert_eq!(EFFECT_NB_COOL_DOWN, ep.effect_type);
         assert_eq!(10, ep.nb_turns);
         assert_eq!(c.name, ep.target);
@@ -1025,10 +1133,197 @@ mod tests {
 
     #[test]
     fn unit_remove_terminated_effect_on_player() {
-        let mut c = Character::testing_character();
+        let mut c = testing_character();
         c.all_effects.push(GameAtkEffects::default());
         c.remove_terminated_effect_on_player();
         assert_eq!(0, c.all_effects.len());
         // TODO improve the test  by checking if the effect is removed on character stats
+    }
+
+    #[test]
+    fn unit_process_atk_cost() {
+        let mut c = testing_character();
+        let old_mana = c.stats.all_stats[MANA].current;
+        c.process_atk_cost("atk1"); // 10% mana cost
+        assert_eq!(old_mana - 20, c.stats.all_stats[MANA].current);
+    }
+
+    #[test]
+    fn unit_is_dodging() {
+        let mut c = testing_character();
+
+        // ultimate atk cannot be dodged
+        let atk_level = 13;
+        c.process_dodging(atk_level);
+        assert_eq!(false, c.dodge_info.is_dodging);
+        assert_eq!(false, c.dodge_info.is_blocking);
+
+        // impossible to dodge
+        let atk_level = 1;
+        c.stats.all_stats[DODGE].current = 0;
+        c.process_dodging(atk_level);
+        assert_eq!(false, c.dodge_info.is_dodging);
+        assert_eq!(false, c.dodge_info.is_blocking);
+
+        // total dodge
+        let atk_level = 1;
+        c.stats.all_stats[DODGE].current = 100;
+        c.process_dodging(atk_level);
+        assert_eq!(true, c.dodge_info.is_dodging);
+        assert_eq!(false, c.dodge_info.is_blocking);
+
+        // A tank is not dodging, he is blocking
+        let atk_level = 1;
+        c.stats.all_stats[DODGE].current = 100;
+        c.class = Class::Tank;
+        c.process_dodging(atk_level);
+        assert_eq!(false, c.dodge_info.is_dodging);
+        assert_eq!(true, c.dodge_info.is_blocking);
+    }
+
+    #[test]
+    fn unit_process_critical_strike() {
+        let mut c = testing_character();
+        c.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        assert_eq!(false, c.process_critical_strike("atk1"));
+        c.stats.all_stats[CRITICAL_STRIKE].current = 100;
+        assert_eq!(true, c.process_critical_strike("atk1"));
+        assert_eq!(
+            false,
+            c.all_buffers[BufTypes::NextHealAtkIsCrit as usize].is_passive_enabled
+        );
+    }
+
+    #[test]
+    fn unit_assess_effect_param() {
+        let file_path = "./tests/characters/test.json"; // Path to the JSON file
+        let c = Character::try_new_from_json(file_path);
+        assert!(c.is_ok());
+        let mut c = c.unwrap();
+        let ep = EffectParam {
+            effect_type: EFFECT_NB_COOL_DOWN.to_string(),
+            nb_turns: 10,
+            target: c.name.clone(),
+            ..Default::default()
+        };
+        let atk = Default::default();
+        let game_state = Default::default();
+        // target is himself
+        let ep = c.assess_effect_param(&ep, false, &atk, &game_state, false);
+        assert_eq!(EFFECT_NB_COOL_DOWN, ep.effect_type);
+        assert_eq!(10, ep.nb_turns);
+        assert_eq!(c.name, ep.target);
+    }
+
+    #[test]
+    fn unit_is_targeted() {
+        let c1 = Character::try_new_from_json("./tests/characters/test.json").unwrap();
+        let mut c2 = Character::try_new_from_json("./tests/characters/test.json").unwrap();
+        c2.name = "other".to_string();
+        let boss1 = Character::try_new_from_json("./tests/characters/test_boss.json").unwrap();
+        // effect on himself
+        let mut ep = build_cooldown_effect();
+        // target is himself
+        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // other ally
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // boss
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+
+        // effect on ally individual
+        ep = build_hot_effect_individual();
+        // target is himself
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // other ally
+        // not targeted on main atk
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // not targeted on main atk
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // boss
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+
+        // effect on ennemy individual
+        ep = build_dmg_effect_individual();
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // other ally
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // boss
+        // targeted on main atk
+        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // not targeted on main atk
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+
+        // effect on ally ZONE
+        ep = build_hot_effect_zone();
+        // target is himself
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // other ally
+        // not targeted on main atk
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // not targeted on main atk
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // boss
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+
+        // effect on ennemy ZONE
+        ep = build_dot_effect_zone();
+        // target is himself
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // other ally
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        // boss
+        // targeted on main atk
+        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // not targeted on main atk
+        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+
+        // effect on all allies
+        ep = build_hot_effect_all();
+        // target is himself
+        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // other ally
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // boss
+        // targeted on main atk
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+    }
+
+    #[test]
+    fn unit_apply_effect_outcome() {
+        let mut c = Character::try_new_from_json("./tests/characters/test.json").unwrap();
+        let mut c2 = Character::try_new_from_json("./tests/characters/test.json").unwrap();
+        let mut ep = build_cooldown_effect();
+        let launcher_stats = c.stats.clone();
+        // target is himself
+        let eo = c.apply_effect_outcome(&ep, &launcher_stats, false);
+        assert_eq!(eo, EffectOutcome::default());
+
+        // target is other ally
+        ep = build_hot_effect_individual();
+        let old_hp = c2.stats.all_stats[HP].current;
+        let eo = c2.apply_effect_outcome(&ep, &launcher_stats, false);
+        assert_eq!(eo.full_atk_amount_tx, 20);
+        assert_eq!(eo.real_amount_tx, 20);
+        assert_eq!(eo.new_effect_param.value, 20);
+        assert_eq!(old_hp + 20, c2.stats.all_stats[HP].current);
+        assert_eq!(eo.new_effect_param.effect_type, EFFECT_VALUE_CHANGE);
+        assert_eq!(eo.new_effect_param.stats_name, HP);
+        assert_eq!(eo.new_effect_param.nb_turns, 2);
+        assert_eq!(eo.new_effect_param.number_of_applies, 1);
+        assert_eq!(eo.new_effect_param.is_magic_atk, false);
+        assert_eq!(eo.new_effect_param.target, TARGET_ALLY);
+
+        // target is ennemy
+        let mut boss1 = Character::try_new_from_json("./tests/characters/test_boss.json").unwrap();
+        ep = build_dmg_effect_individual();
+        let old_hp = boss1.stats.all_stats[HP].current;
+        let eo = boss1.apply_effect_outcome(&ep, &launcher_stats, false);
+        assert_eq!(eo.full_atk_amount_tx, -40);
+        assert_eq!(eo.real_amount_tx, -40);
+        assert_eq!(eo.new_effect_param.value, -40);
+        assert_eq!(old_hp - 40, boss1.stats.all_stats[HP].current);
     }
 }
