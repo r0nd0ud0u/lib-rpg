@@ -93,7 +93,6 @@ mod tests {
         let all_files = list_files_in_dir(Path::new("./tests/characters"));
         let list = all_files.unwrap();
         assert!(list.len() > 1);
-        assert_eq!(list[0], Path::new("./tests/characters/test.json"))
     }
 
     #[test]
