@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::{
     character::{AmountType, CharacterType},
-    common::{all_target_const::TARGET_ENNEMY, paths_const::OFFLINE_CHARACTERS, stats_const::*},
+    common::{paths_const::OFFLINE_CHARACTERS, stats_const::*},
     game_state::GameState,
     players_manager::PlayerManager,
     target::TargetInfo,
@@ -58,10 +58,10 @@ impl GameManager {
         // add heroes
         // sort by speed
         self.pm
-            .all_heroes
+            .active_heroes
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
         let mut dead_heroes = Vec::new();
-        for hero in &self.pm.all_heroes {
+        for hero in &self.pm.active_heroes {
             if !hero.is_dead().unwrap_or(false) {
                 self.game_state.order_to_play.push(hero.name.clone());
             } else {
@@ -75,9 +75,9 @@ impl GameManager {
         // add bosses
         // sort by speed
         self.pm
-            .all_bosses
+            .active_bosses
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
-        for boss in &self.pm.all_bosses {
+        for boss in &self.pm.active_bosses {
             self.game_state.order_to_play.push(boss.name.clone());
         }
         // supplementary atks to be added
@@ -91,12 +91,12 @@ impl GameManager {
         self.game_state.new_round();
 
         // Still round to play
-        if self.game_state.current_round == self.game_state.order_to_play.len() {
+        if self.game_state.current_round > self.game_state.order_to_play.len() {
             return Ok(());
         }
         self.pm.update_current_player(
             &self.game_state,
-            &self.game_state.order_to_play[self.game_state.current_round],
+            &self.game_state.order_to_play[self.game_state.current_round - 1],
         )?;
 
         // Those 2 TODO are logs to give info
@@ -128,14 +128,10 @@ impl GameManager {
         self.pm.current_player.process_atk_cost(atk_name);
 
         // is dodging ?
-        let _is_dodging = if self.pm.current_player.attacks_list[atk_name].target == TARGET_ENNEMY {
-            self.pm.is_dodging(
-                &all_targets,
-                self.pm.current_player.attacks_list[atk_name].level.into(),
-            )
-        } else {
-            vec![]
-        };
+        self.pm.process_all_dodging(
+            &all_targets,
+            self.pm.current_player.attacks_list[atk_name].level.into(),
+        );
 
         // critical strike
         let is_crit = self.pm.current_player.process_critical_strike(atk_name);
@@ -159,6 +155,7 @@ impl GameManager {
             for target in &all_targets {
                 if let Some(c) = self.pm.get_mut_active_character(&target.name) {
                     if c.is_targeted(ep, &name, &kind, target.is_targeted) {
+                        // TODO check if the effect is not already applied
                         c.apply_effect_outcome(ep, &launcher_stats, is_crit);
                     }
                 }
@@ -185,13 +182,13 @@ impl GameManager {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        common::{character_const::SPEED_THRESHOLD, stats_const::SPEED},
-        game_manager::GameManager,
-        testing_atk::build_atk_damage1,
-    };
-
+    use crate::character::Class;
     use crate::testing_target::build_target_boss_indiv;
+    use crate::{
+        common::{character_const::SPEED_THRESHOLD, stats_const::*},
+        game_manager::GameManager,
+        testing_atk::*,
+    };
 
     #[test]
     fn unit_try_new() {
@@ -266,15 +263,195 @@ mod tests {
     }
 
     #[test]
-    fn unit_launch_attack() {
+    fn unit_launch_attack_case1() {
         let mut gm = GameManager::try_new("./tests/characters").unwrap();
         gm.start_game();
         gm.start_new_turn().unwrap();
-        gm.launch_attack(&build_atk_damage1().name, vec![build_target_boss_indiv()]);
+
+        // # case 1 dmg on individual ennemy
+        // No dodging of boss
+        // no critical of current player
+        // TODO load atk by json
+        let atk = build_atk_damage1();
+        gm.pm
+            .current_player
+            .attacks_list
+            .insert(atk.name.clone(), atk.clone());
+        gm.pm
+            .get_mut_active_boss_character("Boss1")
+            .unwrap()
+            .stats
+            .all_stats[DODGE]
+            .current = 0;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let old_hp_boss = gm
+            .pm
+            .get_active_boss_character("Boss1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        assert_eq!(
+            old_hp_boss - 40,
+            gm.pm
+                .get_active_boss_character("Boss1")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
+        assert_eq!(
+            old_mana_hero - 20,
+            gm.pm.current_player.stats.all_stats[MANA].current
+        ); // 10% of 200 (total mana)
+    }
 
-        // TODO check cost
+    #[test]
+    fn unit_launch_attack_case2() {
+        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        gm.start_game();
+        gm.start_new_turn().unwrap();
 
-        // TODO check
+        // # case 2 dmg on individual ennemy
+        // dodging of boss
+        // no critical of current player
+        // TODO load atk by json
+        let atk = build_atk_damage1();
+        gm.pm
+            .current_player
+            .attacks_list
+            .insert(atk.name.clone(), atk.clone());
+        gm.pm
+            .get_mut_active_boss_character("Boss1")
+            .unwrap()
+            .stats
+            .all_stats[DODGE]
+            .current = 100;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let old_hp_boss = gm
+            .pm
+            .get_active_boss_character("Boss1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        assert_eq!(
+            old_hp_boss,
+            gm.pm
+                .get_active_boss_character("Boss1")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
+        assert_eq!(
+            old_mana_hero - 20,
+            gm.pm.current_player.stats.all_stats[MANA].current
+        ); // 10% of 200 (total mana)
+    }
+
+    #[test]
+    fn unit_launch_attack_case3() {
+        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        gm.start_game();
+        gm.start_new_turn().unwrap();
+
+        // # case 1 dmg on individual ennemy
+        // No dodging of boss
+        // critical of current player
+        // TODO load atk by json
+        let atk = build_atk_damage1();
+        gm.pm
+            .current_player
+            .attacks_list
+            .insert(atk.name.clone(), atk.clone());
+        gm.pm
+            .get_mut_active_boss_character("Boss1")
+            .unwrap()
+            .stats
+            .all_stats[DODGE]
+            .current = 0;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 100;
+        let old_hp_boss = gm
+            .pm
+            .get_active_boss_character("Boss1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        // at least coeff critical strike = 2.0 (-40 * 2.0 = -80)
+        assert!(
+            old_hp_boss - 80
+                >= gm
+                    .pm
+                    .get_active_boss_character("Boss1")
+                    .unwrap()
+                    .stats
+                    .all_stats[HP]
+                    .current
+        );
+        assert_eq!(
+            old_mana_hero - 20,
+            gm.pm.current_player.stats.all_stats[MANA].current
+        ); // 10% of 200 (total mana)
+    }
+
+    #[test]
+    fn unit_launch_attack_case4() {
+        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        gm.start_game();
+        gm.start_new_turn().unwrap();
+
+        // # case 1 dmg on individual ennemy
+        // No dodging of boss
+        // Blocking
+        // No critical of current player
+        // TODO load atk by json
+        let atk = build_atk_damage1();
+        gm.pm
+            .current_player
+            .attacks_list
+            .insert(atk.name.clone(), atk.clone());
+        gm.pm
+            .get_mut_active_boss_character("Boss1")
+            .unwrap()
+            .stats
+            .all_stats[DODGE]
+            .current = 100;
+        gm.pm.get_mut_active_boss_character("Boss1").unwrap().class = Class::Tank;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let old_hp_boss = gm
+            .pm
+            .get_active_boss_character("Boss1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        // blocking 10% of the damage is received (10% of 40)
+        assert_eq!(
+            old_hp_boss - 4,
+            gm.pm
+                .get_active_boss_character("Boss1")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
+        assert_eq!(
+            old_mana_hero - 20,
+            gm.pm.current_player.stats.all_stats[MANA].current
+        ); // 10% of 200 (total mana)
     }
 }

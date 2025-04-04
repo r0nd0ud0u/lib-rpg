@@ -22,7 +22,7 @@ pub struct GameAtkEffects {
     pub launching_turn: usize,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DodgeInfo {
     pub name: String,
     pub is_dodging: bool,
@@ -377,17 +377,13 @@ impl PlayerManager {
         output
     }
 
-    pub fn is_dodging(&self, all_targets: &Vec<TargetInfo>, atk_level: i64) -> Vec<DodgeInfo> {
-        let mut output: Vec<DodgeInfo> = vec![];
+    pub fn process_all_dodging(&mut self, all_targets: &Vec<TargetInfo>, atk_level: i64) {
         for t in all_targets {
-            match self.get_active_character(&t.name) {
-                Some(c) => {
-                    output.push(c.is_dodging(atk_level));
-                }
-                _ => output.push(DodgeInfo::default()),
+            match self.get_mut_active_character(&t.name) {
+                Some(c) => c.process_dodging(atk_level),
+                _ => continue,
             }
         }
-        output
     }
 }
 

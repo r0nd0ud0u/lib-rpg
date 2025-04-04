@@ -29,7 +29,7 @@ use crate::{
 };
 
 /// ExtendedCharacter
-#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ExtendedCharacter {
     /// Fight information: Is the random character targeted by the current attack of other character
     #[serde(default, rename = "is_random_target")]
@@ -40,6 +40,16 @@ pub struct ExtendedCharacter {
     /// Fight information: Playing the first round of that tour
     #[serde(default, rename = "is_first_round")]
     pub is_first_round: bool,
+}
+
+impl Default for ExtendedCharacter {
+    fn default() -> Self {
+        ExtendedCharacter {
+            is_random_target: false,
+            is_heal_atk_blocked: false,
+            is_first_round: true,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, Hash, PartialEq)]
@@ -123,6 +133,9 @@ pub struct Character {
     pub shape: String,
     #[serde(default, rename = "Effects")]
     pub all_effects: Vec<GameAtkEffects>,
+    /// Fight information: dodge information on atk
+    #[serde(default, rename = "dodge-info")]
+    pub dodge_info: DodgeInfo,
 }
 
 impl Default for Character {
@@ -152,6 +165,7 @@ impl Default for Character {
             rank: 0,
             shape: String::new(),
             all_effects: vec![],
+            dodge_info: DodgeInfo::default(),
         }
     }
 }
@@ -177,6 +191,10 @@ impl Character {
     pub fn try_new_from_json<P: AsRef<Path>>(path: P) -> Result<Character> {
         if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
             value.stats.init();
+            let txrxlen = value.tx_rx.len();
+            for _ in 0..AmountType::EnumSize as usize - txrxlen {
+                value.tx_rx.push(HashMap::new());
+            }
             Ok(value)
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
@@ -212,12 +230,17 @@ impl Character {
         }
         if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO) {
             aggro_stat.current = 0;
+            let mut index: i64;
             for i in 1..NB_TURN_SUM_AGGRO + 1 {
+                index = turn_nb as i64 - i as i64;
+                if index < 0 {
+                    break;
+                }
                 if i <= self.tx_rx[AmountType::Aggro as usize].len() {
-                    let index = turn_nb - i;
-                    aggro_stat.current = aggro_stat.current.saturating_add(
-                        self.tx_rx[AmountType::Aggro as usize][&(index as u64)] as u64,
-                    );
+                    let aggro = *self.tx_rx[AmountType::Aggro as usize]
+                        .get(&(index as u64))
+                        .unwrap_or(&0);
+                    aggro_stat.current = aggro_stat.current.saturating_add(aggro as u64);
                 }
             }
         }
@@ -587,29 +610,25 @@ impl Character {
         }
     }
 
-    pub fn is_dodging(&self, atk_level: i64) -> DodgeInfo {
-        if atk_level == ULTIMATE_LEVEL {
-            return DodgeInfo {
+    pub fn process_dodging(&mut self, atk_level: i64) {
+        let dodge_info = if atk_level == ULTIMATE_LEVEL {
+            DodgeInfo {
                 name: self.name.clone(),
                 is_dodging: false,
                 is_blocking: false,
-            };
-        }
-        let rand_nb = get_random_nb(0, 100);
-        let is_dodging =
-            self.class != Class::Tank && rand_nb <= self.stats.all_stats[DODGE].current as i64;
-        let is_blocking = self.class == Class::Tank;
-        DodgeInfo {
-            name: self.name.clone(),
-            is_dodging,
-            is_blocking,
-        }
-    }
-
-    pub fn is_critical_strike(&self) -> bool {
-        let crit_capped = std::cmp::min(60, self.stats.all_stats[CRITICAL_STRIKE].current);
-        let rand_nb = get_random_nb(0, 100);
-        crit_capped as i64 >= rand_nb
+            }
+        } else {
+            let rand_nb = get_random_nb(0, 100);
+            let is_dodging =
+                self.class != Class::Tank && rand_nb <= self.stats.all_stats[DODGE].current as i64;
+            let is_blocking = self.class == Class::Tank;
+            DodgeInfo {
+                name: self.name.clone(),
+                is_dodging,
+                is_blocking,
+            }
+        };
+        self.dodge_info = dodge_info;
     }
 
     pub fn process_critical_strike(&mut self, atk_name: &str) -> bool {
@@ -622,15 +641,19 @@ impl Character {
         let is_crit_by_passive = self.all_buffers[BufTypes::NextHealAtkIsCrit as usize]
             .is_passive_enabled
             && atk.has_only_heal_effect();
-        let crit_capped = std::cmp::min(60, self.stats.all_stats[CRITICAL_STRIKE].current);
+        let crit_capped = 60;
         let rand_nb = get_random_nb(0, 100);
-        let is_crit = crit_capped as i64 >= rand_nb;
+        let is_crit = rand_nb <= self.stats.all_stats[CRITICAL_STRIKE].current as i64;
 
         // priority to passive
-        let delta_capped =
-            std::cmp::max(0, self.stats.all_stats[CRITICAL_STRIKE].current as i64 - 60);
-        if is_crit && !is_crit_by_passive && delta_capped > 0 {
-            self.update_buf(BufTypes::DamageCritCapped, delta_capped, false, "");
+        let delta_capped = std::cmp::max(
+            0,
+            self.stats.all_stats[CRITICAL_STRIKE].current as i64 - crit_capped,
+        );
+        if is_crit && !is_crit_by_passive {
+            if delta_capped > 0 {
+                self.update_buf(BufTypes::DamageCritCapped, delta_capped, false, "");
+            }
             true
         } else if is_crit_by_passive {
             self.all_buffers[BufTypes::NextHealAtkIsCrit as usize].is_passive_enabled = false;
@@ -681,6 +704,9 @@ impl Character {
             return false;
         }
         if effect.target == TARGET_ALLY && effect.reach == ZONE && launcher_name == self.name {
+            return false;
+        }
+        if self.dodge_info.is_dodging && effect.target == TARGET_ENNEMY {
             return false;
         }
         // TODO reach random
@@ -762,7 +788,7 @@ impl Character {
         }
 
         // blocking the atk
-        if self.is_blocking_atk && ep.stats_name == HP {
+        if self.dodge_info.is_blocking && ep.stats_name == HP && ep.target == TARGET_ENNEMY {
             full_amount = 10 * full_amount / 100;
         }
         // Calculation of the real amount of the value of the effect and update the energy stats
@@ -854,7 +880,7 @@ mod tests {
         // Experience
         assert_eq!(50, c.exp);
         // extended character
-        assert_eq!(false, c.extended_character.is_first_round);
+        assert_eq!(true, c.extended_character.is_first_round);
         assert_eq!(true, c.extended_character.is_heal_atk_blocked);
         assert_eq!(false, c.extended_character.is_random_target);
         // level
@@ -926,7 +952,7 @@ mod tests {
         assert_eq!(5, c.stats.all_stats[VIGOR_REGEN].current);
         assert_eq!(5, c.stats.all_stats[VIGOR_REGEN].max);
         // tx-rx
-        assert_eq!(6, c.tx_rx.len());
+        assert_eq!(7, c.tx_rx.len());
         /*         assert_eq!(0, c.tx_rx[2].tx_rx_size);
         assert_eq!(2, c.tx_rx[2].tx_rx_type); */
         // Type - kind
@@ -1139,44 +1165,31 @@ mod tests {
 
         // ultimate atk cannot be dodged
         let atk_level = 13;
-        let dodge_info = c.is_dodging(atk_level);
-        assert_eq!(c.name, dodge_info.name);
-        assert_eq!(false, dodge_info.is_dodging);
-        assert_eq!(false, dodge_info.is_blocking);
+        c.process_dodging(atk_level);
+        assert_eq!(false, c.dodge_info.is_dodging);
+        assert_eq!(false, c.dodge_info.is_blocking);
 
         // impossible to dodge
         let atk_level = 1;
         c.stats.all_stats[DODGE].current = 0;
-        let dodge_info = c.is_dodging(atk_level);
-        assert_eq!(c.name, dodge_info.name);
-        assert_eq!(false, dodge_info.is_dodging);
-        assert_eq!(false, dodge_info.is_blocking);
+        c.process_dodging(atk_level);
+        assert_eq!(false, c.dodge_info.is_dodging);
+        assert_eq!(false, c.dodge_info.is_blocking);
 
         // total dodge
         let atk_level = 1;
         c.stats.all_stats[DODGE].current = 100;
-        let dodge_info = c.is_dodging(atk_level);
-        assert_eq!(c.name, dodge_info.name);
-        assert_eq!(true, dodge_info.is_dodging);
-        assert_eq!(false, dodge_info.is_blocking);
+        c.process_dodging(atk_level);
+        assert_eq!(true, c.dodge_info.is_dodging);
+        assert_eq!(false, c.dodge_info.is_blocking);
 
         // A tank is not dodging, he is blocking
         let atk_level = 1;
         c.stats.all_stats[DODGE].current = 100;
         c.class = Class::Tank;
-        let dodge_info = c.is_dodging(atk_level);
-        assert_eq!(c.name, dodge_info.name);
-        assert_eq!(false, dodge_info.is_dodging);
-        assert_eq!(true, dodge_info.is_blocking);
-    }
-
-    #[test]
-    fn unit_is_critical_strike() {
-        let mut c = Character::testing_character();
-        c.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        assert_eq!(false, c.is_critical_strike());
-        c.stats.all_stats[CRITICAL_STRIKE].current = 100;
-        assert_eq!(true, c.is_critical_strike());
+        c.process_dodging(atk_level);
+        assert_eq!(false, c.dodge_info.is_dodging);
+        assert_eq!(true, c.dodge_info.is_blocking);
     }
 
     #[test]
