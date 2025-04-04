@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::{
     attack_type::AttackType,
     common::{all_target_const::*, reach_const::*},

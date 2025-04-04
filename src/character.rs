@@ -24,7 +24,6 @@ use crate::{
     powers::Powers,
     stats::Stats,
     target::is_target_ally,
-    testing_atk::*,
     utils::{self, get_random_nb},
 };
 
@@ -199,16 +198,6 @@ impl Character {
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
         }
-    }
-
-    pub fn testing_character() -> Character {
-        let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(file_path);
-        let mut c = c.unwrap();
-        let atk = build_atk_damage1();
-        c.attacks_list.insert(atk.name.clone(), atk);
-
-        c
     }
 
     pub fn is_dead(&self) -> Option<bool> {
@@ -844,7 +833,9 @@ impl Character {
 mod tests {
     use std::collections::HashMap;
 
+    use super::Character;
     use crate::effect::EffectOutcome;
+    use crate::testing_all_characters::testing_character;
     use crate::{
         buffers::BufTypes,
         character::{CharacterType, Class},
@@ -853,8 +844,6 @@ mod tests {
         players_manager::GameAtkEffects,
         testing_effect::*,
     };
-
-    use super::Character;
 
     #[test]
     fn unit_try_new_from_json() {
@@ -1144,7 +1133,7 @@ mod tests {
 
     #[test]
     fn unit_remove_terminated_effect_on_player() {
-        let mut c = Character::testing_character();
+        let mut c = testing_character();
         c.all_effects.push(GameAtkEffects::default());
         c.remove_terminated_effect_on_player();
         assert_eq!(0, c.all_effects.len());
@@ -1153,7 +1142,7 @@ mod tests {
 
     #[test]
     fn unit_process_atk_cost() {
-        let mut c = Character::testing_character();
+        let mut c = testing_character();
         let old_mana = c.stats.all_stats[MANA].current;
         c.process_atk_cost("atk1"); // 10% mana cost
         assert_eq!(old_mana - 20, c.stats.all_stats[MANA].current);
@@ -1161,7 +1150,7 @@ mod tests {
 
     #[test]
     fn unit_is_dodging() {
-        let mut c = Character::testing_character();
+        let mut c = testing_character();
 
         // ultimate atk cannot be dodged
         let atk_level = 13;
@@ -1194,7 +1183,7 @@ mod tests {
 
     #[test]
     fn unit_process_critical_strike() {
-        let mut c = Character::testing_character();
+        let mut c = testing_character();
         c.stats.all_stats[CRITICAL_STRIKE].current = 0;
         assert_eq!(false, c.process_critical_strike("atk1"));
         c.stats.all_stats[CRITICAL_STRIKE].current = 100;

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::{
     common::{all_target_const::*, effect_const::*, reach_const::*, stats_const::*},
     effect::EffectParam,
