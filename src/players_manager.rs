@@ -9,6 +9,7 @@ use crate::{
     common::{character_const::*, paths_const::OFFLINE_CHARACTERS, stats_const::*},
     effect::{is_effet_hot_or_dot, EffectParam},
     game_state::GameState,
+    target::TargetInfo,
     utils::list_files_in_dir,
 };
 
@@ -19,6 +20,13 @@ pub struct GameAtkEffects {
     pub launcher: String,
     pub target: String,
     pub launching_turn: usize,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DodgeInfo {
+    pub name: String,
+    pub is_dodging: bool,
+    pub is_blocking: bool,
 }
 
 /// Define all the parameters of a playerManager
@@ -102,6 +110,7 @@ impl PlayerManager {
         }
     }
 
+    // TODO change swap remove see processCost
     pub fn apply_regen_stats(&mut self, kind: CharacterType) {
         let player_list = if kind == CharacterType::Hero {
             &mut self.all_heroes
@@ -113,6 +122,7 @@ impl PlayerManager {
                 continue;
             }
 
+            // TODO change swap remove see processCost
             let mut hp = pl.stats.all_stats.swap_remove(HP).expect("hp is missing");
             let mut mana = pl
                 .stats
@@ -167,11 +177,21 @@ impl PlayerManager {
         }
     }
 
-    pub fn get_active_character(&mut self, name: &str) -> Option<&mut Character> {
+    pub fn get_mut_active_character(&mut self, name: &str) -> Option<&mut Character> {
         if let Some(hero) = self.active_heroes.iter_mut().find(|c| c.name == name) {
             return Some(hero);
         }
         if let Some(boss) = self.active_bosses.iter_mut().find(|c| c.name == name) {
+            return Some(boss);
+        }
+        None
+    }
+
+    pub fn get_active_character(&self, name: &str) -> Option<&Character> {
+        if let Some(hero) = self.get_active_hero_character(name) {
+            return Some(hero);
+        }
+        if let Some(boss) = self.get_active_boss_character(name) {
             return Some(boss);
         }
         None
@@ -186,17 +206,25 @@ impl PlayerManager {
         }
     }
 
-    pub fn get_active_hero_character(&mut self, name: &str) -> Option<&mut Character> {
+    pub fn get_mut_active_hero_character(&mut self, name: &str) -> Option<&mut Character> {
         self.active_heroes.iter_mut().find(|c| c.name == name)
     }
 
-    pub fn get_active_boss_character(&mut self, name: &str) -> Option<&mut Character> {
+    pub fn get_mut_active_boss_character(&mut self, name: &str) -> Option<&mut Character> {
         self.active_bosses.iter_mut().find(|c| c.name == name)
+    }
+
+    pub fn get_active_hero_character(&self, name: &str) -> Option<&Character> {
+        self.active_heroes.iter().find(|c| c.name == name)
+    }
+
+    pub fn get_active_boss_character(&self, name: &str) -> Option<&Character> {
+        self.active_bosses.iter().find(|c| c.name == name)
     }
 
     pub fn update_current_player(&mut self, game_state: &GameState, name: &str) -> Result<()> {
         let c = self
-            .get_active_character(name)
+            .get_mut_active_character(name)
             .expect("no active character");
         self.current_player = c.clone();
 
@@ -217,6 +245,8 @@ impl PlayerManager {
             // apply hot and dot
             let (process_logs, hot_or_dot) = self.process_hot_and_dot(game_state);
             self.apply_hot_or_dot(game_state, hot_or_dot);
+
+            //self.apply_all_effects_on_player(game_state, false);
             // process logs
             _logs = process_logs;
         }
@@ -229,10 +259,15 @@ impl PlayerManager {
     fn apply_hot_or_dot(&mut self, game_state: &GameState, hot_or_dot: i64) {
         if hot_or_dot != 0 {
             let hp = self.current_player.stats.all_stats.get_mut(HP).unwrap();
-            hp.current += hot_or_dot as u64;
+            if hot_or_dot < 0 {
+                hp.current = hp.current.saturating_sub(hot_or_dot.unsigned_abs());
+            } else {
+                hp.current = hp.current.saturating_add(hot_or_dot as u64);
+            }
+
             // localLog.append(QString("HOT et DOT totaux: %1").arg(hotAndDot));
             // update buf overheal
-            let delta_over_heal = hp.current - hp.max;
+            let delta_over_heal: i64 = hp.current as i64 - hp.max as i64;
             if delta_over_heal > 0 {
                 // update txrx
                 self.current_player.tx_rx[AmountType::OverHealRx as usize]
@@ -267,32 +302,29 @@ impl PlayerManager {
         self.current_player.all_effects = updated_effects;
     }
 
-    pub fn apply_all_effects_on_player(
+    /*     pub fn apply_all_effects_on_player(
         &mut self,
         game_state: &GameState,
         from_launch: bool,
-        new_effects: Vec<GameAtkEffects>,
     ) -> (Vec<String>, Vec<GameAtkEffects>) {
         let mut local_log = Vec::new();
         let mut output_new_effects = Vec::new();
-        let mut target_pl = self.current_player.clone();
+        let all_effects = self.current_player.clone().all_effects;
         // First process all the effects whatever their order
-        for gae in new_effects {
+        for gae in all_effects {
             if gae.launching_turn == game_state.current_turn_nb {
                 continue;
             }
-            if let Some(launcher_pl) = self.get_active_character(&gae.launcher) {
-                let effect_outcome = launcher_pl.apply_one_effect(
-                    &mut target_pl,
-                    &gae.all_atk_effects,
+            if let Some(launcher_pl) = self.get_mut_active_character(&gae.launcher) {
+                let effect_outcome = launcher_pl.build_effect_outcome(&gae.all_atk_effects,
                     from_launch,
                     &gae.atk,
                     false,
-                    false,
-                );
-                if !effect_outcome.log_display.is_empty() {
+                    false);
+                self.current_player.apply_effect_outcome(&effect_outcome);
+                /* if !effect_outcome.log_display.is_empty() {
                     local_log.push(effect_outcome.log_display);
-                }
+                } */
                 // update the  big effect table
                 // TODO see if needed or not, maybe all the effects can be made in the "process effect" function
                 let mut new_game_atk_effect = gae.clone();
@@ -301,7 +333,7 @@ impl PlayerManager {
             }
         }
         (local_log, output_new_effects)
-    }
+    } */
 
     pub fn start_new_turn(&mut self) {
         // Increment turn effects
@@ -343,6 +375,15 @@ impl PlayerManager {
             }
         }
         output
+    }
+
+    pub fn process_all_dodging(&mut self, all_targets: &Vec<TargetInfo>, atk_level: i64) {
+        for t in all_targets {
+            match self.get_mut_active_character(&t.name) {
+                Some(c) => c.process_dodging(atk_level),
+                _ => continue,
+            }
+        }
     }
 }
 
@@ -472,9 +513,9 @@ mod tests {
     #[test]
     fn unit_get_active_character() {
         let mut pl = PlayerManager::try_new("tests/characters").unwrap();
-        assert!(pl.get_active_character("Super test").is_some());
-        assert!(pl.get_active_character("Boss1").is_some());
-        assert!(pl.get_active_character("unknown").is_none());
+        assert!(pl.get_mut_active_character("Super test").is_some());
+        assert!(pl.get_mut_active_character("Boss1").is_some());
+        assert!(pl.get_mut_active_character("unknown").is_none());
     }
 
     #[test]
@@ -527,5 +568,21 @@ mod tests {
         let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(2, logs.len()); // hot + dot
         assert_eq!(10, hot_and_dot); // 30(hot) - 20 (dot)
+    }
+
+    #[test]
+    fn unit_apply_hot_or_dot() {
+        let mut pl = PlayerManager::testing_pm();
+        let gs = GameState::default();
+        pl.current_player.stats.all_stats[HP].current = 100;
+        pl.current_player.stats.all_stats[HP].max = 100;
+        pl.current_player.stats.all_stats[HP].max_raw = 100;
+        pl.current_player.stats.all_stats[HP].current_raw = 100;
+        // max value is topped, 100 and not 100 + 30
+        pl.apply_hot_or_dot(&gs, 30);
+        assert_eq!(100, pl.current_player.stats.all_stats[HP].current);
+
+        pl.apply_hot_or_dot(&gs, -30);
+        assert_eq!(70, pl.current_player.stats.all_stats[HP].current);
     }
 }

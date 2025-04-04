@@ -89,7 +89,7 @@
     "Color": "green",
     "Experience": 50,
     "ExtendedCharacter": {
-        "is_first_round": false,
+        "is_first_round": true,
         "is_heal_atk_blocked": true,
         "is_random_target": false
     },
@@ -194,6 +194,7 @@
             "5": 100
         },
         {
+            "0": 0,
             "1": 0,
             "2": 36,
             "3": 0,
