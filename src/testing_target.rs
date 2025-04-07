@@ -11,7 +11,7 @@ pub fn build_target_boss_indiv() -> TargetInfo {
     }
 }
 
-pub fn build_target_Angmar_indiv() -> TargetInfo {
+pub fn build_target_angmar_indiv() -> TargetInfo {
     TargetInfo {
         name: "Angmar".to_owned(),
         is_targeted: true,
