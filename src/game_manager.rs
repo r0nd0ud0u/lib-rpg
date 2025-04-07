@@ -178,13 +178,15 @@ impl GameManager {
         // if boss -> loot
         // handle end of game if all bosses are dead
 
-        self.pm.modify_active_character(&self.pm.current_player.name.clone());
+        self.pm
+            .modify_active_character(&self.pm.current_player.name.clone());
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::character::Class;
+    use crate::testing_atk;
     use crate::testing_target::build_target_boss_indiv;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
@@ -455,5 +457,17 @@ mod tests {
             old_mana_hero - 20,
             gm.pm.current_player.stats.all_stats[MANA].current
         ); // 10% of 200 (total mana)
+    }
+
+    #[test]
+    fn integ_dxrpg() {
+        let mut gm = GameManager::try_new("").unwrap();
+        gm.pm.current_player = gm.pm.active_heroes[0].clone();
+        let atk = testing_atk::build_atk_damage1();
+        gm.pm
+            .current_player
+            .attacks_list
+            .insert(atk.name.clone(), atk);
+        gm.launch_attack("atk1", vec![build_target_boss_indiv()]);
     }
 }
