@@ -468,6 +468,6 @@ mod tests {
             .current_player
             .attacks_list
             .insert(atk.name.clone(), atk);
-        gm.launch_attack("atk1", vec![build_target_boss_indiv()]);
+        gm.launch_attack("atk1", vec![build_target_Angmar_indiv()]);
     }
 }
