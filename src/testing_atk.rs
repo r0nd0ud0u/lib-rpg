@@ -16,3 +16,14 @@ pub fn build_atk_damage1() -> AttackType {
         ..Default::default()
     }
 }
+
+pub fn build_atk_berseck_damage1() -> AttackType {
+    AttackType {
+        name: "atk1".to_owned(),
+        berseck_cost: 2,
+        target: TARGET_ENNEMY.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        all_effects: vec![build_dmg_effect_individual()],
+        ..Default::default()
+    }
+}
