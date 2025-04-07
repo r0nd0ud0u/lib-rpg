@@ -592,14 +592,11 @@ impl Character {
                 mana.current = std::cmp::max(0, mana.current - atk.mana_cost * mana.max / 100);
             }
             if let Some(vigor) = self.stats.all_stats.get_mut(VIGOR) {
-                vigor.current =
-                    std::cmp::max(0, vigor.current - atk.vigor_cost * vigor.max / 100);
+                vigor.current = std::cmp::max(0, vigor.current - atk.vigor_cost * vigor.max / 100);
             }
             if let Some(berseck) = self.stats.all_stats.get_mut(BERSECK) {
-                berseck.current = std::cmp::max(
-                    0,
-                    berseck.current - atk.berseck_cost * berseck.max / 100,
-                );
+                berseck.current =
+                    std::cmp::max(0, berseck.current - atk.berseck_cost * berseck.max / 100);
             }
         }
     }
@@ -1151,7 +1148,7 @@ mod tests {
         let old_mana = c.stats.all_stats[MANA].current;
         c.process_atk_cost("atk1"); // 10% mana cost
         assert_eq!(old_mana - 20, c.stats.all_stats[MANA].current);
-        c.process_atk_cost("atk1"); // 10% mana cost again! 
+        c.process_atk_cost("atk1"); // 10% mana cost again!
         assert_eq!(old_mana - 40, c.stats.all_stats[MANA].current);
     }
 
