@@ -192,6 +192,7 @@ mod tests {
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
         game_manager::GameManager,
         testing_atk::*,
+        testing_target::*,
     };
 
     #[test]
@@ -463,7 +464,7 @@ mod tests {
     fn integ_dxrpg() {
         let mut gm = GameManager::try_new("").unwrap();
         gm.pm.current_player = gm.pm.active_heroes[0].clone();
-        let atk = testing_atk::build_atk_damage1();
+        let atk = testing_atk::build_atk_berseck_damage1();
         gm.pm
             .current_player
             .attacks_list
