@@ -177,6 +177,8 @@ impl GameManager {
         // check who died
         // if boss -> loot
         // handle end of game if all bosses are dead
+
+        self.pm.modify_active_character(&self.pm.current_player.name);
     }
 }
 

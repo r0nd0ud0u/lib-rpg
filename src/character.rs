@@ -194,6 +194,11 @@ impl Character {
             for _ in 0..AmountType::EnumSize as usize - txrxlen {
                 value.tx_rx.push(HashMap::new());
             }
+
+            let buflen = value.all_buffers.len();
+            for _ in 0..BufTypes::EnumSize as usize - buflen {
+                value.all_buffers.push(HashMap::new());
+            }
             Ok(value)
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
