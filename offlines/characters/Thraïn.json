@@ -1,0 +1,211 @@
+{
+    "Buf-debuf": [
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 0,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 1,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 2,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 3,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 4,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 5,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 6,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 7,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 8,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 9,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 10,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 11,
+            "Buf-value": 0
+        }
+    ],
+    "Class": "Standard",
+    "Color": "blue",
+    "Experience": 0,
+    "ExtendedCharacter": {
+        "is_first_round": false,
+        "is_heal_atk_blocked": false,
+        "is_random_target": false
+    },
+    "Level": 1,
+    "Name": "Thraïn",
+    "Photo": "",
+    "Powers": {
+        "is_crit_heal_after_crit": false,
+        "is_damage_tx_heal_needy_ally": false
+    },
+    "Rank": 4,
+    "Shape": "",
+    "Short name": "Thraïn",
+    "Stats": {
+        "Aggro": {
+            "Current": 0,
+            "Max": 9999
+        },
+        "Aggro rate": {
+            "Current": 3,
+            "Max": 3
+        },
+        "Berseck": {
+            "Current": 19.71326164874552,
+            "Max": 100
+        },
+        "Berseck rate": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Critical strike": {
+            "Current": 8,
+            "Max": 8
+        },
+        "Dodge": {
+            "Current": 5,
+            "Max": 5
+        },
+        "HP": {
+            "Current": 155,
+            "Max": 155
+        },
+        "HP regeneration": {
+            "Current": 7,
+            "Max": 7
+        },
+        "Magical armor": {
+            "Current": 50,
+            "Max": 50
+        },
+        "Magical power": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Mana": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Mana regeneration": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Physical armor": {
+            "Current": 50,
+            "Max": 50
+        },
+        "Physical power": {
+            "Current": 20,
+            "Max": 20
+        },
+        "Speed": {
+            "Current": 5,
+            "Max": 5
+        },
+        "Speed regeneration": {
+            "Current": 5,
+            "Max": 5
+        },
+        "Vigor": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Vigor regeneration": {
+            "Current": 0,
+            "Max": 0
+        }
+    },
+    "Tx-rx": [
+        {
+        },
+        {
+        },
+        {
+        },
+        {
+        },
+        {
+        },
+        {
+        }
+    ],
+    "Type": "Hero",
+    "is-blocking-atk": false,
+    "max-actions-by-round": 1,
+    "nb-actions-in-round": 0
+}
+
