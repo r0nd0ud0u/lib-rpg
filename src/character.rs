@@ -197,7 +197,7 @@ impl Character {
 
             let buflen = value.all_buffers.len();
             for _ in 0..BufTypes::EnumSize as usize - buflen {
-                value.all_buffers.push(HashMap::new());
+                value.all_buffers.push(Buffers::default());
             }
             Ok(value)
         } else {
