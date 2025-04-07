@@ -98,15 +98,15 @@
         }
     ],
     "Class": "Standard",
-    "Color": "blue",
+    "Color": "red",
     "Experience": 0,
     "ExtendedCharacter": {
         "is_first_round": false,
         "is_heal_atk_blocked": false,
         "is_random_target": false
     },
-    "Level": 1,
-    "Name": "Thraïn",
+    "Level": 2147483647,
+    "Name": "Angmar",
     "Photo": "",
     "Powers": {
         "is_crit_heal_after_crit": false,
@@ -114,75 +114,75 @@
     },
     "Rank": 4,
     "Shape": "",
-    "Short name": "Thraïn",
+    "Short name": "Angmar",
     "Stats": {
         "Aggro": {
             "Current": 0,
-            "Max": 9999
+            "Max": 0
         },
         "Aggro rate": {
-            "Current": 3,
-            "Max": 3
+            "Current": 0,
+            "Max": 0
         },
         "Berseck": {
-            "Current": 20,
-            "Max": 100
+            "Current": 0,
+            "Max": 0
         },
         "Berseck rate": {
             "Current": 0,
             "Max": 0
         },
         "Critical strike": {
-            "Current": 8,
-            "Max": 8
+            "Current": 18,
+            "Max": 18
         },
         "Dodge": {
-            "Current": 5,
-            "Max": 5
+            "Current": 14,
+            "Max": 14
         },
         "HP": {
-            "Current": 155,
-            "Max": 155
+            "Current": 50000,
+            "Max": 50000
         },
         "HP regeneration": {
-            "Current": 7,
-            "Max": 7
+            "Current": 0,
+            "Max": 0
         },
         "Magical armor": {
-            "Current": 50,
-            "Max": 50
+            "Current": 100,
+            "Max": 100
         },
         "Magical power": {
-            "Current": 0,
-            "Max": 0
+            "Current": 180,
+            "Max": 180
         },
         "Mana": {
-            "Current": 0,
-            "Max": 0
+            "Current": 9999,
+            "Max": 9999
         },
         "Mana regeneration": {
-            "Current": 0,
-            "Max": 0
+            "Current": 25,
+            "Max": 25
         },
         "Physical armor": {
-            "Current": 50,
-            "Max": 50
+            "Current": 800,
+            "Max": 800
         },
         "Physical power": {
-            "Current": 20,
-            "Max": 20
+            "Current": 180,
+            "Max": 180
         },
         "Speed": {
-            "Current": 5,
-            "Max": 5
-        },
-        "Speed regeneration": {
-            "Current": 5,
-            "Max": 5
-        },
-        "Vigor": {
             "Current": 0,
             "Max": 0
+        },
+        "Speed regeneration": {
+            "Current": 28,
+            "Max": 28
+        },
+        "Vigor": {
+            "Current": 9999,
+            "Max": 9999
         },
         "Vigor regeneration": {
             "Current": 0,
@@ -203,7 +203,7 @@
         {
         }
     ],
-    "Type": "Hero",
+    "Type": "Boss",
     "is-blocking-atk": false,
     "max-actions-by-round": 1,
     "nb-actions-in-round": 0
