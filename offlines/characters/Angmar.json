@@ -1,0 +1,211 @@
+{
+    "Buf-debuf": [
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 0,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 1,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 2,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 3,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 4,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 5,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 6,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 7,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 8,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 9,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 10,
+            "Buf-value": 0
+        },
+        {
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
+            "Buf-passive-enabled": false,
+            "Buf-type": 11,
+            "Buf-value": 0
+        }
+    ],
+    "Class": "Standard",
+    "Color": "red",
+    "Experience": 0,
+    "ExtendedCharacter": {
+        "is_first_round": false,
+        "is_heal_atk_blocked": false,
+        "is_random_target": false
+    },
+    "Level": 2147483647,
+    "Name": "Angmar",
+    "Photo": "Angmar",
+    "Powers": {
+        "is_crit_heal_after_crit": false,
+        "is_damage_tx_heal_needy_ally": false
+    },
+    "Rank": 4,
+    "Shape": "",
+    "Short name": "Angmar",
+    "Stats": {
+        "Aggro": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Aggro rate": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Berseck": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Berseck rate": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Critical strike": {
+            "Current": 18,
+            "Max": 18
+        },
+        "Dodge": {
+            "Current": 14,
+            "Max": 14
+        },
+        "HP": {
+            "Current": 50000,
+            "Max": 50000
+        },
+        "HP regeneration": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Magical armor": {
+            "Current": 100,
+            "Max": 100
+        },
+        "Magical power": {
+            "Current": 180,
+            "Max": 180
+        },
+        "Mana": {
+            "Current": 9999,
+            "Max": 9999
+        },
+        "Mana regeneration": {
+            "Current": 25,
+            "Max": 25
+        },
+        "Physical armor": {
+            "Current": 800,
+            "Max": 800
+        },
+        "Physical power": {
+            "Current": 180,
+            "Max": 180
+        },
+        "Speed": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Speed regeneration": {
+            "Current": 28,
+            "Max": 28
+        },
+        "Vigor": {
+            "Current": 9999,
+            "Max": 9999
+        },
+        "Vigor regeneration": {
+            "Current": 0,
+            "Max": 0
+        }
+    },
+    "Tx-rx": [
+        {
+        },
+        {
+        },
+        {
+        },
+        {
+        },
+        {
+        },
+        {
+        }
+    ],
+    "Type": "Boss",
+    "is-blocking-atk": false,
+    "max-actions-by-round": 1,
+    "nb-actions-in-round": 0
+}
+

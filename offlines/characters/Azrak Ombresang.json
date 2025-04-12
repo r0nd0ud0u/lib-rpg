@@ -1,108 +1,120 @@
 {
     "Buf-debuf": [
         {
-            "Buf-all-stats":  ["hp","mana"],
-            "Buf-is-percent": true,
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
             "Buf-passive-enabled": false,
-            "Buf-type": 3,
-            "Buf-value": 100
+            "Buf-type": 0,
+            "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 1,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": true,
             "Buf-passive-enabled": false,
             "Buf-type": 2,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 3,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 4,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": true,
             "Buf-passive-enabled": false,
             "Buf-type": 5,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 6,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 7,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": true,
             "Buf-passive-enabled": false,
             "Buf-type": 8,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": true,
             "Buf-passive-enabled": false,
             "Buf-type": 9,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": true,
             "Buf-passive-enabled": false,
             "Buf-type": 10,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": true,
             "Buf-passive-enabled": false,
             "Buf-type": 11,
             "Buf-value": 0
         }
     ],
     "Class": "Standard",
-    "Color": "green",
-    "Experience": 50,
+    "Color": "orange",
+    "Experience": 0,
     "ExtendedCharacter": {
-        "is_first_round": true,
-        "is_heal_atk_blocked": true,
-        "is_random_target": false
+        "is_first_round": false,
+        "is_heal_atk_blocked": false,
+        "is_random_target": true
     },
     "Level": 1,
-    "Name": "Test 2",
-    "Photo": "phototest",
+    "Name": "Azrak Ombresang",
+    "Photo": "Azrak Ombresang",
     "Powers": {
         "is_crit_heal_after_crit": false,
-        "is_damage_tx_heal_needy_ally": true
+        "is_damage_tx_heal_needy_ally": false
     },
     "Rank": 4,
     "Shape": "",
-    "Short name": "Test2",
+    "Short name": "Azrak",
     "Stats": {
         "Aggro": {
             "Current": 0,
@@ -113,64 +125,64 @@
             "Max": 1
         },
         "Berseck": {
-            "Current": 200,
-            "Max": 200
+            "Current": 0,
+            "Max": 0
         },
         "Berseck rate": {
-            "Current": 1,
-            "Max": 1
+            "Current": 0,
+            "Max": 0
         },
         "Critical strike": {
-            "Current": 10,
-            "Max": 10
+            "Current": 12,
+            "Max": 12
         },
         "Dodge": {
-            "Current": 5,
-            "Max": 5
+            "Current": 6,
+            "Max": 6
         },
         "HP": {
-            "Current": 135,
-            "Max": 135
+            "Current": 145,
+            "Max": 145
         },
         "HP regeneration": {
             "Current": 7,
             "Max": 7
         },
         "Magical armor": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Magical power": {
             "Current": 10,
             "Max": 10
         },
-        "Magical power": {
-            "Current": 20,
-            "Max": 20
-        },
         "Mana": {
-            "Current": 200,
-            "Max": 200
+            "Current": 70,
+            "Max": 70
         },
         "Mana regeneration": {
             "Current": 7,
             "Max": 7
         },
         "Physical armor": {
-            "Current": 5,
-            "Max": 5
+            "Current": 0,
+            "Max": 0
         },
         "Physical power": {
+            "Current": 20,
+            "Max": 20
+        },
+        "Speed": {
             "Current": 10,
             "Max": 10
         },
-        "Speed": {
-            "Current": 12,
-            "Max": 12
-        },
         "Speed regeneration": {
-            "Current": 12,
-            "Max": 12
+            "Current": 10,
+            "Max": 10
         },
         "Vigor": {
-            "Current": 200,
-            "Max": 200
+            "Current": 130,
+            "Max": 130
         },
         "Vigor regeneration": {
             "Current": 5,
@@ -178,28 +190,17 @@
         }
     },
     "Tx-rx": [
-        {        
-            "1": 60
+        {
         },
         {
-            "5": 70
         },
         {
-            "5": 80
         },
         {
-            "5": 90
         },
         {
-            "5": 100
         },
         {
-            "0": 0,
-            "1": 0,
-            "2": 36,
-            "3": 0,
-            "4": 0,
-            "5": 10
         }
     ],
     "Type": "Hero",
@@ -207,3 +208,4 @@
     "max-actions-by-round": 1,
     "nb-actions-in-round": 0
 }
+

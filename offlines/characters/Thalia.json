@@ -1,84 +1,96 @@
 {
     "Buf-debuf": [
         {
-            "Buf-all-stats": ["hp","mana"],
-            "Buf-is-percent": true,
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
             "Buf-passive-enabled": false,
-            "Buf-type": 3,
-            "Buf-value": 100
+            "Buf-type": 0,
+            "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 1,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 2,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 3,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 4,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 5,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 6,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 7,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 8,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 9,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 10,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 11,
@@ -87,22 +99,22 @@
     ],
     "Class": "Standard",
     "Color": "green",
-    "Experience": 50,
+    "Experience": 0,
     "ExtendedCharacter": {
-        "is_first_round": true,
-        "is_heal_atk_blocked": true,
+        "is_first_round": false,
+        "is_heal_atk_blocked": false,
         "is_random_target": false
     },
     "Level": 1,
-    "Name": "Super test",
-    "Photo": "phototest",
+    "Name": "Thalia",
+    "Photo": "Thalia",
     "Powers": {
         "is_crit_heal_after_crit": false,
-        "is_damage_tx_heal_needy_ally": true
+        "is_damage_tx_heal_needy_ally": false
     },
     "Rank": 4,
     "Shape": "",
-    "Short name": "Test",
+    "Short name": "Thalia",
     "Stats": {
         "Aggro": {
             "Current": 0,
@@ -113,12 +125,12 @@
             "Max": 1
         },
         "Berseck": {
-            "Current": 200,
-            "Max": 200
+            "Current": 0,
+            "Max": 0
         },
         "Berseck rate": {
-            "Current": 1,
-            "Max": 1
+            "Current": 0,
+            "Max": 0
         },
         "Critical strike": {
             "Current": 10,
@@ -137,24 +149,24 @@
             "Max": 7
         },
         "Magical armor": {
-            "Current": 10,
-            "Max": 10
+            "Current": 0,
+            "Max": 0
         },
         "Magical power": {
             "Current": 20,
             "Max": 20
         },
         "Mana": {
-            "Current": 200,
-            "Max": 200
+            "Current": 160,
+            "Max": 160
         },
         "Mana regeneration": {
             "Current": 7,
             "Max": 7
         },
         "Physical armor": {
-            "Current": 5,
-            "Max": 5
+            "Current": 0,
+            "Max": 0
         },
         "Physical power": {
             "Current": 10,
@@ -169,8 +181,8 @@
             "Max": 12
         },
         "Vigor": {
-            "Current": 200,
-            "Max": 200
+            "Current": 40,
+            "Max": 40
         },
         "Vigor regeneration": {
             "Current": 5,
@@ -178,28 +190,17 @@
         }
     },
     "Tx-rx": [
-        {        
-            "1": 60
+        {
         },
         {
-            "5": 70
         },
         {
-            "5": 80
         },
         {
-            "5": 90
         },
         {
-            "5": 100
         },
         {
-            "0": 0,
-            "1": 0,
-            "2": 36,
-            "3": 0,
-            "4": 0,
-            "5": 10
         }
     ],
     "Type": "Hero",
@@ -207,3 +208,4 @@
     "max-actions-by-round": 1,
     "nb-actions-in-round": 0
 }
+
