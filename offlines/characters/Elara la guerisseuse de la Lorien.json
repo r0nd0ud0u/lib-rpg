@@ -1,84 +1,96 @@
 {
     "Buf-debuf": [
         {
-            "Buf-all-stats":  ["hp","mana"],
-            "Buf-is-percent": true,
+            "Buf-all-stats": [
+            ],
+            "Buf-is-percent": false,
             "Buf-passive-enabled": false,
-            "Buf-type": 3,
-            "Buf-value": 100
+            "Buf-type": 0,
+            "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 1,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 2,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 3,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 4,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 5,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 6,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 7,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 8,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 9,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 10,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [
+            ],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 11,
@@ -86,23 +98,23 @@
         }
     ],
     "Class": "Standard",
-    "Color": "green",
-    "Experience": 50,
+    "Color": "pink",
+    "Experience": 0,
     "ExtendedCharacter": {
-        "is_first_round": true,
-        "is_heal_atk_blocked": true,
+        "is_first_round": false,
+        "is_heal_atk_blocked": false,
         "is_random_target": false
     },
     "Level": 1,
-    "Name": "Boss1",
-    "Photo": "phototest",
+    "Name": "Elara la guerisseuse de la Lorien",
+    "Photo": "Elara",
     "Powers": {
-        "is_crit_heal_after_crit": false,
+        "is_crit_heal_after_crit": true,
         "is_damage_tx_heal_needy_ally": true
     },
     "Rank": 4,
     "Shape": "",
-    "Short name": "Boss",
+    "Short name": "Elara",
     "Stats": {
         "Aggro": {
             "Current": 0,
@@ -113,96 +125,87 @@
             "Max": 1
         },
         "Berseck": {
-            "Current": 200,
-            "Max": 200
+            "Current": 0,
+            "Max": 0
         },
         "Berseck rate": {
-            "Current": 1,
-            "Max": 1
+            "Current": 0,
+            "Max": 0
         },
         "Critical strike": {
             "Current": 10,
             "Max": 10
         },
         "Dodge": {
-            "Current": 5,
-            "Max": 5
+            "Current": 7,
+            "Max": 7
         },
         "HP": {
-            "Current": 135,
-            "Max": 135
+            "Current": 130,
+            "Max": 130
         },
         "HP regeneration": {
-            "Current": 7,
-            "Max": 7
+            "Current": 5,
+            "Max": 5
         },
         "Magical armor": {
-            "Current": 10,
-            "Max": 10
+            "Current": 0,
+            "Max": 0
         },
         "Magical power": {
-            "Current": 20,
-            "Max": 20
+            "Current": 25,
+            "Max": 25
         },
         "Mana": {
-            "Current": 200,
-            "Max": 200
+            "Current": 180,
+            "Max": 180
         },
         "Mana regeneration": {
-            "Current": 7,
-            "Max": 7
+            "Current": 5,
+            "Max": 5
         },
         "Physical armor": {
-            "Current": 5,
-            "Max": 5
+            "Current": 0,
+            "Max": 0
         },
         "Physical power": {
-            "Current": 10,
-            "Max": 10
+            "Current": 0,
+            "Max": 0
         },
         "Speed": {
-            "Current": 12,
-            "Max": 12
+            "Current": 8,
+            "Max": 8
         },
         "Speed regeneration": {
-            "Current": 12,
-            "Max": 12
+            "Current": 8,
+            "Max": 8
         },
         "Vigor": {
-            "Current": 200,
-            "Max": 200
+            "Current": 0,
+            "Max": 0
         },
         "Vigor regeneration": {
-            "Current": 5,
-            "Max": 5
+            "Current": 0,
+            "Max": 0
         }
     },
     "Tx-rx": [
-        {        
-            "1": 60
+        {
         },
         {
-            "5": 70
         },
         {
-            "5": 80
         },
         {
-            "5": 90
         },
         {
-            "5": 100
         },
         {
-            "1": 0,
-            "2": 36,
-            "3": 0,
-            "4": 0,
-            "5": 10
         }
     ],
-    "Type": "Boss",
+    "Type": "Hero",
     "is-blocking-atk": false,
     "max-actions-by-round": 1,
     "nb-actions-in-round": 0
 }
+
