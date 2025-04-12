@@ -1,0 +1,80 @@
+{
+    "Categorie": "Bras",
+    "Nom": "Manchette des Hommes de Dale",
+    "Nom unique": "Manchette des Hommes de Dale-3.1.5-2024-05-10-18-22-48",
+    "Stats": {
+        "Aggro": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Aggro rate": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Berseck": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Berseck rate": {
+            "equip_percent": 0,
+            "equip_value": 5
+        },
+        "Critical strike": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Dodge": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "HP": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "HP regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Magical armor": {
+            "equip_percent": 0,
+            "equip_value": 225
+        },
+        "Magical power": {
+            "equip_percent": 0,
+            "equip_value": 90
+        },
+        "Mana": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Mana regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Physical armor": {
+            "equip_percent": 0,
+            "equip_value": 113
+        },
+        "Physical power": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Speed": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Speed regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Vigor": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Vigor regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        }
+    }
+}
+

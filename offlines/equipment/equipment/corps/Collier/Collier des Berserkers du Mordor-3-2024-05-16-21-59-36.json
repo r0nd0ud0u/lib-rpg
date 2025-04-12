@@ -1,0 +1,80 @@
+{
+    "Categorie": "Collier",
+    "Nom": "Collier des Berserkers du Mordor",
+    "Nom unique": "Collier des Berserkers du Mordor-3-2024-05-16-21-59-36",
+    "Stats": {
+        "Aggro": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Aggro rate": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Berseck": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Berseck rate": {
+            "equip_percent": 0,
+            "equip_value": 3
+        },
+        "Critical strike": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Dodge": {
+            "equip_percent": 0,
+            "equip_value": 3
+        },
+        "HP": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "HP regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Magical armor": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Magical power": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Mana": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Mana regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Physical armor": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Physical power": {
+            "equip_percent": 0,
+            "equip_value": 60
+        },
+        "Speed": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Speed regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Vigor": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Vigor regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        }
+    }
+}
+
