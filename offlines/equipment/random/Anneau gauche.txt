@@ -1,0 +1,149 @@
+- Anneau de Minas Tirith
+- Bague des Sylvestres
+- Sceau de Rivendell
+- Anneau de la Comté
+- Bague des Cavaliers de Rohan
+- Anneau de Faramir
+- Sceau des Hobbits
+- Bague de l'Arbre Blanc
+- Anneau des Elfes de Fondcombe
+- Bague de Mithrandir
+- Sceau de Mithril
+- Anneau des Seigneurs Nains
+- Bague de l'Isengard
+- Anneau de Boromir
+- Sceau des Elfes de Lothlórien
+- Bague des Forêts Vertes
+- Anneau de Legolas
+- Bague de Gimli
+- Sceau de Samwise
+- Anneau de Frodon
+- Bague des Pérégrins
+- Anneau des Uruk-hai
+- Bague de Saruman le Blanc
+- Sceau des Dunedain
+- Anneau du Gondor
+- Bague de l'Étoile du Matin
+- Sceau des Guerriers de l'Ouest
+- Anneau de Galadriel
+- Bague des Haradrim
+- Sceau des Guerriers du Gondor
+- Anneau de l'Ombre du Mordor
+- Bague des Rôdeurs du Nord
+- Anneau de Bilbo
+- Bague de Barad-dûr
+- Sceau de Radagast le Brun
+- Anneau des Hommes du Sud
+- Bague des Nains de la Montagne Solitaire
+- Anneau des Magiciens Bleus
+- Sceau de Beorn
+- Bague des Elfes de Rivendell
+- Anneau des Sentinelles de Lothlórien
+- Bague de Feanor
+- Anneau de Celebrimbor
+- Sceau des Hommes de Bree
+- Bague des Érudits d'Imladris
+- Anneau des Elfes de Mirkwood
+- Bague des Éclaireurs de la Comté
+- Sceau de la Dernière Alliance
+- Anneau des Guerriers Númenóréens
+- Bague des Gardiens de la Citadelle
+- Anneau de Tom Bombadil
+- Bague de Gríma Langue de Serpent
+- Anneau des Hommes de Dale
+- Sceau de l'Ainur
+- Bague de Durin
+- Anneau des Hommes de Dunland
+- Bague des Chevaliers de Dol Amroth
+- Sceau des Berserkers du Mordor
+- Anneau des Pêcheurs d'Enedwaith
+- Bague des Fermiers de la Comté
+- Anneau de la Maison d'Eorl
+- Bague de la Garde Royale de Gondor
+- Sceau des Seigneurs d'Angmar
+- Anneau des Maîtres Elfes
+- Bague de la Terre du Milieu
+- Anneau des Guerriers de Rhûn
+- Bague des Soldats d'Osgiliath
+- Anneau de Smaug
+- Bague de l'Arbre de Gondor
+- Anneau des Sorciers Blancs
+- Bague des Guerriers d'Erebor
+- Anneau des Maîtres Forgerons Nains
+- Bague des Gardiens du Nord
+- Anneau des Sentinelles des Monts Brumeux
+- Bague des Hommes de l'Est
+- Anneau des Princes Elfes
+- Bague des Hommes des Collines
+- Anneau de l'Ordre des Mages
+- Anneau de l'Armée de Sauron
+- Anneau de l'Étoile du Soir
+- Bague de l'Armée de Thranduil
+- Anneau de Khazad-dûm
+- Anneau des Archers Elfes
+- Bague de la Guilde des Voleurs
+- Anneau de la Maison de Fëanor
+- Bague des Druides de la Forêt
+- Anneau des Sentinelles de la Porte Noire
+- Bague des Capitaines de Numenor
+- Anneau des Défenseurs d'Helms Deep
+- Anneau des Explorateurs des Terres Sauvages
+- Bague des Guerriers de Lothlórien
+- Anneau de la Ligne d'Isildur
+- Bague des Maîtres des Runes
+- Anneau des Guerriers de la Lumière
+- Anneau des Chasseurs de Trolls
+- Anneau des Héros Perdus
+- Bague des Artisans de la Comté
+- Anneau de la Brume d'Emyn Muil
+- Bague de la Légion de l'Ouest
+- Anneau des Chevaliers Errants
+- Bague de la Forêt Enchantée
+- Anneau des Maîtres d'Orthanc
+- Sceau des Guérisseurs Elfiques
+- Bague des Marchands de Minas Morgul
+- Anneau de la Confrérie Secrète
+- Sceau des Conteurs de la Terre du Milieu
+- Bague des Navigateurs des Grandes Eaux
+- Anneau des Gardiens de l'Anneau Unique
+- Bague de la Lumière d'Earendil
+- Sceau des Anciens Roi de Númenor
+- Anneau des Explorateurs de la Forêt Noire
+- Bague des Maîtres de la Pierre
+- Sceau de la Cour de Théoden
+- Anneau des Gardiens de la Porte de Moria
+- Bague des Seigneurs des Chevaux
+- Sceau des Alchimistes de Gondor
+- Anneau des Protecteurs de la Vallée
+- Bague des Sages de Valinor
+- Sceau des Constructeurs d'Erebor
+- Anneau des Veilleurs de la Montagne
+- Bague des Hérauts des Valar
+- Anneau de l'Alliance des Peuples Libres
+- Bague des Maîtres de la Mer
+- Sceau des Sentiers Perdus
+- Anneau des Fauconniers de la Comté
+- Bague de la Lueur des Etoiles
+- Anneau des Tisseurs de Sorts
+- Sceau des Guerriers du Rohan
+- Bague des Messagers Ailés
+- Anneau des Gardiens des Secrets
+- Bague des Maîtres de la Lame
+- Anneau de la Flamme d'Anor
+- Sceau des Chasseurs de l'Ombre
+- Bague des Architectes d'Ithilien
+- Anneau des Guerriers du Feu
+- Bague de la Brise de l'Ouest
+- Anneau des Chantres de la Forêt
+- Sceau des Maîtres de la Lumière
+- Bague des Protecteurs de Valinor
+- Anneau des Veilleurs de la Nuit
+- Bague des Artisans de Rivendell
+- Anneau des Chevaliers de la Lune
+- Sceau des Guerriers d'Arnor
+- Bague de la Couronne des Rois
+- Anneau des Vagabonds des Terres du Milieu
+- Bague des Maîtres des Chants
+- Anneau des Guérisseurs de Lorien
+- Sceau des Bâtisseurs d'Arnor
+- Anneau des Gardiens de l'Ancienne Sagesse

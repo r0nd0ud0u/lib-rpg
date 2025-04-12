@@ -1,0 +1,114 @@
+{
+    "Aggro": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Armure magique": [
+        {
+            "percent": 0,
+            "value": 75
+        }
+    ],
+    "Armure physique": [
+        {
+            "percent": 0,
+            "value": 75
+        }
+    ],
+    "Categorie": "Bras",
+    "Cout critique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Esquive": [
+        {
+            "percent": 0,
+            "value": 3
+        }
+    ],
+    "Mana": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Nom": "Manchette de la Terre du Milieu",
+    "Nom unique": "Manchette de la Terre du Milieu-3-2024-05-16-22-35-56",
+    "PV": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Pouvoir magique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Pouvoir physique": [
+        {
+            "percent": 0,
+            "value": 60
+        }
+    ],
+    "Rage": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regen vitesse": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration Mana": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration PV": [
+        {
+            "percent": 0,
+            "value": 4
+        }
+    ],
+    "Regeneration vigueur": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Taux aggro": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Taux rage": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Vigueur": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Vitesse": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ]
+}
+

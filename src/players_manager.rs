@@ -302,39 +302,6 @@ impl PlayerManager {
         self.current_player.all_effects = updated_effects;
     }
 
-    /*     pub fn apply_all_effects_on_player(
-        &mut self,
-        game_state: &GameState,
-        from_launch: bool,
-    ) -> (Vec<String>, Vec<GameAtkEffects>) {
-        let mut local_log = Vec::new();
-        let mut output_new_effects = Vec::new();
-        let all_effects = self.current_player.clone().all_effects;
-        // First process all the effects whatever their order
-        for gae in all_effects {
-            if gae.launching_turn == game_state.current_turn_nb {
-                continue;
-            }
-            if let Some(launcher_pl) = self.get_mut_active_character(&gae.launcher) {
-                let effect_outcome = launcher_pl.build_effect_outcome(&gae.all_atk_effects,
-                    from_launch,
-                    &gae.atk,
-                    false,
-                    false);
-                self.current_player.apply_effect_outcome(&effect_outcome);
-                /* if !effect_outcome.log_display.is_empty() {
-                    local_log.push(effect_outcome.log_display);
-                } */
-                // update the  big effect table
-                // TODO see if needed or not, maybe all the effects can be made in the "process effect" function
-                let mut new_game_atk_effect = gae.clone();
-                new_game_atk_effect.all_atk_effects = effect_outcome.new_effect_param;
-                output_new_effects.push(new_game_atk_effect);
-            }
-        }
-        (local_log, output_new_effects)
-    } */
-
     pub fn start_new_turn(&mut self) {
         // Increment turn effects
         self.increment_counter_effect();

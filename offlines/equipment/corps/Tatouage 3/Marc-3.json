@@ -1,0 +1,114 @@
+{
+    "Aggro": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Armure magique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Armure physique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Categorie": "Tatouage 3",
+    "Cout critique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Esquive": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Mana": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Nom": "Marc-3",
+    "Nom unique": "Marc-3",
+    "PV": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Pouvoir magique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Pouvoir physique": [
+        {
+            "percent": 0,
+            "value": 80
+        }
+    ],
+    "Rage": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regen vitesse": [
+        {
+            "percent": 0,
+            "value": 6
+        }
+    ],
+    "Regeneration Mana": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration PV": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration vigueur": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Taux aggro": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Taux rage": [
+        {
+            "percent": 0,
+            "value": 11
+        }
+    ],
+    "Vigueur": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Vitesse": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ]
+}
+

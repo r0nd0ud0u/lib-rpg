@@ -1,0 +1,114 @@
+{
+    "Aggro": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Armure magique": [
+        {
+            "percent": 0,
+            "value": 50
+        }
+    ],
+    "Armure physique": [
+        {
+            "percent": 0,
+            "value": 100
+        }
+    ],
+    "Categorie": "Chaussures",
+    "Cout critique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Esquive": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Mana": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Nom": "Souliers de la Brume d'Emyn Muil",
+    "Nom unique": "Souliers de la Brume d'Emyn Muil-2-2024-05-11-23-40-59",
+    "PV": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Pouvoir magique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Pouvoir physique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Rage": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regen vitesse": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration Mana": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration PV": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration vigueur": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Taux aggro": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Taux rage": [
+        {
+            "percent": 0,
+            "value": 2
+        }
+    ],
+    "Vigueur": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Vitesse": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ]
+}
+

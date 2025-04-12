@@ -1,0 +1,114 @@
+{
+    "Aggro": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Armure magique": [
+        {
+            "percent": 0,
+            "value": 75
+        }
+    ],
+    "Armure physique": [
+        {
+            "percent": 0,
+            "value": 150
+        }
+    ],
+    "Categorie": "Tete",
+    "Cout critique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Esquive": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Mana": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Nom": "Heaume des Capitaines de Numenor",
+    "Nom unique": "Heaume des Capitaines de Numenor-3-2024-05-12-20-30-12",
+    "PV": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Pouvoir magique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Pouvoir physique": [
+        {
+            "percent": 0,
+            "value": 60
+        }
+    ],
+    "Rage": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regen vitesse": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration Mana": [
+        {
+            "percent": 0,
+            "value": 4
+        }
+    ],
+    "Regeneration PV": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration vigueur": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Taux aggro": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Taux rage": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Vigueur": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Vitesse": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ]
+}
+

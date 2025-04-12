@@ -1,0 +1,114 @@
+{
+    "Aggro": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Armure magique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Armure physique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Categorie": "Anneau gauche",
+    "Cout critique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Esquive": [
+        {
+            "percent": 0,
+            "value": 3
+        }
+    ],
+    "Mana": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Nom": "Anneau de la Brume d'Emyn Muil",
+    "Nom unique": "Anneau de la Brume d'Emyn Muil-3-2024-05-10-18-22-48",
+    "PV": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Pouvoir magique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Pouvoir physique": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Rage": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regen vitesse": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration Mana": [
+        {
+            "percent": 0,
+            "value": 4
+        }
+    ],
+    "Regeneration PV": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Regeneration vigueur": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Taux aggro": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Taux rage": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ],
+    "Vigueur": [
+        {
+            "percent": 11,
+            "value": 0
+        }
+    ],
+    "Vitesse": [
+        {
+            "percent": 0,
+            "value": 0
+        }
+    ]
+}
+

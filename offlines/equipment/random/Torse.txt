@@ -1,0 +1,100 @@
+- Cuirasse de la Lumière d'Earendil
+- Plastron des Sylvestres
+- Armure de Rivendell
+- Haubert de la Comté
+- Cuirasse des Rohirrim
+- Tunique d'Eowyn
+- Gilet des Hobbits
+- Armure de Gondor
+- Plastron des Elfes de Fondcombe
+- Robe de Mithrandir
+- Cuirasse de Mithril
+- Armure de Théoden
+- Haubert d'Isengard
+- Plastron de Boromir
+- Armure des Elfes de Lothlórien
+- Cuirasse des Forêts Vertes
+- Tunique de Legolas
+- Plastron de Gimli
+- Haubert de Samwise
+- Cuirasse de Frodon
+- Armure des Pérégrins
+- Plastron des Uruk-hai
+- Cuirasse de Saruman le Blanc
+- Haubert des Dunedain
+- Armure du Gondor
+- Tunique de l'Étoile du Matin
+- Plastron des Guerriers de l'Ouest
+- Cuirasse de Galadriel
+- Haubert des Haradrim
+- Armure des Guerriers du Gondor
+- Plastron de l'Ombre du Mordor
+- Cuirasse des Rôdeurs du Nord
+- Tunique de Bilbo
+- Haubert de Barad-dûr
+- Armure de Radagast le Brun
+- Plastron des Hommes du Sud
+- Cuirasse des Nains de la Montagne Solitaire
+- Haubert des Magiciens Bleus
+- Armure de Beorn
+- Tunique des Elfes de Rivendell
+- Plastron des Sentinelles de Lothlórien
+- Cuirasse de Feanor
+- Armure de Celebrimbor
+- Haubert des Hommes de Bree
+- Plastron des Érudits d'Imladris
+- Cuirasse des Elfes de Mirkwood
+- Tunique des Éclaireurs de la Comté
+- Armure de la Dernière Alliance
+- Haubert des Guerriers Númenóréens
+- Cuirasse des Gardiens de la Citadelle
+- Tunique de Tom Bombadil
+- Plastron de Gríma Langue de Serpent
+- Haubert des Hommes de Dale
+- Armure de l'Ainur
+- Plastron de Durin
+- Cuirasse des Hommes de Dunland
+- Tunique des Chevaliers de Dol Amroth
+- Armure des Berserkers du Mordor
+- Plastron des Pêcheurs d'Enedwaith
+- Cuirasse des Fermiers de la Comté
+- Haubert de la Maison d'Eorl
+- Armure de la Garde Royale de Gondor
+- Plastron des Seigneurs d'Angmar
+- Cuirasse des Maîtres Elfes
+- Tunique de la Terre du Milieu
+- Armure des Guerriers de Rhûn
+- Plastron des Soldats d'Osgiliath
+- Haubert de Smaug
+- Tunique de l'Arbre de Gondor
+- Cuirasse des Sorciers Blancs
+- Armure des Guerriers d'Erebor
+- Plastron des Maîtres Forgerons Nains
+- Cuirasse des Gardiens du Nord
+- Haubert des Sentinelles des Monts Brumeux
+- Armure des Hommes de l'Est
+- Plastron des Princes Elfes
+- Tunique des Hommes des Collines
+- Cuirasse de l'Ordre des Mages
+- Armure de l'Armée de Sauron
+- Haubert de l'Étoile du Soir
+- Plastron de l'Armée de Thranduil
+- Cuirasse de Khazad-dûm
+- Haubert des Archers Elfes
+- Tunique de la Guilde des Voleurs
+- Armure de la Maison de Fëanor
+- Plastron des Druides de la Forêt
+- Cuirasse des Sentinelles de la Porte Noire
+- Haubert des Capitaines de Numenor
+- Armure des Défenseurs d'Helms Deep
+- Plastron des Explorateurs des Terres Sauvages
+- Cuirasse des Guerriers de Lothlórien
+- Tunique de la Ligne d'Isildur
+- Armure des Maîtres des Runes
+- Haubert des Guerriers de la Lumière
+- Plastron des Chasseurs de Trolls
+- Cuirasse des Héros Perdus
+- Tunique des Artisans de la Comté
+- Armure de la Brume d'Emyn Muil
+- Haubert de la Légion de l'Ouest
+- Plastron des Chevaliers Errants

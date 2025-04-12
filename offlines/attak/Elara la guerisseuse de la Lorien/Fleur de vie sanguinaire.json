@@ -1,0 +1,60 @@
+{
+    "Cible": "Allié",
+    "Coût de mana": 15,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 1,
+            "Type": "Active effet si Dégâts au tour précédent",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 1,
+            "Type": "Buf multi",
+            "Valeur de l'effet": 0,
+            "Value": 3
+        },
+        {
+            "Cible": "Allié",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 3,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 25
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 5,
+            "Type": "Tours de recharge",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        },
+        {
+            "Cible": "Ennemie",
+            "Portée": "Aleatoire Individuel",
+            "Stat": "PV",
+            "Tours actifs": 2,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": -35
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 4,
+    "Nom": "Fleur de vie sanguinaire",
+    "Photo": "default.png",
+    "Portée": "Individuel",
+    "Sound": ""
+}
+

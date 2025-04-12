@@ -1,0 +1,66 @@
+{
+    "Aggro": 0,
+    "Cible": "Allié",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 13,
+    "Durée": 1,
+    "Dégâts": 0,
+    "Effet": [
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Pouvoir physique",
+            "Tours actifs": 4,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 30
+        },
+        {
+            "Cible": "Seulement les alliés",
+            "Portée": "Zone",
+            "Stat": "Pouvoir physique",
+            "Tours actifs": 4,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 15
+        },
+		{
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Pouvoir magique",
+            "Tours actifs": 4,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 30
+        },
+        {
+            "Cible": "Seulement les alliés",
+            "Portée": "Zone",
+            "Stat": "Pouvoir magique",
+            "Tours actifs": 4,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 15
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 6,
+            "Type": "Tours de recharge",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 2,
+    "Nom": "Furie du Mordor",
+    "Photo": "Azrak Ombresang.png",
+    "Portée": "Zone",
+    "Regen mana": 0,
+    "Regen rage": 0,
+    "Regen vigueur": 0,
+    "Soin": 0
+}
+

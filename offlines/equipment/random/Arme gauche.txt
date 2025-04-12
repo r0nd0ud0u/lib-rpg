@@ -1,0 +1,188 @@
+- Épée des Dunedains
+- Arc Long des Elfes
+- Lance de la Garde Royale de Rohan
+- Hache de la Bataille des Cinq Armées
+- Fléau des Terres Sombres
+- Dague des Rôdeurs
+- Fronde de la Comté
+- Épieu d'Argonath
+- Masse de la Tour de Barad-dûr
+- Trident des Númenóréens
+- Fouet de la Forge de Sauron
+- Sarbacane des Collines Vertes
+- Shuriken des Elfes de Rivendell
+- Bouclier des Chevaliers de Dol Amroth
+- Bâton du Roi-Sorcier d'Angmar
+- Javelot des Guerriers de Harad
+- Cimeterre des Soldats du Gondor
+- Marteau des Mines de la Moria
+- Couteau des Marchands de Dale
+- Baliste des Forteresses Naines
+- Bouclier des Hommes des Montagnes
+- Catapulte des Armées de Saruman
+- Lance-pierres des Elfes de la Forêt Noire
+- Épée de Thranduil
+- Hache des Berserkers d'Isengard
+- Arc des Sentinelles d'Ithilien
+- Bouclier de Faramir
+- Glaive des Éclaireurs Elfiques
+- Sceptre des Seigneurs d'Arnor
+- Scie des Forges Naines
+- Dague de Glorfindel
+- Harpon des Pêcheurs de l'Anduin
+- Masse des Ombres de Mirkwood
+- Trident de la Falaise de Helm
+- Fouet des Cavaliers Noirs
+- Sarbacane des Éleveurs de Bêtes de Gorgoroth
+- Shuriken des Gardiens de la Porte Noire
+- Bouclier de l'Armée d'Elendil
+- Bâton des Druides de Fangorn
+- Javelot des Guerriers de l'Ered Luin
+- Cimeterre des Rôdeurs du Nord
+- Épée des Capitaines de Minas Tirith
+- Arc des Chasseurs de l'Ombre
+- Lance de la Maison d'Eorl
+- Hache de la Main de Fer
+- Fléau des Terres du Mordor
+- Dague de la Reine Galadriel
+- Fronde des Gardiens de la Comté
+- Épieu des Sentiers des Morts
+- Masse des Armées d'Angmar
+- Trident des Seigneurs de la Mer
+- Fouet des Forges du Mont du Destin
+- Sarbacane des Protecteurs de la Terre du Milieu
+- Shuriken des Guerriers Elfes
+- Bouclier des Défenseurs du Rohan
+- Bâton des Magiciens Bleus
+- Javelot des Hommes des Collines
+- Cimeterre des Corsaires
+- Marteau des Nains de Khazad-dûm
+- Couteau des Explorateurs de la Forêt Verte
+- Baliste des Armées du Gondor
+- Bouclier des Guerriers de l'Isengard
+- Catapulte des Défenseurs d'Osgiliath
+- Lance-pierres des Habitants de Bree
+- Épée des Chevaliers Errants
+- Hache des Gardiens des Montagnes
+- Arc des Archers de Lothlórien
+- Bouclier de Beregond
+- Glaive des Seigneurs de Dale
+- Sceptre des Régents de Gondor
+- Scie des Artisans Elfes
+- Dague des Patrouilleurs de l'Est
+- Harpon des Marins d'Umbar
+- Masse des Champions du Rohan
+- Trident des Guerriers du Harad
+- Fouet des Maîtres de Dol Guldur
+- Sarbacane des Gardes de la Citadelle
+- Shuriken des Protecteurs du Nord
+- Bouclier des Héros de la Terre du Milieu
+- Bâton de Gandalf le Blanc
+- Javelot des Chevaucheurs de Wargs
+- Cimeterre des Espions d'Haradwaith
+- Épée des Gardiens de la Porte de Minas Tirith
+- Arc des Veilleurs du Mordor
+- Lance des Hommes de Dunland
+- Hache de la Guilde des Forgerons Nains
+- Fléau des Serviteurs de Sauron
+- Dague des Émissaires Elfes
+- Fronde des Voyageurs de la Route Est
+- Épieu des Guerriers du Gondor
+- Masse des Défenseurs de la Porte Ouest
+- Trident des Navigateurs des Fleuves
+- Fouet des Maîtres de Chasse de Mordor
+- Sarbacane des Guetteurs des Collines
+- Shuriken des Assassins d'Angmar
+- Bouclier des Soldats de Minas Tirith
+- Bâton des Sages d'Arnor
+- Javelot des Braves de Pelennor
+- Cimeterre des Mercenaires de Rhûn
+- Marteau des Bâtisseurs Nains
+- Couteau des Scouts de la Forêt de Fangorn
+- Baliste des Armuriers du Gondor
+- Bouclier des Sentinelles des Montagnes Blanches
+- Catapulte des Ingénieurs d'Isengard
+- Lance-pierres des Jeunes Hobbits
+- Épée des Protecteurs de l'Anneau
+- Hache des Guerriers d'Erebor
+- Arc des Archers du Harad
+- Bouclier d'Eomer
+- Glaive des Cavaliers du Mark
+- Sceptre des Seigneurs de Rivendell
+- Scie des Charpentiers Elfes
+- Dague des Explorateurs de la Moria
+- Harpon des Pêcheurs du Fleuve Celduin
+- Masse des Défenseurs de la Terre du Milieu
+- Trident des Guerriers de la Mer de Rhûn
+- Fouet des Maîtres des Bêtes du Harad
+- Sarbacane des Rôdeurs des Champs
+- Shuriken des Veilleurs du Gondor
+- Bouclier des Héros de la Guerre de l'Anneau
+- Bâton de Saruman le Blanc
+- Javelot des Chasseurs de la Forêt Noire
+- Cimeterre des Espions de Gondor
+- Épée des Chevaliers de Dol Amroth
+- Arc des Défenseurs d'Edoras
+- Lance des Hommes des Vallées
+- Hache de la Coalition du Nord
+- Fléau des Guerriers d'Umbar
+- Dague des Voyageurs de Lothlórien
+- Fronde des Enfants de la Comté
+- Épieu des Sentinelles d'Emyn Muil
+- Masse des Armées de Théoden
+- Trident des Seigneurs des Fleuves
+- Fouet des Forgerons du Gondor
+- Sarbacane des Éclaireurs de Rohan
+- Shuriken des Elfes de Mirkwood
+- Bouclier des Vétérans des Champs du Pelennor
+- Bâton de Beorn
+- Javelot des Défenseurs des Frontières
+- Cimeterre des Guerriers des Terres Sauvages
+- Marteau des Ouvriers Nains
+- Couteau des Messagers Elfiques
+- Baliste des Gardiens de la Citadelle de Minas Tirith
+- Bouclier des Braves de la Marche de l'Ouest
+- Catapulte des Ingénieurs de Rohan
+- Lance-pierres des Fermiers de la Comté
+- Épée des Champions du Gondor
+- Hache des Guerriers des Collines de Fer
+- Arc des Veilleurs des Portes de Mordor
+- Bouclier de Boromir
+- Glaive des Seigneurs de la Marche
+- Sceptre des Régents du Rohan
+- Scie des Artisans de Dale
+- Dague des Patrouilleurs de la Frontière
+- Harpon des Marins de Pelargir
+- Masse des Chevaliers d'Arnor
+- Trident des Commandants de l'Armée de l'Ouest
+- Fouet des Cavaliers du Mordor
+- Sarbacane des Gardiens des Forêts
+- Shuriken des Guerriers d'Angmar
+- Bouclier des Défenseurs des Terres du Milieu
+- Bâton de Glorfindel
+- Javelot des Soldats de l'Eriador
+- Cimeterre des Espions du Rohan
+- Épée des Gardes de la Tour Blanche
+- Arc des Archers de Minas Morgul
+- Lance des Hommes de l'Ered Nimrais
+- Hache des Nains de Khazad-dûm
+- Bouclier des Éclaireurs Elfiques
+- Bouclier des Maîtres des Bêtes du Harad
+- Bouclier des Gardes de la Citadelle
+- Bouclier des Chevaucheurs de Wargs
+- Bouclier des Corsaires
+- Bouclier des Espions de Gondor
+- Bouclier des Défenseurs d'Osgiliath
+- Bouclier des Protecteurs de la Terre du Milieu
+- Bouclier des Sentinelles de la Comté
+- Bouclier des Gardiens de la Porte Noire
+- Bouclier des Guerriers Elfes
+- Bouclier des Héros de la Guerre de l'Anneau
+- Bouclier des Régents de Gondor
+- Bouclier des Magiciens Bleus
+- Bouclier des Hommes des Collines
+- Bouclier des Nains de Khazad-dûm
+- Bouclier des Armuriers du Gondor
+- Bouclier des Ingénieurs d'Isengard
+- Bouclier des Braves de la Marche de l'Ouest
+- Bouclier des Sentinelles d'Emyn Muil
