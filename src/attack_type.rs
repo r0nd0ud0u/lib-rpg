@@ -38,6 +38,10 @@ pub struct AttackType {
     pub all_effects: Vec<EffectParam>,
     #[serde(rename = "Forme")]
     pub form: String,
+    #[serde(rename = "Aggro")]
+    pub aggro: i64,
+    #[serde(rename = "Durée")]
+    pub turns_duration: i64,
 }
 
 impl Default for AttackType {
@@ -53,6 +57,8 @@ impl Default for AttackType {
             name_photo: "".to_owned(),
             all_effects: vec![],
             form: "".to_owned(),
+            aggro: 0,
+            turns_duration: 0,
         }
     }
 }
@@ -85,13 +91,37 @@ impl AttackType {
 
 #[cfg(test)]
 mod tests {
-    use crate::attack_type::AttackType;
+    use crate::{
+        attack_type::AttackType,
+        common::{
+            all_target_const::TARGET_ENNEMY, character_json_key::STANDARD_CLASS,
+            effect_const::EFFECT_VALUE_CHANGE, reach_const::INDIVIDUAL, stats_const::HP,
+        },
+    };
 
     #[test]
     fn unit_try_new_from_json() {
         let file_path = "./tests/attack/test/SimpleAtk.json"; // Path to the JSON file
-        let c = AttackType::try_new_from_json(file_path);
-        assert!(c.is_ok());
-        let c = c.unwrap();
+        let atk_type = AttackType::try_new_from_json(file_path);
+        assert!(atk_type.is_ok());
+        let atk_type: AttackType = atk_type.unwrap();
+        assert_eq!(atk_type.name, "SimpleAtk");
+        assert_eq!(atk_type.level, 1);
+        assert_eq!(atk_type.mana_cost, 9);
+        assert_eq!(atk_type.vigor_cost, 0);
+        assert_eq!(atk_type.berseck_cost, 0);
+        assert_eq!(atk_type.target, TARGET_ENNEMY);
+        assert_eq!(atk_type.reach, INDIVIDUAL);
+        assert_eq!(atk_type.name_photo, "SimpleAtk.png");
+        assert_eq!(atk_type.form, STANDARD_CLASS);
+        assert_eq!(atk_type.aggro, 0);
+        // decode the effect
+        assert_eq!(atk_type.all_effects.len(), 1);
+        assert_eq!(atk_type.all_effects[0].stats_name, HP);
+        assert_eq!(atk_type.all_effects[0].value, -35);
+        assert_eq!(atk_type.all_effects[0].target, TARGET_ENNEMY);
+        assert_eq!(atk_type.all_effects[0].reach, INDIVIDUAL);
+        assert_eq!(atk_type.all_effects[0].effect_type, EFFECT_VALUE_CHANGE);
+        assert_eq!(atk_type.all_effects[0].sub_value_effect, 0);
     }
 }

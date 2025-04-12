@@ -1,7 +1,7 @@
 /// Define the kind of target
 pub mod all_target_const {
-    pub const TARGET_ENNEMY: &str = "Ennemy";
-    pub const TARGET_ALLY: &str = "Ally";
+    pub const TARGET_ENNEMY: &str = "Ennemie";
+    pub const TARGET_ALLY: &str = "Allié";
     pub const TARGET_ALL_HEROES: &str = "Tous les heroes";
     pub const TARGET_HIMSELF: &str = "Soi-même";
     pub const TARGET_ONLY_ALLY: &str = "Seulement les alliés";
@@ -36,7 +36,7 @@ pub mod stats_const {
 
 /// Defines all the keys except stats you can decode from the JSON input
 pub mod character_json_key {
-    pub const STANDARD_CLASS: &str = "standard";
+    pub const STANDARD_CLASS: &str = "Standard";
     pub const IS_BLOCKING_ATK: &str = "is-blocking-atk";
     pub const IS_CRIT_HEAL_AFTER_CRIT: &str = "is_crit_heal_after_crit";
     pub const IS_DAMAGE_TX_HEAL_NEEDY_ALLY: &str = "is_damage_tx_heal_needy_ally";
