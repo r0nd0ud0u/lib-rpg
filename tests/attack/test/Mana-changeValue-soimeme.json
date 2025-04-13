@@ -1,0 +1,30 @@
+{
+    "Aggro": 0,
+    "Cible": "Soi-même",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 1,
+    "Durée": 1,
+    "Dégâts": 0,
+    "Effet": [
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Mana",
+            "Tours actifs": 1,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 10
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 1,
+    "Nom": "Mana-changeValue-soimeme",
+    "Photo": "Thalia.png",
+    "Portée": "Individuel",
+    "Regen mana": 0,
+    "Regen rage": 0,
+    "Regen vigueur": 0,
+    "Soin": 0
+}
+

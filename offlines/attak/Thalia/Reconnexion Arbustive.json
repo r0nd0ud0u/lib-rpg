@@ -1,0 +1,41 @@
+{
+    "Cible": "Soi-même",
+    "Coût de mana": 8,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Mana",
+            "Tours actifs": 1,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 20
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 5,
+            "Type": "% (stats) en dégâts",
+            "Valeur de l'effet": 50,
+            "Value": 0
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 6,
+            "Type": "Tours de recharge",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 10,
+    "Nom": "Reconnexion Arbustive",
+    "Photo": "Thalia.png",
+    "Portée": "Individuel"
+}
+

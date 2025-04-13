@@ -1,0 +1,32 @@
+{
+    "Cible": "Allié",
+    "Coût de mana": 10,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Allié",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 1,
+            "Type": "Reinit",
+            "Valeur de l'effet": 3,
+            "Value": 0
+        },
+        {
+            "Cible": "Allié",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 1,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 120
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 5,
+    "Nom": "Sève Régénératrice",
+    "Photo": "Thalia.png",
+    "Portée": "Individuel"
+}
+
