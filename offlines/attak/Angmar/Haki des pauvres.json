@@ -1,0 +1,41 @@
+{
+    "Cible": "Ennemie",
+    "Coût de mana": 40,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "Esquive",
+            "Tours actifs": 4,
+            "Type": "Up par valeur",
+            "Valeur de l'effet": 0,
+            "Value": -10
+        },
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "Pouvoir magique",
+            "Tours actifs": 4,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": -30
+        },
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "Pouvoir physique",
+            "Tours actifs": 4,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": -30
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 4,
+    "Nom": "Haki des pauvres",
+    "Photo": "default.png",
+    "Portée": "Individuel"
+}
+

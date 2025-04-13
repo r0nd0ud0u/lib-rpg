@@ -1,0 +1,41 @@
+{
+    "Cible": "Allié",
+    "Coût de mana": 10,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Allié",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 5,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 20
+        },
+        {
+            "Cible": "Allié",
+            "Portée": "Individuel",
+            "Stat": "Regen vitesse",
+            "Tours actifs": 5,
+            "Type": "Up par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 10
+        },
+        {
+            "Cible": "Allié",
+            "Portée": "Individuel",
+            "Stat": "Pouvoir magique",
+            "Tours actifs": 5,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 10
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 1,
+    "Nom": "Essence Régénératrice",
+    "Photo": "Essence regeneratrice.jpg",
+    "Portée": "Individuel"
+}
+

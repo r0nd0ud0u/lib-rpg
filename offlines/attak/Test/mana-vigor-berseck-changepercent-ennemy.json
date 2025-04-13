@@ -1,0 +1,40 @@
+{
+    "Cible": "Tous les heroes",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 1,
+    "Effet": [
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Mana",
+            "Tours actifs": 1,
+            "Type": "Changement par %",
+            "Valeur de l'effet": 0,
+            "Value": -20
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Vigueur",
+            "Tours actifs": 1,
+            "Type": "Changement par %",
+            "Valeur de l'effet": 0,
+            "Value": -20
+        },
+           {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Rage",
+            "Tours actifs": 1,
+            "Type": "Changement par %",
+            "Valeur de l'effet": 0,
+            "Value": -20
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 1,
+    "Nom": "mana-vigor-berseck-changepercent-ennemy",
+    "Photo": "default.png",
+    "Portée": "Zone"
+}

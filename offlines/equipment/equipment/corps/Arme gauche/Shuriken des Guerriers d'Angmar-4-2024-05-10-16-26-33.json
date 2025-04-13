@@ -1,0 +1,80 @@
+{
+    "Categorie": "Left Weapon",
+    "Nom": "Shuriken des Guerriers d'Angmar",
+    "Nom unique": "Shuriken des Guerriers d'Angmar-4-2024-05-10-16-26-33",
+    "Stats": {
+        "Aggro": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Aggro rate": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Berseck": {
+            "equip_percent": 30,
+            "equip_value": 0
+        },
+        "Berseck rate": {
+            "equip_percent": 0,
+            "equip_value": 8
+        },
+        "Critical strike": {
+            "equip_percent": 0,
+            "equip_value": 5
+        },
+        "Dodge": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "HP": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "HP regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Magical armor": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Magical power": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Mana": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Mana regeneration": {
+            "equip_percent": 0,
+            "equip_value": 5
+        },
+        "Physical armor": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Physical power": {
+            "equip_percent": 0,
+            "equip_value": 80
+        },
+        "Speed": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Speed regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Vigor": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Vigor regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        }
+    }
+}
+

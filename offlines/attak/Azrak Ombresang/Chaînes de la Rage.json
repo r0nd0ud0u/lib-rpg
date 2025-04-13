@@ -1,0 +1,41 @@
+{
+    "Cible": "Ennemie",
+    "Coût de mana": 15,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 1,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": -80
+        },
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "Regen vitesse",
+            "Tours actifs": 6,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": -10
+        },
+        {
+            "Cible": "",
+            "Portée": "",
+            "Stat": "",
+            "Tours actifs": 0,
+            "Type": "",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 7,
+    "Nom": "Chaînes de la Rage",
+    "Photo": "Azrak Ombresang.png",
+    "Portée": "Individuel"
+}
+

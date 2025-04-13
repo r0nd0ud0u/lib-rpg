@@ -1,0 +1,42 @@
+{
+    "Cible": "Tous les heroes",
+    "Coût de mana": 18,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "PV",
+            "Tours actifs": 1,
+            "Type": "Changement par %",
+            "Valeur de l'effet": 0,
+            "Value": 30
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Pouvoir magique",
+            "Tours actifs": 2,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 15
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Pouvoir physique",
+            "Tours actifs": 2,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 15
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 1,
+    "Nom": "Eclat d'espoir",
+    "Photo": "default.png",
+    "Portée": "Zone",
+    "Sound": ""
+}
+

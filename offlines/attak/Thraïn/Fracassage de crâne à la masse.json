@@ -1,0 +1,60 @@
+{
+    "Cible": "Ennemie",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 1,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": -150
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Esquive",
+            "Tours actifs": 2,
+            "Type": "Up par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 65
+        },
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 2,
+            "Type": "Up/down degats en %",
+            "Valeur de l'effet": 0,
+            "Value": -20
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 10,
+            "Type": "Tours de recharge",
+            "Valeur de l'effet": 0,
+            "Value": 10
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Rage",
+            "Tours actifs": 1,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 25
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 13,
+    "Nom": "Fracassage de crâne à la masse",
+    "Photo": "Thraïn.png",
+    "Portée": "Individuel",
+    "Sound": "gomu-gomu-no-pistol.mp3"
+}
+

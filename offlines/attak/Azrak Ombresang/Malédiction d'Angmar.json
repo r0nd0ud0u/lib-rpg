@@ -1,0 +1,48 @@
+{
+    "Aggro": 0,
+    "Cible": "Ennemie",
+    "Coût de mana": 14,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Durée": 3,
+    "Dégâts": 0,
+    "Effet": [
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 3,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": -92
+        },
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "Armure magique",
+            "Tours actifs": 4,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": -20
+        },
+        {
+            "Cible": "",
+            "Portée": "",
+            "Stat": "",
+            "Tours actifs": 0,
+            "Type": "",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 12,
+    "Nom": "Malédiction d'Angmar",
+    "Photo": "Azrak Ombresang.png",
+    "Portée": "Individuel",
+    "Regen mana": 0,
+    "Regen rage": 0,
+    "Regen vigueur": 0,
+    "Soin": 0
+}
+

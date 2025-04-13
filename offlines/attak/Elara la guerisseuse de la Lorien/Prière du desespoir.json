@@ -1,0 +1,69 @@
+{
+    "Cible": "Tous les heroes",
+    "Coût de mana": 24,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 1,
+            "Type": "Changement par %",
+            "Valeur de l'effet": 0,
+            "Value": -49
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Armure magique",
+            "Tours actifs": 3,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 100
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Armure physique",
+            "Tours actifs": 3,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 100
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Pouvoir magique",
+            "Tours actifs": 3,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 100
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Pouvoir physique",
+            "Tours actifs": 3,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 100
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 6,
+            "Type": "Tours de recharge",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 10,
+    "Nom": "Prière du desespoir",
+    "Photo": "default.png",
+    "Portée": "Zone",
+    "Sound": ""
+}
+

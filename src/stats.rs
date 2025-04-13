@@ -37,8 +37,10 @@ pub struct Attribute {
     /// All buffer percentage are added in one percent value
     pub buf_effect_percent: u64,
     /// All buffer equipment are added in one value
+    #[serde(rename = "equip_value")]
     pub buf_equip_value: u64,
     /// All buffer equipment are added in one value
+    #[serde(rename = "equip_percent")]
     pub buf_equip_percent: u64,
 }
 

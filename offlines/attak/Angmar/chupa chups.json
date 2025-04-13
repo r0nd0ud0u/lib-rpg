@@ -1,0 +1,32 @@
+{
+    "Cible": "Soi-même",
+    "Coût de mana": 10,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Armure magique",
+            "Tours actifs": 3,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 50
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Armure physique",
+            "Tours actifs": 3,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 50
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 3,
+    "Nom": "chupa chups",
+    "Photo": "default.png",
+    "Portée": "Individuel"
+}
+

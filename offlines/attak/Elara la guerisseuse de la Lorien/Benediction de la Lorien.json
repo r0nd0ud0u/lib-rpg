@@ -1,0 +1,42 @@
+{
+    "Cible": "Allié",
+    "Coût de mana": 24,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Allié",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 1,
+            "Type": "Changement par %",
+            "Valeur de l'effet": 0,
+            "Value": 100
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Regeneration Mana",
+            "Tours actifs": 4,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 500
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 8,
+            "Type": "Tours de recharge",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 7,
+    "Nom": "Benediction de la Lorien",
+    "Photo": "default.png",
+    "Portée": "Individuel",
+    "Sound": ""
+}
+

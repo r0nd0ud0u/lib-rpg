@@ -1,0 +1,50 @@
+{
+    "Cible": "Allié",
+    "Coût de mana": 12,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "PV",
+            "Tours actifs": 5,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 25
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Regeneration Mana",
+            "Tours actifs": 5,
+            "Type": "Up par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 2
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Esquive",
+            "Tours actifs": 5,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": -5
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Pouvoir magique",
+            "Tours actifs": 5,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 10
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 5,
+    "Nom": "Fleur de l'Espoir",
+    "Photo": "Thalia.png",
+    "Portée": "Zone"
+}
+

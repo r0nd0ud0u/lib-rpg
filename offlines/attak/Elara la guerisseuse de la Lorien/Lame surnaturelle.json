@@ -1,0 +1,33 @@
+{
+    "Cible": "Ennemie",
+    "Coût de mana": 18,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 1,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": -75
+        },
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "Cout critique",
+            "Tours actifs": 2,
+            "Type": "Up par valeur",
+            "Valeur de l'effet": 0,
+            "Value": -10
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 6,
+    "Nom": "Lame surnaturelle",
+    "Photo": "Elara la guerisseuse de la Lorien.png",
+    "Portée": "Individuel",
+    "Sound": ""
+}
+

@@ -1,0 +1,41 @@
+{
+    "Cible": "Ennemie",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 6,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 3,
+            "Value": -150
+        },
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "Mana",
+            "Tours actifs": 1,
+            "Type": "Changement par %",
+            "Valeur de l'effet": 1,
+            "Value": -25
+        },
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "Vigueur",
+            "Tours actifs": 1,
+            "Type": "Changement par %",
+            "Valeur de l'effet": 1,
+            "Value": -25
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 6,
+    "Nom": "Marc la petite Tortue",
+    "Photo": "default.png",
+    "Portée": "Individuel"
+}
+

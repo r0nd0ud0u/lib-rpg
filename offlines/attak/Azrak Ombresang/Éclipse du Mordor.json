@@ -1,0 +1,51 @@
+{
+    "Cible": "Ennemie",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 25,
+    "Effet": [
+        {
+            "Cible": "Ennemie",
+            "Portée": "Zone",
+            "Stat": "PV",
+            "Tours actifs": 1,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": -400
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "",
+            "Tours actifs": 3,
+            "Type": "Up/down degats en %",
+            "Valeur de l'effet": 0,
+            "Value": 25
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 10,
+            "Type": "Tours de recharge",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "",
+            "Tours actifs": 3,
+            "Type": "Up/down heal TX en %",
+            "Valeur de l'effet": 0,
+            "Value": 25
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 13,
+    "Nom": "Éclipse du Mordor",
+    "Photo": "Azrak Ombresang.png",
+    "Portée": "Zone",
+    "Sound": "kamehameha.mp3"
+}
+

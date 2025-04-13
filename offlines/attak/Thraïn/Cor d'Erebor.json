@@ -1,0 +1,66 @@
+{
+    "Aggro": 0,
+    "Cible": "Tous les heroes",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Durée": 1,
+    "Dégâts": 0,
+    "Effet": [
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Rage",
+            "Tours actifs": 1,
+            "Type": "Changement par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 5
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "PV",
+            "Tours actifs": 2,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 25
+        },
+        {
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Armure magique",
+            "Tours actifs": 2,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 25
+        },
+		{
+            "Cible": "Tous les heroes",
+            "Portée": "Zone",
+            "Stat": "Armure physique",
+            "Tours actifs": 2,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 25
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Soi-même",
+            "Stat": "",
+            "Tours actifs": 5,
+            "Type": "Tours de recharge",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 5,
+    "Nom": "Cor d'Erebor",
+    "Photo": "default.png",
+    "Portée": "Zone",
+    "Regen mana": 0,
+    "Regen rage": 0,
+    "Regen vigueur": 0,
+    "Soin": 0
+}
+

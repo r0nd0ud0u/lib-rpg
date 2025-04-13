@@ -1,0 +1,41 @@
+{
+    "Cible": "Soi-même",
+    "Coût de mana": 1,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Regen vitesse",
+            "Tours actifs": 3,
+            "Type": "Up par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 80
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Armure physique",
+            "Tours actifs": 3,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": 180
+        },
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Cout critique",
+            "Tours actifs": 3,
+            "Type": "Up par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 50
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 5,
+    "Nom": "suce moi ma poule",
+    "Photo": "default.png",
+    "Portée": "Individuel"
+}
+
