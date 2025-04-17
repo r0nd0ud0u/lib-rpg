@@ -891,7 +891,7 @@ mod tests {
     #[test]
     fn unit_try_new_from_json() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests"; // Path to the JSON file
+        let root_path = "./tests/offlines";
         let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let c = c.unwrap();
@@ -1000,7 +1000,7 @@ mod tests {
         assert_eq!(6, c.attacks_list.len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
-        let root_path = "./tests"; // Path to the JSON file
+        let root_path = "./tests/offlines";
         assert!(Character::try_new_from_json(file_path, root_path).is_err());
     }
 
@@ -1058,7 +1058,7 @@ mod tests {
     #[test]
     fn unit_set_stats_on_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests"; // Path to the JSON file
+        let root_path = "./tests/offlines";
         let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
@@ -1079,7 +1079,7 @@ mod tests {
     #[test]
     fn unitremove_malus_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests"; // Path to the JSON file
+        let root_path = "./tests/offlines";
         let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
@@ -1146,7 +1146,7 @@ mod tests {
     #[test]
     fn unit_update_buf() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests"; // Path to the JSON file
+        let root_path = "./tests/offlines";
         let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
@@ -1162,7 +1162,7 @@ mod tests {
     #[test]
     fn unit_process_one_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests"; // Path to the JSON file
+        let root_path = "./tests/offlines";
         let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
@@ -1250,7 +1250,7 @@ mod tests {
     #[test]
     fn unit_assess_effect_param() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests"; // Path to the JSON file
+        let root_path = "./tests/offlines";
         let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
@@ -1271,7 +1271,7 @@ mod tests {
 
     #[test]
     fn unit_is_targeted() {
-        let root_path = "./tests"; // Path to the JSON file
+        let root_path = "./tests/offlines";
         let c1 = Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
             .unwrap();
         let mut c2 =
@@ -1353,7 +1353,7 @@ mod tests {
 
     #[test]
     fn unit_apply_effect_outcome() {
-        let root_path = "./tests"; // Path to the JSON file
+        let root_path = "./tests/offlines";
         let mut c =
             Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
                 .unwrap();

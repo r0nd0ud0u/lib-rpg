@@ -214,13 +214,13 @@ mod tests {
     fn unit_try_new() {
         assert!(GameManager::try_new("unknown").is_err());
 
-        let gm = GameManager::try_new("./tests").unwrap();
+        let gm = GameManager::try_new("./tests/offlines").unwrap();
         assert_eq!(gm.pm.all_heroes.len(), 1);
     }
 
     #[test]
     fn unit_process_order_to_play() {
-        let mut gm = GameManager::try_new("./tests").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         let old_speed = gm
             .pm
             .active_heroes
@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn unit_add_sup_atk_turn() {
-        let mut gm = GameManager::try_new("./tests").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         let hero = gm.pm.active_heroes.first_mut().unwrap();
         hero.stats.all_stats.get_mut(SPEED).unwrap().current = 300;
         let boss = gm.pm.active_bosses.first_mut().unwrap();
@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn unit_new_round() {
-        let mut gm = GameManager::try_new("./tests").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_game();
         let result = gm.start_new_turn();
         assert_eq!(result, true);
@@ -282,7 +282,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case1() {
-        let mut gm = GameManager::try_new("./tests").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_game();
         gm.start_new_turn();
 
@@ -329,7 +329,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case2() {
-        let mut gm = GameManager::try_new("./tests").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_game();
         gm.start_new_turn();
 
@@ -376,7 +376,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case3() {
-        let mut gm = GameManager::try_new("./tests").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_game();
         gm.start_new_turn();
 
@@ -425,7 +425,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case4() {
-        let mut gm = GameManager::try_new("./tests").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_game();
         gm.start_new_turn();
 
@@ -477,11 +477,7 @@ mod tests {
     fn integ_dxrpg() {
         let mut gm = GameManager::try_new("").unwrap();
         gm.pm.current_player = gm.pm.active_heroes[0].clone();
-        let atk = testing_atk::build_atk_berseck_damage1();
-        gm.pm
-            .current_player
-            .attacks_list
-            .insert(atk.name.clone(), atk);
-        gm.launch_attack("atk1", vec![build_target_angmar_indiv()]);
+        let atk_name = gm.pm.active_heroes[0].attacks_list[0].name.clone();
+        gm.launch_attack(&atk_name, vec![build_target_angmar_indiv()]);
     }
 }
