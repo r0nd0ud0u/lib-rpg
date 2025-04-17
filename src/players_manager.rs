@@ -352,6 +352,18 @@ impl PlayerManager {
             }
         }
     }
+
+    pub fn process_died_players(&mut self) {
+        // bosses
+        self.active_bosses.retain(|b| b.is_dead() != Some(true));
+        // heroes
+        self.active_heroes.iter_mut().for_each(|c| {
+            if c.is_dead() == Some(true) {
+                c.reset_all_effects_on_player();
+                c.reset_all_buffers();
+            }
+        });
+    }
 }
 
 fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &GameAtkEffects) {

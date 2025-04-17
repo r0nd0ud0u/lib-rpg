@@ -34,20 +34,17 @@ impl GameManager {
     pub fn start_game(&mut self) {
         self.game_state.init();
     }
-    pub fn start_new_turn(&mut self) -> Result<()> {
+    pub fn start_new_turn(&mut self) -> bool {
         // For each turn now
         // Process the order of the players
         self.process_order_to_play();
 
-        self.game_state.start_new_turn()?;
-
-        self.new_round()?;
+        self.game_state.start_new_turn();
 
         // TODO update game status
         // TODO init target view
         // TODO add channel for the logs
-
-        Ok(())
+        self.new_round()
     }
 
     pub fn process_order_to_play(&mut self) {
@@ -87,18 +84,35 @@ impl GameManager {
         self.game_state.order_to_play.extend(supp_rounds_bosses);
     }
 
-    pub fn new_round(&mut self) -> Result<()> {
+    pub fn check_end_of_game(&self) -> bool {
+        let all_heroes_dead = self
+            .pm
+            .active_heroes
+            .iter()
+            .all(|c| c.is_dead() == Some(true));
+        self.pm.active_bosses.is_empty() || all_heroes_dead
+    }
+
+    pub fn new_round(&mut self) -> bool {
         self.game_state.new_round();
 
         // Still round to play
         if self.game_state.current_round > self.game_state.order_to_play.len() {
-            return Ok(());
+            return false;
         }
-        self.pm.update_current_player(
-            &self.game_state,
-            &self.game_state.order_to_play[self.game_state.current_round - 1],
-        )?;
-
+        if self
+            .pm
+            .update_current_player(
+                &self.game_state,
+                &self.game_state.order_to_play[self.game_state.current_round - 1],
+            )
+            .is_err()
+        {
+            return false;
+        }
+        if self.pm.current_player.is_dead() == Some(true) {
+            return false;
+        }
         // Those 2 TODO are logs to give info
         // TODO case BOSS: random atk to choose
         // TODO who has the most aggro ?
@@ -106,7 +120,7 @@ impl GameManager {
         // TODO update game status
         // TODO channels for logss
 
-        Ok(())
+        true
     }
 
     /**
@@ -175,6 +189,7 @@ impl GameManager {
         // RemoveTerminatedEffectsOnPlayer which last only that turn
 
         // check who died
+        self.pm.process_died_players();
         // if boss -> loot
         // handle end of game if all bosses are dead
 
@@ -261,9 +276,11 @@ mod tests {
     fn unit_new_round() {
         let mut gm = GameManager::try_new("./tests/characters").unwrap();
         gm.start_game();
-        gm.start_new_turn().unwrap();
+        let result = gm.start_new_turn();
+        assert_eq!(result, true);
         assert_eq!(gm.game_state.current_round, 1);
-        gm.new_round().unwrap();
+        let result = gm.new_round();
+        assert_eq!(result, true);
         assert_eq!(gm.game_state.current_round, 2);
     }
 
@@ -271,7 +288,7 @@ mod tests {
     fn unit_launch_attack_case1() {
         let mut gm = GameManager::try_new("./tests/characters").unwrap();
         gm.start_game();
-        gm.start_new_turn().unwrap();
+        gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
         // No dodging of boss
@@ -318,7 +335,7 @@ mod tests {
     fn unit_launch_attack_case2() {
         let mut gm = GameManager::try_new("./tests/characters").unwrap();
         gm.start_game();
-        gm.start_new_turn().unwrap();
+        gm.start_new_turn();
 
         // # case 2 dmg on individual ennemy
         // dodging of boss
@@ -365,7 +382,7 @@ mod tests {
     fn unit_launch_attack_case3() {
         let mut gm = GameManager::try_new("./tests/characters").unwrap();
         gm.start_game();
-        gm.start_new_turn().unwrap();
+        gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
         // No dodging of boss
@@ -414,7 +431,7 @@ mod tests {
     fn unit_launch_attack_case4() {
         let mut gm = GameManager::try_new("./tests/characters").unwrap();
         gm.start_game();
-        gm.start_new_turn().unwrap();
+        gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
         // No dodging of boss

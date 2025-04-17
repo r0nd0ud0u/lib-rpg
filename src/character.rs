@@ -586,6 +586,20 @@ impl Character {
         });
     }
 
+    pub fn reset_all_effects_on_player(&mut self) {
+        for gae in self.all_effects.clone() {
+            self.remove_malus_effect(&gae.all_atk_effects);
+        }
+        self.all_effects.clear();
+    }
+
+    pub fn reset_all_buffers(&mut self) {
+        self.all_buffers.iter_mut().for_each(|b| {
+            b.set_buffers(0, false);
+            b.is_passive_enabled = false;
+        });
+    }
+
     pub fn process_atk_cost(&mut self, atk_name: &str) {
         if let Some(atk) = self.attacks_list.get(atk_name) {
             if let Some(mana) = self.stats.all_stats.get_mut(MANA) {
