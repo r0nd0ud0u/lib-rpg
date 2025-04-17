@@ -81,7 +81,7 @@ mod tests {
     #[test]
     fn unit_try_new_from_json() {
         let file_path =
-            "./tests/equipment/body/right-ring/Anneau de Boromir-4-2024-05-11-12-36-16.json"; // Path to the JSON file
+            "./tests/offlines/equipment/body/right-ring/Anneau de Boromir-4-2024-05-11-12-36-16.json"; // Path to the JSON file
         let equipment = Equipment::try_new_from_json(file_path);
         assert!(equipment.is_ok());
         let equipment = equipment.unwrap();
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn unit_decode_characters_equipment() {
-        let file_path = "./tests/equipment/characters/Test.json"; // Path to the JSON file
+        let file_path = "./tests/offlines/equipment/characters/Test.json"; // Path to the JSON file
         let decoded_equipment = Equipment::decode_characters_equipment(file_path);
         assert!(decoded_equipment.is_ok());
         let decoded_equipment = decoded_equipment.unwrap();

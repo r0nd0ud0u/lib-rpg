@@ -61,7 +61,7 @@ impl PlayerManager {
     }
 
     pub fn testing_pm() -> PlayerManager {
-        let mut pl = PlayerManager::try_new("tests/characters").unwrap();
+        let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
         pl.current_player = pl.active_heroes[0].clone();
         pl
     }
@@ -69,10 +69,13 @@ impl PlayerManager {
     /// Load all the JSON files in a path `P` which corresponds to a directory.
     /// Characters are inserted in Hero or Boss lists.
     pub fn load_all_characters<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
-        match list_files_in_dir(&path) {
-            Ok(list) => list
-                .iter()
-                .for_each(|path| match Character::try_new_from_json(path) {
+        if path.as_ref().as_os_str().is_empty() {
+            bail!("no root path")
+        }
+        let character_dir_path = path.as_ref().join(*OFFLINE_CHARACTERS);
+        match list_files_in_dir(&character_dir_path) {
+            Ok(list) => list.iter().for_each(|character_path| {
+                match Character::try_new_from_json(character_path, path.as_ref()) {
                     Ok(c) => {
                         if c.kind == CharacterType::Hero {
                             self.all_heroes.push(c);
@@ -80,13 +83,10 @@ impl PlayerManager {
                             self.all_bosses.push(c);
                         }
                     }
-                    Err(e) => println!("{:?} cannot be decoded: {}", path, e),
-                }),
-            Err(e) => bail!(
-                "Files cannot be listed in {:#?}: {}",
-                OFFLINE_CHARACTERS.as_os_str(),
-                e
-            ),
+                    Err(e) => println!("{:?} cannot be decoded: {}", character_path, e),
+                }
+            }),
+            Err(e) => bail!("Files cannot be listed in {:#?}: {}", character_dir_path, e),
         };
         Ok(())
     }
@@ -352,6 +352,18 @@ impl PlayerManager {
             }
         }
     }
+
+    pub fn process_died_players(&mut self) {
+        // bosses
+        self.active_bosses.retain(|b| b.is_dead() != Some(true));
+        // heroes
+        self.active_heroes.iter_mut().for_each(|c| {
+            if c.is_dead() == Some(true) {
+                c.reset_all_effects_on_player();
+                c.reset_all_buffers();
+            }
+        });
+    }
 }
 
 fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &GameAtkEffects) {
@@ -378,7 +390,7 @@ mod tests {
 
     #[test]
     fn unit_try_new() {
-        let pl = PlayerManager::try_new("tests/characters").unwrap();
+        let pl = PlayerManager::try_new("tests/offlines").unwrap();
         assert_eq!(1, pl.all_heroes.len());
 
         assert!(PlayerManager::try_new("").is_err());
@@ -386,7 +398,7 @@ mod tests {
 
     #[test]
     fn unit_increment_counter_effect() {
-        let mut pl = PlayerManager::try_new("tests/characters").unwrap();
+        let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
         pl.active_heroes[0].all_effects.push(GameAtkEffects {
             all_atk_effects: build_cooldown_effect(),
             ..Default::default()
@@ -405,14 +417,14 @@ mod tests {
 
     #[test]
     fn unit_reset_is_first_round() {
-        let mut pl = PlayerManager::try_new("tests/characters").unwrap();
+        let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
         pl.reset_is_first_round();
         assert!(pl.all_heroes[0].extended_character.is_first_round);
     }
 
     #[test]
     fn unit_apply_regen_stats() {
-        let mut pl = PlayerManager::try_new("tests/characters").unwrap();
+        let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
         let old_hp = pl.all_heroes[0].stats.all_stats[HP].current;
         let hp_regen = pl.all_heroes[0].stats.all_stats[HP_REGEN].current;
         let old_mana = pl.all_heroes[0].stats.all_stats[MANA].current;
@@ -467,7 +479,7 @@ mod tests {
     #[test]
     fn unit_load_all_characters() {
         let mut pl = PlayerManager::default();
-        pl.load_all_characters("tests/characters").unwrap();
+        pl.load_all_characters("tests/offlines").unwrap();
         assert_eq!(1, pl.all_heroes.len());
     }
 
@@ -479,8 +491,8 @@ mod tests {
 
     #[test]
     fn unit_get_active_character() {
-        let mut pl = PlayerManager::try_new("tests/characters").unwrap();
-        assert!(pl.get_mut_active_character("Super test").is_some());
+        let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
+        assert!(pl.get_mut_active_character("test").is_some());
         assert!(pl.get_mut_active_character("Boss1").is_some());
         assert!(pl.get_mut_active_character("unknown").is_none());
     }
@@ -491,7 +503,7 @@ mod tests {
         pl.active_heroes[0].extended_character.is_first_round = false;
         pl.active_heroes[0].actions_done_in_round = 100;
         let gs = GameState::default();
-        pl.update_current_player(&gs, "Super test").unwrap();
+        pl.update_current_player(&gs, "test").unwrap();
         assert_eq!(0, pl.active_heroes[0].actions_done_in_round);
     }
 

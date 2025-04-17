@@ -57,7 +57,12 @@ pub struct Buffers {
     pub buf_type: i64,
 }
 
-impl Buffers {}
+impl Buffers {
+    pub fn set_buffers(&mut self, value: i64, is_percent: bool) {
+        self.value = value;
+        self.is_percent = is_percent;
+    }
+}
 
 #[cfg(test)]
 mod tests {

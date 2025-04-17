@@ -101,7 +101,7 @@ mod tests {
 
     #[test]
     fn unit_try_new_from_json() {
-        let file_path = "./tests/attack/test/SimpleAtk.json"; // Path to the JSON file
+        let file_path = "./tests/offlines/attack/test/SimpleAtk.json"; // Path to the JSON file
         let atk_type = AttackType::try_new_from_json(file_path);
         assert!(atk_type.is_ok());
         let atk_type: AttackType = atk_type.unwrap();
