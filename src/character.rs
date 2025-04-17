@@ -211,7 +211,7 @@ impl Character {
             let attack_path_dir = root_path
                 .as_ref()
                 .join(*OFFLINE_ATTACKS)
-                .join(&value.short_name);
+                .join(&value.name);
 
             match list_files_in_dir(&attack_path_dir) {
                 Ok(list) => {
