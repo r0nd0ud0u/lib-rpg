@@ -3,7 +3,7 @@ use std::path::Path;
 use crate::{
     character::{AmountType, CharacterType},
     common::{paths_const::OFFLINE_ROOT, stats_const::*},
-    game_state::GameState,
+    game_state::{GameState, GameStatus},
     players_manager::PlayerManager,
     target::TargetInfo,
 };
@@ -195,13 +195,19 @@ impl GameManager {
 
         self.pm
             .modify_active_character(&self.pm.current_player.name.clone());
+
+        if self.check_end_of_game() {
+            self.game_state.status = GameStatus::StartGame;
+        }  else if self.new_round() {
+            self.start_new_turn();
+            self.game_state.status = GameStatus::StartRound;
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::character::Class;
-    use crate::testing_atk;
     use crate::testing_target::build_target_boss_indiv;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
@@ -311,7 +317,7 @@ mod tests {
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
             old_hp_boss - 40,
             gm.pm
@@ -358,7 +364,7 @@ mod tests {
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
             old_hp_boss,
             gm.pm
@@ -405,7 +411,7 @@ mod tests {
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         // at least coeff critical strike = 2.0 (-40 * 2.0 = -80)
         assert!(
             old_hp_boss - 80
@@ -456,7 +462,7 @@ mod tests {
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         // blocking 10% of the damage is received (10% of 40)
         assert_eq!(
             old_hp_boss - 4,

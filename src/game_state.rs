@@ -1,6 +1,19 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum GameStatus {
+    StartGame = 0,
+    StartRound,
+    ValidateAction,
+}
+
+impl Default for GameStatus{
+    fn default() -> Self {
+        GameStatus::StartGame
+    }
+}
+
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GameState {
     /// Current turn number
@@ -13,6 +26,8 @@ pub struct GameState {
     pub current_round: usize,
     /// Name of the game
     pub game_name: String,
+    /// Game Status
+    pub status: GameStatus
 }
 
 impl GameState {
