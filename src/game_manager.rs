@@ -199,6 +199,8 @@ impl GameManager {
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::StartGame;
         }  else if self.new_round() {
+            self.game_state.status = GameStatus::StartRound;
+        } else {
             self.start_new_turn();
             self.game_state.status = GameStatus::StartRound;
         }
@@ -482,8 +484,7 @@ mod tests {
     #[test]
     fn integ_dxrpg() {
         let mut gm = GameManager::try_new("").unwrap();
-        gm.pm.current_player = gm.pm.active_heroes[0].clone();
-        let atk_name = gm.pm.active_heroes[0].attacks_list[0].name.clone();
-        gm.launch_attack(&atk_name, vec![build_target_angmar_indiv()]);
+        gm.start_new_turn();
+        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
     }
 }
