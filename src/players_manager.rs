@@ -69,7 +69,7 @@ impl PlayerManager {
     /// Load all the JSON files in a path `P` which corresponds to a directory.
     /// Characters are inserted in Hero or Boss lists.
     pub fn load_all_characters<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
-        if path.as_ref().as_os_str().is_empty(){
+        if path.as_ref().as_os_str().is_empty() {
             bail!("no root path")
         }
         let character_dir_path = path.as_ref().join(*OFFLINE_CHARACTERS);
@@ -86,11 +86,7 @@ impl PlayerManager {
                     Err(e) => println!("{:?} cannot be decoded: {}", character_path, e),
                 }
             }),
-            Err(e) => bail!(
-                "Files cannot be listed in {:#?}: {}",
-                character_dir_path,
-                e
-            ),
+            Err(e) => bail!("Files cannot be listed in {:#?}: {}", character_dir_path, e),
         };
         Ok(())
     }

@@ -1,11 +1,7 @@
 use anyhow::{anyhow, bail, Result};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashMap,
-    path::Path,
-    vec,
-};
+use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
     attack_type::AttackType,
@@ -208,10 +204,7 @@ impl Character {
                 value.all_buffers.push(Buffers::default());
             }
             // read atk
-            let attack_path_dir = root_path
-                .as_ref()
-                .join(*OFFLINE_ATTACKS)
-                .join(&value.name);
+            let attack_path_dir = root_path.as_ref().join(*OFFLINE_ATTACKS).join(&value.name);
 
             match list_files_in_dir(&attack_path_dir) {
                 Ok(list) => {
@@ -374,10 +367,10 @@ impl Character {
         }
 
         // Process effect param
-        let (effect_log, _new_effect_param) = self.process_effect_type(ep, atk);
+        let (effect_log, new_effect_param) = self.process_effect_type(&output, atk);
         result += &effect_log;
 
-        (output, result)
+        (new_effect_param, result)
     }
 
     /// Update all the bufs
@@ -588,7 +581,8 @@ impl Character {
         let damage = atk_value - launcher_pow / nb_of_turns;
         let protection = 1000.0 / (1000.0 + target_armor as f64);
 
-        (damage as f64 * protection).round() as i64
+        let test = (damage as f64 * protection).round() as i64;
+        test
     }
 
     pub fn regen_into_damage(_real_amount_sent: i64, _stats_name: &str) -> String {

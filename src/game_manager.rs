@@ -198,7 +198,7 @@ impl GameManager {
 
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::StartGame;
-        }  else if self.new_round() {
+        } else if self.new_round() {
             self.game_state.status = GameStatus::StartRound;
         } else {
             self.start_new_turn();
@@ -485,6 +485,22 @@ mod tests {
     fn integ_dxrpg() {
         let mut gm = GameManager::try_new("").unwrap();
         gm.start_new_turn();
+        let old_hp_boss = gm
+            .pm
+            .get_active_boss_character("Angmar")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
         gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
+        assert_eq!(
+            old_hp_boss - 31,
+            gm.pm
+                .get_active_boss_character("Angmar")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
     }
 }

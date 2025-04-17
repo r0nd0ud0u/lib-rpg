@@ -8,7 +8,7 @@ pub enum GameStatus {
     ValidateAction,
 }
 
-impl Default for GameStatus{
+impl Default for GameStatus {
     fn default() -> Self {
         GameStatus::StartGame
     }
@@ -27,7 +27,7 @@ pub struct GameState {
     /// Name of the game
     pub game_name: String,
     /// Game Status
-    pub status: GameStatus
+    pub status: GameStatus,
 }
 
 impl GameState {
