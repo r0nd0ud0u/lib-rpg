@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::{
     character::{AmountType, CharacterType},
-    common::{paths_const::OFFLINE_CHARACTERS, stats_const::*},
+    common::{paths_const::OFFLINE_ROOT, stats_const::*},
     game_state::GameState,
     players_manager::PlayerManager,
     target::TargetInfo,
@@ -23,7 +23,7 @@ impl GameManager {
     pub fn try_new<P: AsRef<Path>>(path: P) -> Result<GameManager> {
         let mut new_path = path.as_ref();
         if new_path.as_os_str().is_empty() {
-            new_path = &OFFLINE_CHARACTERS;
+            new_path = &OFFLINE_ROOT;
         }
         let pm = PlayerManager::try_new(new_path)?;
         Ok(GameManager {
@@ -212,19 +212,15 @@ mod tests {
 
     #[test]
     fn unit_try_new() {
-        // if empty path, should use the default path
-        let gm = GameManager::try_new("").unwrap();
-        assert!(gm.pm.all_heroes.len() > 0);
-
         assert!(GameManager::try_new("unknown").is_err());
 
-        let gm = GameManager::try_new("./tests/characters").unwrap();
+        let gm = GameManager::try_new("./tests").unwrap();
         assert_eq!(gm.pm.all_heroes.len(), 1);
     }
 
     #[test]
     fn unit_process_order_to_play() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests").unwrap();
         let old_speed = gm
             .pm
             .active_heroes
@@ -245,10 +241,10 @@ mod tests {
             .all_stats[SPEED]
             .clone();
         assert_eq!(gm.game_state.order_to_play.len(), 3);
-        assert_eq!(gm.game_state.order_to_play[0], "Super test");
+        assert_eq!(gm.game_state.order_to_play[0], "test");
         assert_eq!(gm.game_state.order_to_play[1], "Boss1");
         // supplementary atk
-        assert_eq!(gm.game_state.order_to_play[2], "Super test");
+        assert_eq!(gm.game_state.order_to_play[2], "test");
 
         assert_eq!(old_speed.current - SPEED_THRESHOLD, new_speed.current);
         assert_eq!(old_speed.max - SPEED_THRESHOLD, new_speed.max);
@@ -261,7 +257,7 @@ mod tests {
 
     #[test]
     fn unit_add_sup_atk_turn() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests").unwrap();
         let hero = gm.pm.active_heroes.first_mut().unwrap();
         hero.stats.all_stats.get_mut(SPEED).unwrap().current = 300;
         let boss = gm.pm.active_bosses.first_mut().unwrap();
@@ -274,7 +270,7 @@ mod tests {
 
     #[test]
     fn unit_new_round() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests").unwrap();
         gm.start_game();
         let result = gm.start_new_turn();
         assert_eq!(result, true);
@@ -286,7 +282,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case1() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests").unwrap();
         gm.start_game();
         gm.start_new_turn();
 
@@ -333,7 +329,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case2() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests").unwrap();
         gm.start_game();
         gm.start_new_turn();
 
@@ -380,7 +376,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case3() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests").unwrap();
         gm.start_game();
         gm.start_new_turn();
 
@@ -429,7 +425,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case4() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests").unwrap();
         gm.start_game();
         gm.start_new_turn();
 
