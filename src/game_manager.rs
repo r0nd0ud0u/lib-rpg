@@ -318,6 +318,7 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
@@ -331,7 +332,12 @@ mod tests {
         );
         assert_eq!(
             old_mana_hero - 20,
-            gm.pm.current_player.stats.all_stats[MANA].current
+            gm.pm
+                .get_active_hero_character(&old_hero_name)
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
         ); // 10% of 200 (total mana)
     }
 
@@ -365,6 +371,7 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
@@ -378,7 +385,12 @@ mod tests {
         );
         assert_eq!(
             old_mana_hero - 20,
-            gm.pm.current_player.stats.all_stats[MANA].current
+            gm.pm
+                .get_active_hero_character(&old_hero_name)
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
         ); // 10% of 200 (total mana)
     }
 
@@ -412,6 +424,7 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         // at least coeff critical strike = 2.0 (-40 * 2.0 = -80)
@@ -427,7 +440,12 @@ mod tests {
         );
         assert_eq!(
             old_mana_hero - 20,
-            gm.pm.current_player.stats.all_stats[MANA].current
+            gm.pm
+                .get_active_hero_character(&old_hero_name)
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
         ); // 10% of 200 (total mana)
     }
 
@@ -463,6 +481,7 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         // blocking 10% of the damage is received (10% of 40)
@@ -477,7 +496,12 @@ mod tests {
         );
         assert_eq!(
             old_mana_hero - 20,
-            gm.pm.current_player.stats.all_stats[MANA].current
+            gm.pm
+                .get_active_hero_character(&old_hero_name)
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
         ); // 10% of 200 (total mana)
     }
 
