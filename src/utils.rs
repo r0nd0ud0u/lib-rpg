@@ -90,7 +90,7 @@ mod tests {
 
     #[test]
     fn unit_list_files_in_dir() {
-        let all_files = list_files_in_dir(Path::new("./tests/characters"));
+        let all_files = list_files_in_dir(Path::new("./tests/offlines/characters"));
         let list = all_files.unwrap();
         assert!(list.len() > 1);
     }

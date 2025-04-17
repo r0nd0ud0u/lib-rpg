@@ -101,9 +101,10 @@ pub mod paths_const {
 
     lazy_static! {
         /// Not used yet
-        pub static ref OFFLINE_ROOT: &'static Path = Path::new("offlines");
+        pub static ref OFFLINE_CHARACTERS: &'static Path = Path::new("characters");
+        pub static ref OFFLINE_ATTACKS: &'static Path = Path::new("attack");
         /// Path for directory where all the JSON character files are stored.
-        pub static ref OFFLINE_CHARACTERS: PathBuf = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/offlines/characters"));
+        pub static ref OFFLINE_ROOT: PathBuf = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/offlines"));
     }
 }
 

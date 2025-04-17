@@ -1,0 +1,41 @@
+{
+    "Cible": "Ennemie",
+    "Coût de mana": 1,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "PV",
+            "Tours actifs": 2,
+            "Type": "Up par %",
+            "Valeur de l'effet": 0,
+            "Value": -75
+        },
+        {
+            "Cible": "Ennemie",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 3,
+            "Type": "Up/down degats en %",
+            "Valeur de l'effet": 0,
+            "Value": -300
+        },
+        {
+            "Cible": "",
+            "Portée": "",
+            "Stat": "",
+            "Tours actifs": 0,
+            "Type": "",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 6,
+    "Nom": "Dans ta soeur",
+    "Photo": "default.png",
+    "Portée": "Individuel"
+}
+

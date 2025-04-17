@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, vec};
@@ -11,6 +11,7 @@ use crate::{
         attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
         character_const::{NB_TURN_SUM_AGGRO, ULTIMATE_LEVEL},
         effect_const::*,
+        paths_const::*,
         reach_const::*,
         stats_const::*,
     },
@@ -24,7 +25,7 @@ use crate::{
     powers::Powers,
     stats::Stats,
     target::is_target_ally,
-    utils::{self, get_random_nb},
+    utils::{self, get_random_nb, list_files_in_dir},
 };
 
 /// ExtendedCharacter
@@ -187,7 +188,10 @@ pub enum Class {
 }
 
 impl Character {
-    pub fn try_new_from_json<P: AsRef<Path>>(path: P) -> Result<Character> {
+    pub fn try_new_from_json<P1: AsRef<Path>, P2: AsRef<Path>>(
+        path: P1,
+        root_path: P2,
+    ) -> Result<Character> {
         if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
             value.stats.init();
             let txrxlen = value.tx_rx.len();
@@ -199,6 +203,22 @@ impl Character {
             for _ in 0..BufTypes::EnumSize as usize - buflen {
                 value.all_buffers.push(Buffers::default());
             }
+            // read atk
+            let attack_path_dir = root_path.as_ref().join(*OFFLINE_ATTACKS).join(&value.name);
+
+            match list_files_in_dir(&attack_path_dir) {
+                Ok(list) => {
+                    list.iter().for_each(|attack_path| {
+                        match AttackType::try_new_from_json(attack_path) {
+                            Ok(atk) => {
+                                value.attacks_list.insert(atk.name.clone(), atk);
+                            }
+                            Err(e) => println!("{:?} cannot be decoded: {}", attack_path, e),
+                        }
+                    })
+                }
+                Err(e) => bail!("Files cannot be listed in {:#?}: {}", attack_path_dir, e),
+            };
             Ok(value)
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
@@ -347,10 +367,10 @@ impl Character {
         }
 
         // Process effect param
-        let (effect_log, _new_effect_param) = self.process_effect_type(ep, atk);
+        let (effect_log, new_effect_param) = self.process_effect_type(&output, atk);
         result += &effect_log;
 
-        (output, result)
+        (new_effect_param, result)
     }
 
     /// Update all the bufs
@@ -561,7 +581,8 @@ impl Character {
         let damage = atk_value - launcher_pow / nb_of_turns;
         let protection = 1000.0 / (1000.0 + target_armor as f64);
 
-        (damage as f64 * protection).round() as i64
+        let test = (damage as f64 * protection).round() as i64;
+        test
     }
 
     pub fn regen_into_damage(_real_amount_sent: i64, _stats_name: &str) -> String {
@@ -583,6 +604,20 @@ impl Character {
         }
         self.all_effects.retain(|element| {
             element.all_atk_effects.nb_turns != element.all_atk_effects.counter_turn
+        });
+    }
+
+    pub fn reset_all_effects_on_player(&mut self) {
+        for gae in self.all_effects.clone() {
+            self.remove_malus_effect(&gae.all_atk_effects);
+        }
+        self.all_effects.clear();
+    }
+
+    pub fn reset_all_buffers(&mut self) {
+        self.all_buffers.iter_mut().for_each(|b| {
+            b.set_buffers(0, false);
+            b.is_passive_enabled = false;
         });
     }
 
@@ -849,13 +884,14 @@ mod tests {
 
     #[test]
     fn unit_try_new_from_json() {
-        let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(file_path);
+        let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
+        let root_path = "./tests/offlines";
+        let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let c = c.unwrap();
         // name
-        assert_eq!("Super test", c.name);
-        assert_eq!("Test", c.short_name);
+        assert_eq!("test", c.name);
+        assert_eq!("test", c.short_name);
         // buf-debuf
         assert_eq!(12, c.all_buffers.len());
         // TODO change
@@ -954,9 +990,12 @@ mod tests {
         assert_eq!(1, c.max_actions_by_round);
         // nb-actions-in-round
         assert_eq!(0, c.actions_done_in_round);
+        // atk
+        assert_eq!(6, c.attacks_list.len());
 
-        let file_path = "./tests/characters/wrong.json";
-        assert!(Character::try_new_from_json(file_path).is_err());
+        let file_path = "./tests/offlines/characters/wrong.json";
+        let root_path = "./tests/offlines";
+        assert!(Character::try_new_from_json(file_path, root_path).is_err());
     }
 
     #[test]
@@ -1012,8 +1051,9 @@ mod tests {
 
     #[test]
     fn unit_set_stats_on_effect() {
-        let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(file_path);
+        let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
+        let root_path = "./tests/offlines";
+        let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
         c.set_stats_on_effect(HP, 10, false, true);
@@ -1032,8 +1072,9 @@ mod tests {
 
     #[test]
     fn unitremove_malus_effect() {
-        let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(file_path);
+        let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
+        let root_path = "./tests/offlines";
+        let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
@@ -1098,8 +1139,9 @@ mod tests {
 
     #[test]
     fn unit_update_buf() {
-        let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(file_path);
+        let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
+        let root_path = "./tests/offlines";
+        let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
         c.update_buf(BufTypes::DamageTx, 10, false, HP);
@@ -1113,8 +1155,9 @@ mod tests {
 
     #[test]
     fn unit_process_one_effect() {
-        let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(file_path);
+        let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
+        let root_path = "./tests/offlines";
+        let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
@@ -1200,8 +1243,9 @@ mod tests {
 
     #[test]
     fn unit_assess_effect_param() {
-        let file_path = "./tests/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(file_path);
+        let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
+        let root_path = "./tests/offlines";
+        let c = Character::try_new_from_json(file_path, root_path);
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
@@ -1221,10 +1265,16 @@ mod tests {
 
     #[test]
     fn unit_is_targeted() {
-        let c1 = Character::try_new_from_json("./tests/characters/test.json").unwrap();
-        let mut c2 = Character::try_new_from_json("./tests/characters/test.json").unwrap();
+        let root_path = "./tests/offlines";
+        let c1 = Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
+            .unwrap();
+        let mut c2 =
+            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
+                .unwrap();
         c2.name = "other".to_string();
-        let boss1 = Character::try_new_from_json("./tests/characters/test_boss.json").unwrap();
+        let boss1 =
+            Character::try_new_from_json("./tests/offlines/characters/test_boss.json", root_path)
+                .unwrap();
         // effect on himself
         let mut ep = build_cooldown_effect();
         // target is himself
@@ -1297,8 +1347,13 @@ mod tests {
 
     #[test]
     fn unit_apply_effect_outcome() {
-        let mut c = Character::try_new_from_json("./tests/characters/test.json").unwrap();
-        let mut c2 = Character::try_new_from_json("./tests/characters/test.json").unwrap();
+        let root_path = "./tests/offlines";
+        let mut c =
+            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
+                .unwrap();
+        let mut c2 =
+            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
+                .unwrap();
         let mut ep = build_cooldown_effect();
         let launcher_stats = c.stats.clone();
         // target is himself
@@ -1321,7 +1376,9 @@ mod tests {
         assert_eq!(eo.new_effect_param.target, TARGET_ALLY);
 
         // target is ennemy
-        let mut boss1 = Character::try_new_from_json("./tests/characters/test_boss.json").unwrap();
+        let mut boss1 =
+            Character::try_new_from_json("./tests/offlines/characters/test_boss.json", root_path)
+                .unwrap();
         ep = build_dmg_effect_individual();
         let old_hp = boss1.stats.all_stats[HP].current;
         let eo = boss1.apply_effect_outcome(&ep, &launcher_stats, false);

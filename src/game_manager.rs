@@ -2,8 +2,8 @@ use std::path::Path;
 
 use crate::{
     character::{AmountType, CharacterType},
-    common::{paths_const::OFFLINE_CHARACTERS, stats_const::*},
-    game_state::GameState,
+    common::{paths_const::OFFLINE_ROOT, stats_const::*},
+    game_state::{GameState, GameStatus},
     players_manager::PlayerManager,
     target::TargetInfo,
 };
@@ -23,7 +23,7 @@ impl GameManager {
     pub fn try_new<P: AsRef<Path>>(path: P) -> Result<GameManager> {
         let mut new_path = path.as_ref();
         if new_path.as_os_str().is_empty() {
-            new_path = &OFFLINE_CHARACTERS;
+            new_path = &OFFLINE_ROOT;
         }
         let pm = PlayerManager::try_new(new_path)?;
         Ok(GameManager {
@@ -34,20 +34,17 @@ impl GameManager {
     pub fn start_game(&mut self) {
         self.game_state.init();
     }
-    pub fn start_new_turn(&mut self) -> Result<()> {
+    pub fn start_new_turn(&mut self) -> bool {
         // For each turn now
         // Process the order of the players
         self.process_order_to_play();
 
-        self.game_state.start_new_turn()?;
-
-        self.new_round()?;
+        self.game_state.start_new_turn();
 
         // TODO update game status
         // TODO init target view
         // TODO add channel for the logs
-
-        Ok(())
+        self.new_round()
     }
 
     pub fn process_order_to_play(&mut self) {
@@ -87,18 +84,35 @@ impl GameManager {
         self.game_state.order_to_play.extend(supp_rounds_bosses);
     }
 
-    pub fn new_round(&mut self) -> Result<()> {
+    pub fn check_end_of_game(&self) -> bool {
+        let all_heroes_dead = self
+            .pm
+            .active_heroes
+            .iter()
+            .all(|c| c.is_dead() == Some(true));
+        self.pm.active_bosses.is_empty() || all_heroes_dead
+    }
+
+    pub fn new_round(&mut self) -> bool {
         self.game_state.new_round();
 
         // Still round to play
         if self.game_state.current_round > self.game_state.order_to_play.len() {
-            return Ok(());
+            return false;
         }
-        self.pm.update_current_player(
-            &self.game_state,
-            &self.game_state.order_to_play[self.game_state.current_round - 1],
-        )?;
-
+        if self
+            .pm
+            .update_current_player(
+                &self.game_state,
+                &self.game_state.order_to_play[self.game_state.current_round - 1],
+            )
+            .is_err()
+        {
+            return false;
+        }
+        if self.pm.current_player.is_dead() == Some(true) {
+            return false;
+        }
         // Those 2 TODO are logs to give info
         // TODO case BOSS: random atk to choose
         // TODO who has the most aggro ?
@@ -106,7 +120,7 @@ impl GameManager {
         // TODO update game status
         // TODO channels for logss
 
-        Ok(())
+        true
     }
 
     /**
@@ -175,18 +189,27 @@ impl GameManager {
         // RemoveTerminatedEffectsOnPlayer which last only that turn
 
         // check who died
+        self.pm.process_died_players();
         // if boss -> loot
         // handle end of game if all bosses are dead
 
         self.pm
             .modify_active_character(&self.pm.current_player.name.clone());
+
+        if self.check_end_of_game() {
+            self.game_state.status = GameStatus::StartGame;
+        } else if self.new_round() {
+            self.game_state.status = GameStatus::StartRound;
+        } else {
+            self.start_new_turn();
+            self.game_state.status = GameStatus::StartRound;
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::character::Class;
-    use crate::testing_atk;
     use crate::testing_target::build_target_boss_indiv;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
@@ -197,19 +220,15 @@ mod tests {
 
     #[test]
     fn unit_try_new() {
-        // if empty path, should use the default path
-        let gm = GameManager::try_new("").unwrap();
-        assert!(gm.pm.all_heroes.len() > 0);
-
         assert!(GameManager::try_new("unknown").is_err());
 
-        let gm = GameManager::try_new("./tests/characters").unwrap();
+        let gm = GameManager::try_new("./tests/offlines").unwrap();
         assert_eq!(gm.pm.all_heroes.len(), 1);
     }
 
     #[test]
     fn unit_process_order_to_play() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         let old_speed = gm
             .pm
             .active_heroes
@@ -230,10 +249,10 @@ mod tests {
             .all_stats[SPEED]
             .clone();
         assert_eq!(gm.game_state.order_to_play.len(), 3);
-        assert_eq!(gm.game_state.order_to_play[0], "Super test");
+        assert_eq!(gm.game_state.order_to_play[0], "test");
         assert_eq!(gm.game_state.order_to_play[1], "Boss1");
         // supplementary atk
-        assert_eq!(gm.game_state.order_to_play[2], "Super test");
+        assert_eq!(gm.game_state.order_to_play[2], "test");
 
         assert_eq!(old_speed.current - SPEED_THRESHOLD, new_speed.current);
         assert_eq!(old_speed.max - SPEED_THRESHOLD, new_speed.max);
@@ -246,7 +265,7 @@ mod tests {
 
     #[test]
     fn unit_add_sup_atk_turn() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         let hero = gm.pm.active_heroes.first_mut().unwrap();
         hero.stats.all_stats.get_mut(SPEED).unwrap().current = 300;
         let boss = gm.pm.active_bosses.first_mut().unwrap();
@@ -259,19 +278,21 @@ mod tests {
 
     #[test]
     fn unit_new_round() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_game();
-        gm.start_new_turn().unwrap();
+        let result = gm.start_new_turn();
+        assert_eq!(result, true);
         assert_eq!(gm.game_state.current_round, 1);
-        gm.new_round().unwrap();
+        let result = gm.new_round();
+        assert_eq!(result, true);
         assert_eq!(gm.game_state.current_round, 2);
     }
 
     #[test]
     fn unit_launch_attack_case1() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_game();
-        gm.start_new_turn().unwrap();
+        gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
         // No dodging of boss
@@ -297,8 +318,9 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
             old_hp_boss - 40,
             gm.pm
@@ -310,15 +332,20 @@ mod tests {
         );
         assert_eq!(
             old_mana_hero - 20,
-            gm.pm.current_player.stats.all_stats[MANA].current
+            gm.pm
+                .get_active_hero_character(&old_hero_name)
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
         ); // 10% of 200 (total mana)
     }
 
     #[test]
     fn unit_launch_attack_case2() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_game();
-        gm.start_new_turn().unwrap();
+        gm.start_new_turn();
 
         // # case 2 dmg on individual ennemy
         // dodging of boss
@@ -344,8 +371,9 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
             old_hp_boss,
             gm.pm
@@ -357,15 +385,20 @@ mod tests {
         );
         assert_eq!(
             old_mana_hero - 20,
-            gm.pm.current_player.stats.all_stats[MANA].current
+            gm.pm
+                .get_active_hero_character(&old_hero_name)
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
         ); // 10% of 200 (total mana)
     }
 
     #[test]
     fn unit_launch_attack_case3() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_game();
-        gm.start_new_turn().unwrap();
+        gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
         // No dodging of boss
@@ -391,8 +424,9 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         // at least coeff critical strike = 2.0 (-40 * 2.0 = -80)
         assert!(
             old_hp_boss - 80
@@ -406,15 +440,20 @@ mod tests {
         );
         assert_eq!(
             old_mana_hero - 20,
-            gm.pm.current_player.stats.all_stats[MANA].current
+            gm.pm
+                .get_active_hero_character(&old_hero_name)
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
         ); // 10% of 200 (total mana)
     }
 
     #[test]
     fn unit_launch_attack_case4() {
-        let mut gm = GameManager::try_new("./tests/characters").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_game();
-        gm.start_new_turn().unwrap();
+        gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
         // No dodging of boss
@@ -442,8 +481,9 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 1);
+        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         // blocking 10% of the damage is received (10% of 40)
         assert_eq!(
             old_hp_boss - 4,
@@ -456,19 +496,35 @@ mod tests {
         );
         assert_eq!(
             old_mana_hero - 20,
-            gm.pm.current_player.stats.all_stats[MANA].current
+            gm.pm
+                .get_active_hero_character(&old_hero_name)
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
         ); // 10% of 200 (total mana)
     }
 
     #[test]
     fn integ_dxrpg() {
         let mut gm = GameManager::try_new("").unwrap();
-        gm.pm.current_player = gm.pm.active_heroes[0].clone();
-        let atk = testing_atk::build_atk_berseck_damage1();
-        gm.pm
-            .current_player
-            .attacks_list
-            .insert(atk.name.clone(), atk);
-        gm.launch_attack("atk1", vec![build_target_angmar_indiv()]);
+        gm.start_new_turn();
+        let old_hp_boss = gm
+            .pm
+            .get_active_boss_character("Angmar")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
+        assert_eq!(
+            old_hp_boss - 31,
+            gm.pm
+                .get_active_boss_character("Angmar")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
     }
 }

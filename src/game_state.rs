@@ -1,7 +1,18 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use anyhow::Result;
-use serde::{Deserialize, Serialize};
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum GameStatus {
+    StartGame = 0,
+    StartRound,
+    ValidateAction,
+}
+
+impl Default for GameStatus {
+    fn default() -> Self {
+        GameStatus::StartGame
+    }
+}
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GameState {
@@ -15,6 +26,8 @@ pub struct GameState {
     pub current_round: usize,
     /// Name of the game
     pub game_name: String,
+    /// Game Status
+    pub status: GameStatus,
 }
 
 impl GameState {
@@ -30,13 +43,11 @@ impl GameState {
         let time_str = crate::utils::get_current_time_as_string();
         self.game_name = format!("Game_{}", time_str);
     }
-    pub fn start_new_turn(&mut self) -> Result<()> {
+    pub fn start_new_turn(&mut self) {
         // Increment turn number
         self.current_turn_nb += 1;
         // Reset to round 0
         self.current_round = 0;
-
-        Ok(())
     }
 
     pub fn new_round(&mut self) {
@@ -58,7 +69,7 @@ mod tests {
     #[test]
     fn unit_start_new_turn() {
         let mut gs = GameState::new();
-        assert!(gs.start_new_turn().is_ok());
+        gs.start_new_turn();
         assert_eq!(gs.current_round, 0);
         assert_eq!(gs.current_turn_nb, 1);
     }
