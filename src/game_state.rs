@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+
+use crate::{attack_type::AttackType, common::reach_const::INDIVIDUAL};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum GameStatus {
@@ -28,6 +30,10 @@ pub struct GameState {
     pub game_name: String,
     /// Game Status
     pub status: GameStatus,
+    /// Targeted list
+    pub current_targeted_list: HashSet<String>,
+    /// Current atk selected
+    pub current_atk: AttackType,
 }
 
 impl GameState {
@@ -52,6 +58,13 @@ impl GameState {
 
     pub fn new_round(&mut self) {
         self.current_round += 1;
+    }
+
+    pub fn update_targeted_list(&mut self, target_name: &str) {
+        if self.current_atk.reach == INDIVIDUAL {
+            current_targeted_list.clear();
+        }
+        self.current_targeted_list.insert(target_name.to_string());
     }
 }
 
