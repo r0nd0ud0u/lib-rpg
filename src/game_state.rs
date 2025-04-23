@@ -3,17 +3,12 @@ use std::collections::{HashMap, HashSet};
 
 use crate::{attack_type::AttackType, common::reach_const::INDIVIDUAL};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum GameStatus {
+    #[default]
     StartGame = 0,
     StartRound,
     ValidateAction,
-}
-
-impl Default for GameStatus {
-    fn default() -> Self {
-        GameStatus::StartGame
-    }
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -62,7 +57,7 @@ impl GameState {
 
     pub fn update_targeted_list(&mut self, target_name: &str) {
         if self.current_atk.reach == INDIVIDUAL {
-            current_targeted_list.clear();
+            self.current_targeted_list.clear();
         }
         self.current_targeted_list.insert(target_name.to_string());
     }

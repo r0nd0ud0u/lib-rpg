@@ -581,8 +581,7 @@ impl Character {
         let damage = atk_value - launcher_pow / nb_of_turns;
         let protection = 1000.0 / (1000.0 + target_armor as f64);
 
-        let test = (damage as f64 * protection).round() as i64;
-        test
+        (damage as f64 * protection).round() as i64
     }
 
     pub fn regen_into_damage(_real_amount_sent: i64, _stats_name: &str) -> String {

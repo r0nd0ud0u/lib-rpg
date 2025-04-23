@@ -205,7 +205,6 @@ impl GameManager {
             self.game_state.status = GameStatus::StartRound;
         }
     }
-
 }
 
 #[cfg(test)]
@@ -532,7 +531,7 @@ mod tests {
         gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
         gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
         gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-        
+
         // tour 2
         // heroes
         gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
