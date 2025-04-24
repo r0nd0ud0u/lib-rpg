@@ -137,9 +137,8 @@ pub struct Character {
     #[serde(default, rename = "dodge-info")]
     pub dodge_info: DodgeInfo,
     /// Fight information: is_current_target
-    #[serde(default, rename = "dodge-info")]
+    #[serde(default, rename = "is-current-target")]
     pub is_current_target: bool,
-    
 }
 
 impl Default for Character {
