@@ -365,7 +365,7 @@ impl PlayerManager {
         });
     }
 
-    pub fn set_targeted_characters(&mut self, launcher: Character, atk: AttackType){
+    pub fn set_targeted_characters(&mut self, launcher: &Character, atk: &AttackType){
         // ALLY
         let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
         let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
