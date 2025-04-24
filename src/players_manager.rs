@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     attack_type::AttackType,
     character::{AmountType, Character, CharacterType},
-    common::{character_const::*, paths_const::OFFLINE_CHARACTERS, stats_const::*},
+    common::{all_target_const::{TARGET_ALLY, TARGET_ENNEMY}, character_const::*, paths_const::OFFLINE_CHARACTERS, reach_const::{INDIVIDUAL, ZONE}, stats_const::*},
     effect::{is_effet_hot_or_dot, EffectParam},
     game_state::GameState,
     target::TargetInfo,
@@ -363,6 +363,35 @@ impl PlayerManager {
                 c.reset_all_buffers();
             }
         });
+    }
+
+    pub fn set_targeted_characters(&mut self, launcher: Character, atk: AttackType){
+        // ALLY
+        let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
+        let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
+        let is_boss_ennemy = launcher.kind == CharacterType::Boss && atk.target == TARGET_ENNEMY;
+        let is_hero_ennemy = launcher.kind == CharacterType::Hero && atk.target == TARGET_ENNEMY;
+        if (is_boss_ennemy || is_hero_ally) && atk.reach == INDIVIDUAL {
+            if let Some(c) = self.active_heroes.first_mut() {
+                c.is_current_target = true;
+            }
+        }
+        if (is_boss_ally || is_hero_ennemy) && atk.reach == INDIVIDUAL {
+            if let Some(c) = self.active_bosses.first_mut() {
+                c.is_current_target = true;
+            }
+        }
+        if (is_boss_ennemy || is_hero_ally) && atk.reach == ZONE {
+            self.active_heroes.iter_mut().for_each(|c|c.is_current_target = true);
+        }
+        if (is_boss_ally || is_hero_ennemy)&& atk.reach == ZONE {
+            self.active_bosses.iter_mut().for_each(|c|c.is_current_target = true);
+        }
+    }
+
+    pub fn reset_targeted_character(&mut self){
+        self.active_heroes.iter_mut().for_each(|c|c.is_current_target = false);
+        self.active_bosses.iter_mut().for_each(|c|c.is_current_target = false);
     }
 }
 

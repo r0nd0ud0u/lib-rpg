@@ -136,6 +136,10 @@ pub struct Character {
     /// Fight information: dodge information on atk
     #[serde(default, rename = "dodge-info")]
     pub dodge_info: DodgeInfo,
+    /// Fight information: is_current_target
+    #[serde(default, rename = "dodge-info")]
+    pub is_current_target: bool,
+    
 }
 
 impl Default for Character {
@@ -166,6 +170,7 @@ impl Default for Character {
             shape: String::new(),
             all_effects: vec![],
             dodge_info: DodgeInfo::default(),
+            is_current_target: false,
         }
     }
 }

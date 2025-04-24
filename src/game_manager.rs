@@ -113,6 +113,8 @@ impl GameManager {
         if self.pm.current_player.is_dead() == Some(true) {
             return false;
         }
+
+        self.pm.reset_targeted_character();
         // Those 2 TODO are logs to give info
         // TODO case BOSS: random atk to choose
         // TODO who has the most aggro ?
