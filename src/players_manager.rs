@@ -15,7 +15,6 @@ use crate::{
     },
     effect::{is_effet_hot_or_dot, EffectParam},
     game_state::GameState,
-    target::TargetInfo,
     utils::list_files_in_dir,
 };
 
@@ -181,6 +180,17 @@ impl PlayerManager {
             pl.stats.all_stats.insert(SPEED.to_owned(), speed);
             pl.stats.all_stats.insert(BERSECK.to_owned(), berseck);
         }
+    }
+
+    pub fn get_all_active_names(&self) -> Vec<String> {
+        let mut output = vec![];
+        for h in &self.active_heroes {
+            output.push(h.name.clone());
+        }
+        for b in &self.active_bosses {
+            output.push(b.name.clone());
+        }
+        output
     }
 
     pub fn get_mut_active_character(&mut self, name: &str) -> Option<&mut Character> {
@@ -350,9 +360,9 @@ impl PlayerManager {
         output
     }
 
-    pub fn process_all_dodging(&mut self, all_targets: &Vec<TargetInfo>, atk_level: i64) {
+    pub fn process_all_dodging(&mut self, all_targets: &Vec<String>, atk_level: i64) {
         for t in all_targets {
-            match self.get_mut_active_character(&t.name) {
+            match self.get_mut_active_character(&t) {
                 Some(c) => c.process_dodging(atk_level),
                 _ => continue,
             }

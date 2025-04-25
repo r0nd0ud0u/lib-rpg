@@ -1268,9 +1268,8 @@ mod tests {
     #[test]
     fn unit_is_targeted() {
         let root_path = "./tests/offlines";
-        let mut c1 =
-            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
-                .unwrap();
+        let c1 = Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
+            .unwrap();
         let mut c2 =
             Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
                 .unwrap();

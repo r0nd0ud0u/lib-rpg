@@ -5,7 +5,6 @@ use crate::{
     common::{paths_const::OFFLINE_ROOT, stats_const::*},
     game_state::{GameState, GameStatus},
     players_manager::PlayerManager,
-    target::TargetInfo,
 };
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
@@ -130,7 +129,8 @@ impl GameManager {
      * Atk of the launcher is processed first to enable the potential bufs
      * then the effets are processed on the other targets(ennemy and allies)
      */
-    pub fn launch_attack(&mut self, atk_name: &str, all_targets: Vec<TargetInfo>) {
+    pub fn launch_attack(&mut self, atk_name: &str) {
+        let all_players = self.pm.get_all_active_names();
         self.pm.current_player.actions_done_in_round += 1;
         if !self.pm.current_player.attacks_list.contains_key(atk_name) {
             // TODO log
@@ -145,7 +145,7 @@ impl GameManager {
 
         // is dodging ?
         self.pm.process_all_dodging(
-            &all_targets,
+            &all_players,
             self.pm.current_player.attacks_list[atk_name].level.into(),
         );
 
@@ -168,8 +168,8 @@ impl GameManager {
         let name = self.pm.current_player.name.clone();
         let kind = self.pm.current_player.kind.clone();
         for ep in &all_effects_param {
-            for target in &all_targets {
-                if let Some(c) = self.pm.get_mut_active_character(&target.name) {
+            for target in &all_players {
+                if let Some(c) = self.pm.get_mut_active_character(&target) {
                     if c.is_targeted(ep, &name, &kind) {
                         // TODO check if the effect is not already applied
                         c.apply_effect_outcome(ep, &launcher_stats, is_crit);
@@ -212,12 +212,10 @@ impl GameManager {
 #[cfg(test)]
 mod tests {
     use crate::character::Class;
-    use crate::testing_target::build_target_boss_indiv;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
         game_manager::GameManager,
         testing_atk::*,
-        testing_target::*,
     };
 
     #[test]
@@ -325,7 +323,7 @@ mod tests {
             .get_mut_active_boss_character("Boss1")
             .unwrap()
             .is_current_target = true;
-        gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
+        gm.launch_attack(&atk.clone().name);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
             old_hp_boss - 40,
@@ -382,7 +380,7 @@ mod tests {
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         let old_hero_name = gm.pm.current_player.name.clone();
-        gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
+        gm.launch_attack(&atk.clone().name);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
             old_hp_boss,
@@ -439,7 +437,7 @@ mod tests {
             .is_current_target = true;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         let old_hero_name = gm.pm.current_player.name.clone();
-        gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
+        gm.launch_attack(&atk.clone().name);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         // at least coeff critical strike = 2.0 (-40 * 2.0 = -80)
         assert!(
@@ -500,7 +498,7 @@ mod tests {
             .get_mut_active_boss_character("Boss1")
             .unwrap()
             .is_current_target = true;
-        gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
+        gm.launch_attack(&atk.clone().name);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         // blocking 10% of the damage is received (10% of 40)
         assert_eq!(
@@ -534,7 +532,7 @@ mod tests {
             .stats
             .all_stats[HP]
             .current;
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
+        gm.launch_attack("SimpleAtk");
         assert_eq!(
             old_hp_boss - 31,
             gm.pm
@@ -544,20 +542,7 @@ mod tests {
                 .all_stats[HP]
                 .current
         );
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-
-        // tour 2
-        // heroes
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-        //
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
-        gm.launch_attack("SimpleAtk", vec![build_target_angmar_indiv()]);
+        gm.launch_attack("SimpleAtk");
+        gm.launch_attack("SimpleAtk");
     }
 }
