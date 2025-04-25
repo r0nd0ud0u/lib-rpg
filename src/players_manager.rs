@@ -6,10 +6,15 @@ use serde::{Deserialize, Serialize};
 use crate::{
     attack_type::AttackType,
     character::{AmountType, Character, CharacterType},
-    common::{character_const::*, paths_const::OFFLINE_CHARACTERS, stats_const::*},
+    common::{
+        all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+        character_const::*,
+        paths_const::OFFLINE_CHARACTERS,
+        reach_const::{INDIVIDUAL, ZONE},
+        stats_const::*,
+    },
     effect::{is_effet_hot_or_dot, EffectParam},
     game_state::GameState,
-    target::TargetInfo,
     utils::list_files_in_dir,
 };
 
@@ -177,6 +182,17 @@ impl PlayerManager {
         }
     }
 
+    pub fn get_all_active_names(&self) -> Vec<String> {
+        let mut output = vec![];
+        for h in &self.active_heroes {
+            output.push(h.name.clone());
+        }
+        for b in &self.active_bosses {
+            output.push(b.name.clone());
+        }
+        output
+    }
+
     pub fn get_mut_active_character(&mut self, name: &str) -> Option<&mut Character> {
         if let Some(hero) = self.active_heroes.iter_mut().find(|c| c.name == name) {
             return Some(hero);
@@ -225,7 +241,7 @@ impl PlayerManager {
     pub fn update_current_player(&mut self, game_state: &GameState, name: &str) -> Result<()> {
         let c = self
             .get_mut_active_character(name)
-            .expect("no active character");
+            .expect(&format!("no active character: {}", name));
         self.current_player = c.clone();
 
         // update the shadow current player
@@ -344,9 +360,9 @@ impl PlayerManager {
         output
     }
 
-    pub fn process_all_dodging(&mut self, all_targets: &Vec<TargetInfo>, atk_level: i64) {
+    pub fn process_all_dodging(&mut self, all_targets: &Vec<String>, atk_level: i64) {
         for t in all_targets {
-            match self.get_mut_active_character(&t.name) {
+            match self.get_mut_active_character(&t) {
                 Some(c) => c.process_dodging(atk_level),
                 _ => continue,
             }
@@ -354,8 +370,6 @@ impl PlayerManager {
     }
 
     pub fn process_died_players(&mut self) {
-        // bosses
-        self.active_bosses.retain(|b| b.is_dead() != Some(true));
         // heroes
         self.active_heroes.iter_mut().for_each(|c| {
             if c.is_dead() == Some(true) {
@@ -363,6 +377,54 @@ impl PlayerManager {
                 c.reset_all_buffers();
             }
         });
+    }
+
+    pub fn set_one_target(&mut self, name: &str, reach: &str) {
+        if reach == ZONE {
+            return;
+        }
+        self.reset_targeted_character();
+        if let Some(h) = self.get_mut_active_character(name) {
+            h.is_current_target = true;
+        }
+    }
+
+    pub fn set_targeted_characters(&mut self, launcher: &Character, atk: &AttackType) {
+        // ALLY
+        let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
+        let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
+        let is_boss_ennemy = launcher.kind == CharacterType::Boss && atk.target == TARGET_ENNEMY;
+        let is_hero_ennemy = launcher.kind == CharacterType::Hero && atk.target == TARGET_ENNEMY;
+
+        if (is_boss_ennemy || is_hero_ally) && atk.reach == INDIVIDUAL {
+            if let Some(c) = self.active_heroes.first_mut() {
+                c.is_current_target = true;
+            }
+        }
+        if (is_boss_ally || is_hero_ennemy) && atk.reach == INDIVIDUAL {
+            if let Some(c) = self.active_bosses.first_mut() {
+                c.is_current_target = true;
+            }
+        }
+        if (is_boss_ennemy || is_hero_ally) && atk.reach == ZONE {
+            self.active_heroes
+                .iter_mut()
+                .for_each(|c| c.is_current_target = true);
+        }
+        if (is_boss_ally || is_hero_ennemy) && atk.reach == ZONE {
+            self.active_bosses
+                .iter_mut()
+                .for_each(|c| c.is_current_target = true);
+        }
+    }
+
+    pub fn reset_targeted_character(&mut self) {
+        self.active_heroes
+            .iter_mut()
+            .for_each(|c| c.is_current_target = false);
+        self.active_bosses
+            .iter_mut()
+            .for_each(|c| c.is_current_target = false);
     }
 }
 

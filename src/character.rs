@@ -136,6 +136,9 @@ pub struct Character {
     /// Fight information: dodge information on atk
     #[serde(default, rename = "dodge-info")]
     pub dodge_info: DodgeInfo,
+    /// Fight information: is_current_target
+    #[serde(default, rename = "is-current-target")]
+    pub is_current_target: bool,
 }
 
 impl Default for Character {
@@ -166,6 +169,7 @@ impl Default for Character {
             shape: String::new(),
             all_effects: vec![],
             dodge_info: DodgeInfo::default(),
+            is_current_target: false,
         }
     }
 }
@@ -581,8 +585,7 @@ impl Character {
         let damage = atk_value - launcher_pow / nb_of_turns;
         let protection = 1000.0 / (1000.0 + target_armor as f64);
 
-        let test = (damage as f64 * protection).round() as i64;
-        test
+        (damage as f64 * protection).round() as i64
     }
 
     pub fn regen_into_damage(_real_amount_sent: i64, _stats_name: &str) -> String {
@@ -707,7 +710,6 @@ impl Character {
         effect: &EffectParam,
         launcher_name: &str,
         launcher_kind: &CharacterType,
-        targeted_on_main_atk: bool,
     ) -> bool {
         let is_ally = self.kind == *launcher_kind;
         if effect.target == TARGET_HIMSELF && launcher_name != self.name {
@@ -723,10 +725,10 @@ impl Character {
             return false;
         }
         // is targeted ?
-        if effect.target == TARGET_ALLY && effect.reach == INDIVIDUAL && !targeted_on_main_atk {
+        if effect.target == TARGET_ALLY && effect.reach == INDIVIDUAL && !self.is_current_target {
             return false;
         }
-        if effect.target == TARGET_ENNEMY && effect.reach == INDIVIDUAL && !targeted_on_main_atk {
+        if effect.target == TARGET_ENNEMY && effect.reach == INDIVIDUAL && !self.is_current_target {
             return false;
         }
         if effect.target == TARGET_ALLY && effect.reach == ZONE && launcher_name == self.name {
@@ -1272,77 +1274,83 @@ mod tests {
             Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
                 .unwrap();
         c2.name = "other".to_string();
-        let boss1 =
+        let mut boss1 =
             Character::try_new_from_json("./tests/offlines/characters/test_boss.json", root_path)
                 .unwrap();
         // effect on himself
         let mut ep = build_cooldown_effect();
         // target is himself
-        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
-        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
 
         // effect on ally individual
         ep = build_hot_effect_individual();
         // target is himself
-        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
         // not targeted on main atk
-        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
-        // not targeted on main atk
-        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, true));
+        c2.is_current_target = false;
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind));
+        // targeted on main atk
+        c2.is_current_target = true;
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
 
         // effect on ennemy individual
         ep = build_dmg_effect_individual();
-        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
-        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
         // targeted on main atk
-        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        boss1.is_current_target = true;
+        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind));
         // not targeted on main atk
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        boss1.is_current_target = false;
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
 
         // effect on ally ZONE
         ep = build_hot_effect_zone();
         // target is himself
-        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
-        // not targeted on main atk
-        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
-        // not targeted on main atk
-        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, true));
+        // targeted on main atk
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
 
         // effect on ennemy ZONE
         ep = build_dot_effect_zone();
         // target is himself
-        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
-        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
+        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
         // targeted on main atk
-        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        boss1.is_current_target = true;
+        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind));
         // not targeted on main atk
-        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        boss1.is_current_target = false;
+        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind));
 
         // effect on all allies
         ep = build_hot_effect_all();
         // target is himself
-        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind, false));
-        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind, true));
+        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
-        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, false));
-        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind, true));
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind));
+        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
         // targeted on main atk
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, true));
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind, false));
+        boss1.is_current_target = true;
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
+        boss1.is_current_target = false;
+        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
     }
 
     #[test]
