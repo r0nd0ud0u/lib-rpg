@@ -370,8 +370,6 @@ impl PlayerManager {
     }
 
     pub fn process_died_players(&mut self) {
-        // bosses
-        self.active_bosses.retain(|b| b.is_dead() != Some(true));
         // heroes
         self.active_heroes.iter_mut().for_each(|c| {
             if c.is_dead() == Some(true) {
