@@ -170,7 +170,7 @@ impl GameManager {
         for ep in &all_effects_param {
             for target in &all_targets {
                 if let Some(c) = self.pm.get_mut_active_character(&target.name) {
-                    if c.is_targeted(ep, &name, &kind, target.is_targeted) {
+                    if c.is_targeted(ep, &name, &kind) {
                         // TODO check if the effect is not already applied
                         c.apply_effect_outcome(ep, &launcher_stats, is_crit);
                     }
@@ -321,6 +321,10 @@ mod tests {
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         let old_hero_name = gm.pm.current_player.name.clone();
+        gm.pm
+            .get_mut_active_boss_character("Boss1")
+            .unwrap()
+            .is_current_target = true;
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
@@ -364,6 +368,10 @@ mod tests {
             .stats
             .all_stats[DODGE]
             .current = 100;
+        gm.pm
+            .get_mut_active_boss_character("Boss1")
+            .unwrap()
+            .is_current_target = true;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_boss = gm
             .pm
@@ -425,6 +433,10 @@ mod tests {
             .stats
             .all_stats[HP]
             .current;
+        gm.pm
+            .get_mut_active_boss_character("Boss1")
+            .unwrap()
+            .is_current_target = true;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
@@ -484,6 +496,10 @@ mod tests {
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         let old_hero_name = gm.pm.current_player.name.clone();
+        gm.pm
+            .get_mut_active_boss_character("Boss1")
+            .unwrap()
+            .is_current_target = true;
         gm.launch_attack(&atk.clone().name, vec![build_target_boss_indiv()]);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         // blocking 10% of the damage is received (10% of 40)
