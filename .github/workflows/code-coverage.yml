@@ -42,7 +42,7 @@ jobs:
           grcov . --keep-only 'src/*' --ignore 'src/bin/*' --binary-path ./target/debug/deps/ --source-dir . --output-types lcov,html --branch --ignore-not-existing --output-path target/coverage/
 
       - name: Report code coverage in Pull Request
-        uses: zgosalvez/github-actions-report-lcov@v4.1.23
+        uses: zgosalvez/github-actions-report-lcov@v4.1.25
         with:
           coverage-files: target/coverage/lcov*
           artifact-name: code-coverage-report
