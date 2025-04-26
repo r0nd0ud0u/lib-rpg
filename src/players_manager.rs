@@ -390,7 +390,9 @@ impl PlayerManager {
     }
 
     pub fn set_targeted_characters(&mut self, launcher: &Character, atk: &AttackType) {
-        // ALLY
+        self.reset_targeted_character();
+        self.reset_potential_targeted_character();
+
         let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
         let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
         let is_boss_ennemy = launcher.kind == CharacterType::Boss && atk.target == TARGET_ENNEMY;
@@ -400,11 +402,19 @@ impl PlayerManager {
             if let Some(c) = self.active_heroes.first_mut() {
                 c.is_current_target = true;
             }
+            self.active_heroes
+                .iter_mut()
+                .skip(1)
+                .for_each(|c| c.is_potential_target = true);
         }
         if (is_boss_ally || is_hero_ennemy) && atk.reach == INDIVIDUAL {
             if let Some(c) = self.active_bosses.first_mut() {
                 c.is_current_target = true;
             }
+            self.active_bosses
+                .iter_mut()
+                .skip(1)
+                .for_each(|c| c.is_potential_target = true);
         }
         if (is_boss_ennemy || is_hero_ally) && atk.reach == ZONE {
             self.active_heroes
@@ -425,6 +435,15 @@ impl PlayerManager {
         self.active_bosses
             .iter_mut()
             .for_each(|c| c.is_current_target = false);
+    }
+
+    pub fn reset_potential_targeted_character(&mut self) {
+        self.active_heroes
+            .iter_mut()
+            .for_each(|c| c.is_potential_target = false);
+        self.active_bosses
+            .iter_mut()
+            .for_each(|c| c.is_potential_target = false);
     }
 }
 

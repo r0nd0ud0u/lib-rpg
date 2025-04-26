@@ -139,6 +139,9 @@ pub struct Character {
     /// Fight information: is_current_target
     #[serde(default, rename = "is-current-target")]
     pub is_current_target: bool,
+    /// Fight information: is_current_target
+    #[serde(default, rename = "is-potential-target")]
+    pub is_potential_target: bool,
 }
 
 impl Default for Character {
@@ -170,6 +173,7 @@ impl Default for Character {
             all_effects: vec![],
             dodge_info: DodgeInfo::default(),
             is_current_target: false,
+            is_potential_target: false,
         }
     }
 }
