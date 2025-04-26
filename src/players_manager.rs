@@ -401,6 +401,7 @@ impl PlayerManager {
         if (is_boss_ennemy || is_hero_ally) && atk.reach == INDIVIDUAL {
             if let Some(c) = self.active_heroes.first_mut() {
                 c.is_current_target = true;
+                c.is_potential_target = true
             }
             self.active_heroes
                 .iter_mut()
@@ -410,6 +411,7 @@ impl PlayerManager {
         if (is_boss_ally || is_hero_ennemy) && atk.reach == INDIVIDUAL {
             if let Some(c) = self.active_bosses.first_mut() {
                 c.is_current_target = true;
+                c.is_potential_target = true
             }
             self.active_bosses
                 .iter_mut()
