@@ -3,6 +3,7 @@ use std::path::Path;
 use crate::{
     character::{AmountType, CharacterType},
     common::{paths_const::OFFLINE_ROOT, stats_const::*},
+    effect::EffectOutcome,
     game_state::{GameState, GameStatus},
     players_manager::PlayerManager,
 };
@@ -129,17 +130,18 @@ impl GameManager {
      * Atk of the launcher is processed first to enable the potential bufs
      * then the effets are processed on the other targets(ennemy and allies)
      */
-    pub fn launch_attack(&mut self, atk_name: &str) {
+    pub fn launch_attack(&mut self, atk_name: &str) -> Vec<EffectOutcome> {
+        let mut output: Vec<EffectOutcome> = vec![];
         let all_players = self.pm.get_all_active_names();
         self.pm.current_player.actions_done_in_round += 1;
         if !self.pm.current_player.attacks_list.contains_key(atk_name) {
             // TODO log
-            return;
+            return output;
         }
 
         if !self.pm.current_player.attacks_list.contains_key(atk_name) {
             // TODO log
-            return;
+            return output;
         }
         self.pm.current_player.process_atk_cost(atk_name);
 
@@ -158,7 +160,7 @@ impl GameManager {
         let atk = if let Some(atk) = atk_list.get(atk_name) {
             atk
         } else {
-            return;
+            return output;
         };
         let all_effects_param = self
             .pm
@@ -172,7 +174,7 @@ impl GameManager {
                 if let Some(c) = self.pm.get_mut_active_character(&target) {
                     if c.is_targeted(ep, &name, &kind) {
                         // TODO check if the effect is not already applied
-                        c.apply_effect_outcome(ep, &launcher_stats, is_crit);
+                        output.push(c.apply_effect_outcome(ep, &launcher_stats, is_crit));
                     }
                 }
             }
@@ -206,6 +208,8 @@ impl GameManager {
             self.start_new_turn();
             self.game_state.status = GameStatus::StartRound;
         }
+
+        output
     }
 }
 
