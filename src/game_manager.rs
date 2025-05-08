@@ -171,7 +171,7 @@ impl GameManager {
         let kind = self.pm.current_player.kind.clone();
         for ep in &all_effects_param {
             for target in &all_players {
-                if let Some(c) = self.pm.get_mut_active_character(&target) {
+                if let Some(c) = self.pm.get_mut_active_character(target) {
                     if c.is_targeted(ep, &name, &kind) {
                         // TODO check if the effect is not already applied
                         output.push(c.apply_effect_outcome(ep, &launcher_stats, is_crit));

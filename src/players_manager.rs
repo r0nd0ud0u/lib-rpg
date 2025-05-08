@@ -241,7 +241,7 @@ impl PlayerManager {
     pub fn update_current_player(&mut self, game_state: &GameState, name: &str) -> Result<()> {
         let c = self
             .get_mut_active_character(name)
-            .expect(&format!("no active character: {}", name));
+            .unwrap_or_else(|| panic!("no active character: {}", name));
         self.current_player = c.clone();
 
         // update the shadow current player
@@ -362,7 +362,7 @@ impl PlayerManager {
 
     pub fn process_all_dodging(&mut self, all_targets: &Vec<String>, atk_level: i64) {
         for t in all_targets {
-            match self.get_mut_active_character(&t) {
+            match self.get_mut_active_character(t) {
                 Some(c) => c.process_dodging(atk_level),
                 _ => continue,
             }
