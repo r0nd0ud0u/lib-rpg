@@ -643,6 +643,10 @@ impl Character {
         }
     }
 
+    pub fn is_dodging(&self, target: &str) -> bool {
+        self.dodge_info.is_dodging && target == TARGET_ENNEMY
+    }
+
     pub fn process_dodging(&mut self, atk_level: i64) {
         let dodge_info = if atk_level == ULTIMATE_LEVEL {
             DodgeInfo {
@@ -738,7 +742,7 @@ impl Character {
         if effect.target == TARGET_ALLY && effect.reach == ZONE && launcher_name == self.name {
             return false;
         }
-        if self.dodge_info.is_dodging && effect.target == TARGET_ENNEMY {
+        if self.is_dodging(&effect.target) {
             return false;
         }
         // TODO reach random
@@ -815,6 +819,7 @@ impl Character {
                 full_atk_amount_tx: full_amount,
                 real_amount_tx: full_amount,
                 new_effect_param,
+                target_name: self.name.clone(),
                 ..Default::default()
             };
         }
@@ -830,6 +835,7 @@ impl Character {
             full_atk_amount_tx: full_amount,
             real_amount_tx: real_amount,
             new_effect_param,
+            target_name: self.name.clone(),
             ..Default::default()
         }
     }
@@ -847,6 +853,7 @@ impl Character {
         output
     }
 
+    /// access the real amount received by the effect on that character
     pub fn process_real_amount(&mut self, ep: &EffectParam, full_amount: i64) -> i64 {
         if ep.stats_name != HP {
             return 0;
@@ -866,7 +873,7 @@ impl Character {
             let tmp = self.stats.all_stats[HP].current as i64;
             self.stats.all_stats[HP].current =
                 std::cmp::max(0, self.stats.all_stats[HP].current as i64 + full_amount) as u64;
-            real_amount = std::cmp::min(tmp, full_amount);
+            real_amount = std::cmp::max(-tmp, full_amount);
         }
         real_amount
     }
@@ -1202,7 +1209,7 @@ mod tests {
     }
 
     #[test]
-    fn unit_is_dodging() {
+    fn unit_process_dodging() {
         let mut c = testing_character();
 
         // ultimate atk cannot be dodged
@@ -1398,5 +1405,20 @@ mod tests {
         assert_eq!(eo.real_amount_tx, -40);
         assert_eq!(eo.new_effect_param.value, -40);
         assert_eq!(old_hp - 40, boss1.stats.all_stats[HP].current);
+    }
+
+    #[test]
+    fn unit_process_real_amount() {
+        let root_path = "./tests/offlines";
+        let mut c =
+            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
+                .unwrap();
+        let old_hp = c.stats.all_stats[HP].current;
+        let result = c.process_real_amount(
+            &build_dmg_effect_individual(),
+            -(c.stats.all_stats[HP].current as i64) - 10,
+        );
+        // real amount cannot excess the life of the character
+        assert_eq!(result, -(old_hp as i64));
     }
 }

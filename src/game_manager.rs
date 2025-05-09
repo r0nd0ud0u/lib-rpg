@@ -3,11 +3,19 @@ use std::path::Path;
 use crate::{
     character::{AmountType, CharacterType},
     common::{paths_const::OFFLINE_ROOT, stats_const::*},
+    effect::EffectOutcome,
     game_state::{GameState, GameStatus},
-    players_manager::PlayerManager,
+    players_manager::{DodgeInfo, PlayerManager},
 };
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
+
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct ResultLaunchAttack {
+    pub outcomes: Vec<EffectOutcome>,
+    pub is_crit: bool,
+    pub all_dodging: Vec<DodgeInfo>,
+}
 
 /// The entry of the library.
 /// That object should be called to access to all the different functionalities.
@@ -94,7 +102,6 @@ impl GameManager {
 
     pub fn new_round(&mut self) -> bool {
         self.game_state.new_round();
-
         // Still round to play
         if self.game_state.current_round > self.game_state.order_to_play.len() {
             return false;
@@ -110,7 +117,7 @@ impl GameManager {
             return false;
         }
         if self.pm.current_player.is_dead() == Some(true) {
-            return false;
+            self.new_round();
         }
 
         self.pm.reset_targeted_character();
@@ -129,17 +136,18 @@ impl GameManager {
      * Atk of the launcher is processed first to enable the potential bufs
      * then the effets are processed on the other targets(ennemy and allies)
      */
-    pub fn launch_attack(&mut self, atk_name: &str) {
+    pub fn launch_attack(&mut self, atk_name: &str) -> ResultLaunchAttack {
+        let mut output: Vec<EffectOutcome> = vec![];
         let all_players = self.pm.get_all_active_names();
         self.pm.current_player.actions_done_in_round += 1;
         if !self.pm.current_player.attacks_list.contains_key(atk_name) {
             // TODO log
-            return;
+            return ResultLaunchAttack::default();
         }
 
         if !self.pm.current_player.attacks_list.contains_key(atk_name) {
             // TODO log
-            return;
+            return ResultLaunchAttack::default();
         }
         self.pm.current_player.process_atk_cost(atk_name);
 
@@ -151,14 +159,15 @@ impl GameManager {
 
         // critical strike
         let is_crit = self.pm.current_player.process_critical_strike(atk_name);
-        // TODO ProcessIsRandomTarget
+        // process boss target
+        self.pm.process_boss_target();
 
         // ProcessAtk
         let atk_list = self.pm.current_player.attacks_list.clone();
         let atk = if let Some(atk) = atk_list.get(atk_name) {
             atk
         } else {
-            return;
+            return ResultLaunchAttack::default();
         };
         let all_effects_param = self
             .pm
@@ -167,12 +176,22 @@ impl GameManager {
         let launcher_stats = self.pm.current_player.stats.clone();
         let name = self.pm.current_player.name.clone();
         let kind = self.pm.current_player.kind.clone();
+        let mut all_dodging = vec![];
         for ep in &all_effects_param {
             for target in &all_players {
-                if let Some(c) = self.pm.get_mut_active_character(&target) {
+                if let Some(c) = self.pm.get_mut_active_character(target) {
+                    if c.is_dead() == Some(true) {
+                        continue;
+                    }
                     if c.is_targeted(ep, &name, &kind) {
                         // TODO check if the effect is not already applied
-                        c.apply_effect_outcome(ep, &launcher_stats, is_crit);
+                        output.push(c.apply_effect_outcome(ep, &launcher_stats, is_crit));
+                        // assess the blocking
+                        all_dodging.push(c.dodge_info.clone());
+                    }
+                    // assess the dodging
+                    if c.is_dodging(&ep.target) && c.kind != kind && c.is_current_target {
+                        all_dodging.push(c.dodge_info.clone());
                     }
                 }
             }
@@ -205,6 +224,12 @@ impl GameManager {
         } else {
             self.start_new_turn();
             self.game_state.status = GameStatus::StartRound;
+        }
+
+        ResultLaunchAttack {
+            is_crit,
+            outcomes: output,
+            all_dodging,
         }
     }
 }
@@ -323,7 +348,11 @@ mod tests {
             .get_mut_active_boss_character("Boss1")
             .unwrap()
             .is_current_target = true;
-        gm.launch_attack(&atk.clone().name);
+        let ra = gm.launch_attack(&atk.clone().name);
+        assert_eq!(1, ra.outcomes.len());
+        assert_eq!(1, ra.all_dodging.len());
+        assert_eq!("Boss1", ra.all_dodging[0].name);
+        assert_eq!(false, ra.all_dodging[0].is_dodging);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
             old_hp_boss - 40,
@@ -467,7 +496,7 @@ mod tests {
         gm.start_game();
         gm.start_new_turn();
 
-        // # case 1 dmg on individual ennemy
+        // # case 4 dmg on individual ennemy
         // No dodging of boss
         // Blocking
         // No critical of current player
@@ -532,17 +561,65 @@ mod tests {
             .stats
             .all_stats[HP]
             .current;
-        gm.launch_attack("SimpleAtk");
-        assert_eq!(
-            old_hp_boss - 31,
-            gm.pm
-                .get_active_boss_character("Angmar")
-                .unwrap()
-                .stats
-                .all_stats[HP]
-                .current
-        );
-        gm.launch_attack("SimpleAtk");
-        gm.launch_attack("SimpleAtk");
+        gm.pm
+            .get_mut_active_boss_character("Angmar")
+            .unwrap()
+            .is_current_target = true;
+        let ra = gm.launch_attack("SimpleAtk");
+        if ra.all_dodging.len() > 0 && ra.all_dodging[0].is_dodging {
+            assert_eq!(
+                old_hp_boss,
+                gm.pm
+                    .get_active_boss_character("Angmar")
+                    .unwrap()
+                    .stats
+                    .all_stats[HP]
+                    .current
+            );
+        } else {
+            assert_eq!(
+                old_hp_boss - 31,
+                gm.pm
+                    .get_active_boss_character("Angmar")
+                    .unwrap()
+                    .stats
+                    .all_stats[HP]
+                    .current
+            );
+        }
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(2, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(3, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(4, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        // angmar turn
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(5, gm.game_state.current_round);
+        let ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(ra.all_dodging.len() == 1, true);
+        assert_eq!(ra.all_dodging[0].name, "Thalia");
+        assert_eq!(ra.outcomes.len() > 0, true);
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(6, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        // turn 2
+        assert_eq!(2, gm.game_state.current_turn_nb);
+        assert_eq!(1, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(2, gm.game_state.current_turn_nb);
+        assert_eq!(2, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(2, gm.game_state.current_turn_nb);
+        assert_eq!(3, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        // one player is dead , round 3 to 5
+        assert_eq!(2, gm.game_state.current_turn_nb);
+        assert_eq!(5, gm.game_state.current_round);
+        // angmar turn
+        let _ra = gm.launch_attack("SimpleAtk");
     }
 }
