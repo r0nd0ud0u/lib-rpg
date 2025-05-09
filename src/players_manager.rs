@@ -241,7 +241,7 @@ impl PlayerManager {
     pub fn update_current_player(&mut self, game_state: &GameState, name: &str) -> Result<()> {
         let c = self
             .get_mut_active_character(name)
-            .expect(&format!("no active character: {}", name));
+            .unwrap_or_else(|| panic!("no active character: {}", name));
         self.current_player = c.clone();
 
         // update the shadow current player
@@ -362,8 +362,10 @@ impl PlayerManager {
 
     pub fn process_all_dodging(&mut self, all_targets: &Vec<String>, atk_level: i64) {
         for t in all_targets {
-            match self.get_mut_active_character(&t) {
-                Some(c) => c.process_dodging(atk_level),
+            match self.get_mut_active_character(t) {
+                Some(c) => {
+                    c.process_dodging(atk_level);
+                }
                 _ => continue,
             }
         }
@@ -377,6 +379,23 @@ impl PlayerManager {
                 c.reset_all_buffers();
             }
         });
+    }
+
+    pub fn process_boss_target(&mut self) {
+        if self.current_player.kind == CharacterType::Hero {
+            return;
+        }
+
+        self.reset_targeted_character();
+        if let Some((max_index, _)) = self
+            .active_heroes
+            .iter()
+            .enumerate()
+            .filter(|(_, c)| c.is_dead() == Some(false))
+            .max_by_key(|&(_, c)| c.stats.all_stats[AGGRO].current)
+        {
+            self.active_heroes[max_index].is_current_target = true;
+        }
     }
 
     pub fn set_one_target(&mut self, name: &str, reach: &str) {
