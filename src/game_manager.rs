@@ -180,7 +180,7 @@ impl GameManager {
         for ep in &all_effects_param {
             for target in &all_players {
                 if let Some(c) = self.pm.get_mut_active_character(target) {
-                    if c.is_dead() == Some(true){
+                    if c.is_dead() == Some(true) {
                         continue;
                     }
                     if c.is_targeted(ep, &name, &kind) {
@@ -190,7 +190,7 @@ impl GameManager {
                         all_dodging.push(c.dodge_info.clone());
                     }
                     // assess the dodging
-                    if c.is_dodging(&ep.target) && c.kind != kind && c.is_current_target{
+                    if c.is_dodging(&ep.target) && c.kind != kind && c.is_current_target {
                         all_dodging.push(c.dodge_info.clone());
                     }
                 }
@@ -496,7 +496,7 @@ mod tests {
         gm.start_game();
         gm.start_new_turn();
 
-        // # case 1 dmg on individual ennemy
+        // # case 4 dmg on individual ennemy
         // No dodging of boss
         // Blocking
         // No critical of current player
@@ -565,7 +565,7 @@ mod tests {
             .get_mut_active_boss_character("Angmar")
             .unwrap()
             .is_current_target = true;
-        let mut ra = gm.launch_attack("SimpleAtk");
+        let ra = gm.launch_attack("SimpleAtk");
         assert_eq!(1, ra.all_dodging.len());
         if ra.all_dodging[0].is_dodging {
             assert_eq!(
