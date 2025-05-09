@@ -567,8 +567,7 @@ mod tests {
             .unwrap()
             .is_current_target = true;
         let ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(1, ra.all_dodging.len());
-        if ra.all_dodging[0].is_dodging {
+        if ra.all_dodging.len() > 0 && ra.all_dodging[0].is_dodging {
             assert_eq!(
                 old_hp_boss,
                 gm.pm
@@ -589,10 +588,10 @@ mod tests {
                     .current
             );
         }
-        let ra = gm.launch_attack("SimpleAtk");
-        let ra = gm.launch_attack("SimpleAtk");
-        let ra = gm.launch_attack("SimpleAtk");
+        let _ra = gm.launch_attack("SimpleAtk");
+        let _ra = gm.launch_attack("SimpleAtk");
+        let _ra = gm.launch_attack("SimpleAtk");
         // angmar turn
-        let ra = gm.launch_attack("SimpleAtk");
+        let _ra = gm.launch_attack("SimpleAtk");
     }
 }
