@@ -102,7 +102,6 @@ impl GameManager {
 
     pub fn new_round(&mut self) -> bool {
         self.game_state.new_round();
-
         // Still round to play
         if self.game_state.current_round > self.game_state.order_to_play.len() {
             return false;
@@ -118,7 +117,7 @@ impl GameManager {
             return false;
         }
         if self.pm.current_player.is_dead() == Some(true) {
-            return false;
+            self.new_round();
         }
 
         self.pm.reset_targeted_character();
@@ -588,9 +587,38 @@ mod tests {
                     .current
             );
         }
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(2, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(3, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(4, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
+        // angmar turn
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(5, gm.game_state.current_round);
+        let ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(ra.all_dodging.len() == 1, true);
+        assert_eq!(ra.all_dodging[0].name, "Thalia");
+        assert_eq!(ra.outcomes.len() > 0, true);
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(6, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        // turn 2
+        assert_eq!(2, gm.game_state.current_turn_nb);
+        assert_eq!(1, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(2, gm.game_state.current_turn_nb);
+        assert_eq!(2, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(2, gm.game_state.current_turn_nb);
+        assert_eq!(3, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk");
+        // one player is dead , round 3 to 5
+        assert_eq!(2, gm.game_state.current_turn_nb);
+        assert_eq!(5, gm.game_state.current_round);
         // angmar turn
         let _ra = gm.launch_attack("SimpleAtk");
     }
