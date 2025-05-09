@@ -381,6 +381,21 @@ impl PlayerManager {
         });
     }
 
+    pub fn process_boss_target(&mut self){
+        self.reset_targeted_character();
+        if self.current_player.kind == CharacterType::Hero {
+            return;
+        }
+
+        if let Some((max_index, _)) = self.active_heroes
+        .iter()
+        .enumerate()
+        .max_by_key(|&(_, c)| c.stats.all_stats[AGGRO].current)
+    {
+        self.active_heroes[max_index].is_current_target = true;
+    }
+    }
+
     pub fn set_one_target(&mut self, name: &str, reach: &str) {
         if reach == ZONE {
             return;

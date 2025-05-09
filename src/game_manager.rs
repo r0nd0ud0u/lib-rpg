@@ -160,7 +160,8 @@ impl GameManager {
 
         // critical strike
         let is_crit = self.pm.current_player.process_critical_strike(atk_name);
-        // TODO ProcessIsRandomTarget
+        // process boss target
+        self.pm.process_boss_target();
 
         // ProcessAtk
         let atk_list = self.pm.current_player.attacks_list.clone();
@@ -588,5 +589,10 @@ mod tests {
                     .current
             );
         }
+        let ra = gm.launch_attack("SimpleAtk");
+        let ra = gm.launch_attack("SimpleAtk");
+        let ra = gm.launch_attack("SimpleAtk");
+        // angmar turn
+        let ra = gm.launch_attack("SimpleAtk");
     }
 }
