@@ -10,7 +10,7 @@ use crate::{
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct ResultLaunchAttack {
     pub outcomes: Vec<EffectOutcome>,
     pub is_crit: bool,
