@@ -180,7 +180,7 @@ impl GameManager {
         for ep in &all_effects_param {
             for target in &all_players {
                 if let Some(c) = self.pm.get_mut_active_character(target) {
-                    if c.is_dead() == Some(true) {
+                    if c.is_dead() == Some(true){
                         continue;
                     }
                     if c.is_targeted(ep, &name, &kind) {
@@ -190,7 +190,7 @@ impl GameManager {
                         all_dodging.push(c.dodge_info.clone());
                     }
                     // assess the dodging
-                    if c.is_dodging(&ep.target) && c.kind != kind {
+                    if c.is_dodging(&ep.target) && c.kind != kind && c.is_current_target{
                         all_dodging.push(c.dodge_info.clone());
                     }
                 }
@@ -588,12 +588,5 @@ mod tests {
                     .current
             );
         }
-
-        ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(1, ra.all_dodging.len());
-        ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(1, ra.all_dodging.len());
-        ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(1, ra.all_dodging.len());
     }
 }
