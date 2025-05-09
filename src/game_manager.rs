@@ -180,7 +180,7 @@ impl GameManager {
         for ep in &all_effects_param {
             for target in &all_players {
                 if let Some(c) = self.pm.get_mut_active_character(target) {
-                    if c.is_dead() == Some(true){
+                    if c.is_dead() == Some(true) {
                         continue;
                     }
                     if c.is_targeted(ep, &name, &kind) {
@@ -190,7 +190,7 @@ impl GameManager {
                         all_dodging.push(c.dodge_info.clone());
                     }
                     // assess the dodging
-                    if c.is_dodging(&ep.target) {
+                    if c.is_dodging(&ep.target) && c.kind != kind {
                         all_dodging.push(c.dodge_info.clone());
                     }
                 }
@@ -349,7 +349,10 @@ mod tests {
             .unwrap()
             .is_current_target = true;
         let ra = gm.launch_attack(&atk.clone().name);
-        assert_eq!(true, ra.outcomes.len() > 0);
+        assert_eq!(1, ra.outcomes.len());
+        assert_eq!(1, ra.all_dodging.len());
+        assert_eq!("Boss1", ra.all_dodging[0].name);
+        assert_eq!(false, ra.all_dodging[0].is_dodging);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
             old_hp_boss - 40,
@@ -558,17 +561,39 @@ mod tests {
             .stats
             .all_stats[HP]
             .current;
-        gm.launch_attack("SimpleAtk");
-        assert_eq!(
-            old_hp_boss - 31,
-            gm.pm
-                .get_active_boss_character("Angmar")
-                .unwrap()
-                .stats
-                .all_stats[HP]
-                .current
-        );
-        gm.launch_attack("SimpleAtk");
-        gm.launch_attack("SimpleAtk");
+        gm.pm
+            .get_mut_active_boss_character("Angmar")
+            .unwrap()
+            .is_current_target = true;
+        let mut ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(1, ra.all_dodging.len());
+        if ra.all_dodging[0].is_dodging {
+            assert_eq!(
+                old_hp_boss,
+                gm.pm
+                    .get_active_boss_character("Angmar")
+                    .unwrap()
+                    .stats
+                    .all_stats[HP]
+                    .current
+            );
+        } else {
+            assert_eq!(
+                old_hp_boss - 31,
+                gm.pm
+                    .get_active_boss_character("Angmar")
+                    .unwrap()
+                    .stats
+                    .all_stats[HP]
+                    .current
+            );
+        }
+
+        ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(1, ra.all_dodging.len());
+        ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(1, ra.all_dodging.len());
+        ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(1, ra.all_dodging.len());
     }
 }
