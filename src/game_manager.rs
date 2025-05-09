@@ -327,7 +327,8 @@ mod tests {
             .get_mut_active_boss_character("Boss1")
             .unwrap()
             .is_current_target = true;
-        gm.launch_attack(&atk.clone().name);
+        let outcomes = gm.launch_attack(&atk.clone().name);
+        assert_eq!(true, outcomes.len() > 0);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
             old_hp_boss - 40,

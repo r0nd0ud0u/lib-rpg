@@ -815,6 +815,7 @@ impl Character {
                 full_atk_amount_tx: full_amount,
                 real_amount_tx: full_amount,
                 new_effect_param,
+                target_name: self.name.clone(),
                 ..Default::default()
             };
         }
@@ -830,6 +831,7 @@ impl Character {
             full_atk_amount_tx: full_amount,
             real_amount_tx: real_amount,
             new_effect_param,
+            target_name: self.name.clone(),
             ..Default::default()
         }
     }
