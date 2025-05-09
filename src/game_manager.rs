@@ -5,10 +5,17 @@ use crate::{
     common::{paths_const::OFFLINE_ROOT, stats_const::*},
     effect::EffectOutcome,
     game_state::{GameState, GameStatus},
-    players_manager::PlayerManager,
+    players_manager::{DodgeInfo, PlayerManager},
 };
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
+
+#[derive(Default)]
+pub struct ResultLaunchAttack {
+    pub outcomes: Vec<EffectOutcome>,
+    pub is_crit: bool,
+    pub all_dodging: Vec<DodgeInfo>,
+}
 
 /// The entry of the library.
 /// That object should be called to access to all the different functionalities.
@@ -130,23 +137,23 @@ impl GameManager {
      * Atk of the launcher is processed first to enable the potential bufs
      * then the effets are processed on the other targets(ennemy and allies)
      */
-    pub fn launch_attack(&mut self, atk_name: &str) -> Vec<EffectOutcome> {
+    pub fn launch_attack(&mut self, atk_name: &str) -> ResultLaunchAttack {
         let mut output: Vec<EffectOutcome> = vec![];
         let all_players = self.pm.get_all_active_names();
         self.pm.current_player.actions_done_in_round += 1;
         if !self.pm.current_player.attacks_list.contains_key(atk_name) {
             // TODO log
-            return output;
+            return ResultLaunchAttack::default();
         }
 
         if !self.pm.current_player.attacks_list.contains_key(atk_name) {
             // TODO log
-            return output;
+            return ResultLaunchAttack::default();
         }
         self.pm.current_player.process_atk_cost(atk_name);
 
         // is dodging ?
-        self.pm.process_all_dodging(
+        let all_dodging = self.pm.process_all_dodging(
             &all_players,
             self.pm.current_player.attacks_list[atk_name].level.into(),
         );
@@ -160,7 +167,7 @@ impl GameManager {
         let atk = if let Some(atk) = atk_list.get(atk_name) {
             atk
         } else {
-            return output;
+            return ResultLaunchAttack::default();
         };
         let all_effects_param = self
             .pm
@@ -209,7 +216,11 @@ impl GameManager {
             self.game_state.status = GameStatus::StartRound;
         }
 
-        output
+        ResultLaunchAttack {
+            is_crit,
+            outcomes: output,
+            all_dodging,
+        }
     }
 }
 

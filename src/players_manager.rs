@@ -360,13 +360,22 @@ impl PlayerManager {
         output
     }
 
-    pub fn process_all_dodging(&mut self, all_targets: &Vec<String>, atk_level: i64) {
+    pub fn process_all_dodging(
+        &mut self,
+        all_targets: &Vec<String>,
+        atk_level: i64,
+    ) -> Vec<DodgeInfo> {
+        let mut output = vec![];
         for t in all_targets {
             match self.get_mut_active_character(t) {
-                Some(c) => c.process_dodging(atk_level),
+                Some(c) => {
+                    c.process_dodging(atk_level);
+                    output.push(c.dodge_info.clone());
+                }
                 _ => continue,
             }
         }
+        output
     }
 
     pub fn process_died_players(&mut self) {
