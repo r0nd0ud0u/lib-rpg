@@ -391,6 +391,7 @@ impl PlayerManager {
             .active_heroes
             .iter()
             .enumerate()
+            .filter(|(_, c)| c.is_dead() == Some(false))
             .max_by_key(|&(_, c)| c.stats.all_stats[AGGRO].current)
         {
             self.active_heroes[max_index].is_current_target = true;
