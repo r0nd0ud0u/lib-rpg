@@ -153,7 +153,7 @@ impl GameManager {
         self.pm.current_player.process_atk_cost(atk_name);
 
         // is dodging ?
-        let all_dodging = self.pm.process_all_dodging(
+        self.pm.process_all_dodging(
             &all_players,
             self.pm.current_player.attacks_list[atk_name].level.into(),
         );
@@ -176,12 +176,19 @@ impl GameManager {
         let launcher_stats = self.pm.current_player.stats.clone();
         let name = self.pm.current_player.name.clone();
         let kind = self.pm.current_player.kind.clone();
+        let mut all_dodging = vec![];
         for ep in &all_effects_param {
             for target in &all_players {
                 if let Some(c) = self.pm.get_mut_active_character(target) {
                     if c.is_targeted(ep, &name, &kind) {
                         // TODO check if the effect is not already applied
                         output.push(c.apply_effect_outcome(ep, &launcher_stats, is_crit));
+                        // assess the blocking
+                        all_dodging.push(c.dodge_info.clone());
+                    }
+                    // assess the dodging
+                    if c.is_dodging(&ep.target) {
+                        all_dodging.push(c.dodge_info.clone());
                     }
                 }
             }
@@ -338,8 +345,8 @@ mod tests {
             .get_mut_active_boss_character("Boss1")
             .unwrap()
             .is_current_target = true;
-        let outcomes = gm.launch_attack(&atk.clone().name);
-        assert_eq!(true, outcomes.len() > 0);
+        let ra = gm.launch_attack(&atk.clone().name);
+        assert_eq!(true, ra.outcomes.len() > 0);
         assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
         assert_eq!(
             old_hp_boss - 40,

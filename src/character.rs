@@ -643,6 +643,10 @@ impl Character {
         }
     }
 
+    pub fn is_dodging(&self, target: &str) -> bool {
+        self.dodge_info.is_dodging && target == TARGET_ENNEMY
+    }
+
     pub fn process_dodging(&mut self, atk_level: i64) {
         let dodge_info = if atk_level == ULTIMATE_LEVEL {
             DodgeInfo {
@@ -738,7 +742,7 @@ impl Character {
         if effect.target == TARGET_ALLY && effect.reach == ZONE && launcher_name == self.name {
             return false;
         }
-        if self.dodge_info.is_dodging && effect.target == TARGET_ENNEMY {
+        if self.is_dodging(&effect.target) {
             return false;
         }
         // TODO reach random
@@ -1204,7 +1208,7 @@ mod tests {
     }
 
     #[test]
-    fn unit_is_dodging() {
+    fn unit_process_dodging() {
         let mut c = testing_character();
 
         // ultimate atk cannot be dodged
