@@ -217,8 +217,9 @@ impl GameManager {
         self.pm
             .modify_active_character(&self.pm.current_player.name.clone());
 
+        // process end of attack
         if self.check_end_of_game() {
-            self.game_state.status = GameStatus::StartGame;
+            self.game_state.status = GameStatus::EndOfGame;
         } else if self.new_round() {
             self.game_state.status = GameStatus::StartRound;
         } else {
