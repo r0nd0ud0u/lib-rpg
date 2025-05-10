@@ -9,6 +9,7 @@ pub enum GameStatus {
     StartGame = 0,
     StartRound,
     ValidateAction,
+    EndOfGame,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
