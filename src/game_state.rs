@@ -37,6 +37,7 @@ impl GameState {
         GameState {
             died_ennemies: HashMap::new(),
             order_to_play: Vec::new(),
+            status: GameStatus::StartGame,
             ..Default::default()
         }
     }
