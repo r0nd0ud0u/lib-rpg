@@ -1,4 +1,3 @@
-use anyhow::{anyhow, Result};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -269,8 +268,7 @@ impl GameManager {
             utils::write_to_json(
                 &c,
                 self.game_paths.characters.join(format!("{}.json", c.name)),
-            )
-            .map_err(|e| anyhow!("Error save game: {:?}", e));
+            )?;
         }
         Ok(())
     }
