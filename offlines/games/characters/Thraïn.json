@@ -1,0 +1,1290 @@
+{
+  "Name": "Thraïn",
+  "Short name": "Thraïn",
+  "Photo": "Thraïn",
+  "Stats": {
+    "Aggro": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 9999,
+      "max_raw": 9999,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Aggro rate": {
+      "Current": 3,
+      "current_raw": 3,
+      "Max": 3,
+      "max_raw": 3,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Magical armor": {
+      "Current": 50,
+      "current_raw": 50,
+      "Max": 50,
+      "max_raw": 50,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Physical armor": {
+      "Current": 50,
+      "current_raw": 50,
+      "Max": 50,
+      "max_raw": 50,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Magical power": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 0,
+      "max_raw": 0,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Physical power": {
+      "Current": 20,
+      "current_raw": 20,
+      "Max": 20,
+      "max_raw": 20,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "HP": {
+      "Current": 155,
+      "current_raw": 155,
+      "Max": 155,
+      "max_raw": 155,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Mana": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 0,
+      "max_raw": 0,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Vigor": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 0,
+      "max_raw": 0,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Berseck": {
+      "Current": 20,
+      "current_raw": 20,
+      "Max": 100,
+      "max_raw": 100,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Berseck rate": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 0,
+      "max_raw": 0,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Speed": {
+      "Current": 5,
+      "current_raw": 5,
+      "Max": 5,
+      "max_raw": 5,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Critical strike": {
+      "Current": 8,
+      "current_raw": 8,
+      "Max": 8,
+      "max_raw": 8,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Dodge": {
+      "Current": 5,
+      "current_raw": 5,
+      "Max": 5,
+      "max_raw": 5,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "HP regeneration": {
+      "Current": 7,
+      "current_raw": 7,
+      "Max": 7,
+      "max_raw": 7,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Mana regeneration": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 0,
+      "max_raw": 0,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Vigor regeneration": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 0,
+      "max_raw": 0,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Speed regeneration": {
+      "Current": 5,
+      "current_raw": 5,
+      "Max": 5,
+      "max_raw": 5,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "all_stats": {
+      "Aggro": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 9999,
+        "max_raw": 9999,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Aggro rate": {
+        "Current": 3,
+        "current_raw": 3,
+        "Max": 3,
+        "max_raw": 3,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Magic armor": {
+        "Current": 50,
+        "current_raw": 50,
+        "Max": 50,
+        "max_raw": 50,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Physical armor": {
+        "Current": 50,
+        "current_raw": 50,
+        "Max": 50,
+        "max_raw": 50,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Magic power": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 0,
+        "max_raw": 0,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Physical power": {
+        "Current": 20,
+        "current_raw": 20,
+        "Max": 20,
+        "max_raw": 20,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "HP": {
+        "Current": 0,
+        "current_raw": 155,
+        "Max": 155,
+        "max_raw": 155,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Mana": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 0,
+        "max_raw": 0,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Vigor": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 0,
+        "max_raw": 0,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Berserk": {
+        "Current": 16,
+        "current_raw": 20,
+        "Max": 100,
+        "max_raw": 100,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Berserk rate": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 0,
+        "max_raw": 0,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Speed": {
+        "Current": 5,
+        "current_raw": 5,
+        "Max": 5,
+        "max_raw": 5,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Critical strike": {
+        "Current": 8,
+        "current_raw": 8,
+        "Max": 8,
+        "max_raw": 8,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Dodge": {
+        "Current": 5,
+        "current_raw": 5,
+        "Max": 5,
+        "max_raw": 5,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "HP regeneration": {
+        "Current": 7,
+        "current_raw": 7,
+        "Max": 7,
+        "max_raw": 7,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Mana regeneration": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 0,
+        "max_raw": 0,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Vigor regeneration": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 0,
+        "max_raw": 0,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Speed regeneration": {
+        "Current": 5,
+        "current_raw": 5,
+        "Max": 5,
+        "max_raw": 5,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      }
+    }
+  },
+  "Type": "Hero",
+  "Class": "Standard",
+  "Level": 1,
+  "Experience": 0,
+  "next_exp_level": 100,
+  "equipment_on": {},
+  "attacks_list": {
+    "Bouclier Défensif ": {
+      "Nom": "Bouclier Défensif ",
+      "Niveau": 2,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Soi-même",
+      "Portée": "Individuel",
+      "Photo": "Thraïn.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Rage",
+          "Value": 30,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par valeur",
+          "Tours actifs": 2,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Esquive",
+          "Value": 20,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Aggro",
+          "Value": 40,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Cor d'Erebor": {
+      "Nom": "Cor d'Erebor",
+      "Niveau": 5,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Tous les heroes",
+      "Portée": "Zone",
+      "Photo": "default.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Rage",
+          "Value": 5,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 2,
+          "Valeur de l'effet": 0,
+          "Cible": "Tous les heroes",
+          "Portée": "Zone",
+          "Stat": "PV",
+          "Value": 25,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 2,
+          "Valeur de l'effet": 0,
+          "Cible": "Tous les heroes",
+          "Portée": "Zone",
+          "Stat": "Armure magique",
+          "Value": 25,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 2,
+          "Valeur de l'effet": 0,
+          "Cible": "Tous les heroes",
+          "Portée": "Zone",
+          "Stat": "Armure physique",
+          "Value": 25,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Tours de recharge",
+          "Tours actifs": 5,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Soi-même",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 1
+    },
+    "Coup Puissant ": {
+      "Nom": "Coup Puissant ",
+      "Niveau": 6,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 20,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Thraïn.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -80,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Tours de recharge",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "Armure physique",
+          "Value": -25,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par valeur",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "Regen vitesse",
+          "Value": -15,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Enchaînement Furieux": {
+      "Nom": "Enchaînement Furieux",
+      "Niveau": 9,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 20,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Thraïn.png",
+      "Effet": [
+        {
+          "Type": "Répète tant que possible",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -50,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "",
+          "Tours actifs": 0,
+          "Valeur de l'effet": 0,
+          "Cible": "",
+          "Portée": "",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "",
+          "Tours actifs": 0,
+          "Valeur de l'effet": 0,
+          "Cible": "",
+          "Portée": "",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Folie des profondeurs de la Moria": {
+      "Nom": "Folie des profondeurs de la Moria",
+      "Niveau": 8,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "default.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -55,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par %",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -30,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 2,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Esquive",
+          "Value": -10,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Rage",
+          "Value": 45,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Tours de recharge",
+          "Tours actifs": 5,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Fracas Marteau ": {
+      "Nom": "Fracas Marteau ",
+      "Niveau": 3,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Zone",
+      "Photo": "Thraïn.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Rage",
+          "Value": 10,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Zone",
+          "Stat": "PV",
+          "Value": -25,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Aggro",
+          "Value": 10,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 1
+    },
+    "Fracassage de crâne à la masse": {
+      "Nom": "Fracassage de crâne à la masse",
+      "Niveau": 13,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Thraïn.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -150,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par valeur",
+          "Tours actifs": 2,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Esquive",
+          "Value": 65,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up/down degats en %",
+          "Tours actifs": 2,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": -20,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Tours de recharge",
+          "Tours actifs": 10,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": 10,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Rage",
+          "Value": 25,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Frappe Cinglante ": {
+      "Nom": "Frappe Cinglante ",
+      "Niveau": 1,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Thraïn.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -35,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Rage",
+          "Value": 5,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -10,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 1
+    },
+    "Fureur Déchaînée  ": {
+      "Nom": "Fureur Déchaînée  ",
+      "Niveau": 5,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 12,
+      "Cible": "Soi-même",
+      "Portée": "Individuel",
+      "Photo": "Thraïn.png",
+      "Effet": [
+        {
+          "Type": "Up par %",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Pouvoir physique",
+          "Value": 30,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Aggro",
+          "Value": 5,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Cout critique",
+          "Value": 15,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 1
+    },
+    "Protection naine ": {
+      "Nom": "Protection naine ",
+      "Niveau": 8,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Soi-même",
+      "Portée": "Individuel",
+      "Photo": "Thraïn.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Rage",
+          "Value": 15,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 2,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Armure physique",
+          "Value": 150,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 2,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Armure magique",
+          "Value": 150,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Provocation Féroce ": {
+      "Nom": "Provocation Féroce ",
+      "Niveau": 7,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Soi-même",
+      "Portée": "Individuel",
+      "Photo": "Thraïn.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Rage",
+          "Value": 12,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Aggro",
+          "Value": 10,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Reinit",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Seulement les alliés",
+          "Portée": "Zone",
+          "Stat": "Aggro",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par valeur",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Cout critique",
+          "Value": 40,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Tours de recharge",
+          "Tours actifs": 5,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "SimpleAtk": {
+      "Nom": "SimpleAtk",
+      "Niveau": 1,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 2,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "SimpleAtk.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "HP",
+          "Value": -35,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 1
+    },
+    "Tourbillon Destructeur ": {
+      "Nom": "Tourbillon Destructeur ",
+      "Niveau": 11,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 15,
+      "Cible": "Ennemie",
+      "Portée": "Zone",
+      "Photo": "Thraïn.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Zone",
+          "Stat": "PV",
+          "Value": -60,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Aggro",
+          "Value": 5,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Taux rage",
+          "Value": 100,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    }
+  },
+  "attacks_by_lvl": [],
+  "Color": "blue",
+  "is_last_atk_crit": false,
+  "Tx-rx": [
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {}
+  ],
+  "Buf-debuf": [
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 0
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 1
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 2
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 3
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 4
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 5
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 6
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 7
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 8
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 9
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 10
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 11
+    }
+  ],
+  "Powers": {
+    "is_crit_heal_after_crit": false,
+    "is_damage_tx_heal_needy_ally": false
+  },
+  "ExtendedCharacter": {
+    "is_random_target": false,
+    "is_heal_atk_blocked": false,
+    "is_first_round": false
+  },
+  "is-blocking-atk": false,
+  "nb-actions-in-round": 1,
+  "max-actions-by-round": 1,
+  "Rank": 4,
+  "Shape": "",
+  "Effects": [],
+  "dodge-info": {
+    "name": "Thraïn",
+    "is_dodging": false,
+    "is_blocking": false
+  },
+  "is-current-target": true,
+  "is-potential-target": false
+}

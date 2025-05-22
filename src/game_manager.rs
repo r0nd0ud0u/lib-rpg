@@ -1,11 +1,21 @@
-use std::path::Path;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use crate::{
     character::{AmountType, CharacterType},
-    common::{paths_const::OFFLINE_ROOT, stats_const::*},
+    common::{
+        paths_const::{
+            GAMES_DIR, GAME_STATE_STATS_IN_GAME, OFFLINE_CHARACTERS, OFFLINE_EFFECTS,
+            OFFLINE_EQUIPMENT, OFFLINE_GAMESTATE, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT,
+        },
+        stats_const::*,
+    },
     effect::EffectOutcome,
     game_state::{GameState, GameStatus},
     players_manager::{DodgeInfo, PlayerManager},
+    utils,
 };
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
@@ -17,6 +27,17 @@ pub struct ResultLaunchAttack {
     pub all_dodging: Vec<DodgeInfo>,
 }
 
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct GamePaths {
+    pub root: PathBuf,
+    pub characters: PathBuf,
+    pub equipments: PathBuf,
+    pub loot: PathBuf,
+    pub ongoing_effects: PathBuf,
+    pub game_state: PathBuf,
+    pub stats_in_game: PathBuf,
+}
+
 /// The entry of the library.
 /// That object should be called to access to all the different functionalities.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -24,6 +45,8 @@ pub struct GameManager {
     pub game_state: GameState,
     /// Player manager
     pub pm: PlayerManager,
+    /// Paths of the current game
+    pub game_paths: GamePaths,
 }
 
 impl GameManager {
@@ -36,10 +59,15 @@ impl GameManager {
         Ok(GameManager {
             game_state: GameState::new(),
             pm,
+            game_paths: GamePaths {
+                root: new_path.to_path_buf(),
+                ..Default::default()
+            },
         })
     }
     pub fn start_game(&mut self) {
         self.game_state.init();
+        self.build_game_paths();
     }
     pub fn start_new_turn(&mut self) -> bool {
         // For each turn now
@@ -231,6 +259,52 @@ impl GameManager {
             is_crit,
             outcomes: output,
             all_dodging,
+        }
+    }
+
+    pub fn save_game(&self) {
+        // write_to_json
+        for c in &self.pm.active_heroes {
+            let _ = utils::write_to_json(
+                &c,
+                self.game_paths.characters.join(format!("{}.json", c.name)),
+            );
+        }
+    }
+
+    pub fn build_game_paths(&mut self) {
+        let cur_game_path = self.game_paths.root.join(GAMES_DIR.to_path_buf());
+
+        self.game_paths.characters = cur_game_path.join(OFFLINE_CHARACTERS.to_path_buf());
+        self.game_paths.equipments = cur_game_path.join(OFFLINE_EQUIPMENT.to_path_buf());
+        self.game_paths.game_state = cur_game_path.join(OFFLINE_GAMESTATE.to_path_buf());
+        self.game_paths.loot = cur_game_path.join(OFFLINE_LOOT_EQUIPMENT.to_path_buf());
+        self.game_paths.ongoing_effects = cur_game_path.join(OFFLINE_EFFECTS.to_path_buf());
+        self.game_paths.stats_in_game = cur_game_path.join(GAME_STATE_STATS_IN_GAME.to_path_buf());
+
+        let log = "wrong behavior dir creation";
+        if fs::create_dir_all(&self.game_paths.characters).is_err() {
+            println!("{}", log);
+        }
+        let log = "wrong behavior dir creation";
+        if fs::create_dir_all(&self.game_paths.equipments).is_err() {
+            println!("{}", log);
+        }
+        let log = "wrong behavior dir creation";
+        if fs::create_dir_all(&self.game_paths.game_state).is_err() {
+            println!("{}", log);
+        }
+        let log = "wrong behavior dir creation";
+        if fs::create_dir_all(&self.game_paths.loot).is_err() {
+            println!("{}", log);
+        }
+        let log = "wrong behavior dir creation";
+        if fs::create_dir_all(&self.game_paths.stats_in_game).is_err() {
+            println!("{}", log);
+        }
+        let log = "wrong behavior dir creation";
+        if fs::create_dir_all(&self.game_paths.ongoing_effects).is_err() {
+            println!("{}", log);
         }
     }
 }
@@ -554,6 +628,7 @@ mod tests {
     #[test]
     fn integ_dxrpg() {
         let mut gm = GameManager::try_new("").unwrap();
+        gm.start_game();
         gm.start_new_turn();
         let old_hp_boss = gm
             .pm
@@ -614,13 +689,15 @@ mod tests {
         assert_eq!(2, gm.game_state.current_turn_nb);
         assert_eq!(2, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
+        // 2 heroes are dead and their turn index were 3 and 4
         assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(3, gm.game_state.current_round);
+        assert_eq!(5, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
         // one player is dead , round 3 to 5
         assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(5, gm.game_state.current_round);
+        assert_eq!(6, gm.game_state.current_round);
         // angmar turn
         let _ra = gm.launch_attack("SimpleAtk");
+        gm.save_game();
     }
 }
