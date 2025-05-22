@@ -17,7 +17,7 @@ use crate::{
     players_manager::{DodgeInfo, PlayerManager},
     utils,
 };
-use anyhow::{Ok, Result};
+use anyhow::{Ok , Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -283,7 +283,7 @@ impl GameManager {
         self.game_paths.ongoing_effects = cur_game_path.join(OFFLINE_EFFECTS.to_path_buf());
         self.game_paths.stats_in_game = cur_game_path.join(GAME_STATE_STATS_IN_GAME.to_path_buf());
 
-        let log = "wrong behavior dir creation";
+        /* let log = "wrong behavior dir creation";
         if fs::create_dir_all(&self.game_paths.characters).is_err() {
             println!("{}", log);
         }
@@ -306,7 +306,7 @@ impl GameManager {
         let log = "wrong behavior dir creation";
         if fs::create_dir_all(&self.game_paths.ongoing_effects).is_err() {
             println!("{}", log);
-        }
+        } */
     }
 }
 
@@ -628,7 +628,7 @@ mod tests {
 
     #[test]
     fn integ_dxrpg() {
-        let mut gm = GameManager::try_new("").unwrap();
+        let mut gm = GameManager::try_new("offlines").unwrap();
         gm.start_game();
         gm.start_new_turn();
         let old_hp_boss = gm

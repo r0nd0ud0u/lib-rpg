@@ -1,0 +1,1238 @@
+{
+  "Name": "Azrak Ombresang",
+  "Short name": "Azrak",
+  "Photo": "Azrak Ombresang",
+  "Stats": {
+    "Aggro": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 9999,
+      "max_raw": 9999,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Aggro rate": {
+      "Current": 1,
+      "current_raw": 1,
+      "Max": 1,
+      "max_raw": 1,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Magical armor": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 0,
+      "max_raw": 0,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Physical armor": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 0,
+      "max_raw": 0,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Magical power": {
+      "Current": 10,
+      "current_raw": 10,
+      "Max": 10,
+      "max_raw": 10,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Physical power": {
+      "Current": 20,
+      "current_raw": 20,
+      "Max": 20,
+      "max_raw": 20,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "HP": {
+      "Current": 145,
+      "current_raw": 145,
+      "Max": 145,
+      "max_raw": 145,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Mana": {
+      "Current": 70,
+      "current_raw": 70,
+      "Max": 70,
+      "max_raw": 70,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Vigor": {
+      "Current": 130,
+      "current_raw": 130,
+      "Max": 130,
+      "max_raw": 130,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Berseck": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 0,
+      "max_raw": 0,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Berseck rate": {
+      "Current": 0,
+      "current_raw": 0,
+      "Max": 0,
+      "max_raw": 0,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Speed": {
+      "Current": 10,
+      "current_raw": 10,
+      "Max": 10,
+      "max_raw": 10,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Critical strike": {
+      "Current": 12,
+      "current_raw": 12,
+      "Max": 12,
+      "max_raw": 12,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Dodge": {
+      "Current": 6,
+      "current_raw": 6,
+      "Max": 6,
+      "max_raw": 6,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "HP regeneration": {
+      "Current": 7,
+      "current_raw": 7,
+      "Max": 7,
+      "max_raw": 7,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Mana regeneration": {
+      "Current": 7,
+      "current_raw": 7,
+      "Max": 7,
+      "max_raw": 7,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Vigor regeneration": {
+      "Current": 5,
+      "current_raw": 5,
+      "Max": 5,
+      "max_raw": 5,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "Speed regeneration": {
+      "Current": 10,
+      "current_raw": 10,
+      "Max": 10,
+      "max_raw": 10,
+      "buf_effect_value": 0,
+      "buf_effect_percent": 0,
+      "equip_value": 0,
+      "equip_percent": 0
+    },
+    "all_stats": {
+      "Aggro": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 9999,
+        "max_raw": 9999,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Aggro rate": {
+        "Current": 1,
+        "current_raw": 1,
+        "Max": 1,
+        "max_raw": 1,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Magic armor": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 0,
+        "max_raw": 0,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Physical armor": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 0,
+        "max_raw": 0,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Magic power": {
+        "Current": 10,
+        "current_raw": 10,
+        "Max": 10,
+        "max_raw": 10,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Physical power": {
+        "Current": 20,
+        "current_raw": 20,
+        "Max": 20,
+        "max_raw": 20,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "HP": {
+        "Current": 0,
+        "current_raw": 145,
+        "Max": 145,
+        "max_raw": 145,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Mana": {
+        "Current": 70,
+        "current_raw": 70,
+        "Max": 70,
+        "max_raw": 70,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Vigor": {
+        "Current": 117,
+        "current_raw": 130,
+        "Max": 130,
+        "max_raw": 130,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Berserk": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 0,
+        "max_raw": 0,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Berserk rate": {
+        "Current": 0,
+        "current_raw": 0,
+        "Max": 0,
+        "max_raw": 0,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Speed": {
+        "Current": 10,
+        "current_raw": 10,
+        "Max": 10,
+        "max_raw": 10,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Critical strike": {
+        "Current": 12,
+        "current_raw": 12,
+        "Max": 12,
+        "max_raw": 12,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Dodge": {
+        "Current": 6,
+        "current_raw": 6,
+        "Max": 6,
+        "max_raw": 6,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "HP regeneration": {
+        "Current": 7,
+        "current_raw": 7,
+        "Max": 7,
+        "max_raw": 7,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Mana regeneration": {
+        "Current": 7,
+        "current_raw": 7,
+        "Max": 7,
+        "max_raw": 7,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Vigor regeneration": {
+        "Current": 5,
+        "current_raw": 5,
+        "Max": 5,
+        "max_raw": 5,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      },
+      "Speed regeneration": {
+        "Current": 10,
+        "current_raw": 10,
+        "Max": 10,
+        "max_raw": 10,
+        "buf_effect_value": 0,
+        "buf_effect_percent": 0,
+        "equip_value": 0,
+        "equip_percent": 0
+      }
+    }
+  },
+  "Type": "Hero",
+  "Class": "Standard",
+  "Level": 1,
+  "Experience": 0,
+  "next_exp_level": 100,
+  "equipment_on": {},
+  "attacks_list": {
+    "Briseur d'Égide": {
+      "Nom": "Briseur d'Égide",
+      "Niveau": 3,
+      "Coût de mana": 16,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -40,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "Armure magique",
+          "Value": -20,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Chaînes de la Rage": {
+      "Nom": "Chaînes de la Rage",
+      "Niveau": 7,
+      "Coût de mana": 15,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -80,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 6,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "Regen vitesse",
+          "Value": -10,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "",
+          "Tours actifs": 0,
+          "Valeur de l'effet": 0,
+          "Cible": "",
+          "Portée": "",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Flèche de la Montagne du Destin": {
+      "Nom": "Flèche de la Montagne du Destin",
+      "Niveau": 10,
+      "Coût de mana": 0,
+      "Coût de vigueur": 13,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -120,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -40,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Tours de recharge",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up/down degats en %",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": 100,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Pouvoir magique",
+          "Value": 65,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Fléau Sylvestre": {
+      "Nom": "Fléau Sylvestre",
+      "Niveau": 5,
+      "Coût de mana": 0,
+      "Coût de vigueur": 13,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -60,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "Armure physique",
+          "Value": -25,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 1
+    },
+    "Fracas des Abysses": {
+      "Nom": "Fracas des Abysses",
+      "Niveau": 9,
+      "Coût de mana": 0,
+      "Coût de vigueur": 10,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Zone",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Zone",
+          "Stat": "PV",
+          "Value": -70,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Zone",
+          "Stat": "Esquive",
+          "Value": -5,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Regeneration vigueur",
+          "Value": 200,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 1
+    },
+    "Furie du Mordor": {
+      "Nom": "Furie du Mordor",
+      "Niveau": 2,
+      "Coût de mana": 0,
+      "Coût de vigueur": 13,
+      "Coût de rage": 0,
+      "Cible": "Allié",
+      "Portée": "Zone",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Up par %",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Pouvoir physique",
+          "Value": 30,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Seulement les alliés",
+          "Portée": "Zone",
+          "Stat": "Pouvoir physique",
+          "Value": 15,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Pouvoir magique",
+          "Value": 30,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Seulement les alliés",
+          "Portée": "Zone",
+          "Stat": "Pouvoir magique",
+          "Value": 15,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Tours de recharge",
+          "Tours actifs": 6,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 1
+    },
+    "Lame de Morgul": {
+      "Nom": "Lame de Morgul",
+      "Niveau": 11,
+      "Coût de mana": 0,
+      "Coût de vigueur": 15,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -10,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par valeur",
+          "Tours actifs": 2,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Esquive",
+          "Value": 40,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up/down degats en %",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": 30,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 5,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -110,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Tours de recharge",
+          "Tours actifs": 5,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Lame Fusionnelle": {
+      "Nom": "Lame Fusionnelle",
+      "Niveau": 1,
+      "Coût de mana": 0,
+      "Coût de vigueur": 9,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -35,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par valeur",
+          "Tours actifs": 6,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Regen vitesse",
+          "Value": 10,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Malédiction d'Angmar": {
+      "Nom": "Malédiction d'Angmar",
+      "Niveau": 12,
+      "Coût de mana": 14,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": -92,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par %",
+          "Tours actifs": 4,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "Armure magique",
+          "Value": -20,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "",
+          "Tours actifs": 0,
+          "Valeur de l'effet": 0,
+          "Cible": "",
+          "Portée": "",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 3
+    },
+    "Récupération Mordorienne": {
+      "Nom": "Récupération Mordorienne",
+      "Niveau": 6,
+      "Coût de mana": 0,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Zone",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Ennemis morts tours précédents",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 20,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "PV",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Ennemis morts tours précédents",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 20,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Mana",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Ennemis morts tours précédents",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 20,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Vigueur",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Ennemis morts tours précédents",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 20,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "Up/down degats en %",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "Sculpture Élémentaire ": {
+      "Nom": "Sculpture Élémentaire ",
+      "Niveau": 6,
+      "Coût de mana": 24,
+      "Coût de vigueur": 0,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Zone",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Zone",
+          "Stat": "PV",
+          "Value": -50,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Zone",
+          "Stat": "PV",
+          "Value": -30,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up par valeur",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Zone",
+          "Stat": "Cout critique",
+          "Value": -10,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    },
+    "SimpleAtk": {
+      "Nom": "SimpleAtk",
+      "Niveau": 1,
+      "Coût de mana": 0,
+      "Coût de vigueur": 10,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Individuel",
+      "Photo": "SimpleAtk.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Individuel",
+          "Stat": "HP",
+          "Value": -35,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 1
+    },
+    "Éclipse du Mordor": {
+      "Nom": "Éclipse du Mordor",
+      "Niveau": 13,
+      "Coût de mana": 0,
+      "Coût de vigueur": 25,
+      "Coût de rage": 0,
+      "Cible": "Ennemie",
+      "Portée": "Zone",
+      "Photo": "Azrak Ombresang.png",
+      "Effet": [
+        {
+          "Type": "Changement par valeur",
+          "Tours actifs": 1,
+          "Valeur de l'effet": 0,
+          "Cible": "Ennemie",
+          "Portée": "Zone",
+          "Stat": "PV",
+          "Value": -400,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up/down degats en %",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Tous les heroes",
+          "Portée": "Zone",
+          "Stat": "",
+          "Value": 25,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Tours de recharge",
+          "Tours actifs": 10,
+          "Valeur de l'effet": 0,
+          "Cible": "Soi-même",
+          "Portée": "Individuel",
+          "Stat": "",
+          "Value": 0,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        },
+        {
+          "Type": "Up/down heal TX en %",
+          "Tours actifs": 3,
+          "Valeur de l'effet": 0,
+          "Cible": "Tous les heroes",
+          "Portée": "Zone",
+          "Stat": "",
+          "Value": 25,
+          "updated": false,
+          "is_magic_atk": false,
+          "counter_turn": 0,
+          "number_of_applies": 0
+        }
+      ],
+      "Forme": "Standard",
+      "Aggro": 0,
+      "Durée": 0
+    }
+  },
+  "attacks_by_lvl": [],
+  "Color": "orange",
+  "is_last_atk_crit": false,
+  "Tx-rx": [
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {}
+  ],
+  "Buf-debuf": [
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 0
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 1
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 2
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 3
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 4
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 5
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 6
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 7
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 8
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 9
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 10
+    },
+    {
+      "Buf-passive-enabled": false,
+      "Buf-value": 0,
+      "Buf-is-percent": false,
+      "Buf-all-stats": [],
+      "Buf-type": 11
+    }
+  ],
+  "Powers": {
+    "is_crit_heal_after_crit": false,
+    "is_damage_tx_heal_needy_ally": false
+  },
+  "ExtendedCharacter": {
+    "is_random_target": true,
+    "is_heal_atk_blocked": false,
+    "is_first_round": false
+  },
+  "is-blocking-atk": false,
+  "nb-actions-in-round": 0,
+  "max-actions-by-round": 1,
+  "Rank": 4,
+  "Shape": "",
+  "Effects": [],
+  "dodge-info": {
+    "name": "Azrak Ombresang",
+    "is_dodging": false,
+    "is_blocking": false
+  },
+  "is-current-target": false,
+  "is-potential-target": false
+}
