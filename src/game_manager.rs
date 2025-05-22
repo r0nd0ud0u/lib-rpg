@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Result};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -262,14 +263,16 @@ impl GameManager {
         }
     }
 
-    pub fn save_game(&self) {
+    pub fn save_game(&self) -> Result<()> {
         // write_to_json
         for c in &self.pm.active_heroes {
-            let _ = utils::write_to_json(
+            utils::write_to_json(
                 &c,
                 self.game_paths.characters.join(format!("{}.json", c.name)),
-            );
+            )
+            .map_err(|e| anyhow!("Error save game: {:?}", e));
         }
+        Ok(())
     }
 
     pub fn build_game_paths(&mut self) {
