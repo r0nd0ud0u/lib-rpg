@@ -40,7 +40,7 @@ pub fn read_from_json<P: AsRef<Path>, T: DeserializeOwned>(path: P) -> Result<T>
     Ok(value)
 }
 
-fn _write_to_json<P: AsRef<Path>, T: Serialize>(value: &T, path: P) -> Result<()> {
+pub(crate) fn write_to_json<P: AsRef<Path>, T: Serialize>(value: &T, path: P) -> Result<()> {
     let data = serde_json::to_string_pretty(value)?;
     fs::write(path, data)?;
     Ok(())

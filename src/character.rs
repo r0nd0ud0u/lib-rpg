@@ -24,6 +24,7 @@ use crate::{
     players_manager::{DodgeInfo, GameAtkEffects},
     powers::Powers,
     stats::Stats,
+    stats_in_game::StatsInGame,
     target::is_target_ally,
     utils::{self, get_random_nb, list_files_in_dir},
 };
@@ -142,6 +143,9 @@ pub struct Character {
     /// Fight information: is_current_target
     #[serde(default, rename = "is-potential-target")]
     pub is_potential_target: bool,
+    /// Fight information: stats_in_game
+    #[serde(default)]
+    stats_in_game: StatsInGame,
 }
 
 impl Default for Character {
@@ -174,6 +178,7 @@ impl Default for Character {
             dodge_info: DodgeInfo::default(),
             is_current_target: false,
             is_potential_target: false,
+            stats_in_game: StatsInGame::default(),
         }
     }
 }
