@@ -4,9 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
-    attack_type::AttackType,
-    buffers::{update_damage_by_buf, update_heal_by_multi, BufTypes, Buffers},
-    common::{
+    attack_type::AttackType, buffers::{update_damage_by_buf, update_heal_by_multi, BufTypes, Buffers}, common::{
         all_target_const::*,
         attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
         character_const::{NB_TURN_SUM_AGGRO, ULTIMATE_LEVEL},
@@ -14,18 +12,10 @@ use crate::{
         paths_const::*,
         reach_const::*,
         stats_const::*,
-    },
-    effect::{
+    }, effect::{
         is_boosted_by_crit, is_effect_only_at_atk_launch, process_decrease_on_turn, EffectOutcome,
         EffectParam,
-    },
-    equipment::Equipment,
-    game_state::GameState,
-    players_manager::{DodgeInfo, GameAtkEffects},
-    powers::Powers,
-    stats::Stats,
-    target::is_target_ally,
-    utils::{self, get_random_nb, list_files_in_dir},
+    }, equipment::Equipment, game_state::GameState, players_manager::{DodgeInfo, GameAtkEffects}, powers::Powers, stats::Stats, stats_in_game::StatsInGame, target::is_target_ally, utils::{self, get_random_nb, list_files_in_dir}
 };
 
 /// ExtendedCharacter
@@ -142,6 +132,9 @@ pub struct Character {
     /// Fight information: is_current_target
     #[serde(default, rename = "is-potential-target")]
     pub is_potential_target: bool,
+    /// Fight information: stats_in_game
+    #[serde(default)]
+    stats_in_game: StatsInGame,
 }
 
 impl Default for Character {
@@ -174,6 +167,7 @@ impl Default for Character {
             dodge_info: DodgeInfo::default(),
             is_current_target: false,
             is_potential_target: false,
+            stats_in_game: StatsInGame::default(),
         }
     }
 }

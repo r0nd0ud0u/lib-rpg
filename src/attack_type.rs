@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use indexmap::IndexMap;
 use std::{path::Path, vec};
 
 use serde::{Deserialize, Serialize};
@@ -12,6 +13,14 @@ use crate::{
     effect::EffectParam,
     utils,
 };
+
+
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct AtksInfo {
+    atk_name: String,
+    nb_use :i64,
+    all_damages_by_target : IndexMap<String, i64>, // key target, i64 dmg or heal accumulated
+}
 
 /// Defines the parameters of an attack.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
