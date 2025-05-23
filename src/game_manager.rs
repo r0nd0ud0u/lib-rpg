@@ -1,23 +1,14 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use crate::{
     character::{AmountType, CharacterType},
-    common::{
-        paths_const::{
-            GAMES_DIR, GAME_STATE_STATS_IN_GAME, OFFLINE_CHARACTERS, OFFLINE_EFFECTS,
-            OFFLINE_EQUIPMENT, OFFLINE_GAMESTATE, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT,
-        },
-        stats_const::*,
-    },
+    common::{paths_const::*, stats_const::*},
     effect::EffectOutcome,
     game_state::{GameState, GameStatus},
     players_manager::{DodgeInfo, PlayerManager},
     utils,
 };
-use anyhow::{Ok , Result};
+use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -274,39 +265,14 @@ impl GameManager {
     }
 
     pub fn build_game_paths(&mut self) {
-        let cur_game_path = self.game_paths.root.join(GAMES_DIR.to_path_buf());
-
+        let mut cur_game_path = self.game_paths.root.join(GAMES_DIR.to_path_buf());
+        cur_game_path = cur_game_path.join(self.game_state.game_name.clone());
         self.game_paths.characters = cur_game_path.join(OFFLINE_CHARACTERS.to_path_buf());
         self.game_paths.equipments = cur_game_path.join(OFFLINE_EQUIPMENT.to_path_buf());
         self.game_paths.game_state = cur_game_path.join(OFFLINE_GAMESTATE.to_path_buf());
         self.game_paths.loot = cur_game_path.join(OFFLINE_LOOT_EQUIPMENT.to_path_buf());
         self.game_paths.ongoing_effects = cur_game_path.join(OFFLINE_EFFECTS.to_path_buf());
         self.game_paths.stats_in_game = cur_game_path.join(GAME_STATE_STATS_IN_GAME.to_path_buf());
-
-        /* let log = "wrong behavior dir creation";
-        if fs::create_dir_all(&self.game_paths.characters).is_err() {
-            println!("{}", log);
-        }
-        let log = "wrong behavior dir creation";
-        if fs::create_dir_all(&self.game_paths.equipments).is_err() {
-            println!("{}", log);
-        }
-        let log = "wrong behavior dir creation";
-        if fs::create_dir_all(&self.game_paths.game_state).is_err() {
-            println!("{}", log);
-        }
-        let log = "wrong behavior dir creation";
-        if fs::create_dir_all(&self.game_paths.loot).is_err() {
-            println!("{}", log);
-        }
-        let log = "wrong behavior dir creation";
-        if fs::create_dir_all(&self.game_paths.stats_in_game).is_err() {
-            println!("{}", log);
-        }
-        let log = "wrong behavior dir creation";
-        if fs::create_dir_all(&self.game_paths.ongoing_effects).is_err() {
-            println!("{}", log);
-        } */
     }
 }
 
@@ -699,6 +665,7 @@ mod tests {
         assert_eq!(6, gm.game_state.current_round);
         // angmar turn
         let _ra = gm.launch_attack("SimpleAtk");
-        gm.save_game();
+        let result = gm.save_game();
+        assert!(result.is_ok());
     }
 }
