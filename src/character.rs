@@ -763,6 +763,7 @@ impl Character {
         ep: &EffectParam,
         launcher_stats: &Stats,
         is_crit: bool,
+        current_turn: usize, // to process aggro
     ) -> EffectOutcome {
         if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
             return EffectOutcome::default();
@@ -836,6 +837,19 @@ impl Character {
         // Calculation of the real amount of the value of the effect and update the energy stats
         let real_amount = self.process_real_amount(ep, full_amount);
 
+        // process aggro
+        if ep.effect_type != EFFECT_IMPROVE_MAX_STAT_BY_VALUE
+            && ep.effect_type != EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
+        {
+            if ep.stats_name == HP {
+                // process aggro for the launcher
+                self.process_aggro(real_amount, 0, current_turn);
+            } else {
+                // Add aggro to a target
+                self.process_aggro(0, ep.value, current_turn);
+            }
+        }
+
         // update stats in game
         let eo = EffectOutcome {
             full_atk_amount_tx: full_amount,
@@ -886,6 +900,30 @@ impl Character {
         }
         real_amount
     }
+
+    pub fn process_aggro(&mut self, atk_value: i64, aggro_value: i64, turn_nb: usize) {
+        let aggro_norm = 20.0;
+        let mut local_aggro = aggro_value as f64;
+        // Aggro filled by atkValue or input aggro value ?
+        if atk_value != 0 {
+            local_aggro = (atk_value.abs() as f64 / aggro_norm).round();
+        }
+        // case null aggro
+        if local_aggro == 0.0 {
+            return;
+        }
+        // Update aggro
+        if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO) {
+            if let Some(tx_map) = self.tx_rx.get_mut(AmountType::Aggro as usize) {
+                if let Some(aggro) = tx_map.get_mut(&(turn_nb as u64)) {
+                    // update txrx current turn nb
+                    *aggro += local_aggro as i64;
+                    // update stats aggro of character
+                    aggro_stat.current += *aggro as u64;
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -893,6 +931,7 @@ mod tests {
     use std::collections::HashMap;
 
     use super::Character;
+    use crate::character::AmountType;
     use crate::effect::EffectOutcome;
     use crate::testing_all_characters::testing_character;
     use crate::{
@@ -1385,13 +1424,13 @@ mod tests {
         let mut ep = build_cooldown_effect();
         let launcher_stats = c.stats.clone();
         // target is himself
-        let eo = c.apply_effect_outcome(&ep, &launcher_stats, false);
+        let eo = c.apply_effect_outcome(&ep, &launcher_stats, false, 0);
         assert_eq!(eo, EffectOutcome::default());
 
         // target is other ally
         ep = build_hot_effect_individual();
         let old_hp = c2.stats.all_stats[HP].current;
-        let eo = c2.apply_effect_outcome(&ep, &launcher_stats, false);
+        let eo = c2.apply_effect_outcome(&ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, 20);
         assert_eq!(eo.real_amount_tx, 20);
         assert_eq!(eo.new_effect_param.value, 20);
@@ -1409,7 +1448,7 @@ mod tests {
                 .unwrap();
         ep = build_dmg_effect_individual();
         let old_hp = boss1.stats.all_stats[HP].current;
-        let eo = boss1.apply_effect_outcome(&ep, &launcher_stats, false);
+        let eo = boss1.apply_effect_outcome(&ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, -40);
         assert_eq!(eo.real_amount_tx, -40);
         assert_eq!(eo.new_effect_param.value, -40);
@@ -1429,5 +1468,19 @@ mod tests {
         );
         // real amount cannot excess the life of the character
         assert_eq!(result, -(old_hp as i64));
+    }
+
+    #[test]
+    fn unit_proces_aggro() {
+        let root_path = "./tests/offlines";
+        let mut c =
+            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path)
+                .unwrap();
+        c.init_aggro_on_turn(0);
+        c.process_aggro(0, 0, 0);
+        assert_eq!(0, c.tx_rx[AmountType::Aggro as usize][&0]);
+
+        c.process_aggro(20, 0, 0);
+        assert_eq!(1, c.tx_rx[AmountType::Aggro as usize][&0]);
     }
 }

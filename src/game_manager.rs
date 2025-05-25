@@ -204,7 +204,12 @@ impl GameManager {
                     }
                     if c.is_targeted(ep, &name, &kind) {
                         // TODO check if the effect is not already applied
-                        output.push(c.apply_effect_outcome(ep, &launcher_stats, is_crit));
+                        output.push(c.apply_effect_outcome(
+                            ep,
+                            &launcher_stats,
+                            is_crit,
+                            self.game_state.current_turn_nb,
+                        ));
                         // assess the blocking
                         all_dodging.push(c.dodge_info.clone());
                     }
