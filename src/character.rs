@@ -836,13 +836,17 @@ impl Character {
         // Calculation of the real amount of the value of the effect and update the energy stats
         let real_amount = self.process_real_amount(ep, full_amount);
 
-        EffectOutcome {
+        // update stats in game
+        let eo = EffectOutcome {
             full_atk_amount_tx: full_amount,
             real_amount_tx: real_amount,
             new_effect_param,
             target_name: self.name.clone(),
             ..Default::default()
-        }
+        };
+        self.stats_in_game.update_by_effectoutcome(&eo);
+
+        eo
     }
 
     pub fn process_atk(
