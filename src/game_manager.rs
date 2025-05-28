@@ -27,6 +27,7 @@ pub struct GamePaths {
     pub ongoing_effects: PathBuf,
     pub game_state: PathBuf,
     pub stats_in_game: PathBuf,
+    pub games_dir: PathBuf,
 }
 
 /// The entry of the library.
@@ -270,8 +271,11 @@ impl GameManager {
     }
 
     pub fn build_game_paths(&mut self) {
-        let mut cur_game_path = self.game_paths.root.join(GAMES_DIR.to_path_buf());
-        cur_game_path = cur_game_path.join(self.game_state.game_name.clone());
+        self.game_paths.games_dir = self.game_paths.root.join(GAMES_DIR.to_path_buf());
+        let cur_game_path = self
+            .game_paths
+            .games_dir
+            .join(self.game_state.game_name.clone());
         self.game_paths.characters = cur_game_path.join(OFFLINE_CHARACTERS.to_path_buf());
         self.game_paths.equipments = cur_game_path.join(OFFLINE_EQUIPMENT.to_path_buf());
         self.game_paths.game_state = cur_game_path.join(OFFLINE_GAMESTATE.to_path_buf());
