@@ -53,6 +53,7 @@ impl GameManager {
             pm,
             game_paths: GamePaths {
                 root: new_path.to_path_buf(),
+                games_dir: new_path.to_path_buf().join(GAMES_DIR.to_path_buf()),
                 ..Default::default()
             },
         })
@@ -271,7 +272,6 @@ impl GameManager {
     }
 
     pub fn build_game_paths(&mut self) {
-        self.game_paths.games_dir = self.game_paths.root.join(GAMES_DIR.to_path_buf());
         let cur_game_path = self
             .game_paths
             .games_dir
