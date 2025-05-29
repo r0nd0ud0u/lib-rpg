@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use crate::{
     character::{AmountType, CharacterType},
@@ -280,6 +283,22 @@ impl GameManager {
         Ok(())
     }
 
+    pub fn create_game_dirs(&self) -> Result<()> {
+        if let Err(e) = fs::create_dir_all(&self.game_paths.root) {
+            eprintln!("Failed to create directory: {}", e);
+        }
+        if let Err(e) = fs::create_dir_all(&self.game_paths.characters) {
+            eprintln!("Failed to create directory: {}", e);
+        }
+        if let Err(e) = fs::create_dir_all(&self.game_paths.game_state) {
+            eprintln!("Failed to create directory: {}", e);
+        }
+        if let Err(e) = fs::create_dir_all(&self.game_paths.loot) {
+            eprintln!("Failed to create directory: {}", e);
+        }
+        Ok(())
+    }
+
     pub fn build_game_paths(&mut self) {
         let cur_game_path = self
             .game_paths
@@ -297,6 +316,8 @@ impl GameManager {
 #[cfg(test)]
 mod tests {
     use crate::character::Class;
+    use crate::common::paths_const::{self, OFFLINE_ROOT};
+    use crate::utils;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
         game_manager::GameManager,
@@ -614,6 +635,7 @@ mod tests {
     fn integ_dxrpg() {
         let mut gm = GameManager::try_new("offlines").unwrap();
         gm.start_new_game();
+        gm.create_game_dirs().unwrap();
         gm.start_new_turn();
         let old_hp_boss = gm
             .pm
@@ -685,5 +707,9 @@ mod tests {
         let _ra = gm.launch_attack("SimpleAtk");
         let result = gm.save_game();
         assert!(result.is_ok());
+        let path = OFFLINE_ROOT.join(paths_const::GAMES_DIR.to_path_buf());
+        let big_list = utils::list_dirs_in_dir(path);
+        let one_save = big_list.unwrap()[0].clone();
+        gm.load_game(one_save);
     }
 }
