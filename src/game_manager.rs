@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use crate::{
     character::{AmountType, CharacterType},
@@ -27,6 +30,8 @@ pub struct GamePaths {
     pub ongoing_effects: PathBuf,
     pub game_state: PathBuf,
     pub stats_in_game: PathBuf,
+    pub games_dir: PathBuf,
+    pub current_game_dir: PathBuf,
 }
 
 /// The entry of the library.
@@ -52,14 +57,24 @@ impl GameManager {
             pm,
             game_paths: GamePaths {
                 root: new_path.to_path_buf(),
+                games_dir: new_path.to_path_buf().join(GAMES_DIR.to_path_buf()),
                 ..Default::default()
             },
         })
     }
-    pub fn start_game(&mut self) {
+    pub fn start_new_game(&mut self) {
         self.game_state.init();
         self.build_game_paths();
     }
+
+    pub fn load_game<P: AsRef<Path>>(&mut self, game_path_dir: P) -> Result<()> {
+        self.build_game_paths();
+        self.game_state =
+            utils::read_from_json(game_path_dir.as_ref().join(OFFLINE_GAMESTATE.to_path_buf()))?;
+        self.pm.load_active_characters(&game_path_dir, true)?;
+        Ok(())
+    }
+
     pub fn start_new_turn(&mut self) -> bool {
         // For each turn now
         // Process the order of the players
@@ -269,9 +284,40 @@ impl GameManager {
         Ok(())
     }
 
+    pub fn save_game_manager(&self) -> Result<()> {
+        // write_to_json
+        utils::write_to_json(
+            &self,
+            self.game_paths
+                .current_game_dir
+                .join("game_manager.json")
+                .to_path_buf(),
+        )?;
+        Ok(())
+    }
+
+    pub fn create_game_dirs(&self) -> Result<()> {
+        if let Err(e) = fs::create_dir_all(&self.game_paths.root) {
+            eprintln!("Failed to create directory: {}", e);
+        }
+        if let Err(e) = fs::create_dir_all(&self.game_paths.characters) {
+            eprintln!("Failed to create directory: {}", e);
+        }
+        if let Err(e) = fs::create_dir_all(&self.game_paths.game_state) {
+            eprintln!("Failed to create directory: {}", e);
+        }
+        if let Err(e) = fs::create_dir_all(&self.game_paths.loot) {
+            eprintln!("Failed to create directory: {}", e);
+        }
+        Ok(())
+    }
+
     pub fn build_game_paths(&mut self) {
-        let mut cur_game_path = self.game_paths.root.join(GAMES_DIR.to_path_buf());
-        cur_game_path = cur_game_path.join(self.game_state.game_name.clone());
+        let cur_game_path = self
+            .game_paths
+            .games_dir
+            .join(self.game_state.game_name.clone());
+        self.game_paths.current_game_dir = cur_game_path.clone();
         self.game_paths.characters = cur_game_path.join(OFFLINE_CHARACTERS.to_path_buf());
         self.game_paths.equipments = cur_game_path.join(OFFLINE_EQUIPMENT.to_path_buf());
         self.game_paths.game_state = cur_game_path.join(OFFLINE_GAMESTATE.to_path_buf());
@@ -284,6 +330,8 @@ impl GameManager {
 #[cfg(test)]
 mod tests {
     use crate::character::Class;
+    use crate::common::paths_const::{self, OFFLINE_ROOT};
+    use crate::utils;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
         game_manager::GameManager,
@@ -351,7 +399,7 @@ mod tests {
     #[test]
     fn unit_new_round() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         let result = gm.start_new_turn();
         assert_eq!(result, true);
         assert_eq!(gm.game_state.current_round, 1);
@@ -363,7 +411,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case1() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
@@ -424,7 +472,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case2() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         gm.start_new_turn();
 
         // # case 2 dmg on individual ennemy
@@ -481,7 +529,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case3() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
@@ -540,7 +588,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case4() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         gm.start_new_turn();
 
         // # case 4 dmg on individual ennemy
@@ -600,7 +648,8 @@ mod tests {
     #[test]
     fn integ_dxrpg() {
         let mut gm = GameManager::try_new("offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
+        gm.create_game_dirs().unwrap();
         gm.start_new_turn();
         let old_hp_boss = gm
             .pm
@@ -672,5 +721,10 @@ mod tests {
         let _ra = gm.launch_attack("SimpleAtk");
         let result = gm.save_game();
         assert!(result.is_ok());
+        let path = OFFLINE_ROOT.join(paths_const::GAMES_DIR.to_path_buf());
+        let big_list = utils::list_dirs_in_dir(path);
+        let one_save = big_list.unwrap()[0].clone();
+        let _ = gm.load_game(one_save);
+        let _ = gm.save_game_manager();
     }
 }

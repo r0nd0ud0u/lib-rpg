@@ -41,6 +41,7 @@ impl GameState {
             ..Default::default()
         }
     }
+
     pub fn init(&mut self) {
         // create name of exercise
         let time_str = crate::utils::get_current_time_as_string();

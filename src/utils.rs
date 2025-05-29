@@ -34,6 +34,19 @@ pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
     Ok(files)
 }
 
+pub fn list_dirs_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
+    let mut files = Vec::new();
+
+    for entry in fs::read_dir(path)? {
+        let entry = entry?;
+        if entry.path().is_dir() {
+            files.push(entry.path());
+        }
+    }
+
+    Ok(files)
+}
+
 pub fn read_from_json<P: AsRef<Path>, T: DeserializeOwned>(path: P) -> Result<T> {
     let content = fs::read_to_string(path)?;
     let value: T = serde_json::from_str(&content)?;
