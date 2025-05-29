@@ -31,6 +31,7 @@ pub struct GamePaths {
     pub game_state: PathBuf,
     pub stats_in_game: PathBuf,
     pub games_dir: PathBuf,
+    pub current_game_dir: PathBuf,
 }
 
 /// The entry of the library.
@@ -283,6 +284,18 @@ impl GameManager {
         Ok(())
     }
 
+    pub fn save_game_manager(&self) -> Result<()> {
+        // write_to_json
+        utils::write_to_json(
+            &self,
+            self.game_paths
+                .current_game_dir
+                .join("game_manager.json")
+                .to_path_buf(),
+        )?;
+        Ok(())
+    }
+
     pub fn create_game_dirs(&self) -> Result<()> {
         if let Err(e) = fs::create_dir_all(&self.game_paths.root) {
             eprintln!("Failed to create directory: {}", e);
@@ -304,6 +317,7 @@ impl GameManager {
             .game_paths
             .games_dir
             .join(self.game_state.game_name.clone());
+        self.game_paths.current_game_dir = cur_game_path.clone();
         self.game_paths.characters = cur_game_path.join(OFFLINE_CHARACTERS.to_path_buf());
         self.game_paths.equipments = cur_game_path.join(OFFLINE_EQUIPMENT.to_path_buf());
         self.game_paths.game_state = cur_game_path.join(OFFLINE_GAMESTATE.to_path_buf());
@@ -711,5 +725,6 @@ mod tests {
         let big_list = utils::list_dirs_in_dir(path);
         let one_save = big_list.unwrap()[0].clone();
         let _ = gm.load_game(one_save);
+        let _ = gm.save_game_manager();
     }
 }

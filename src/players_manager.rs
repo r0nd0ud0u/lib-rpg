@@ -80,7 +80,7 @@ impl PlayerManager {
         let character_dir_path = path.as_ref().join(*OFFLINE_CHARACTERS);
         match list_files_in_dir(&character_dir_path) {
             Ok(list) => list.iter().for_each(|character_path| {
-                match Character::try_new_from_json(character_path, path.as_ref(), true) {
+                match Character::try_new_from_json(character_path, path.as_ref(), false) {
                     Ok(c) => {
                         if c.kind == CharacterType::Hero {
                             self.all_heroes.push(c);
