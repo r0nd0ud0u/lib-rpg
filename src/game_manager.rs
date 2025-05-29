@@ -70,7 +70,7 @@ impl GameManager {
         self.build_game_paths();
         self.game_state =
             utils::read_from_json(game_path_dir.as_ref().join(OFFLINE_GAMESTATE.to_path_buf()))?;
-        self.pm.load_active_characters(&game_path_dir, false)?;
+        self.pm.load_active_characters(&game_path_dir, true)?;
         Ok(())
     }
 
@@ -710,6 +710,6 @@ mod tests {
         let path = OFFLINE_ROOT.join(paths_const::GAMES_DIR.to_path_buf());
         let big_list = utils::list_dirs_in_dir(path);
         let one_save = big_list.unwrap()[0].clone();
-        gm.load_game(one_save);
+        let _ = gm.load_game(one_save);
     }
 }
