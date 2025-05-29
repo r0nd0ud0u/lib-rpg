@@ -80,12 +80,47 @@ impl PlayerManager {
         let character_dir_path = path.as_ref().join(*OFFLINE_CHARACTERS);
         match list_files_in_dir(&character_dir_path) {
             Ok(list) => list.iter().for_each(|character_path| {
-                match Character::try_new_from_json(character_path, path.as_ref()) {
+                match Character::try_new_from_json(character_path, path.as_ref(), false) {
                     Ok(c) => {
                         if c.kind == CharacterType::Hero {
                             self.all_heroes.push(c);
                         } else {
                             self.all_bosses.push(c);
+                        }
+                    }
+                    Err(e) => println!("{:?} cannot be decoded: {}", character_path, e),
+                }
+            }),
+            Err(e) => bail!("Files cannot be listed in {:#?}: {}", character_dir_path, e),
+        };
+        Ok(())
+    }
+
+    /// Characters are inserted in Hero or Boss lists.
+    pub fn load_active_characters<P: AsRef<Path>>(
+        &mut self,
+        root_path: P,
+        load_from_saved_game: bool,
+    ) -> Result<()> {
+        if root_path.as_ref().as_os_str().is_empty() {
+            bail!("no root path")
+        }
+        self.active_heroes.clear();
+        self.active_bosses.clear();
+        // Load characters from the directory
+        let character_dir_path = root_path.as_ref().join(*OFFLINE_CHARACTERS);
+        match list_files_in_dir(&character_dir_path) {
+            Ok(list) => list.iter().for_each(|character_path| {
+                match Character::try_new_from_json(
+                    character_path,
+                    root_path.as_ref(),
+                    load_from_saved_game,
+                ) {
+                    Ok(c) => {
+                        if c.kind == CharacterType::Hero {
+                            self.active_heroes.push(c);
+                        } else {
+                            self.active_bosses.push(c);
                         }
                     }
                     Err(e) => println!("{:?} cannot be decoded: {}", character_path, e),
