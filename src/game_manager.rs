@@ -63,10 +63,10 @@ impl GameManager {
         self.build_game_paths();
     }
 
-    pub fn load_game<P: AsRef<Path>>(&mut self, game_name: P) -> Result<()> {
+    pub fn load_game<P: AsRef<Path>>(&mut self, game_path_dir: P) -> Result<()> {
         self.build_game_paths();
-        let game_path = self.game_paths.games_dir.join(game_name);
-        self.game_state = utils::read_from_json(game_path.join(OFFLINE_GAMESTATE.to_path_buf()))?;
+        self.game_state =
+            utils::read_from_json(game_path_dir.join(OFFLINE_GAMESTATE.to_path_buf()))?;
         self.pm.load_active_characters(&game_path)?;
         Ok(())
     }
