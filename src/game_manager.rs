@@ -70,7 +70,7 @@ impl GameManager {
         self.build_game_paths();
         self.game_state =
             utils::read_from_json(game_path_dir.as_ref().join(OFFLINE_GAMESTATE.to_path_buf()))?;
-        self.pm.load_active_characters(&game_path_dir)?;
+        self.pm.load_active_characters(&game_path_dir, false)?;
         Ok(())
     }
 

@@ -80,7 +80,7 @@ impl PlayerManager {
         let character_dir_path = path.as_ref().join(*OFFLINE_CHARACTERS);
         match list_files_in_dir(&character_dir_path) {
             Ok(list) => list.iter().for_each(|character_path| {
-                match Character::try_new_from_json(character_path, path.as_ref()) {
+                match Character::try_new_from_json(character_path, path.as_ref(), true) {
                     Ok(c) => {
                         if c.kind == CharacterType::Hero {
                             self.all_heroes.push(c);
@@ -97,7 +97,11 @@ impl PlayerManager {
     }
 
     /// Characters are inserted in Hero or Boss lists.
-    pub fn load_active_characters<P: AsRef<Path>>(&mut self, root_path: P) -> Result<()> {
+    pub fn load_active_characters<P: AsRef<Path>>(
+        &mut self,
+        root_path: P,
+        load_from_saved_game: bool,
+    ) -> Result<()> {
         if root_path.as_ref().as_os_str().is_empty() {
             bail!("no root path")
         }
@@ -107,7 +111,11 @@ impl PlayerManager {
         let character_dir_path = root_path.as_ref().join(*OFFLINE_CHARACTERS);
         match list_files_in_dir(&character_dir_path) {
             Ok(list) => list.iter().for_each(|character_path| {
-                match Character::try_new_from_json(character_path, root_path.as_ref()) {
+                match Character::try_new_from_json(
+                    character_path,
+                    root_path.as_ref(),
+                    load_from_saved_game,
+                ) {
                     Ok(c) => {
                         if c.kind == CharacterType::Hero {
                             self.active_heroes.push(c);

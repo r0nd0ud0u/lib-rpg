@@ -204,6 +204,7 @@ impl Character {
     pub fn try_new_from_json<P1: AsRef<Path>, P2: AsRef<Path>>(
         path: P1,
         root_path: P2,
+        load_from_saved_game: bool,
     ) -> Result<Character> {
         if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
             value.stats.init();
@@ -216,22 +217,22 @@ impl Character {
             for _ in 0..BufTypes::EnumSize as usize - buflen {
                 value.all_buffers.push(Buffers::default());
             }
-            // read atk
-            let attack_path_dir = root_path.as_ref().join(*OFFLINE_ATTACKS).join(&value.name);
-
-            match list_files_in_dir(&attack_path_dir) {
-                Ok(list) => {
-                    list.iter().for_each(|attack_path| {
+            // read atk only if it is new game
+            if !load_from_saved_game {
+                let attack_path_dir = root_path.as_ref().join(*OFFLINE_ATTACKS).join(&value.name);
+                match list_files_in_dir(&attack_path_dir) {
+                    Ok(list) => list.iter().for_each(|attack_path| {
                         match AttackType::try_new_from_json(attack_path) {
                             Ok(atk) => {
                                 value.attacks_list.insert(atk.name.clone(), atk);
                             }
                             Err(e) => println!("{:?} cannot be decoded: {}", attack_path, e),
                         }
-                    })
-                }
-                Err(e) => bail!("Files cannot be listed in {:#?}: {}", attack_path_dir, e),
-            };
+                    }),
+                    Err(e) => bail!("Files cannot be listed in {:#?}: {}", attack_path_dir, e),
+                };
+            }
+
             Ok(value)
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
