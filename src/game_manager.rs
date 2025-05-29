@@ -58,7 +58,7 @@ impl GameManager {
             },
         })
     }
-    pub fn start_game(&mut self) {
+    pub fn start_new_game(&mut self) {
         self.game_state.init();
         self.build_game_paths();
     }
@@ -363,7 +363,7 @@ mod tests {
     #[test]
     fn unit_new_round() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         let result = gm.start_new_turn();
         assert_eq!(result, true);
         assert_eq!(gm.game_state.current_round, 1);
@@ -375,7 +375,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case1() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
@@ -436,7 +436,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case2() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         gm.start_new_turn();
 
         // # case 2 dmg on individual ennemy
@@ -493,7 +493,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case3() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
@@ -552,7 +552,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case4() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         gm.start_new_turn();
 
         // # case 4 dmg on individual ennemy
@@ -612,7 +612,7 @@ mod tests {
     #[test]
     fn integ_dxrpg() {
         let mut gm = GameManager::try_new("offlines").unwrap();
-        gm.start_game();
+        gm.start_new_game();
         gm.start_new_turn();
         let old_hp_boss = gm
             .pm
