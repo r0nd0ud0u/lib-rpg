@@ -22,7 +22,7 @@ pub struct AutoAtks {
     /// Effect outcomes of the auto attacks
     pub result_attacks: Vec<ResultLaunchAttack>,
     /// UUID of the AutoAtks
-    pub uuid: Uuid,
+    pub uuid: String,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

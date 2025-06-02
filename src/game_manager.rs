@@ -168,7 +168,7 @@ impl GameManager {
         if self.is_auto_atk() {
             self.game_state.auto_atks.nb_auto_atk_stored += 1;
             let ra = self.launch_attack("SimpleAtk");
-            self.game_state.auto_atks.uuid = Uuid::new_v4();
+            self.game_state.auto_atks.uuid = Uuid::new_v4().to_string();
             self.game_state.auto_atks.result_attacks.push(ra);
         } else if self.is_end_of_auto_atk(&old_kind) {
             self.game_state.auto_atks = AutoAtks::default();
