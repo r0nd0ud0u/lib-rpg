@@ -493,6 +493,15 @@ impl PlayerManager {
             .for_each(|c| c.is_current_target = false);
     }
 
+    pub fn reset_auto_atk_info(&mut self) {
+        self.active_heroes
+            .iter_mut()
+            .for_each(|c| c.stats.reset_tmp_current_value());
+        self.active_bosses
+            .iter_mut()
+            .for_each(|c| c.stats.reset_tmp_current_value());
+    }
+
     pub fn reset_potential_targeted_character(&mut self) {
         self.active_heroes
             .iter_mut()

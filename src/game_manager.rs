@@ -7,14 +7,14 @@ use crate::{
     character::{AmountType, CharacterType},
     common::{paths_const::*, stats_const::*},
     effect::EffectOutcome,
-    game_state::{GameState, GameStatus},
+    game_state::{AutoAtks, GameState, GameStatus},
     players_manager::{DodgeInfo, PlayerManager},
     utils,
 };
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResultLaunchAttack {
     pub outcomes: Vec<EffectOutcome>,
     pub is_crit: bool,
@@ -140,6 +140,7 @@ impl GameManager {
         if self.game_state.current_round > self.game_state.order_to_play.len() {
             return false;
         }
+        let old_kind = self.pm.current_player.kind.clone();
         if self
             .pm
             .update_current_player(
@@ -162,7 +163,25 @@ impl GameManager {
         // TODO update game status
         // TODO channels for logss
 
+        if self.is_auto_atk() {
+            self.game_state.auto_atks.nb_auto_atk_stored += 1;
+            let ra = self.launch_attack("SimpleAtk");
+            self.game_state.auto_atks.result_attacks.push(ra);
+        }
+        if self.is_end_of_auto_atk(&old_kind) {
+            self.game_state.auto_atks = AutoAtks::default();
+            self.pm.reset_auto_atk_info();
+        }
+
         true
+    }
+
+    pub fn is_auto_atk(&self) -> bool {
+        self.pm.current_player.kind == CharacterType::Boss
+    }
+
+    pub fn is_end_of_auto_atk(&self, old_kind: &CharacterType) -> bool {
+        *old_kind == CharacterType::Hero
     }
 
     /**
@@ -217,6 +236,9 @@ impl GameManager {
                     if c.is_dead() == Some(true) {
                         continue;
                     }
+                    // update tmp current stats
+                    c.stats.sync_tmp_current_value();
+                    // check if the effect is applied on the target
                     if c.is_targeted(ep, &name, &kind) {
                         // TODO check if the effect is not already applied
                         output.push(c.apply_effect_outcome(
@@ -257,6 +279,11 @@ impl GameManager {
             .modify_active_character(&self.pm.current_player.name.clone());
 
         // process end of attack
+        let result_attack = ResultLaunchAttack {
+            is_crit,
+            outcomes: output,
+            all_dodging,
+        };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
         } else if self.new_round() {
@@ -266,11 +293,7 @@ impl GameManager {
             self.game_state.status = GameStatus::StartRound;
         }
 
-        ResultLaunchAttack {
-            is_crit,
-            outcomes: output,
-            all_dodging,
-        }
+        result_attack
     }
 
     pub fn save_game(&self) -> Result<()> {
