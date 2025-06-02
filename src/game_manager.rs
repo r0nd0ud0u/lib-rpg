@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResultLaunchAttack {
+    pub launcher_name: String,
     pub outcomes: Vec<EffectOutcome>,
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
@@ -280,6 +281,7 @@ impl GameManager {
 
         // process end of attack
         let result_attack = ResultLaunchAttack {
+            launcher_name: self.pm.current_player.name.clone(),
             is_crit,
             outcomes: output,
             all_dodging,
