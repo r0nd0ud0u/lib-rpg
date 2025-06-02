@@ -21,7 +21,6 @@ pub struct ResultLaunchAttack {
     pub outcomes: Vec<EffectOutcome>,
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
-    uuid: Uuid,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -169,6 +168,7 @@ impl GameManager {
         if self.is_auto_atk() {
             self.game_state.auto_atks.nb_auto_atk_stored += 1;
             let ra = self.launch_attack("SimpleAtk");
+            self.game_state.auto_atks.uuid = Uuid::new_v4();
             self.game_state.auto_atks.result_attacks.push(ra);
         } else if self.is_end_of_auto_atk(&old_kind) {
             self.game_state.auto_atks = AutoAtks::default();
@@ -286,7 +286,6 @@ impl GameManager {
             is_crit,
             outcomes: output,
             all_dodging,
-            uuid: Uuid::new_v4(),
         };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
