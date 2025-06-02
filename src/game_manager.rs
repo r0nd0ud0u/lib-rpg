@@ -13,6 +13,7 @@ use crate::{
 };
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResultLaunchAttack {
@@ -20,6 +21,7 @@ pub struct ResultLaunchAttack {
     pub outcomes: Vec<EffectOutcome>,
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
+    uuid: Uuid,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -284,6 +286,7 @@ impl GameManager {
             is_crit,
             outcomes: output,
             all_dodging,
+            uuid: Uuid::new_v4(),
         };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;

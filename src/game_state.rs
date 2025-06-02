@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use uuid::Uuid;
 
 use crate::{
     attack_type::AttackType, common::reach_const::INDIVIDUAL, game_manager::ResultLaunchAttack,
@@ -20,6 +21,8 @@ pub struct AutoAtks {
     pub nb_auto_atk_stored: i64,
     /// Effect outcomes of the auto attacks
     pub result_attacks: Vec<ResultLaunchAttack>,
+    /// UUID of the AutoAtks
+    pub uuid: Uuid,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
