@@ -165,11 +165,18 @@ impl GameManager {
         // TODO update game status
         // TODO channels for logss
 
-        if self.is_auto_atk() {
-            let _ = self.launch_attack("SimpleAtk");
-            self.game_state.last_result_atks.is_auto_atk = true;
-        } else if self.is_end_of_auto_atk(&old_kind) {
+        // reinit each round
+        if !self.is_auto_atk() {
+            // reset
             self.game_state.last_result_atks = ResultAtks::default();
+            // init
+            self.game_state.last_result_atks.uuid = Uuid::new_v4().to_string();
+        }
+        // in case of auto atk in a row -> accumulate
+        if self.is_auto_atk() {
+            self.game_state.last_result_atks.is_auto_atk = true;
+            let _ = self.launch_attack("SimpleAtk");
+        } else if self.is_end_of_auto_atk(&old_kind) {
             self.pm.reset_auto_atk_info();
         }
 
@@ -293,8 +300,9 @@ impl GameManager {
             self.start_new_turn();
             self.game_state.status = GameStatus::StartRound;
         }
-        self.game_state.last_result_atks.uuid = Uuid::new_v4().to_string();
+
         self.game_state.last_result_atks.nb_atk_stored += 1;
+
         self.game_state
             .last_result_atks
             .results
