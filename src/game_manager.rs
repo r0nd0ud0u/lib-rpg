@@ -21,6 +21,7 @@ pub struct ResultLaunchAttack {
     pub outcomes: Vec<EffectOutcome>,
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
+    pub is_auto_atk: bool,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -171,10 +172,8 @@ impl GameManager {
             self.game_state.last_result_atks = ResultAtks::default();
             // init
             self.game_state.last_result_atks.uuid = Uuid::new_v4().to_string();
-        }
-        // in case of auto atk in a row -> accumulate
-        if self.is_auto_atk() {
-            self.game_state.last_result_atks.is_auto_atk = true;
+        } else if self.is_auto_atk() {
+            // in case of auto atk in a row -> accumulate
             let _ = self.launch_attack("SimpleAtk");
         } else if self.is_end_of_auto_atk(&old_kind) {
             self.pm.reset_auto_atk_info();
@@ -188,7 +187,7 @@ impl GameManager {
     }
 
     pub fn is_end_of_auto_atk(&self, old_kind: &CharacterType) -> bool {
-        *old_kind == CharacterType::Hero
+        *old_kind == CharacterType::Boss
     }
 
     /**
@@ -291,6 +290,7 @@ impl GameManager {
             is_crit,
             outcomes: output,
             all_dodging,
+            is_auto_atk: self.is_auto_atk(),
         };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
@@ -722,7 +722,7 @@ mod tests {
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(2, gm.game_state.last_result_atks.nb_atk_stored);
+        assert_eq!(3, gm.game_state.last_result_atks.nb_atk_stored);
         // angmar turn
         /*assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(5, gm.game_state.current_round);
