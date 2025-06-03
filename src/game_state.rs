@@ -16,11 +16,11 @@ pub enum GameStatus {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct AutoAtks {
+pub struct ResultAtks {
     /// Number of auto attacks stored
-    pub nb_auto_atk_stored: i64,
+    pub nb_atk_stored: i64,
     /// Effect outcomes of the auto attacks
-    pub result_attacks: Vec<ResultLaunchAttack>,
+    pub results: Vec<ResultLaunchAttack>,
     /// UUID of the AutoAtks
     pub uuid: String,
 }
@@ -43,8 +43,8 @@ pub struct GameState {
     pub current_targeted_list: HashSet<String>,
     /// Current atk selected
     pub current_atk: AttackType,
-    /// Information about the auto attacks
-    pub auto_atks: AutoAtks,
+    /// Information about the last result attacks
+    pub last_result_atks: ResultAtks,
 }
 
 impl GameState {

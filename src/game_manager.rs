@@ -7,7 +7,7 @@ use crate::{
     character::{AmountType, CharacterType},
     common::{paths_const::*, stats_const::*},
     effect::EffectOutcome,
-    game_state::{AutoAtks, GameState, GameStatus},
+    game_state::{GameState, GameStatus, ResultAtks},
     players_manager::{DodgeInfo, PlayerManager},
     utils,
 };
@@ -166,12 +166,12 @@ impl GameManager {
         // TODO channels for logss
 
         if self.is_auto_atk() {
-            self.game_state.auto_atks.nb_auto_atk_stored += 1;
+            self.game_state.last_result_atks.nb_atk_stored += 1;
             let ra = self.launch_attack("SimpleAtk");
-            self.game_state.auto_atks.uuid = Uuid::new_v4().to_string();
-            self.game_state.auto_atks.result_attacks.push(ra);
+            self.game_state.last_result_atks.uuid = Uuid::new_v4().to_string();
+            self.game_state.last_result_atks.results.push(ra);
         } else if self.is_end_of_auto_atk(&old_kind) {
-            self.game_state.auto_atks = AutoAtks::default();
+            self.game_state.last_result_atks = ResultAtks::default();
             self.pm.reset_auto_atk_info();
         }
 
@@ -710,7 +710,7 @@ mod tests {
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(2, gm.game_state.auto_atks.nb_auto_atk_stored);
+        assert_eq!(2, gm.game_state.last_result_atks.nb_atk_stored);
         // angmar turn
         /*assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(5, gm.game_state.current_round);
