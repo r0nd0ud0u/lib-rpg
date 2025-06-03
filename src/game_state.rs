@@ -23,6 +23,8 @@ pub struct ResultAtks {
     pub results: Vec<ResultLaunchAttack>,
     /// UUID of the AutoAtks
     pub uuid: String,
+    /// Is auto atk
+    pub is_auto_atk: bool,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

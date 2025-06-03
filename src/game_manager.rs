@@ -166,10 +166,8 @@ impl GameManager {
         // TODO channels for logss
 
         if self.is_auto_atk() {
-            self.game_state.last_result_atks.nb_atk_stored += 1;
-            let ra = self.launch_attack("SimpleAtk");
-            self.game_state.last_result_atks.uuid = Uuid::new_v4().to_string();
-            self.game_state.last_result_atks.results.push(ra);
+            let _ = self.launch_attack("SimpleAtk");
+            self.game_state.last_result_atks.is_auto_atk = true;
         } else if self.is_end_of_auto_atk(&old_kind) {
             self.game_state.last_result_atks = ResultAtks::default();
             self.pm.reset_auto_atk_info();
@@ -295,6 +293,12 @@ impl GameManager {
             self.start_new_turn();
             self.game_state.status = GameStatus::StartRound;
         }
+        self.game_state.last_result_atks.uuid = Uuid::new_v4().to_string();
+        self.game_state.last_result_atks.nb_atk_stored += 1;
+        self.game_state
+            .last_result_atks
+            .results
+            .push(result_attack.clone());
 
         result_attack
     }
