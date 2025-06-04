@@ -172,11 +172,21 @@ impl GameManager {
             self.game_state.last_result_atks = ResultAtks::default();
             // init
             self.game_state.last_result_atks.uuid = Uuid::new_v4().to_string();
+            for c in self.pm.active_heroes.iter_mut() {
+                c.stats.reset_tmp_current_value();
+            }
+            for c in self.pm.active_bosses.iter_mut() {
+                c.stats.reset_tmp_current_value();
+            }
         } else if self.is_auto_atk() {
             // in case of auto atk in a row -> accumulate
             let _ = self.launch_attack("SimpleAtk");
-        } else if self.is_end_of_auto_atk(&old_kind, &self.pm.current_player.kind) {
-            self.pm.reset_auto_atk_info();
+            for c in self.pm.active_heroes.iter_mut() {
+                c.stats.sync_tmp_current_value();
+            }
+            for c in self.pm.active_bosses.iter_mut() {
+                c.stats.sync_tmp_current_value();
+            }
         }
 
         true
@@ -186,12 +196,12 @@ impl GameManager {
         self.pm.current_player.kind == CharacterType::Boss
     }
 
-    pub fn is_end_of_auto_atk(
+    pub fn is_two_heroes_in_a_row(
         &self,
         old_kind: &CharacterType,
         current_kind: &CharacterType,
     ) -> bool {
-        *old_kind == CharacterType::Boss && *current_kind == CharacterType::Hero
+        *old_kind == CharacterType::Hero && *current_kind == CharacterType::Hero
     }
 
     /**
@@ -728,7 +738,22 @@ mod tests {
         let _ra = gm.launch_attack("SimpleAtk");
         // last hero atk + 2 auto atk by bosses
         assert_eq!(3, gm.game_state.last_result_atks.nb_atk_stored);
+        assert_eq!(
+            2,
+            gm.pm.active_heroes[0].stats.all_stats[HP]
+                .current_before_auto_atk
+                .len()
+        );
+        // turn 2 round 1 hero
+        let _ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(
+            0,
+            gm.pm.active_heroes[0].stats.all_stats[HP]
+                .current_before_auto_atk
+                .len()
+        );
 
+        // check save game
         let path = OFFLINE_ROOT.join(paths_const::GAMES_DIR.to_path_buf());
         let big_list = utils::list_dirs_in_dir(path);
         let one_save = big_list.unwrap()[0].clone();
