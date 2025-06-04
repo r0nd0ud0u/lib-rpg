@@ -170,48 +170,22 @@ impl GameManager {
         if !self.is_auto_atk() {
             // reset
             self.game_state.last_result_atks = ResultAtks::default();
-            let _b = 1;
-            for c in self.pm.active_heroes.iter_mut() {
-                c.stats.reset_tmp_current_value();
-            }
-            for c in self.pm.active_bosses.iter_mut() {
-                c.stats.reset_tmp_current_value();
-            }
             // init
             self.game_state.last_result_atks.uuid = Uuid::new_v4().to_string();
-            
-        } else { 
-            if self.is_prev_round_hero(){
-                let _a = 1;
-                for c in self.pm.active_heroes.iter_mut() {
-                    c.stats.sync_tmp_current_value();
-                }
-                for c in self.pm.active_bosses.iter_mut() {
-                    c.stats.sync_tmp_current_value();
-                }
-            }
-            let _ = self.launch_attack("SimpleAtk");
-            // store state after 1st atk, state after last atk of boss is stored
-            for c in self.pm.active_heroes.iter_mut() {
-                c.stats.sync_tmp_current_value();
-            }
-            for c in self.pm.active_bosses.iter_mut() {
-                c.stats.sync_tmp_current_value();
-            }
         }
 
         true
     }
 
-    pub fn is_prev_round_hero(&self)-> (bool, String){
-        if self.game_state.current_round-2> 0{
-            let name = self.game_state.order_to_play[self.game_state.current_round-2].clone();
-            if let Some(c) = self.pm.get_active_character(&name){
-                return (c.kind == CharacterType::Hero, name.to_owned());
+    pub fn is_round_auto(&self) -> bool {
+        if self.game_state.current_round - 1 > 0 {
+            let name = self.game_state.order_to_play[self.game_state.current_round - 1].clone();
+            if let Some(c) = self.pm.get_active_character(&name) {
+                return c.kind == CharacterType::Boss;
             }
         }
 
-        (false, "".to_owned())
+        false
     }
 
     pub fn is_auto_atk(&self) -> bool {
@@ -774,7 +748,7 @@ mod tests {
                 .current_before_auto_atk
                 .len()
         );
-        
+
         // check save game
         let path = OFFLINE_ROOT.join(paths_const::GAMES_DIR.to_path_buf());
         let big_list = utils::list_dirs_in_dir(path);
