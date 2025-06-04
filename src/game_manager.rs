@@ -178,7 +178,9 @@ impl GameManager {
     }
 
     pub fn is_round_auto(&self) -> bool {
-        if self.game_state.current_round - 1 >= 0 {
+        if self.game_state.current_round as i64 - 1 >= 0
+            && self.game_state.current_round as i64 - 1 < self.game_state.order_to_play.len() as i64
+        {
             let name = self.game_state.order_to_play[self.game_state.current_round - 1].clone();
             if let Some(c) = self.pm.get_active_character(&name) {
                 return c.kind == CharacterType::Boss;
