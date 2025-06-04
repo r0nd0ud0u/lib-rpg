@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use uuid::Uuid;
 
 use crate::{
     attack_type::AttackType, common::reach_const::INDIVIDUAL, game_manager::ResultLaunchAttack,

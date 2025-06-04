@@ -175,7 +175,7 @@ impl GameManager {
         } else if self.is_auto_atk() {
             // in case of auto atk in a row -> accumulate
             let _ = self.launch_attack("SimpleAtk");
-        } else if self.is_end_of_auto_atk(&old_kind) {
+        } else if self.is_end_of_auto_atk(&old_kind, &self.pm.current_player.kind) {
             self.pm.reset_auto_atk_info();
         }
 
@@ -186,8 +186,12 @@ impl GameManager {
         self.pm.current_player.kind == CharacterType::Boss
     }
 
-    pub fn is_end_of_auto_atk(&self, old_kind: &CharacterType) -> bool {
-        *old_kind == CharacterType::Boss
+    pub fn is_end_of_auto_atk(
+        &self,
+        old_kind: &CharacterType,
+        current_kind: &CharacterType,
+    ) -> bool {
+        *old_kind == CharacterType::Boss && *current_kind == CharacterType::Hero
     }
 
     /**
@@ -722,33 +726,9 @@ mod tests {
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
+        // last hero atk + 2 auto atk by bosses
         assert_eq!(3, gm.game_state.last_result_atks.nb_atk_stored);
-        // angmar turn
-        /*assert_eq!(1, gm.game_state.current_turn_nb);
-        assert_eq!(5, gm.game_state.current_round);
-        let ra = gm.launch_attack("SimpleAtk");
-         assert_eq!(ra.all_dodging.len() == 1, true);
-        assert_eq!(ra.all_dodging[0].name, "Thalia");
-        assert_eq!(ra.outcomes.len() > 0, true);
-        assert_eq!(1, gm.game_state.current_turn_nb);
-        assert_eq!(6, gm.game_state.current_round);
-        let _ra = gm.launch_attack("SimpleAtk");
-        // turn 2
-        assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(1, gm.game_state.current_round);
-        let _ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(2, gm.game_state.current_round);
-        let _ra = gm.launch_attack("SimpleAtk");
-        // 2 heroes are dead and their turn index were 3 and 4
-        assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(5, gm.game_state.current_round);
-        let _ra = gm.launch_attack("SimpleAtk");
-        // one player is dead , round 3 to 5
-        assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(6, gm.game_state.current_round);
-        // angmar turn
-        let _ra = gm.launch_attack("SimpleAtk"); */
+
         let path = OFFLINE_ROOT.join(paths_const::GAMES_DIR.to_path_buf());
         let big_list = utils::list_dirs_in_dir(path);
         let one_save = big_list.unwrap()[0].clone();
