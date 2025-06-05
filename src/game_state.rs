@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-use crate::{attack_type::AttackType, common::reach_const::INDIVIDUAL};
+use crate::{
+    attack_type::AttackType, common::reach_const::INDIVIDUAL, game_manager::ResultLaunchAttack,
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum GameStatus {
@@ -10,6 +12,14 @@ pub enum GameStatus {
     StartRound,
     ValidateAction,
     EndOfGame,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ResultAtks {
+    /// Number of auto attacks stored
+    pub nb_atk_stored: i64,
+    /// Effect outcomes of the auto attacks
+    pub results: ResultLaunchAttack,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -30,6 +40,8 @@ pub struct GameState {
     pub current_targeted_list: HashSet<String>,
     /// Current atk selected
     pub current_atk: AttackType,
+    /// Information about the last result attacks
+    pub last_result_atk: ResultLaunchAttack,
 }
 
 impl GameState {

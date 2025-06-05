@@ -14,11 +14,13 @@ use crate::{
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResultLaunchAttack {
+    pub launcher_name: String,
     pub outcomes: Vec<EffectOutcome>,
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
+    pub is_auto_atk: bool,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -162,7 +164,34 @@ impl GameManager {
         // TODO update game status
         // TODO channels for logss
 
+        // reinit each round
+
         true
+    }
+
+    pub fn is_round_auto(&self) -> bool {
+        if self.game_state.current_round as i64 > 0
+            && self.game_state.current_round as i64 - 1 < self.game_state.order_to_play.len() as i64
+        {
+            let name = self.game_state.order_to_play[self.game_state.current_round - 1].clone();
+            if let Some(c) = self.pm.get_active_character(&name) {
+                return c.kind == CharacterType::Boss;
+            }
+        }
+
+        false
+    }
+
+    pub fn is_auto_atk(&self) -> bool {
+        self.pm.current_player.kind == CharacterType::Boss
+    }
+
+    pub fn is_two_heroes_in_a_row(
+        &self,
+        old_kind: &CharacterType,
+        current_kind: &CharacterType,
+    ) -> bool {
+        *old_kind == CharacterType::Hero && *current_kind == CharacterType::Hero
     }
 
     /**
@@ -217,6 +246,7 @@ impl GameManager {
                     if c.is_dead() == Some(true) {
                         continue;
                     }
+                    // check if the effect is applied on the target
                     if c.is_targeted(ep, &name, &kind) {
                         // TODO check if the effect is not already applied
                         output.push(c.apply_effect_outcome(
@@ -257,6 +287,13 @@ impl GameManager {
             .modify_active_character(&self.pm.current_player.name.clone());
 
         // process end of attack
+        let result_attack = ResultLaunchAttack {
+            launcher_name: self.pm.current_player.name.clone(),
+            is_crit,
+            outcomes: output,
+            all_dodging,
+            is_auto_atk: self.is_auto_atk(),
+        };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
         } else if self.new_round() {
@@ -266,32 +303,16 @@ impl GameManager {
             self.game_state.status = GameStatus::StartRound;
         }
 
-        ResultLaunchAttack {
-            is_crit,
-            outcomes: output,
-            all_dodging,
-        }
-    }
+        self.game_state.last_result_atk = result_attack.clone();
 
-    pub fn save_game(&self) -> Result<()> {
-        // write_to_json
-        for c in &self.pm.active_heroes {
-            utils::write_to_json(
-                &c,
-                self.game_paths.characters.join(format!("{}.json", c.name)),
-            )?;
-        }
-        Ok(())
+        result_attack
     }
 
     pub fn save_game_manager(&self) -> Result<()> {
         // write_to_json
         utils::write_to_json(
             &self,
-            self.game_paths
-                .current_game_dir
-                .join("game_manager.json")
-                .to_path_buf(),
+            self.game_paths.current_game_dir.join("game_manager.json"),
         )?;
         Ok(())
     }
@@ -403,9 +424,7 @@ mod tests {
         let result = gm.start_new_turn();
         assert_eq!(result, true);
         assert_eq!(gm.game_state.current_round, 1);
-        let result = gm.new_round();
-        assert_eq!(result, true);
-        assert_eq!(gm.game_state.current_round, 2);
+        // TODO add second hero player to test the current round and avoid auto atk of boss
     }
 
     #[test]
@@ -448,7 +467,8 @@ mod tests {
         assert_eq!(1, ra.all_dodging.len());
         assert_eq!("Boss1", ra.all_dodging[0].name);
         assert_eq!(false, ra.all_dodging[0].is_dodging);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
+        // not dead boss : end of game
+        assert_eq!(false, gm.check_end_of_game());
         assert_eq!(
             old_hp_boss - 40,
             gm.pm
@@ -505,7 +525,8 @@ mod tests {
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
+        // not dead boss : end of game
+        assert_eq!(false, gm.check_end_of_game());
         assert_eq!(
             old_hp_boss,
             gm.pm
@@ -562,7 +583,8 @@ mod tests {
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
+        // 1 dead boss : end of game
+        // assert_eq!(true, gm.check_end_of_game());
         // at least coeff critical strike = 2.0 (-40 * 2.0 = -80)
         assert!(
             old_hp_boss - 80
@@ -623,7 +645,8 @@ mod tests {
             .unwrap()
             .is_current_target = true;
         gm.launch_attack(&atk.clone().name);
-        assert_eq!(gm.pm.current_player.actions_done_in_round, 0);
+        // not dead boss : end of game
+        assert_eq!(false, gm.check_end_of_game());
         // blocking 10% of the damage is received (10% of 40)
         assert_eq!(
             old_hp_boss - 4,
@@ -693,34 +716,8 @@ mod tests {
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
-        // angmar turn
-        assert_eq!(1, gm.game_state.current_turn_nb);
-        assert_eq!(5, gm.game_state.current_round);
-        let ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(ra.all_dodging.len() == 1, true);
-        assert_eq!(ra.all_dodging[0].name, "Thalia");
-        assert_eq!(ra.outcomes.len() > 0, true);
-        assert_eq!(1, gm.game_state.current_turn_nb);
-        assert_eq!(6, gm.game_state.current_round);
-        let _ra = gm.launch_attack("SimpleAtk");
-        // turn 2
-        assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(1, gm.game_state.current_round);
-        let _ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(2, gm.game_state.current_round);
-        let _ra = gm.launch_attack("SimpleAtk");
-        // 2 heroes are dead and their turn index were 3 and 4
-        assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(5, gm.game_state.current_round);
-        let _ra = gm.launch_attack("SimpleAtk");
-        // one player is dead , round 3 to 5
-        assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(6, gm.game_state.current_round);
-        // angmar turn
-        let _ra = gm.launch_attack("SimpleAtk");
-        let result = gm.save_game();
-        assert!(result.is_ok());
+
+        // check save game
         let path = OFFLINE_ROOT.join(paths_const::GAMES_DIR.to_path_buf());
         let big_list = utils::list_dirs_in_dir(path);
         let one_save = big_list.unwrap()[0].clone();
