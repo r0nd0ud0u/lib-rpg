@@ -25,9 +25,6 @@ pub struct Attribute {
     /// Current value of the stat, with equipment and buf/debuf included
     #[serde(rename = "Current")]
     pub current: u64,
-    /// Current value of the stat, with equipment and buf/debuf included
-    #[serde(rename = "current_before_auto_atk")]
-    pub current_before_auto_atk: Vec<u64>,
     /// Current raw value of the stat, WITHOUT equipment and buf/debuf included
     pub current_raw: u64,
     /// Max value of the stat, with equipment and buf/debuf included
@@ -63,12 +60,6 @@ impl Attribute {
     pub fn sync_raw_values(&mut self) {
         self.current_raw = self.current;
         self.max_raw = self.max;
-    }
-    pub fn sync_current_before_auto_atk(&mut self) {
-        self.current_before_auto_atk.push(self.current);
-    }
-    pub fn reset_current_before_auto_atk(&mut self) {
-        self.current_before_auto_atk.clear();
     }
 }
 
@@ -184,48 +175,6 @@ impl Stats {
             .insert(VIGOR_REGEN.to_string(), self.vigor_regeneration.clone());
         self.all_stats
             .insert(SPEED_REGEN.to_string(), self.speed_regeneration.clone());
-    }
-
-    pub fn sync_tmp_current_value(&mut self) {
-        self.all_stats[AGGRO].sync_current_before_auto_atk();
-        self.all_stats[AGGRO_RATE].sync_current_before_auto_atk();
-        self.all_stats[MAGICAL_ARMOR].sync_current_before_auto_atk();
-        self.all_stats[PHYSICAL_ARMOR].sync_current_before_auto_atk();
-        self.all_stats[MAGICAL_POWER].sync_current_before_auto_atk();
-        self.all_stats[PHYSICAL_POWER].sync_current_before_auto_atk();
-        self.all_stats[HP].sync_current_before_auto_atk();
-        self.all_stats[MANA].sync_current_before_auto_atk();
-        self.all_stats[VIGOR].sync_current_before_auto_atk();
-        self.all_stats[BERSECK].sync_current_before_auto_atk();
-        self.all_stats[BERSECK_RATE].sync_current_before_auto_atk();
-        self.all_stats[SPEED].sync_current_before_auto_atk();
-        self.all_stats[CRITICAL_STRIKE].sync_current_before_auto_atk();
-        self.all_stats[DODGE].sync_current_before_auto_atk();
-        self.all_stats[HP_REGEN].sync_current_before_auto_atk();
-        self.all_stats[MANA_REGEN].sync_current_before_auto_atk();
-        self.all_stats[VIGOR_REGEN].sync_current_before_auto_atk();
-        self.all_stats[SPEED_REGEN].sync_current_before_auto_atk();
-    }
-
-    pub fn reset_tmp_current_value(&mut self) {
-        self.all_stats[AGGRO].reset_current_before_auto_atk();
-        self.all_stats[AGGRO_RATE].reset_current_before_auto_atk();
-        self.all_stats[MAGICAL_ARMOR].reset_current_before_auto_atk();
-        self.all_stats[PHYSICAL_ARMOR].reset_current_before_auto_atk();
-        self.all_stats[MAGICAL_POWER].reset_current_before_auto_atk();
-        self.all_stats[PHYSICAL_POWER].reset_current_before_auto_atk();
-        self.all_stats[HP].reset_current_before_auto_atk();
-        self.all_stats[MANA].reset_current_before_auto_atk();
-        self.all_stats[VIGOR].reset_current_before_auto_atk();
-        self.all_stats[BERSECK].reset_current_before_auto_atk();
-        self.all_stats[BERSECK_RATE].reset_current_before_auto_atk();
-        self.all_stats[SPEED].reset_current_before_auto_atk();
-        self.all_stats[CRITICAL_STRIKE].reset_current_before_auto_atk();
-        self.all_stats[DODGE].reset_current_before_auto_atk();
-        self.all_stats[HP_REGEN].reset_current_before_auto_atk();
-        self.all_stats[MANA_REGEN].reset_current_before_auto_atk();
-        self.all_stats[VIGOR_REGEN].reset_current_before_auto_atk();
-        self.all_stats[SPEED_REGEN].reset_current_before_auto_atk();
     }
 
     pub fn get_mut_value(&mut self, name: &str) -> &mut Attribute {

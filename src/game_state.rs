@@ -19,9 +19,7 @@ pub struct ResultAtks {
     /// Number of auto attacks stored
     pub nb_atk_stored: i64,
     /// Effect outcomes of the auto attacks
-    pub results: Vec<ResultLaunchAttack>,
-    /// UUID of the AutoAtks
-    pub uuid: String,
+    pub results: ResultLaunchAttack,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -43,7 +41,7 @@ pub struct GameState {
     /// Current atk selected
     pub current_atk: AttackType,
     /// Information about the last result attacks
-    pub last_result_atks: ResultAtks,
+    pub last_result_atk: ResultLaunchAttack,
 }
 
 impl GameState {

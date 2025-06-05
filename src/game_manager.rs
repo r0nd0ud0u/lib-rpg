@@ -7,13 +7,12 @@ use crate::{
     character::{AmountType, CharacterType},
     common::{paths_const::*, stats_const::*},
     effect::EffectOutcome,
-    game_state::{GameState, GameStatus, ResultAtks},
+    game_state::{GameState, GameStatus},
     players_manager::{DodgeInfo, PlayerManager},
     utils,
 };
 use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResultLaunchAttack {
@@ -143,7 +142,6 @@ impl GameManager {
         if self.game_state.current_round > self.game_state.order_to_play.len() {
             return false;
         }
-        let old_kind = self.pm.current_player.kind.clone();
         if self
             .pm
             .update_current_player(
@@ -167,18 +165,12 @@ impl GameManager {
         // TODO channels for logss
 
         // reinit each round
-        if !self.is_auto_atk() {
-            // reset
-            self.game_state.last_result_atks = ResultAtks::default();
-            // init
-            self.game_state.last_result_atks.uuid = Uuid::new_v4().to_string();
-        }
 
         true
     }
 
     pub fn is_round_auto(&self) -> bool {
-        if self.game_state.current_round as i64 - 1 >= 0
+        if self.game_state.current_round as i64 > 0
             && self.game_state.current_round as i64 - 1 < self.game_state.order_to_play.len() as i64
         {
             let name = self.game_state.order_to_play[self.game_state.current_round - 1].clone();
@@ -254,8 +246,6 @@ impl GameManager {
                     if c.is_dead() == Some(true) {
                         continue;
                     }
-                    // update tmp current stats
-                    c.stats.sync_tmp_current_value();
                     // check if the effect is applied on the target
                     if c.is_targeted(ep, &name, &kind) {
                         // TODO check if the effect is not already applied
@@ -313,12 +303,7 @@ impl GameManager {
             self.game_state.status = GameStatus::StartRound;
         }
 
-        self.game_state.last_result_atks.nb_atk_stored += 1;
-
-        self.game_state
-            .last_result_atks
-            .results
-            .push(result_attack.clone());
+        self.game_state.last_result_atk = result_attack.clone();
 
         result_attack
     }
@@ -327,10 +312,7 @@ impl GameManager {
         // write_to_json
         utils::write_to_json(
             &self,
-            self.game_paths
-                .current_game_dir
-                .join("game_manager.json")
-                .to_path_buf(),
+            self.game_paths.current_game_dir.join("game_manager.json"),
         )?;
         Ok(())
     }
@@ -485,8 +467,8 @@ mod tests {
         assert_eq!(1, ra.all_dodging.len());
         assert_eq!("Boss1", ra.all_dodging[0].name);
         assert_eq!(false, ra.all_dodging[0].is_dodging);
-        // 1 dead boss : end of game
-        assert_eq!(true, gm.check_end_of_game());
+        // not dead boss : end of game
+        assert_eq!(false, gm.check_end_of_game());
         assert_eq!(
             old_hp_boss - 40,
             gm.pm
@@ -543,8 +525,8 @@ mod tests {
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name);
-        // 1 dead boss : end of game
-        assert_eq!(true, gm.check_end_of_game());
+        // not dead boss : end of game
+        assert_eq!(false, gm.check_end_of_game());
         assert_eq!(
             old_hp_boss,
             gm.pm
@@ -663,8 +645,8 @@ mod tests {
             .unwrap()
             .is_current_target = true;
         gm.launch_attack(&atk.clone().name);
-        // 1 dead boss : end of game
-        assert_eq!(true, gm.check_end_of_game());
+        // not dead boss : end of game
+        assert_eq!(false, gm.check_end_of_game());
         // blocking 10% of the damage is received (10% of 40)
         assert_eq!(
             old_hp_boss - 4,
@@ -734,22 +716,6 @@ mod tests {
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
-        // last hero atk + 2 auto atk by bosses
-        assert_eq!(3, gm.game_state.last_result_atks.nb_atk_stored);
-        assert_eq!(
-            3,
-            gm.pm.active_heroes[0].stats.all_stats[HP]
-                .current_before_auto_atk
-                .len()
-        );
-        // turn 2 round 1 hero
-        let _ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(
-            0,
-            gm.pm.active_heroes[0].stats.all_stats[HP]
-                .current_before_auto_atk
-                .len()
-        );
 
         // check save game
         let path = OFFLINE_ROOT.join(paths_const::GAMES_DIR.to_path_buf());
