@@ -348,11 +348,6 @@ impl PlayerManager {
         (logs, hot_and_dot)
     }
 
-    pub fn modify_effects(&mut self, updated_effects: Vec<GameAtkEffects>) {
-        self.current_player.all_effects.clear();
-        self.current_player.all_effects = updated_effects;
-    }
-
     pub fn start_new_turn(&mut self) {
         // Increment turn effects
         self.increment_counter_effect();

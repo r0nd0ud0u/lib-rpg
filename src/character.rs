@@ -15,10 +15,7 @@ use crate::{
         reach_const::*,
         stats_const::*,
     },
-    effect::{
-        is_boosted_by_crit, is_effect_only_at_atk_launch, process_decrease_on_turn, EffectOutcome,
-        EffectParam,
-    },
+    effect::{is_boosted_by_crit, process_decrease_on_turn, EffectOutcome, EffectParam},
     equipment::Equipment,
     game_state::GameState,
     players_manager::{DodgeInfo, GameAtkEffects},
@@ -207,12 +204,14 @@ impl Character {
         load_from_saved_game: bool,
     ) -> Result<Character> {
         if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
+            // init stats
             value.stats.init();
+            // init tx rx table
             let txrxlen = value.tx_rx.len();
             for _ in 0..AmountType::EnumSize as usize - txrxlen {
                 value.tx_rx.push(HashMap::new());
             }
-
+            // init all_buffers
             let buflen = value.all_buffers.len();
             for _ in 0..BufTypes::EnumSize as usize - buflen {
                 value.all_buffers.push(Buffers::default());
@@ -276,16 +275,8 @@ impl Character {
         self.tx_rx[AmountType::Aggro as usize].insert(turn_nb as u64, 0);
     }
 
-    /*
-     * @brief Character::SetStatsOnEffect
-     * @param stat
-     * stat.m_RawMaxValue of a stat cannot be equal to 0.
-     *
-     * @param value
-     * @param isPercent
-     * @param updateEffect: false -> enable to update current value et max value
-     * only with equipments buf.
-     */
+    /// stat.m_RawMaxValue of a stat cannot be equal to 0.
+    /// updateEffect: false -> enable to update current value et max value only with equipments buf
     pub fn set_stats_on_effect(
         &mut self,
         attribute_name: &str,
@@ -298,27 +289,24 @@ impl Character {
             .all_stats
             .get_mut(attribute_name)
             .expect("Stat not found");
-        let ratio = utils::calc_ratio(stat.current as i64, stat.max as i64);
         if stat.max_raw == 0 {
             return;
         }
-        let base_value =
-            stat.max_raw + stat.buf_equip_value + stat.buf_equip_percent * stat.max_raw / 100;
-        stat.max = base_value;
         if update_effect {
             if is_percent {
-                if value > 0 {
-                    stat.buf_effect_percent += value as u64;
-                } else {
-                    stat.buf_effect_percent = stat.buf_effect_percent.saturating_sub(value as u64);
-                }
-            } else if value > 0 {
-                stat.buf_effect_value += value as u64;
+                stat.buf_effect_percent += value;
             } else {
-                stat.buf_effect_value = stat.buf_effect_percent.saturating_sub(value as u64);
+                stat.buf_effect_value += value;
             }
         }
-        stat.max = base_value + stat.buf_effect_value + stat.buf_effect_percent * base_value / 100;
+        let base_value = stat.max_raw as i64
+            + stat.buf_equip_value
+            + stat.buf_equip_percent * stat.max_raw as i64 / 100;
+        let new_base =
+            base_value + stat.buf_effect_value + stat.buf_effect_percent * base_value / 100;
+        stat.max = new_base.max(0) as u64;
+        // stats current
+        let ratio = utils::calc_ratio(stat.current as i64, stat.max as i64);
         stat.current = (stat.max as f64 * ratio).round() as u64;
     }
 
@@ -474,56 +462,6 @@ impl Character {
         (output_log, new_effect_param)
     }
 
-    /// Process the hot, dot and update of current value of stats
-    /// Calculate the max amount of the effect
-    /// Calculate the real amount transmitted to the target such as `real amount` <= `full amount`
-    pub fn process_effect_value_on_new_round(
-        &mut self,
-        ep: &EffectParam,
-        target: &mut Character,
-    ) -> (i64, i64) {
-        if ep.stats_name.is_empty()
-            || !self.stats.all_stats.contains_key(&ep.stats_name)
-            || is_effect_only_at_atk_launch(&ep.stats_name)
-        {
-            return (0, 0);
-        }
-
-        // calculation of the full amount of the value of the effect
-        let full_amount;
-        if ep.stats_name == HP && ep.effect_type == EFFECT_NB_DECREASE_ON_TURN {
-            full_amount = ep.value;
-        } else if ep.effect_type == EFFECT_PERCENT_CHANGE && (Stats::is_energy_stat(&ep.stats_name))
-        {
-            full_amount = ep.number_of_applies
-                * self.stats.all_stats.get(&ep.stats_name).unwrap().max as i64
-                * ep.value
-                / 100;
-        } else {
-            full_amount = ep.number_of_applies * ep.value;
-        }
-        // Return now if the full amount is 0
-        if full_amount == 0 {
-            return (0, 0);
-        }
-
-        // Otherwise update the current value of the stats or the HOT/DOT
-        // stats update
-        if !Stats::is_energy_stat(&ep.stats_name) {
-            target.set_stats_on_effect(
-                &ep.stats_name,
-                full_amount,
-                ep.effect_type == EFFECT_PERCENT_CHANGE,
-                true,
-            );
-            return (full_amount, full_amount);
-        }
-        // Calculation of the real amount of the value of the effect
-        let real_amount = self.process_real_amount(ep, full_amount);
-
-        (full_amount, real_amount)
-    }
-
     pub fn apply_buf_debuf(&self, full_amount: i64, target: &str, is_crit: bool) -> i64 {
         let mut real_amount = full_amount;
         let mut buf_debuf = 0;
@@ -596,10 +534,6 @@ impl Character {
         let protection = 1000.0 / (1000.0 + target_armor as f64);
 
         (damage as f64 * protection).round() as i64
-    }
-
-    pub fn regen_into_damage(_real_amount_sent: i64, _stats_name: &str) -> String {
-        String::new()
     }
 
     pub fn increment_counter_effect(&mut self) {
@@ -860,7 +794,6 @@ impl Character {
             ..Default::default()
         };
         self.stats_in_game.update_by_effectoutcome(&eo);
-
         eo
     }
 
@@ -932,6 +865,8 @@ mod tests {
     use std::collections::HashMap;
 
     use super::Character;
+    use crate::attack_type::AttackType;
+    use crate::buffers::Buffers;
     use crate::character::AmountType;
     use crate::effect::EffectOutcome;
     use crate::testing_all_characters::testing_character;
@@ -957,7 +892,6 @@ mod tests {
         // buf-debuf
         assert_eq!(12, c.all_buffers.len());
         // TODO change
-        //assert_eq!("hp,mana", c.all_buffers[0].all_stats_name);
         assert_eq!(3, c.all_buffers[0].buf_type);
         assert_eq!(false, c.all_buffers[0].is_passive_enabled);
         assert_eq!(true, c.all_buffers[0].is_percent);
@@ -987,6 +921,15 @@ mod tests {
         // stats - aggro
         assert_eq!(0, c.stats.all_stats[AGGRO].current);
         assert_eq!(9999, c.stats.all_stats[AGGRO].max);
+        // stats - aggro test init stats only on aggro
+        assert_eq!(
+            c.stats.all_stats[AGGRO].current_raw,
+            c.stats.all_stats[AGGRO].current
+        );
+        assert_eq!(
+            c.stats.all_stats[AGGRO].max_raw,
+            c.stats.all_stats[AGGRO].max
+        );
         // stats - aggro rate
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].current);
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].max);
@@ -1042,8 +985,6 @@ mod tests {
         assert_eq!(5, c.stats.all_stats[VIGOR_REGEN].max);
         // tx-rx
         assert_eq!(7, c.tx_rx.len());
-        /*         assert_eq!(0, c.tx_rx[2].tx_rx_size);
-        assert_eq!(2, c.tx_rx[2].tx_rx_type); */
         // Type - kind
         assert_eq!(CharacterType::Hero, c.kind);
         // is-blocking-atk
@@ -1118,6 +1059,12 @@ mod tests {
         let c = Character::try_new_from_json(file_path, root_path, false);
         assert!(c.is_ok());
         let mut c = c.unwrap();
+        c.set_stats_on_effect(HP, -10, false, true);
+        assert_eq!(125, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.set_stats_on_effect(HP, 10, false, true);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
         c.set_stats_on_effect(HP, 10, false, true);
         assert_eq!(145, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
@@ -1130,10 +1077,14 @@ mod tests {
         c.set_stats_on_effect(HP, -10, true, true);
         assert_eq!(135, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
+        // test raw max = 0, nothing change
+        c.stats.all_stats[HP].max_raw = 0;
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
     }
 
     #[test]
-    fn unitremove_malus_effect() {
+    fn unit_remove_malus_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
         let c = Character::try_new_from_json(file_path, root_path, false);
@@ -1142,20 +1093,20 @@ mod tests {
         let ep = EffectParam {
             effect_type: EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE.to_string(),
             stats_name: HP.to_string(),
-            value: 10,
+            value: -10,
             ..Default::default()
         };
         c.remove_malus_effect(&ep);
-        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(148, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
         let ep = EffectParam {
             effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_string(),
             stats_name: HP.to_string(),
-            value: 10,
+            value: -10,
             ..Default::default()
         };
         c.remove_malus_effect(&ep);
-        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(158, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
         let ep = EffectParam {
             effect_type: EFFECT_BLOCK_HEAL_ATK.to_string(),
@@ -1222,20 +1173,49 @@ mod tests {
         let c = Character::try_new_from_json(file_path, root_path, false);
         assert!(c.is_ok());
         let mut c = c.unwrap();
-        let ep = EffectParam {
+        let mut ep = EffectParam {
             effect_type: EFFECT_NB_COOL_DOWN.to_string(),
             nb_turns: 10,
             target: c.name.clone(),
             ..Default::default()
         };
         let atk = Default::default();
-        let game_state = Default::default();
+        let mut game_state = Default::default();
         // target is himself
-        let (ep, result) = c.process_one_effect(&ep, false, &atk, &game_state, false);
-        assert_eq!(EFFECT_NB_COOL_DOWN, ep.effect_type);
-        assert_eq!(10, ep.nb_turns);
-        assert_eq!(c.name, ep.target);
+        let (output_ep, result) = c.process_one_effect(&ep, false, &atk, &game_state, false);
+        assert_eq!(EFFECT_NB_COOL_DOWN, output_ep.effect_type);
+        assert_eq!(10, output_ep.nb_turns);
+        assert_eq!(c.name, output_ep.target);
+        assert_eq!(0, output_ep.value);
+        assert_eq!(0, output_ep.sub_value_effect);
         assert_eq!("Cooldown actif sur  de 10 tours.", result);
+
+        // test - critical
+        ep.effect_type = EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned();
+        ep.value = 10;
+        let (output_ep, result) = c.process_one_effect(&ep, false, &atk, &game_state, true);
+        assert_eq!(EFFECT_IMPROVE_MAX_STAT_BY_VALUE, output_ep.effect_type);
+        assert_eq!(10, output_ep.nb_turns);
+        assert_eq!(c.name, output_ep.target);
+        assert_eq!(15, output_ep.value);
+        assert_eq!(0, output_ep.sub_value_effect);
+        assert_eq!("", result);
+
+        // conditions - number of died ennemies
+        game_state.current_turn_nb = 1;
+        game_state.died_ennemies.insert(0, vec!["".to_owned()]);
+        ep.effect_type = CONDITION_ENNEMIES_DIED.to_owned();
+        ep.sub_value_effect = 10;
+        ep.value = 0;
+        let (output_ep, result) = c.process_one_effect(&ep, false, &atk, &game_state, false);
+        // focus on effect_type
+        assert_eq!(EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE, output_ep.effect_type);
+        assert_eq!(10, output_ep.nb_turns);
+        assert_eq!(c.name, output_ep.target);
+        // focus on value
+        assert_eq!(10, output_ep.value);
+        assert_eq!(10, output_ep.sub_value_effect);
+        assert_eq!("", result);
     }
 
     #[test]
@@ -1490,5 +1470,42 @@ mod tests {
 
         c.process_aggro(20, 0, 0);
         assert_eq!(1, c.tx_rx[AmountType::Aggro as usize][&0]);
+    }
+
+    #[test]
+    fn unit_reset_all_effects_on_player() {
+        let root_path = "./tests/offlines";
+        let mut c =
+            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
+                .unwrap();
+        let hp_without_malus = c.stats.all_stats[HP].max as i64;
+        c.all_effects.push(GameAtkEffects {
+            all_atk_effects: build_effect_max_stats(),
+            atk: AttackType::default(),
+            launcher: "".to_owned(),
+            target: "".to_owned(),
+            launching_turn: 0,
+        });
+        let effect_value = c.all_effects[0].all_atk_effects.value;
+        c.reset_all_effects_on_player();
+        assert_eq!(
+            hp_without_malus - effect_value,
+            c.stats.all_stats[HP].max as i64
+        );
+        assert_eq!(c.all_effects.is_empty(), true);
+    }
+
+    #[test]
+    fn unit_reset_all_buffers() {
+        let root_path = "./tests/offlines";
+        let mut c =
+            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
+                .unwrap();
+        let mut b = Buffers::default();
+        b.set_buffers(30, true);
+        c.all_buffers.push(b);
+        c.reset_all_buffers();
+        assert_eq!(c.all_buffers[0].value, 0);
+        assert_eq!(c.all_buffers[0].is_percent, false);
     }
 }

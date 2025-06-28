@@ -8,7 +8,7 @@ use crate::{
     common::{paths_const::*, stats_const::*},
     effect::EffectOutcome,
     game_state::{GameState, GameStatus},
-    players_manager::{DodgeInfo, PlayerManager},
+    players_manager::{DodgeInfo, GameAtkEffects, PlayerManager},
     utils,
 };
 use anyhow::{Ok, Result};
@@ -257,6 +257,14 @@ impl GameManager {
                         ));
                         // assess the blocking
                         all_dodging.push(c.dodge_info.clone());
+                        // update all effects
+                        c.all_effects.push(GameAtkEffects {
+                            all_atk_effects: ep.clone(),
+                            atk: atk.clone(),
+                            launcher: name.clone(),
+                            target: "".to_owned(),
+                            launching_turn: self.game_state.current_turn_nb,
+                        });
                     }
                     // assess the dodging
                     if c.is_dodging(&ep.target) && c.kind != kind && c.is_current_target {

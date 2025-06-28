@@ -101,3 +101,17 @@ pub fn build_hot_effect_all() -> EffectParam {
         ..Default::default()
     }
 }
+
+pub fn build_effect_max_stats() -> EffectParam {
+    EffectParam {
+        effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned(),
+        nb_turns: 3,
+        sub_value_effect: 0,
+        target: TARGET_ENNEMY.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        stats_name: HP.to_owned(),
+        value: -20,
+        number_of_applies: 1,
+        ..Default::default()
+    }
+}

@@ -27,7 +27,7 @@ pub struct GameState {
     /// Current turn number
     pub current_turn_nb: usize,
     /// Key turn number, value name
-    pub died_ennemies: HashMap<usize, String>,
+    pub died_ennemies: HashMap<usize, Vec<String>>,
     /// List in the ascending order of the players
     pub order_to_play: Vec<String>,
     /// Current round number
