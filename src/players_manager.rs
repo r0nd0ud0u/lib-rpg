@@ -97,10 +97,9 @@ impl PlayerManager {
     }
 
     /// Characters are inserted in Hero or Boss lists.
-    pub fn load_active_characters<P: AsRef<Path>>(
+    pub fn load_active_characters_from_saved_game<P: AsRef<Path>>(
         &mut self,
         root_path: P,
-        load_from_saved_game: bool,
     ) -> Result<()> {
         if root_path.as_ref().as_os_str().is_empty() {
             bail!("no root path")
@@ -111,11 +110,7 @@ impl PlayerManager {
         let character_dir_path = root_path.as_ref().join(*OFFLINE_CHARACTERS);
         match list_files_in_dir(&character_dir_path) {
             Ok(list) => list.iter().for_each(|character_path| {
-                match Character::try_new_from_json(
-                    character_path,
-                    root_path.as_ref(),
-                    load_from_saved_game,
-                ) {
+                match Character::try_new_from_json(character_path, root_path.as_ref(), true) {
                     Ok(c) => {
                         if c.kind == CharacterType::Hero {
                             self.active_heroes.push(c);
@@ -195,19 +190,27 @@ impl PlayerManager {
             hp.current_raw = hp.max_raw * (hp.current / hp.max);
 
             mana.current = std::cmp::min(mana.max, mana.current + regen_mana.current);
-            mana.current_raw = mana.max_raw * (mana.current / mana.max);
+            if mana.max > 0 {
+                mana.current_raw = mana.max_raw * (mana.current / mana.max);
+            }
 
             vigor.current = std::cmp::min(vigor.max, vigor.current + regen_vigor.current);
-            vigor.current_raw = vigor.max_raw * (vigor.current / vigor.max);
+            if vigor.max > 0 {
+                vigor.current_raw = vigor.max_raw * (vigor.current / vigor.max);
+            }
 
             berseck.current = std::cmp::min(berseck.max, berseck.current + regen_berseck.current);
-            berseck.max_raw = berseck.current_raw * (berseck.current / berseck.max);
+            if berseck.max > 0 {
+                berseck.max_raw = berseck.current_raw * (berseck.current / berseck.max);
+            }
 
             speed.current += regen_speed.current;
             speed.max += regen_speed.current;
             speed.max_raw += regen_speed.current;
             // TODO change current raw calculation
-            speed.current_raw = speed.max_raw * (speed.current / speed.max);
+            if speed.max > 0 {
+                speed.current_raw = speed.max_raw * (speed.current / speed.max);
+            }
 
             pl.stats.all_stats.insert(HP.to_owned(), hp);
             pl.stats.all_stats.insert(MANA.to_owned(), mana);
@@ -249,11 +252,11 @@ impl PlayerManager {
     }
 
     pub fn modify_active_character(&mut self, name: &str) {
-        if let Some(hero) = self.active_heroes.iter_mut().find(|c| c.name == name) {
-            *hero = self.current_player.clone(); // Modify the value inside self.active_heroes
-        }
-        if let Some(boss) = self.active_bosses.iter_mut().find(|c| c.name == name) {
-            *boss = self.current_player.clone();
+        let pl = self.current_player.clone();
+        if let Some(hero) = self.get_mut_active_hero_character(name) {
+            *hero = pl; // Modify the value inside self.active_heroes
+        } else if let Some(boss) = self.get_mut_active_boss_character(name) {
+            *boss = pl;
         }
     }
 
@@ -518,7 +521,16 @@ fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &
 #[cfg(test)]
 mod tests {
     use crate::{
-        common::stats_const::*, game_state::GameState, players_manager::GameAtkEffects,
+        common::{
+            reach_const::{INDIVIDUAL, ZONE},
+            stats_const::*,
+        },
+        game_state::GameState,
+        players_manager::GameAtkEffects,
+        testing_atk::{
+            build_atk_damage_indiv, build_atk_damage_zone, build_atk_heal1_indiv,
+            build_atk_heal1_zone,
+        },
         testing_effect::*,
     };
 
@@ -626,11 +638,19 @@ mod tests {
     }
 
     #[test]
-    fn unit_get_active_character() {
+    fn unit_get_mut_active_character() {
         let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
         assert!(pl.get_mut_active_character("test").is_some());
         assert!(pl.get_mut_active_character("Boss1").is_some());
         assert!(pl.get_mut_active_character("unknown").is_none());
+    }
+
+    #[test]
+    fn unit_get_active_character() {
+        let pl = PlayerManager::try_new("tests/offlines").unwrap();
+        assert!(pl.get_active_character("test").is_some());
+        assert!(pl.get_active_character("Boss1").is_some());
+        assert!(pl.get_active_character("unknown").is_none());
     }
 
     #[test]
@@ -699,5 +719,101 @@ mod tests {
 
         pl.apply_hot_or_dot(&gs, -30);
         assert_eq!(70, pl.current_player.stats.all_stats[HP].current);
+    }
+
+    #[test]
+    fn unit_load_active_characters_from_saved_game() {
+        let mut pl = PlayerManager::testing_pm();
+        let result = pl.load_active_characters_from_saved_game("");
+        assert!(result.is_err());
+        let result = pl.load_active_characters_from_saved_game("unknown");
+        assert!(result.is_err());
+        let file_path = "./tests/offlines/"; // Path to the JSON file
+        let result = pl.load_active_characters_from_saved_game(file_path);
+        assert!(result.is_ok());
+        assert_eq!(1, pl.active_heroes.len());
+        assert_eq!(1, pl.active_bosses.len());
+        // we are not loading for a save game
+        // atks are not loaded from atk files
+        assert_eq!(true, pl.active_heroes[0].attacks_list.is_empty());
+    }
+
+    #[test]
+    fn unit_set_one_target() {
+        let mut pl = PlayerManager::testing_pm();
+        pl.set_one_target("test", INDIVIDUAL);
+        assert_eq!(true, pl.active_heroes[0].is_current_target);
+        assert_eq!(false, pl.active_bosses[0].is_current_target);
+        pl.set_one_target("Boss1", INDIVIDUAL);
+        assert_eq!(false, pl.active_heroes[0].is_current_target);
+        assert_eq!(true, pl.active_bosses[0].is_current_target);
+        // with ZONE no reset is done
+        pl.set_one_target("Boss1", ZONE);
+        assert_eq!(false, pl.active_heroes[0].is_current_target);
+        assert_eq!(true, pl.active_bosses[0].is_current_target);
+    }
+
+    #[test]
+    fn unit_set_targeted_characters() {
+        let mut pl = PlayerManager::testing_pm();
+        // hero is attacking
+        // atk to ennemy - effect dmg indiv
+        let atk = build_atk_damage_indiv();
+        pl.set_targeted_characters(&pl.active_heroes[0].clone(), &atk);
+        assert_eq!(pl.active_bosses[0].is_current_target, true);
+        assert_eq!(pl.active_bosses[0].is_potential_target, true);
+        assert_eq!(pl.active_heroes[0].is_current_target, false);
+        assert_eq!(pl.active_heroes[0].is_potential_target, false);
+        // atk to ennemy - effect dmg zone
+        let atk = build_atk_damage_zone();
+        pl.set_targeted_characters(&pl.active_heroes[0].clone(), &atk);
+        assert_eq!(pl.active_bosses[0].is_current_target, true);
+        assert_eq!(pl.active_bosses[0].is_potential_target, false);
+        assert_eq!(pl.active_heroes[0].is_current_target, false);
+        assert_eq!(pl.active_heroes[0].is_potential_target, false);
+        // atk to ally(himself in this example) - effect heal indiv
+        let atk = build_atk_heal1_indiv();
+        pl.set_targeted_characters(&pl.active_heroes[0].clone(), &atk);
+        assert_eq!(pl.active_bosses[0].is_current_target, false);
+        assert_eq!(pl.active_bosses[0].is_potential_target, false);
+        assert_eq!(pl.active_heroes[0].is_current_target, true);
+        assert_eq!(pl.active_heroes[0].is_potential_target, true);
+        // atk to ally(himself in this example) - effect heal zone  => ZONE is not himself
+        let atk = build_atk_heal1_zone();
+        pl.set_targeted_characters(&pl.active_heroes[0].clone(), &atk);
+        assert_eq!(pl.active_bosses[0].is_current_target, false);
+        assert_eq!(pl.active_bosses[0].is_potential_target, false);
+        assert_eq!(pl.active_heroes[0].is_current_target, true);
+        assert_eq!(pl.active_heroes[0].is_potential_target, false);
+
+        // boss is attacking
+        // atk to ennemy - effect dmg indiv
+        let atk = build_atk_damage_indiv();
+        pl.set_targeted_characters(&pl.active_bosses[0].clone(), &atk);
+        assert_eq!(pl.active_bosses[0].is_current_target, false);
+        assert_eq!(pl.active_bosses[0].is_potential_target, false);
+        assert_eq!(pl.active_heroes[0].is_current_target, true);
+        assert_eq!(pl.active_heroes[0].is_potential_target, true);
+        // atk to ennemy - effect dmg zone
+        let atk = build_atk_damage_zone();
+        pl.set_targeted_characters(&pl.active_bosses[0].clone(), &atk);
+        assert_eq!(pl.active_bosses[0].is_current_target, false);
+        assert_eq!(pl.active_bosses[0].is_potential_target, false);
+        assert_eq!(pl.active_heroes[0].is_current_target, true);
+        assert_eq!(pl.active_heroes[0].is_potential_target, false);
+        // atk to ally(himself in this example) - effect heal indiv
+        let atk = build_atk_heal1_indiv();
+        pl.set_targeted_characters(&pl.active_bosses[0].clone(), &atk);
+        assert_eq!(pl.active_bosses[0].is_current_target, true);
+        assert_eq!(pl.active_bosses[0].is_potential_target, true);
+        assert_eq!(pl.active_heroes[0].is_current_target, false);
+        assert_eq!(pl.active_heroes[0].is_potential_target, false);
+        // atk to ally(himself in this example) - effect heal zone  => ZONE is not himself
+        let atk = build_atk_heal1_zone();
+        pl.set_targeted_characters(&pl.active_bosses[0].clone(), &atk);
+        assert_eq!(pl.active_bosses[0].is_current_target, true);
+        assert_eq!(pl.active_bosses[0].is_potential_target, false);
+        assert_eq!(pl.active_heroes[0].is_current_target, false);
+        assert_eq!(pl.active_heroes[0].is_potential_target, false);
     }
 }

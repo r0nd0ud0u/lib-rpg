@@ -73,7 +73,8 @@ impl GameManager {
         self.build_game_paths();
         self.game_state =
             utils::read_from_json(game_path_dir.as_ref().join(OFFLINE_GAMESTATE.to_path_buf()))?;
-        self.pm.load_active_characters(&game_path_dir, true)?;
+        self.pm
+            .load_active_characters_from_saved_game(&game_path_dir)?;
         Ok(())
     }
 
@@ -83,6 +84,7 @@ impl GameManager {
         self.process_order_to_play();
 
         self.game_state.start_new_turn();
+        self.pm.start_new_turn();
 
         // TODO update game status
         // TODO init target view
@@ -339,7 +341,7 @@ impl GameManager {
 mod tests {
     use crate::character::Class;
     use crate::common::attak_const::COEFF_CRIT_DMG;
-    use crate::common::paths_const::{self, GAMES_DIR, OFFLINE_ROOT};
+    use crate::common::paths_const::{self, OFFLINE_ROOT};
     use crate::game_manager::ResultLaunchAttack;
     use crate::game_state::GameStatus;
     use crate::utils;
@@ -461,7 +463,7 @@ mod tests {
         // No dodging of boss
         // no critical of current player
         // TODO load atk by json
-        let atk = build_atk_damage1();
+        let atk = build_atk_damage_indiv();
         gm.pm
             .current_player
             .attacks_list
@@ -527,7 +529,7 @@ mod tests {
         // dodging of boss
         // no critical of current player
         // TODO load atk by json
-        let atk = build_atk_damage1();
+        let atk = build_atk_damage_indiv();
         gm.pm
             .current_player
             .attacks_list
@@ -585,7 +587,7 @@ mod tests {
         // No dodging of boss
         // critical of current player
         // TODO load atk by json
-        let atk = build_atk_damage1();
+        let atk = build_atk_damage_indiv();
         gm.pm
             .current_player
             .attacks_list
@@ -646,7 +648,7 @@ mod tests {
         // Blocking
         // No critical of current player
         // TODO load atk by json
-        let atk = build_atk_damage1();
+        let atk = build_atk_damage_indiv();
         gm.pm
             .current_player
             .attacks_list

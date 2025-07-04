@@ -36,6 +36,7 @@ pub struct AttackType {
     pub vigor_cost: u64,
     #[serde(rename = "Coût de rage")]
     pub berseck_cost: u64,
+    /// TODO is there any sense for target and reach ? those are defined for each effect of that attack
     #[serde(rename = "Cible")]
     pub target: String,
     #[serde(rename = "Portée")]
@@ -102,7 +103,7 @@ mod tests {
             all_target_const::TARGET_ENNEMY, character_json_key::STANDARD_CLASS,
             effect_const::EFFECT_VALUE_CHANGE, reach_const::INDIVIDUAL, stats_const::HP,
         },
-        testing_atk::{build_atk_damage1, build_atk_heal1},
+        testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
     };
 
     #[test]
@@ -138,10 +139,10 @@ mod tests {
 
     #[test]
     fn unit_has_only_heal_effect() {
-        let atk_dmg = build_atk_damage1();
+        let atk_dmg = build_atk_damage_indiv();
         assert_eq!(false, atk_dmg.has_only_heal_effect());
 
-        let mut atk_heal = build_atk_heal1();
+        let mut atk_heal = build_atk_heal1_indiv();
         assert_eq!(true, atk_heal.has_only_heal_effect());
 
         atk_heal.target = TARGET_ENNEMY.to_owned();

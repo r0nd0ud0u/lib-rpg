@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::character::Character;
-use crate::testing_atk::build_atk_damage1;
+use crate::testing_atk::build_atk_damage_indiv;
 
 #[cfg(not(tarpaulin_include))]
 pub fn testing_character() -> Character {
@@ -9,7 +9,7 @@ pub fn testing_character() -> Character {
     let root_path = "./tests/offlines";
     let c = Character::try_new_from_json(file_path, root_path, false);
     let mut c = c.unwrap();
-    let atk = build_atk_damage1();
+    let atk = build_atk_damage_indiv();
     c.attacks_list.insert(atk.name.clone(), atk);
 
     c

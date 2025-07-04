@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
-use crate::{
-    attack_type::AttackType, common::reach_const::INDIVIDUAL, game_manager::ResultLaunchAttack,
-};
+use crate::{attack_type::AttackType, game_manager::ResultLaunchAttack};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum GameStatus {
