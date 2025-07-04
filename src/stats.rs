@@ -33,15 +33,15 @@ pub struct Attribute {
     /// Raw Max value of the stat, WITHOUT equipment and buf/debuf included
     pub max_raw: u64,
     /// All buffer values are added in one value
-    pub buf_effect_value: u64,
+    pub buf_effect_value: i64,
     /// All buffer percentage are added in one percent value
-    pub buf_effect_percent: u64,
+    pub buf_effect_percent: i64,
     /// All buffer equipment are added in one value
     #[serde(rename = "equip_value")]
-    pub buf_equip_value: u64,
+    pub buf_equip_value: i64,
     /// All buffer equipment are added in one value
     #[serde(rename = "equip_percent")]
-    pub buf_equip_percent: u64,
+    pub buf_equip_percent: i64,
 }
 
 impl Ord for Attribute {

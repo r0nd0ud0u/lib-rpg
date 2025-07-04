@@ -4,6 +4,7 @@ use crate::{
     effect::EffectParam,
 };
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_cooldown_effect() -> EffectParam {
     EffectParam {
         effect_type: EFFECT_NB_COOL_DOWN.to_owned(),
@@ -18,6 +19,7 @@ pub fn build_cooldown_effect() -> EffectParam {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_dot_effect_individual() -> EffectParam {
     EffectParam {
         effect_type: EFFECT_VALUE_CHANGE.to_owned(),
@@ -32,6 +34,7 @@ pub fn build_dot_effect_individual() -> EffectParam {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_dot_effect_zone() -> EffectParam {
     EffectParam {
         effect_type: EFFECT_VALUE_CHANGE.to_owned(),
@@ -46,6 +49,7 @@ pub fn build_dot_effect_zone() -> EffectParam {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_dmg_effect_individual() -> EffectParam {
     EffectParam {
         effect_type: EFFECT_VALUE_CHANGE.to_owned(),
@@ -60,6 +64,22 @@ pub fn build_dmg_effect_individual() -> EffectParam {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
+pub fn build_dmg_effect_zone() -> EffectParam {
+    EffectParam {
+        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+        nb_turns: 1,
+        sub_value_effect: 0,
+        target: TARGET_ENNEMY.to_owned(),
+        reach: ZONE.to_owned(),
+        stats_name: HP.to_owned(),
+        value: -30,
+        number_of_applies: 1,
+        ..Default::default()
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
 pub fn build_hot_effect_individual() -> EffectParam {
     EffectParam {
         effect_type: EFFECT_VALUE_CHANGE.to_owned(),
@@ -74,6 +94,7 @@ pub fn build_hot_effect_individual() -> EffectParam {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_hot_effect_zone() -> EffectParam {
     EffectParam {
         effect_type: EFFECT_VALUE_CHANGE.to_owned(),
@@ -88,6 +109,7 @@ pub fn build_hot_effect_zone() -> EffectParam {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_hot_effect_all() -> EffectParam {
     EffectParam {
         effect_type: EFFECT_VALUE_CHANGE.to_owned(),
@@ -97,6 +119,21 @@ pub fn build_hot_effect_all() -> EffectParam {
         reach: ZONE.to_owned(),
         stats_name: HP.to_owned(),
         value: 20,
+        number_of_applies: 1,
+        ..Default::default()
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+pub fn build_effect_max_stats() -> EffectParam {
+    EffectParam {
+        effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned(),
+        nb_turns: 3,
+        sub_value_effect: 0,
+        target: TARGET_ENNEMY.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        stats_name: HP.to_owned(),
+        value: -20,
         number_of_applies: 1,
         ..Default::default()
     }

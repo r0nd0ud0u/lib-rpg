@@ -2,6 +2,7 @@
 
 use crate::target::TargetInfo;
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_target_boss_indiv() -> TargetInfo {
     TargetInfo {
         name: "Boss1".to_owned(),
@@ -11,6 +12,7 @@ pub fn build_target_boss_indiv() -> TargetInfo {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_target_angmar_indiv() -> TargetInfo {
     TargetInfo {
         name: "Angmar".to_owned(),
