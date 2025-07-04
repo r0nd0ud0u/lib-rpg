@@ -100,8 +100,7 @@ mod tests {
         assert_eq!(0, equipment.stats.all_stats[BERSECK_RATE].buf_equip_percent);
 
         // wrong file
-        let file_path =
-            "./hehe.json"; // Path to the JSON file
+        let file_path = "./hehe.json"; // Path to the JSON file
         let equipment = Equipment::try_new_from_json(file_path);
         assert!(equipment.is_err());
     }
