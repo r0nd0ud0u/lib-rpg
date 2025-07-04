@@ -36,8 +36,6 @@ pub struct GameState {
     pub game_name: String,
     /// Game Status
     pub status: GameStatus,
-    /// Targeted list
-    pub current_targeted_list: HashSet<String>,
     /// Current atk selected
     pub current_atk: AttackType,
     /// Information about the last result attacks
@@ -68,13 +66,6 @@ impl GameState {
 
     pub fn new_round(&mut self) {
         self.current_round += 1;
-    }
-
-    pub fn update_targeted_list(&mut self, target_name: &str) {
-        if self.current_atk.reach == INDIVIDUAL {
-            self.current_targeted_list.clear();
-        }
-        self.current_targeted_list.insert(target_name.to_string());
     }
 }
 

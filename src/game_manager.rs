@@ -730,13 +730,14 @@ mod tests {
                 crit_coeff = COEFF_CRIT_DMG as u64;
             }
             assert!(
-                old_hp_boss - 31*crit_coeff >=
-                gm.pm
-                    .get_active_boss_character("Angmar")
-                    .unwrap()
-                    .stats
-                    .all_stats[HP]
-                    .current
+                old_hp_boss - 31 * crit_coeff
+                    >= gm
+                        .pm
+                        .get_active_boss_character("Angmar")
+                        .unwrap()
+                        .stats
+                        .all_stats[HP]
+                        .current
             );
         }
         assert_eq!(1, gm.game_state.current_turn_nb);
@@ -762,7 +763,7 @@ mod tests {
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(2, gm.game_state.current_turn_nb);
         assert_eq!(1, gm.game_state.current_round);
-        // ensure there is no dead lock -> game can be ended 
+        // ensure there is no dead lock -> game can be ended
         while gm.game_state.status == GameStatus::StartRound {
             let _ra = gm.launch_attack("SimpleAtk");
         }

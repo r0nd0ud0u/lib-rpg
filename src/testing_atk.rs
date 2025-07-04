@@ -6,6 +6,7 @@ use crate::{
     testing_effect::{build_dmg_effect_individual, build_hot_effect_individual},
 };
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_atk_damage1() -> AttackType {
     AttackType {
         name: "atk1".to_owned(),
@@ -17,6 +18,7 @@ pub fn build_atk_damage1() -> AttackType {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_atk_berseck_damage1() -> AttackType {
     AttackType {
         name: "atk1".to_owned(),
@@ -28,6 +30,7 @@ pub fn build_atk_berseck_damage1() -> AttackType {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 pub fn build_atk_heal1() -> AttackType {
     AttackType {
         name: "atk1".to_owned(),

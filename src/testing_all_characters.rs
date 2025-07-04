@@ -3,6 +3,7 @@
 use crate::character::Character;
 use crate::testing_atk::build_atk_damage1;
 
+#[cfg(not(tarpaulin_include))]
 pub fn testing_character() -> Character {
     let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
     let root_path = "./tests/offlines";
