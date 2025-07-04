@@ -36,6 +36,7 @@ pub struct AttackType {
     pub vigor_cost: u64,
     #[serde(rename = "Coût de rage")]
     pub berseck_cost: u64,
+    /// TODO is there any sense for target and reach ? those are defined for each effect of that attack
     #[serde(rename = "Cible")]
     pub target: String,
     #[serde(rename = "Portée")]
@@ -73,11 +74,8 @@ impl Default for AttackType {
 
 impl AttackType {
     pub fn try_new_from_json<P: AsRef<Path>>(path: P) -> Result<AttackType> {
-        if let Ok(value) = utils::read_from_json::<_, AttackType>(&path) {
-            Ok(value)
-        } else {
-            Err(anyhow!("Unknown file: {:?}", path.as_ref()))
-        }
+        utils::read_from_json::<_, AttackType>(&path)
+            .map_err(|_| anyhow!("Unknown file: {:?}", path.as_ref()))
     }
 
     pub fn has_only_heal_effect(&self) -> bool {
@@ -105,10 +103,16 @@ mod tests {
             all_target_const::TARGET_ENNEMY, character_json_key::STANDARD_CLASS,
             effect_const::EFFECT_VALUE_CHANGE, reach_const::INDIVIDUAL, stats_const::HP,
         },
+        testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
     };
 
     #[test]
     fn unit_try_new_from_json() {
+        // existence
+        let file_path = "./tests/offlines/attack/test/hehe.json"; // Path to the JSON file
+        let atk_type = AttackType::try_new_from_json(file_path);
+        assert!(atk_type.is_err());
+
         let file_path = "./tests/offlines/attack/test/SimpleAtk.json"; // Path to the JSON file
         let atk_type = AttackType::try_new_from_json(file_path);
         assert!(atk_type.is_ok());
@@ -131,5 +135,17 @@ mod tests {
         assert_eq!(atk_type.all_effects[0].reach, INDIVIDUAL);
         assert_eq!(atk_type.all_effects[0].effect_type, EFFECT_VALUE_CHANGE);
         assert_eq!(atk_type.all_effects[0].sub_value_effect, 0);
+    }
+
+    #[test]
+    fn unit_has_only_heal_effect() {
+        let atk_dmg = build_atk_damage_indiv();
+        assert_eq!(false, atk_dmg.has_only_heal_effect());
+
+        let mut atk_heal = build_atk_heal1_indiv();
+        assert_eq!(true, atk_heal.has_only_heal_effect());
+
+        atk_heal.target = TARGET_ENNEMY.to_owned();
+        assert_eq!(false, atk_heal.has_only_heal_effect());
     }
 }

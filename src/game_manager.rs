@@ -8,7 +8,7 @@ use crate::{
     common::{paths_const::*, stats_const::*},
     effect::EffectOutcome,
     game_state::{GameState, GameStatus},
-    players_manager::{DodgeInfo, PlayerManager},
+    players_manager::{DodgeInfo, GameAtkEffects, PlayerManager},
     utils,
 };
 use anyhow::{Ok, Result};
@@ -73,7 +73,8 @@ impl GameManager {
         self.build_game_paths();
         self.game_state =
             utils::read_from_json(game_path_dir.as_ref().join(OFFLINE_GAMESTATE.to_path_buf()))?;
-        self.pm.load_active_characters(&game_path_dir, true)?;
+        self.pm
+            .load_active_characters_from_saved_game(&game_path_dir)?;
         Ok(())
     }
 
@@ -83,6 +84,7 @@ impl GameManager {
         self.process_order_to_play();
 
         self.game_state.start_new_turn();
+        self.pm.start_new_turn();
 
         // TODO update game status
         // TODO init target view
@@ -118,7 +120,9 @@ impl GameManager {
             .active_bosses
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
         for boss in &self.pm.active_bosses {
-            self.game_state.order_to_play.push(boss.name.clone());
+            if !boss.is_dead().unwrap_or(false) {
+                self.game_state.order_to_play.push(boss.name.clone());
+            }
         }
         // supplementary atks to be added
         let supp_rounds_heroes = self.pm.compute_sup_atk_turn(CharacterType::Hero);
@@ -133,7 +137,12 @@ impl GameManager {
             .active_heroes
             .iter()
             .all(|c| c.is_dead() == Some(true));
-        self.pm.active_bosses.is_empty() || all_heroes_dead
+        let all_bosses_dead = self
+            .pm
+            .active_bosses
+            .iter()
+            .all(|c| c.is_dead() == Some(true));
+        all_bosses_dead || all_heroes_dead
     }
 
     pub fn new_round(&mut self) -> bool {
@@ -169,29 +178,8 @@ impl GameManager {
         true
     }
 
-    pub fn is_round_auto(&self) -> bool {
-        if self.game_state.current_round as i64 > 0
-            && self.game_state.current_round as i64 - 1 < self.game_state.order_to_play.len() as i64
-        {
-            let name = self.game_state.order_to_play[self.game_state.current_round - 1].clone();
-            if let Some(c) = self.pm.get_active_character(&name) {
-                return c.kind == CharacterType::Boss;
-            }
-        }
-
-        false
-    }
-
     pub fn is_auto_atk(&self) -> bool {
         self.pm.current_player.kind == CharacterType::Boss
-    }
-
-    pub fn is_two_heroes_in_a_row(
-        &self,
-        old_kind: &CharacterType,
-        current_kind: &CharacterType,
-    ) -> bool {
-        *old_kind == CharacterType::Hero && *current_kind == CharacterType::Hero
     }
 
     /**
@@ -203,15 +191,14 @@ impl GameManager {
         let mut output: Vec<EffectOutcome> = vec![];
         let all_players = self.pm.get_all_active_names();
         self.pm.current_player.actions_done_in_round += 1;
-        if !self.pm.current_player.attacks_list.contains_key(atk_name) {
-            // TODO log
+        // is atk existing?
+        let atk_list = self.pm.current_player.attacks_list.clone();
+        let atk = if let Some(atk) = atk_list.get(atk_name) {
+            atk
+        } else {
             return ResultLaunchAttack::default();
-        }
-
-        if !self.pm.current_player.attacks_list.contains_key(atk_name) {
-            // TODO log
-            return ResultLaunchAttack::default();
-        }
+        };
+        // process cost
         self.pm.current_player.process_atk_cost(atk_name);
 
         // is dodging ?
@@ -226,12 +213,6 @@ impl GameManager {
         self.pm.process_boss_target();
 
         // ProcessAtk
-        let atk_list = self.pm.current_player.attacks_list.clone();
-        let atk = if let Some(atk) = atk_list.get(atk_name) {
-            atk
-        } else {
-            return ResultLaunchAttack::default();
-        };
         let all_effects_param = self
             .pm
             .current_player
@@ -257,6 +238,14 @@ impl GameManager {
                         ));
                         // assess the blocking
                         all_dodging.push(c.dodge_info.clone());
+                        // update all effects
+                        c.all_effects.push(GameAtkEffects {
+                            all_atk_effects: ep.clone(),
+                            atk: atk.clone(),
+                            launcher: name.clone(),
+                            target: "".to_owned(),
+                            launching_turn: self.game_state.current_turn_nb,
+                        });
                     }
                     // assess the dodging
                     if c.is_dodging(&ep.target) && c.kind != kind && c.is_current_target {
@@ -351,7 +340,10 @@ impl GameManager {
 #[cfg(test)]
 mod tests {
     use crate::character::Class;
+    use crate::common::attak_const::COEFF_CRIT_DMG;
     use crate::common::paths_const::{self, OFFLINE_ROOT};
+    use crate::game_manager::ResultLaunchAttack;
+    use crate::game_state::GameStatus;
     use crate::utils;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
@@ -365,6 +357,12 @@ mod tests {
 
         let gm = GameManager::try_new("./tests/offlines").unwrap();
         assert_eq!(gm.pm.all_heroes.len(), 1);
+
+        assert!(GameManager::try_new("unknown").is_err());
+
+        // offline_root by default
+        let gm = GameManager::try_new("").unwrap();
+        assert_eq!(gm.pm.all_heroes.len(), 4);
     }
 
     #[test]
@@ -402,6 +400,17 @@ mod tests {
             old_speed.current_raw - SPEED_THRESHOLD,
             new_speed.current_raw
         );
+        // one hero player is dead
+        gm.pm.active_heroes[0].stats.all_stats[HP].current = 0;
+        gm.process_order_to_play();
+        assert_eq!(gm.game_state.order_to_play.len(), 2);
+        assert_eq!(gm.game_state.order_to_play[0], "test");
+        assert_eq!(gm.game_state.order_to_play[1], "Boss1");
+        // boss is dead
+        gm.pm.active_bosses[0].stats.all_stats[HP].current = 0;
+        gm.process_order_to_play();
+        assert_eq!(gm.game_state.order_to_play.len(), 1);
+        assert_eq!(gm.game_state.order_to_play[0], "test");
     }
 
     #[test]
@@ -425,6 +434,23 @@ mod tests {
         assert_eq!(result, true);
         assert_eq!(gm.game_state.current_round, 1);
         // TODO add second hero player to test the current round and avoid auto atk of boss
+
+        // test current player -test- is dead - round for boss is starting
+        gm.game_state.current_round = 0;
+        gm.pm.active_heroes[0].stats.all_stats[HP].current = 0;
+        let result = gm.new_round();
+        assert_eq!(true, result);
+        assert_eq!(gm.game_state.current_round, 2);
+        // test current round > table order to play
+        gm.game_state.current_round = 1000;
+        let result = gm.new_round();
+        assert_eq!(false, result);
+        // character name in orderToplay list is not a player
+        gm.game_state.order_to_play.clear();
+        gm.game_state.order_to_play.push("unknown".to_owned());
+        gm.game_state.current_round = 0;
+        let result = gm.new_round();
+        assert_eq!(false, result);
     }
 
     #[test]
@@ -437,7 +463,7 @@ mod tests {
         // No dodging of boss
         // no critical of current player
         // TODO load atk by json
-        let atk = build_atk_damage1();
+        let atk = build_atk_damage_indiv();
         gm.pm
             .current_player
             .attacks_list
@@ -462,6 +488,10 @@ mod tests {
             .get_mut_active_boss_character("Boss1")
             .unwrap()
             .is_current_target = true;
+        // test unknown atk
+        let ra = gm.launch_attack("");
+        assert_eq!(ResultLaunchAttack::default(), ra);
+        // test normal atk
         let ra = gm.launch_attack(&atk.clone().name);
         assert_eq!(1, ra.outcomes.len());
         assert_eq!(1, ra.all_dodging.len());
@@ -499,7 +529,7 @@ mod tests {
         // dodging of boss
         // no critical of current player
         // TODO load atk by json
-        let atk = build_atk_damage1();
+        let atk = build_atk_damage_indiv();
         gm.pm
             .current_player
             .attacks_list
@@ -557,7 +587,7 @@ mod tests {
         // No dodging of boss
         // critical of current player
         // TODO load atk by json
-        let atk = build_atk_damage1();
+        let atk = build_atk_damage_indiv();
         gm.pm
             .current_player
             .attacks_list
@@ -618,7 +648,7 @@ mod tests {
         // Blocking
         // No critical of current player
         // TODO load atk by json
-        let atk = build_atk_damage1();
+        let atk = build_atk_damage_indiv();
         gm.pm
             .current_player
             .attacks_list
@@ -669,7 +699,7 @@ mod tests {
     }
 
     #[test]
-    fn integ_dxrpg() {
+    fn unit_integ_dxrpg() {
         let mut gm = GameManager::try_new("offlines").unwrap();
         gm.start_new_game();
         gm.create_game_dirs().unwrap();
@@ -697,14 +727,19 @@ mod tests {
                     .current
             );
         } else {
-            assert_eq!(
-                old_hp_boss - 31,
-                gm.pm
-                    .get_active_boss_character("Angmar")
-                    .unwrap()
-                    .stats
-                    .all_stats[HP]
-                    .current
+            let mut crit_coeff = 1;
+            if ra.is_crit {
+                crit_coeff = COEFF_CRIT_DMG as u64;
+            }
+            assert!(
+                old_hp_boss - 31 * crit_coeff
+                    >= gm
+                        .pm
+                        .get_active_boss_character("Angmar")
+                        .unwrap()
+                        .stats
+                        .all_stats[HP]
+                        .current
             );
         }
         assert_eq!(1, gm.game_state.current_turn_nb);
@@ -716,11 +751,32 @@ mod tests {
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
+        assert_eq!(gm.check_end_of_game(), false);
+        assert_eq!(GameStatus::StartRound, gm.game_state.status);
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(5, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk"); // one hero could be dead
+        assert_eq!(gm.check_end_of_game(), false);
+        assert_eq!(GameStatus::StartRound, gm.game_state.status);
+        assert_eq!(1, gm.game_state.current_turn_nb);
+        assert_eq!(6, gm.game_state.current_round);
+        let _ra = gm.launch_attack("SimpleAtk"); // one hero could be dead
+        assert_eq!(gm.check_end_of_game(), false);
+        assert_eq!(GameStatus::StartRound, gm.game_state.status);
+        assert_eq!(2, gm.game_state.current_turn_nb);
+        assert_eq!(1, gm.game_state.current_round);
+        // ensure there is no dead lock -> game can be ended
+        while gm.game_state.status == GameStatus::StartRound {
+            let _ra = gm.launch_attack("SimpleAtk");
+        }
+        assert_eq!(GameStatus::EndOfGame, gm.game_state.status);
 
         // check save game
         let path = OFFLINE_ROOT.join(paths_const::GAMES_DIR.to_path_buf());
         let big_list = utils::list_dirs_in_dir(path);
         let one_save = big_list.unwrap()[0].clone();
+        let result = gm.load_game("");
+        assert_eq!(true, result.is_err());
         let _ = gm.load_game(one_save);
         let _ = gm.save_game_manager();
     }

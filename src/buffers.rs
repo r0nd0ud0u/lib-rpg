@@ -66,7 +66,7 @@ impl Buffers {
 
 #[cfg(test)]
 mod tests {
-    use crate::buffers::update_heal_by_multi;
+    use crate::buffers::{update_heal_by_multi, Buffers};
 
     use super::update_damage_by_buf;
 
@@ -106,5 +106,23 @@ mod tests {
 
         let result = update_heal_by_multi(10, 10);
         assert_eq!(100, result);
+    }
+
+    #[test]
+    fn unit_set_buffers() {
+        let mut buff = Buffers::default();
+        buff.set_buffers(10, false);
+        assert_eq!(buff.is_percent, false);
+        assert_eq!(buff.buf_type, 0);
+        assert_eq!(buff.all_stats_name.is_empty(), true);
+        assert_eq!(buff.is_passive_enabled, false);
+        assert_eq!(buff.value, 10);
+
+        buff.set_buffers(20, true);
+        assert_eq!(buff.is_percent, true);
+        assert_eq!(buff.buf_type, 0);
+        assert_eq!(buff.all_stats_name.is_empty(), true);
+        assert_eq!(buff.is_passive_enabled, false);
+        assert_eq!(buff.value, 20);
     }
 }
