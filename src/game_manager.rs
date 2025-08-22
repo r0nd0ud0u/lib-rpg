@@ -335,6 +335,21 @@ impl GameManager {
         self.game_paths.ongoing_effects = cur_game_path.join(OFFLINE_EFFECTS.to_path_buf());
         self.game_paths.stats_in_game = cur_game_path.join(GAME_STATE_STATS_IN_GAME.to_path_buf());
     }
+
+    /// Check if it is the turn to a boss to play
+    /// HMI function
+    pub fn is_round_auto(&self) -> bool {
+        if self.game_state.current_round as i64 > 0
+            && self.game_state.current_round as i64 - 1 < self.game_state.order_to_play.len() as i64
+        {
+            let name = self.game_state.order_to_play[self.game_state.current_round - 1].clone();
+            if let Some(c) = self.pm.get_active_character(&name) {
+                return c.kind == CharacterType::Boss;
+            }
+        }
+
+        false
+    }
 }
 
 #[cfg(test)]
@@ -755,6 +770,8 @@ mod tests {
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(5, gm.game_state.current_round);
+        // check if a boss is auto playing
+        assert_eq!(true, gm.is_round_auto());
         let _ra = gm.launch_attack("SimpleAtk"); // one hero could be dead
         assert_eq!(gm.check_end_of_game(), false);
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
