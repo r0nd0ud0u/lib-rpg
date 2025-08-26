@@ -37,7 +37,7 @@ jobs:
           mv code-coverage-report/* github-pages/coverage
           rm -r doc code-coverage-report
       - name: Upload github pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           name: github-pages
           path: github-pages
