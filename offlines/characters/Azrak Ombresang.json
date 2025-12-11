@@ -107,7 +107,7 @@
     },
     "Level": 1,
     "Name": "Azrak Ombresang",
-    "Photo": "Azrak Ombresang",
+    "Photo": "azrak-ombresang",
     "Powers": {
         "is_crit_heal_after_crit": false,
         "is_damage_tx_heal_needy_ally": false
