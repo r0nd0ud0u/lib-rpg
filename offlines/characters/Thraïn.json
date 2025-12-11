@@ -107,7 +107,7 @@
     },
     "Level": 1,
     "Name": "Thraïn",
-    "Photo": "Thraïn",
+    "Photo": "thrain",
     "Powers": {
         "is_crit_heal_after_crit": false,
         "is_damage_tx_heal_needy_ally": false
