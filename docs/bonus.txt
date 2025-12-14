@@ -1,0 +1,353 @@
+
+- Réduction de 10% des dégats des attaques magiques.
+- Augmentation de 10% des dégâts infligés aux ennemis.
+- Bonus de 10% aux dégâts infligés si attaque juste apres un allié.
+- Réduction de 12% des dégâts subis par des attaques physiques.
+- Réduction de 12% des dégâts subis par des attaques magiques.
+- Chance de 5% d'augmenter les dégâts du prochain sort de 50% après avoir subi une attaque.
+- Augmentation de 20% des dégâts infligés aux ennemis.
+- Réduction de 15% des dégâts subis lorsqu'attaqué par un ennemi supérieur en nombre.
+- Augmentation de 10% des dégâts lorsque l'ennemi est supérieur en nombre.
+- Bonus de 10% aux dégâts infligés aux ennemis.
+- Chance de 20% de réduire le coût en mana du prochain sort de moitié après avoir esquivé une attaque.
+- Réduction de 20% des dégâts subis par des attaques de zone.
+- Augmentation de 10% des dégâts infligés pour chaque tour passé sans subir de dégâts.
+- Bonus de 10% aux dégâts infligés lorsqu'en infériorité numérique.
+- Réduction de 10% des dégâts subis des attaques.
+- Réduction de 10% des dégâts subis des attaques physiques.
+- Réduction de 10% des dégâts subis des attaques magiques.
+- Chance de 5% d'augmenter l'armure de 20% pour chaque attaque subie.
+- Bonus de 10% aux dégâts infligés lorsqu'attaquant en premier dans un tour.
+- Chance de 6% d'augmenter la régénération de PV de +5 après avoir infligé des dégâts.
+- Donne l'effet FEU a votre arme, infflige 10% des degats au debut tour suivant, ne marche pas sur AOE.
+- Régénération de 10% des points de mana maximaux après avoir esquivé une attaque.
+- Régénération de 10% des points de vigeur maximaux après avoir esquivé une attaque.
+- Régénération de 10% des points de rage maximaux après avoir esquivé une attaque.
+- Réduction de 10% des dégâts subis en cas de coup critique ennemi.
+- Chance de 10% d'infliger confusion à l'ennemi pour sa prochaine attaque, 50% de chance de tirer sur ses alliés.
+- Augmentation de 20% de la chance de trouver de l'équipement épique.
+- Diminution de 20% la chance de trouver un equipement commun.
+- Réduction de 10% du coût en points de vigueur.
+- Réduction de 10% du coût en points de mana.
+- Réduction de 10% du coût en points de rage.
+- Chance de 10% de neutraliser l'attaque magique ennemie, seul l'attaque de base passe.
+- Chance de 10% de neutraliser l'attaque physique ennemie, seul l'attaque de base passe.
+- Augmentation de 10% des dégâts pour chaque allié adjacent, dans le tour.
+- Chance de 10% de gagner un tour supplémentaire après avoir vaincu un ennemi.
+- Chance de 8% de rejouer pour la moitier de mana/vigeur/rage.
+- Augmentation de 15% des points de rage maximaux.
+- Augmentation de 15% des points de vigeur maximaux.
+- Augmentation de 15% des points de mana maximaux.
+- Augmentation de 15% des points de vie maximaux.
+- Chance de 5% d'absorber 10% des dégâts infligés en PV.
+- Augmentation de 10% de l’attaque physique.
+- Augmentation de 20% des effets de buffs subis.
+- Augmentation de 10% de l’attaque magique.
+- Réduction de 15% du coût en vigeur.
+- Chance de 6% d'augmenter la défense de 10% pour un tour après avoir subi des dégâts.
+- Augmentation de +2c/+4r/+6e/+8L des chances d'esquiver lorsqu'en infériorité numérique.
+- +10% de critique en infériorité numérique.
+- Chance de 10% de réduire à 1 le coût en mana du prochain sort.
+- Chance de 10% de réduire à 1 le coût en vigeur de la prochaine attaque.
+- Chance de 10% de réduire à 1 le coût en rage de la prochaine attaque.
+- Bonus de 10% à la résistance magique.
+- Augmentation de 25% des points de mana gagnés par tour.
+- Chance de 10% de retirer l’armure magique pour un tour au moment de l'attaque.
+- Bonus de 15% aux dégâts infligés aux ennemis paires.
+- Chance de 6% de récupérer 20% des PV maximaux après avoir subi un coup critique.
+- Augmentation de 20% des dégâts infligés aux ennemis de type Humain.
+- Augmentation de 20% des dégâts infligés aux ennemis de type Orques.
+- Augmentation de 20% des dégâts infligés aux ennemis de type Ombres.
+- Augmentation de 20% des dégâts infligés aux ennemis de type Elfes.
+- Augmentation de 20% des dégâts infligés aux ennemis de type Nains.
+- Augmentation de 20% des dégâts infligés aux ennemis de type animals.
+- Chance de 7% de gagner une immunité aux dégâts d’un tour après avoir subi une attaque.
+- Bonus de 5% aux dégâts infligés pour chaque ennemi vaincu dans la bataille par l'equipe.
+- Chance de 9% de provoquer une explosion sur l'ennemi, infligeant une AOE de 20% de l’attaque initiale.
+- Restauration de 5% des PV après avoir esquivé une attaque.
+- Réduction de 10% des dégâts de zone subis.
+- Augmentation de 10% des dégâts.
+- Récupération de 2 points de mana par ennemi touché.
+- Réduction de 10% du coût en mana.
+- Reduction de 10% du couts en vigueur.
+- Réduction de 10% du cout en rage.
+- 10% de chance d'effectuer une contre-attaque après un blocage réussi.
+- Régénération de 5 points de vigueur par coup critique infligé.
+- Régénération de 5 points de mana par coup critique infligé.
+- Régénération de 5 points de rage par coup critique infligé.
+- 33% de chance de récupérer un objet supplémentaire sur les ennemis vaincus.
+- Réduction de 20% des dégâts critiques subis.
+- Augmentation de 50% des dégâts infligés après avoir pris un shot pour un tour, max 3 par combats.
+- 10% de chance de désarmer l'ennemi pour 1 tour après une attaque magique.
+- Réduction de 20% des dégâts subis lorsqu'en dessous de 20% de PV.
+- 8% de chance de lancer un éclair sur un ennemi proche causant 50% de l'attaque initiale.
+- Récupération de 5% points de santé pour chaque ennemi pésent à chaque tour.
+- Augmentation de 5%c/10%r/15%e/20%L des dégâts contre les ennemis.
+- Chance de 8% de dévier 30% du coup à la personne suivante dans le tour (ennemi ou allié).
+- Réduction de 20% des effets néfastes subis.
+- Régénération de 2 points de rage par coup reçu.
+- Augmentation de 25% de l'efficacité des potions.
+- 50% de chance d'ignorer une attaque mortelle, laissant les PV à 1.
+- Chance de 8% de doubler l'effet d'un sort.
+- Réduction de 20% des dégâts magiques subis, transformer en rage/vigueur.
+- Augmentation de 25% de l'or gagné.
+- Immunité aux effets néfastes.
+- Régénération +15% de mana par tour.
+- Augmentation de 15% de l'efficacité des soins reçus.
+- Chance de 7% de récupérer instantanément les mana d'un sort après utilisation et de relancer le meme sort.
+- Réduction de 10% des dégâts subis.
+- Augmentation de 10% des dégâts infligés aux ennemis.
+- 7% de chance de résister complètement à une attaque magique.
+- Augmentation de 1c/2r/3e/4L points d'esquive après avoir subi des dégâts.
+- 50% de chance d'immunité à la première attaque magique subie après une période sans combat.
+- 5% de chance de renvoyer 10% des dégâts subis à l'attaquant.
+- Augmentation de 10% des chances de trouver des objets épiques.
+- 20% de chance de résister à un coup qui devait être fatal.
+- Augmentation de 10% des dégâts infligés lorsque mes PV sont pleins.
+- Chance de 5% d'augmenter toutes les stats de 25% après une attaque critique réussie pour le prochain tour.
+- Chance de 25% de récupérer un objet légendaire après avoir utilisé un ultime critique réussi.
+- Immunité aux effets d'immobilisation.
+- Augmentation de 10% des dégâts infligés aux ennemis avec moins de 50% de vie.
+- Réduction de 10% des dégâts magiques subis.
+- Chance de 6% d'appliquer un effet de silence à l'ennemi pour un tour.
+- Augmentation de 15% des points de bouclier lorsqu'en bonne santé, 75% ou plus.
+- Réduction de 10% des dégâts subis en étant le premier de l'équipe à subir des dégâts par combats.
+- Augmentation de 50 de l'armure physique.
+- Chance de 5% de guérir un allié au hasard de 10% des pv max lors d'une attaque.
+- Réduction de 10% des dégâts de zone.
+- Augmentation de 20% des dégâts de l'ultime.
+- Bonus de 10% aux dégâts de contre-attaque.
+- Réduction de 15% des dégâts subis lorsqu'en santé critique, 25% ou moins.
+- Chance de 9% de réduire l'armure de l'ennemi de 20% après une attaque.
+- 7% de chance de relancer le même sort.
+- Chance de 4% de voler de le mana/rage/vigeur à l'ennemi à chaque attaque, pour remplir son stock.
+- Réduction de 5% des attaques physiques.
+- Augmentation de 15% des dégâts de zone infligés aux ennemis.
+- Bonus de 15% à l'efficacité des armures.
+- Réduction de 25% des dégâts subis par attaque de zone.
+- Chance de 10% de régénérer 20% du mana après avoir lancé un sort.
+- Augmentation de 10% de la résistance aux dégâts physiques.
+- Réduction de 20% des dégâts magiques subis de la part des ennemis.
+- Chance de 7% d'augmenter la défense après avoir subi des dégâts, armure +10%.
+- 0% de chance de touver un equipement comun, 40% rare, 35% épique, 25% légendaire.
+- Réduction de 10% des dégâts subis des attaques physiques.
+- Réduction de 10% des dégats des attaques magiques.
+- Augmentation de 10% des dégâts infligés aux ennemis.
+- Bonus de 10% aux dégâts infligés si attaque juste apres un allié.
+- Réduction de 12% des dégâts subis des attaques physiques.
+- Réduction de 12% des dégâts subis des attaques physiques.
+- Chance de 5% d'augmenter les dégâts du prochain sort de 50% après avoir subi une attaque.
+- Augmentation de 20% des dégâts infligés aux ennemies.
+- Réduction de 15% des dégâts subis lorsqu'attaqué par un ennemi supérieur en nombre.
+- Augmentation de 10% des dégâts lorsque l'ennemi est supérieur en nombre.
+- Bonus de 10% aux dégâts infligés aux ennemis.
+- Chance de 20% de réduire le coût en mana du prochain sort de moitier après avoir esquivé une attaque.
+- Réduction de 10% des dégâts subis par des attaques de zone.
+- Augmentation de 10% des dégâts infligés pour chaque tour passé sans subir de dégâts.
+- Bonus de 10% aux dégâts infligés lorsqu'en infériorité numérique.
+- Réduction de 10% des dégâts subis des attaques.
+- Réduction de 10% des dégâts subis des attaques physiques.
+- Réduction de 10% des dégâts subis des attaques magiques.
+- Chance de 5% d'augmenter l'armure de 20% pour chaque attaque subie.
+- Bonus de 10% aux dégâts infligés lorsqu'attaquant en premier dans un tour.
+- Chance de 8% d'augmenter la régénération de PV de 15% après avoir infligé des dégâts.
+- Donne l'effet FEU a votre arme, infflige 10% des degats au debut tour suivant, ne marche pas sur AOE.
+- Régénération de 10% des points de mana maximaux après avoir esquivé une attaque.
+- Régénération de 10% des points de vigeur maximaux après avoir esquivé une attaque.
+- Régénération de 10% des points de rage maximaux après avoir esquivé une attaque.
+- Réduction de 10% des dégâts subis en cas de coup critique ennemi.
+- Chance de 10% d'infliger confusion à l'ennemi, 50% de chance de tirer sur un allié à la prochaine attaque.
+- Augmentation de 20% de la chance de trouver de l'équipement épique.
+- Diminution de 20% la chance de trouver un equipement commun.
+- Réduction de 10% du coût en points de vigueur.
+- Réduction de 10% du coût en points de mana.
+- Réduction de 10% du coût en points de rage.
+- Chance de 10% de neutraliser la prochaine attaque magique ennemie, seul l'attaque de base passe.
+- Chance de 10% de neutraliser la prochaine attaque physique ennemie, seul l'attaque de base passe.
+- Augmentation de 10% des dégâts pour chaque allié adjacent, dans le tour.
+- Chance de 10% de gagner une attaque supplémentaire dans le tour après avoir vaincu un ennemi.
+- Chance de 9% de rejouer pour la moitier de mana/vigeur/rage.
+- Augmentation de 15% des points de rage maximaux.
+- Augmentation de 15% des points de vigeur maximaux.
+- Augmentation de 15% des points de mana maximaux.
+- Augmentation de 15% des points de vie maximaux.
+- Chance de 10% d'absorber 20% des dégâts infligés en PV.
+- Augmentation de 10% de l’attaque physique.
+- Augmentation de 20% des effets de buffs subis.
+- Augmentation de 10% de l’attaque magique.
+- Réduction de 15% du coût en vigeur.
+- Chance de 15% d'augmenter l'armure de 10% pour un tour après avoir subi des dégâts.
+- Augmentation de +2c/+4r/+6e/+8L des chances d'esquiver lorsqu'en infériorité numérique.
+- +10% de critique en infériorité numérique.
+- Chance de 10% de réduire à 1 le coût en mana du sort.
+- Chance de 10% de réduire à 1 le coût en vigeur de l'attaque.
+- Chance de 10% de réduire à 1 le coût en rage de l'attaque.
+- Bonus de 10% à la résistance magique.
+- Augmentation de 20% des points de mana gagnés par tour.
+- Chance de 10% de retirer l’armure magique pour un tour.
+- Bonus de 15% aux dégâts infligés aux ennemis paires.
+- Chance de 6% de récupérer 33% des PV maximaux après avoir subi un coup critique.
+- Augmentation de 20% des dégâts infligés aux ennemis de type Humain.
+- Augmentation de 20% des dégâts infligés aux ennemis de type Orques.
+- Augmentation de 20% des dégâts infligés aux ennemis de type Ombres.
+- Augmentation de 20% des dégâts infligés aux ennemis de type Elfes.
+- Augmentation de 20% des dégâts infligés aux ennemis de type Nains.
+- Augmentation de 20% des dégâts infligés aux ennemis de type animals.
+- Chance de 7% de gagner une immunité aux dégâts d’un tour après avoir subi une attaque.
+- Bonus de 5% aux dégâts infligés pour chaque ennemi vaincu dans la bataille.
+- Chance de 9% de provoquer une explosion sur l'ennemi, infligeant une AOE de 20% de l’attaque initiale.
+- Restauration de 5% des PV après avoir esquivé une attaque.
+- Réduction de 10% des dégâts de zone subis.
+- Augmentation de 10% des dégâts.
+- Récupération de 5% points de mana par ennemi touché.
+- Réduction de 10% du coût en mana.
+- Reduction de 10% du coût en vigueur.
+- Réduction de 10% du coût en rage.
+- 10% de chance d'effectuer une contre-attaque après un blocage réussi.
+- Régénération de 15% de vigueur par coup critique infligé.
+- Régénération de 15% de mana par coup critique infligé.
+- Régénération de 15% de rage par coup critique infligé.
+- 33% de chance de récupérer un objet supplémentaire sur les ennemis vaincus.
+- Réduction de 20% des dégâts critiques.
+- Augmentation de 50% des dégâts infligés après avoir pris un shot pour un tour, max 3 par combat.
+- 10% de chance de désarmer l'ennemi pour 1 tour après une attaque magique.
+- Réduction de 20% des dégâts subis lorsqu'en dessous de 20% de PV.
+- 8% de chance de lancer un éclair sur un ennemi proche causant 50% de l'attaque initiale.
+- Récupération de 5% de santé pour chaque ennemi à chaque tour.
+- Augmentation de 5%c/10%r/15%e/20%L des dégâts contre les ennemis.
+- Chance de 8% de dévier 30% du coup à la personne suivante dans le tour (ennemi ou allié).
+- Réduction de 25% des effets néfastes subis.
+- Régénération de 10% de rage par coup reçu.
+- Augmentation de 25% l'efficacité des potions.
+- 50% de chance d'ignorer une attaque mortelle, laissant les PV à 1.
+- Chance de 9% de doubler l'effet d'un sort.
+- Réduction de 20% des dégâts magiques subis, transformer en rage/vigueur.
+- Augmentation de 20% de l'or gagné.
+- Immunité aux effets néfastes.
+- Régénération +15% de mana par tour.
+- Augmentation de 13% de l'efficacité des soins reçus.
+- Chance de 7% de récupérer instantanément les mana du sort après utilisation et de les doubler.
+- Réduction de 10% des dégâts subis.
+- Augmentation de 10% des dégâts infligés aux ennemis.
+- 7% de chance de résister complètement à une attaque magique.
+- Augmentation de 1%c/2%r/3%e/5%L d'esquive après avoir subi des dégâts.
+- 50% de chance d'immunité à la première attaque magique subie après une période sans combat.
+- 5% de chance de renvoyer 10% des dégâts subis à l'attaquant.
+- Augmentation de 20% des chances de trouver des objets épiques.
+- 20% de chance de résister à un coup qui devait être fatal, si réussi pas de PV touché, mais armure -10%.
+- Augmentation de 10% des dégâts infligés lorsque les PV sont pleins.
+- Chance de 9% d'augmenter toutes les stats de 25% après une attaque critique réussie pour le prochain tour.
+- Chance de 30% de récupérer un objet légendaire après avoir utilisé un ultime critique réussi.
+- Immunité aux effets d'immobilisation.
+- Augmentation de 10% des dégâts infligés aux ennemis avec moins de 50% de vie.
+- Réduction de 10% des dégâts magiques subis.
+- Chance de 6% d'appliquer un effet de silence à l'ennemi pour un tour, il attaque son sort.
+- Augmentation de 15% des points de bouclier lorsqu'en bonne santé, 75% ou plus.
+- Réduction de 10% des dégâts subis en étant le premier de l'équipe à subir des dégâts par combats.
+- Augmentation de 50 de l'armure physique.
+- Chance de 8% de guérir un allié au hasard 20% lors d'une attaque.
+- Réduction de 10% des dégâts de zone.
+- Augmentation de 20% des dégâts de l'ultime.
+- Bonus de 10% aux dégâts de contre-attaque.
+- Réduction de 15% des dégâts subis lorsqu'en santé critique, 25% ou moins de PV.
+- Chance de 6% de réduire l'armure de l'ennemi de 20% après une attaque.
+- 10% de chance de relancer le même sort, gratuitement.
+- Chance de 6% de voler de le mana/rage/vigeur à l'ennemi à chaque attaque, pour se remplir.
+- Réduction de 5% des attaques physiques.
+- Augmentation de 15% des dégâts de zone infligés aux ennemis.
+- Bonus de 15% à l'efficacité des armures.
+- Réduction de 25% des dégâts subis par attaque de zone.
+- Chance de 10% de régénérer 25% du mana après avoir lancé un sort.
+- Augmentation de 10% de la résistance aux dégâts physiques.
+- Réduction de 20% des dégâts magiques subis de la part des ennemis.
+- Chance de 7% d'augmenter la défense après avoir subi des dégâts, armure +10%.
+- 0% de chance de touver un equipement comun, 40% rare, 35% épique, 25% légendaire.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/+50r/+75e/+100L.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/+50r/+75e/+100L.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/+50r/+75e/+100L.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/+50r/+75e/+100L.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/+50r/+75e/+100L.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/+50r/+75e/+100L.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/+50r/+75e/+100L.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/+50r/+75e/+100L.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/+50r/+75e/+100L.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/+50r/+75e/+100L.
+- Augmentation de crtique +2%c/+4%r/+6%e/+8%L.
+- Augmentation de esquive +2%c/+3%r/+4%e/+5%L.
+- Augmentation de PV +30%c/+50%r/+70%e/+90%L.
+- Augmentation de mana +30%c/+50%r/+70%e/+90%L.
+- Augmentation de vigueur +30%c/+50%r/+70%e/+90%L.
+- Augmentation de armure magique +25c/+50r/+75e/+100L.
+- Augmentation de armure physique +25c/+50r/+75e/+100L.
+- Augmentation de armure globale +25c/50r/75e/100L
+
