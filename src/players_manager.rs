@@ -397,11 +397,18 @@ impl PlayerManager {
         output
     }
 
-    pub fn process_all_dodging(&mut self, all_targets: &Vec<String>, atk_level: i64) {
+    pub fn process_all_dodging(
+        &mut self,
+        all_targets: &Vec<String>,
+        atk_level: i64,
+        kind: &CharacterType,
+    ) {
         for t in all_targets {
             match self.get_mut_active_character(t) {
                 Some(c) => {
-                    c.process_dodging(atk_level);
+                    if c.kind != *kind {
+                        c.process_dodging(atk_level);
+                    }
                 }
                 _ => continue,
             }
@@ -539,7 +546,7 @@ mod tests {
     #[test]
     fn unit_try_new() {
         let pl = PlayerManager::try_new("tests/offlines").unwrap();
-        assert_eq!(1, pl.all_heroes.len());
+        assert_eq!(2, pl.all_heroes.len());
 
         assert!(PlayerManager::try_new("").is_err());
     }
@@ -628,7 +635,7 @@ mod tests {
     fn unit_load_all_characters() {
         let mut pl = PlayerManager::default();
         pl.load_all_characters("tests/offlines").unwrap();
-        assert_eq!(1, pl.all_heroes.len());
+        assert_eq!(2, pl.all_heroes.len());
     }
 
     #[test]
@@ -731,7 +738,7 @@ mod tests {
         let file_path = "./tests/offlines/"; // Path to the JSON file
         let result = pl.load_active_characters_from_saved_game(file_path);
         assert!(result.is_ok());
-        assert_eq!(1, pl.active_heroes.len());
+        assert_eq!(2, pl.active_heroes.len());
         assert_eq!(1, pl.active_bosses.len());
         // we are not loading for a save game
         // atks are not loaded from atk files

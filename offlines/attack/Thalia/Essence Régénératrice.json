@@ -7,7 +7,7 @@
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "PV",
+            "Stat": "HP",
             "Tours actifs": 5,
             "Type": "Changement par valeur",
             "Valeur de l'effet": 0,

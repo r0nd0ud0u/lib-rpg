@@ -6,7 +6,7 @@
     "Effet": [{
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "PV",
+            "Stat": "HP",
             "Tours actifs": 1,
             "Type": "Ennemis morts tours précédents",
             "Valeur de l'effet": 20,

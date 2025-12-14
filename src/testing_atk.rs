@@ -62,7 +62,7 @@ pub fn build_atk_heal1_zone() -> AttackType {
 
     AttackType {
         name: "atk1".to_owned(),
-        berseck_cost: 2,
+        mana_cost: 10,
         target: TARGET_ALLY.to_owned(),
         reach: ZONE.to_owned(),
         all_effects: vec![build_hot_effect_zone()],

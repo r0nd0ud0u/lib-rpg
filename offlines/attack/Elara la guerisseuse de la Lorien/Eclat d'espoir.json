@@ -7,7 +7,7 @@
         {
             "Cible": "Tous les heroes",
             "Portée": "Zone",
-            "Stat": "PV",
+            "Stat": "HP",
             "Tours actifs": 1,
             "Type": "Changement par %",
             "Valeur de l'effet": 0,

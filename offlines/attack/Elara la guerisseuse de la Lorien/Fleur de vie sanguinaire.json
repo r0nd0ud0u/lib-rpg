@@ -25,7 +25,7 @@
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "PV",
+            "Stat": "HP",
             "Tours actifs": 3,
             "Type": "Changement par valeur",
             "Valeur de l'effet": 0,
@@ -43,7 +43,7 @@
         {
             "Cible": "Ennemie",
             "Portée": "Aleatoire Individuel",
-            "Stat": "PV",
+            "Stat": "HP",
             "Tours actifs": 2,
             "Type": "Changement par valeur",
             "Valeur de l'effet": 0,

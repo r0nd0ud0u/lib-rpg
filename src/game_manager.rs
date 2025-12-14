@@ -205,6 +205,7 @@ impl GameManager {
         self.pm.process_all_dodging(
             &all_players,
             self.pm.current_player.attacks_list[atk_name].level.into(),
+            &self.pm.current_player.clone().kind,
         );
 
         // critical strike
@@ -371,7 +372,7 @@ mod tests {
         assert!(GameManager::try_new("unknown").is_err());
 
         let gm = GameManager::try_new("./tests/offlines").unwrap();
-        assert_eq!(gm.pm.all_heroes.len(), 1);
+        assert_eq!(gm.pm.all_heroes.len(), 2);
 
         assert!(GameManager::try_new("unknown").is_err());
 
@@ -402,11 +403,13 @@ mod tests {
             .stats
             .all_stats[SPEED]
             .clone();
-        assert_eq!(gm.game_state.order_to_play.len(), 3);
+        assert_eq!(gm.game_state.order_to_play.len(), 5);
         assert_eq!(gm.game_state.order_to_play[0], "test");
-        assert_eq!(gm.game_state.order_to_play[1], "Boss1");
+        assert_eq!(gm.game_state.order_to_play[1], "test2");
+        assert_eq!(gm.game_state.order_to_play[2], "Boss1");
         // supplementary atk
-        assert_eq!(gm.game_state.order_to_play[2], "test");
+        assert_eq!(gm.game_state.order_to_play[3], "test");
+        assert_eq!(gm.game_state.order_to_play[4], "test2");
 
         assert_eq!(old_speed.current - SPEED_THRESHOLD, new_speed.current);
         assert_eq!(old_speed.max - SPEED_THRESHOLD, new_speed.max);
@@ -418,14 +421,18 @@ mod tests {
         // one hero player is dead
         gm.pm.active_heroes[0].stats.all_stats[HP].current = 0;
         gm.process_order_to_play();
-        assert_eq!(gm.game_state.order_to_play.len(), 2);
-        assert_eq!(gm.game_state.order_to_play[0], "test");
-        assert_eq!(gm.game_state.order_to_play[1], "Boss1");
+        assert_eq!(gm.game_state.order_to_play.len(), 4);
+        assert_eq!(gm.game_state.order_to_play[0], "test2");
+        assert_eq!(gm.game_state.order_to_play[1], "test");
+        assert_eq!(gm.game_state.order_to_play[2], "Boss1");
+        assert_eq!(gm.game_state.order_to_play[3], "test2");
         // boss is dead
         gm.pm.active_bosses[0].stats.all_stats[HP].current = 0;
         gm.process_order_to_play();
-        assert_eq!(gm.game_state.order_to_play.len(), 1);
-        assert_eq!(gm.game_state.order_to_play[0], "test");
+        assert_eq!(gm.game_state.order_to_play.len(), 3);
+        assert_eq!(gm.game_state.order_to_play[0], "test2");
+        assert_eq!(gm.game_state.order_to_play[1], "test");
+        assert_eq!(gm.game_state.order_to_play[2], "test2");
     }
 
     #[test]
@@ -438,7 +445,8 @@ mod tests {
         let result = gm
             .pm
             .compute_sup_atk_turn(crate::character::CharacterType::Hero);
-        assert_eq!(result.len(), 1);
+        // there are 2 allies in the test/offlines to len = 2
+        assert_eq!(result.len(), 2);
     }
 
     #[test]
@@ -598,7 +606,7 @@ mod tests {
         gm.start_new_game();
         gm.start_new_turn();
 
-        // # case 1 dmg on individual ennemy
+        // # case 3 dmg on individual ennemy
         // No dodging of boss
         // critical of current player
         // TODO load atk by json
@@ -706,6 +714,54 @@ mod tests {
             old_mana_hero - 20,
             gm.pm
                 .get_active_hero_character(&old_hero_name)
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
+        ); // 10% of 200 (total mana)
+    }
+
+    #[test]
+    fn unit_launch_attack_case5() {
+        // Zone = Tous les heroes
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        gm.start_new_game();
+        gm.start_new_turn();
+
+        // # case 5 up and change on zone ally
+        // ally 1 speed > ally 2 speed
+        // no critical strike
+        let atk = build_atk_heal1_zone();
+        gm.pm
+            .current_player
+            .attacks_list
+            .insert(atk.name.clone(), atk.clone());
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let old_hp_test2 = gm
+            .pm
+            .get_active_hero_character("test2")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
+        gm.launch_attack(&atk.clone().name);
+        assert_eq!(false, gm.check_end_of_game());
+        // + 30  of max HP:135 = 40.5
+        assert_eq!(
+            old_hp_test2 + 40,
+            gm.pm
+                .get_active_hero_character("test2")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
+        // -10%, mana max = 200
+        assert_eq!(
+            old_mana_launcher - 20,
+            gm.pm
+                .get_active_hero_character("test")
                 .unwrap()
                 .stats
                 .all_stats[MANA]

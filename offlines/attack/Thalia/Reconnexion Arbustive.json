@@ -16,7 +16,7 @@
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "PV",
+            "Stat": "HP",
             "Tours actifs": 5,
             "Type": "% (stats) en dégâts",
             "Valeur de l'effet": 50,
