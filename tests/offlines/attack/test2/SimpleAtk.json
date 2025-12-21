@@ -5,18 +5,8 @@
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Durée": 1,
-    "Dégâts": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
-            "Stat": "HP",
-            "Tours actifs": 1,
-            "Type": "Changement par valeur",
-            "Valeur de l'effet": 0,
-            "Value": -35
-        },
-		{
             "Cible": "Ennemie",
             "Portée": "Individuel",
             "Stat": "HP",
@@ -28,12 +18,8 @@
     ],
     "Forme": "Standard",
     "Niveau": 1,
-    "Nom": "Test",
-    "Photo": "Thalia.png",
-    "Portée": "Individuel",
-    "Regen mana": 0,
-    "Regen rage": 0,
-    "Regen vigueur": 0,
-    "Soin": 0
+    "Nom": "SimpleAtk",
+    "Photo": "SimpleAtk.png",
+    "Portée": "Individuel"
 }
 
