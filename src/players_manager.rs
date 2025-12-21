@@ -663,11 +663,21 @@ mod tests {
     #[test]
     fn unit_update_current_player() {
         let mut pl = PlayerManager::testing_pm();
-        pl.active_heroes[0].extended_character.is_first_round = false;
-        pl.active_heroes[0].actions_done_in_round = 100;
+        pl.get_mut_active_hero_character("test")
+            .unwrap()
+            .extended_character
+            .is_first_round = false;
+        pl.get_mut_active_hero_character("test")
+            .unwrap()
+            .actions_done_in_round = 100;
         let gs = GameState::default();
         pl.update_current_player(&gs, "test").unwrap();
-        assert_eq!(0, pl.active_heroes[0].actions_done_in_round);
+        assert_eq!(
+            0,
+            pl.get_mut_active_hero_character("test")
+                .unwrap()
+                .actions_done_in_round
+        );
     }
 
     #[test]
@@ -749,15 +759,45 @@ mod tests {
     fn unit_set_one_target() {
         let mut pl = PlayerManager::testing_pm();
         pl.set_one_target("test", INDIVIDUAL);
-        assert_eq!(true, pl.active_heroes[0].is_current_target);
-        assert_eq!(false, pl.active_bosses[0].is_current_target);
+        assert_eq!(
+            true,
+            pl.get_mut_active_hero_character("test")
+                .unwrap()
+                .is_current_target
+        );
+        assert_eq!(
+            false,
+            pl.get_mut_active_boss_character("Boss1")
+                .unwrap()
+                .is_current_target
+        );
         pl.set_one_target("Boss1", INDIVIDUAL);
-        assert_eq!(false, pl.active_heroes[0].is_current_target);
-        assert_eq!(true, pl.active_bosses[0].is_current_target);
+        assert_eq!(
+            false,
+            pl.get_mut_active_hero_character("test")
+                .unwrap()
+                .is_current_target
+        );
+        assert_eq!(
+            true,
+            pl.get_mut_active_boss_character("Boss1")
+                .unwrap()
+                .is_current_target
+        );
         // with ZONE no reset is done
         pl.set_one_target("Boss1", ZONE);
-        assert_eq!(false, pl.active_heroes[0].is_current_target);
-        assert_eq!(true, pl.active_bosses[0].is_current_target);
+        assert_eq!(
+            false,
+            pl.get_mut_active_hero_character("test")
+                .unwrap()
+                .is_current_target
+        );
+        assert_eq!(
+            true,
+            pl.get_mut_active_boss_character("Boss1")
+                .unwrap()
+                .is_current_target
+        );
     }
 
     #[test]
