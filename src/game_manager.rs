@@ -410,7 +410,6 @@ mod tests {
         // supplementary atk
         assert_eq!(gm.game_state.order_to_play[3], "test");
         assert_eq!(gm.game_state.order_to_play[4], "test2");
-
         assert_eq!(old_speed.current - SPEED_THRESHOLD, new_speed.current);
         assert_eq!(old_speed.max - SPEED_THRESHOLD, new_speed.max);
         assert_eq!(old_speed.max_raw - SPEED_THRESHOLD, new_speed.max_raw);
