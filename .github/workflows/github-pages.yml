@@ -28,7 +28,7 @@ jobs:
     needs: [doc, coverage]
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
       - run: |
           mkdir -p github-pages
           tar -xf doc/artifact.tar -C github-pages
