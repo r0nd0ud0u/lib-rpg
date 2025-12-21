@@ -397,11 +397,18 @@ impl PlayerManager {
         output
     }
 
-    pub fn process_all_dodging(&mut self, all_targets: &Vec<String>, atk_level: i64) {
+    pub fn process_all_dodging(
+        &mut self,
+        all_targets: &Vec<String>,
+        atk_level: i64,
+        kind: &CharacterType,
+    ) {
         for t in all_targets {
             match self.get_mut_active_character(t) {
                 Some(c) => {
-                    c.process_dodging(atk_level);
+                    if c.kind != *kind {
+                        c.process_dodging(atk_level);
+                    }
                 }
                 _ => continue,
             }
@@ -539,7 +546,7 @@ mod tests {
     #[test]
     fn unit_try_new() {
         let pl = PlayerManager::try_new("tests/offlines").unwrap();
-        assert_eq!(1, pl.all_heroes.len());
+        assert_eq!(2, pl.all_heroes.len());
 
         assert!(PlayerManager::try_new("").is_err());
     }
@@ -628,7 +635,7 @@ mod tests {
     fn unit_load_all_characters() {
         let mut pl = PlayerManager::default();
         pl.load_all_characters("tests/offlines").unwrap();
-        assert_eq!(1, pl.all_heroes.len());
+        assert_eq!(2, pl.all_heroes.len());
     }
 
     #[test]
@@ -656,11 +663,21 @@ mod tests {
     #[test]
     fn unit_update_current_player() {
         let mut pl = PlayerManager::testing_pm();
-        pl.active_heroes[0].extended_character.is_first_round = false;
-        pl.active_heroes[0].actions_done_in_round = 100;
+        pl.get_mut_active_hero_character("test")
+            .unwrap()
+            .extended_character
+            .is_first_round = false;
+        pl.get_mut_active_hero_character("test")
+            .unwrap()
+            .actions_done_in_round = 100;
         let gs = GameState::default();
         pl.update_current_player(&gs, "test").unwrap();
-        assert_eq!(0, pl.active_heroes[0].actions_done_in_round);
+        assert_eq!(
+            0,
+            pl.get_mut_active_hero_character("test")
+                .unwrap()
+                .actions_done_in_round
+        );
     }
 
     #[test]
@@ -731,7 +748,7 @@ mod tests {
         let file_path = "./tests/offlines/"; // Path to the JSON file
         let result = pl.load_active_characters_from_saved_game(file_path);
         assert!(result.is_ok());
-        assert_eq!(1, pl.active_heroes.len());
+        assert_eq!(2, pl.active_heroes.len());
         assert_eq!(1, pl.active_bosses.len());
         // we are not loading for a save game
         // atks are not loaded from atk files
@@ -742,15 +759,45 @@ mod tests {
     fn unit_set_one_target() {
         let mut pl = PlayerManager::testing_pm();
         pl.set_one_target("test", INDIVIDUAL);
-        assert_eq!(true, pl.active_heroes[0].is_current_target);
-        assert_eq!(false, pl.active_bosses[0].is_current_target);
+        assert_eq!(
+            true,
+            pl.get_mut_active_hero_character("test")
+                .unwrap()
+                .is_current_target
+        );
+        assert_eq!(
+            false,
+            pl.get_mut_active_boss_character("Boss1")
+                .unwrap()
+                .is_current_target
+        );
         pl.set_one_target("Boss1", INDIVIDUAL);
-        assert_eq!(false, pl.active_heroes[0].is_current_target);
-        assert_eq!(true, pl.active_bosses[0].is_current_target);
+        assert_eq!(
+            false,
+            pl.get_mut_active_hero_character("test")
+                .unwrap()
+                .is_current_target
+        );
+        assert_eq!(
+            true,
+            pl.get_mut_active_boss_character("Boss1")
+                .unwrap()
+                .is_current_target
+        );
         // with ZONE no reset is done
         pl.set_one_target("Boss1", ZONE);
-        assert_eq!(false, pl.active_heroes[0].is_current_target);
-        assert_eq!(true, pl.active_bosses[0].is_current_target);
+        assert_eq!(
+            false,
+            pl.get_mut_active_hero_character("test")
+                .unwrap()
+                .is_current_target
+        );
+        assert_eq!(
+            true,
+            pl.get_mut_active_boss_character("Boss1")
+                .unwrap()
+                .is_current_target
+        );
     }
 
     #[test]

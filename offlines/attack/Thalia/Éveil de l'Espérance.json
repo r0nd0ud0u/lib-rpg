@@ -10,7 +10,7 @@
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "PV",
+            "Stat": "HP",
             "Tours actifs": 1,
             "Type": "Changement par valeur",
             "Valeur de l'effet": 0,
@@ -28,7 +28,7 @@
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "PV",
+            "Stat": "HP",
             "Tours actifs": 1,
             "Type": "Reinit",
             "Valeur de l'effet": 0,

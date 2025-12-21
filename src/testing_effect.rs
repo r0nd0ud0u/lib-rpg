@@ -97,13 +97,13 @@ pub fn build_hot_effect_individual() -> EffectParam {
 #[cfg(not(tarpaulin_include))]
 pub fn build_hot_effect_zone() -> EffectParam {
     EffectParam {
-        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+        effect_type: EFFECT_PERCENT_CHANGE.to_owned(),
         nb_turns: 3,
         sub_value_effect: 0,
         target: TARGET_ALLY.to_owned(),
         reach: ZONE.to_owned(),
         stats_name: HP.to_owned(),
-        value: 40,
+        value: 30,
         number_of_applies: 1,
         ..Default::default()
     }

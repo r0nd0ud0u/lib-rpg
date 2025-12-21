@@ -7,7 +7,7 @@
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
-            "Stat": "PV",
+            "Stat": "HP",
             "Tours actifs": 2,
             "Type": "Up par %",
             "Valeur de l'effet": 0,

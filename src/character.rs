@@ -712,9 +712,7 @@ impl Character {
             full_amount = ep.number_of_applies * (ep.value + pow_current / ep.nb_turns);
             // update effect value
             new_effect_param.value = full_amount;
-        } else if ep.stats_name == HP && ep.effect_type == EFFECT_VALUE_CHANGE
-            || ep.effect_type == EFFECT_PERCENT_CHANGE
-        {
+        } else if ep.stats_name == HP && ep.effect_type == EFFECT_VALUE_CHANGE {
             if ep.value > 0 {
                 // HOT
                 full_amount = ep.number_of_applies * (ep.value + pow_current) / ep.nb_turns;

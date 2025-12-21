@@ -7,7 +7,7 @@
         {
             "Cible": "Ennemie",
             "Portée": "Zone",
-            "Stat": "PV",
+            "Stat": "HP",
             "Tours actifs": 1,
             "Type": "Changement par valeur",
             "Valeur de l'effet": 0,
