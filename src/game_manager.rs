@@ -386,8 +386,7 @@ mod tests {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         let old_speed = gm
             .pm
-            .active_heroes
-            .first()
+            .get_mut_active_hero_character("test")
             .cloned()
             .unwrap()
             .stats
@@ -396,8 +395,7 @@ mod tests {
         gm.process_order_to_play();
         let new_speed = gm
             .pm
-            .active_heroes
-            .first()
+            .get_mut_active_hero_character("test")
             .cloned()
             .unwrap()
             .stats
