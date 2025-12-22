@@ -360,6 +360,7 @@ mod tests {
     use crate::common::paths_const::{self, OFFLINE_ROOT};
     use crate::game_manager::ResultLaunchAttack;
     use crate::game_state::GameStatus;
+    use crate::players_manager::PlayerManager;
     use crate::utils;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
@@ -767,6 +768,133 @@ mod tests {
     }
 
     #[test]
+    fn unit_launch_attack_case_eclat_despoir() {
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        gm.pm = PlayerManager::testing_pm();
+        gm.start_new_game();
+        gm.start_new_turn();
+        gm.pm.update_current_player(&gm.game_state, "test").unwrap();
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let old_hp_test = gm
+            .pm
+            .get_active_hero_character("test")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let old_mag_pow_test = gm
+            .pm
+            .get_active_hero_character("test")
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_POWER]
+            .max;
+        let old_phy_pow_test = gm
+            .pm
+            .get_active_hero_character("test")
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+        let old_hp_test2 = gm
+            .pm
+            .get_active_hero_character("test2")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let old_mag_pow_test2 = gm
+            .pm
+            .get_active_hero_character("test2")
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_POWER]
+            .max;
+        let old_phy_pow_test2 = gm
+            .pm
+            .get_active_hero_character("test2")
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+        let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
+        gm.launch_attack("Eclat d'espoir");
+        assert_eq!(false, gm.check_end_of_game());
+        // "Changement par %"
+        // + 30 % of max HP:135 = 40.5
+        assert_eq!(
+            old_hp_test2 + 40,
+            gm.pm
+                .get_active_hero_character("test2")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
+        assert_eq!(
+            old_hp_test,
+            gm.pm
+                .get_active_hero_character("test")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
+        // -18%, mana max = 200
+        assert_eq!(
+            old_mana_launcher - 36,
+            gm.pm
+                .get_active_hero_character("test")
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
+        );
+        // "Magic power"
+        // "Up par %" 15
+        // +15%, mag power max = 20
+        assert_eq!(
+            old_mag_pow_test2 + 3,
+            gm.pm
+                .get_active_hero_character("test2")
+                .unwrap()
+                .stats
+                .all_stats[MAGICAL_POWER]
+                .max
+        );
+        assert_eq!(
+            old_mag_pow_test,
+            gm.pm
+                .get_active_hero_character("test")
+                .unwrap()
+                .stats
+                .all_stats[MAGICAL_POWER]
+                .max
+        );
+        // "Physical power"
+        // "Up par %" 15
+        // +15%, phy power max = 10
+        assert_eq!(
+            old_phy_pow_test2 + 1,
+            gm.pm
+                .get_active_hero_character("test2")
+                .unwrap()
+                .stats
+                .all_stats[PHYSICAL_POWER]
+                .max
+        );
+        assert_eq!(
+            old_phy_pow_test,
+            gm.pm
+                .get_active_hero_character("test")
+                .unwrap()
+                .stats
+                .all_stats[PHYSICAL_POWER]
+                .max
+        );
+    }
+
+    #[test]
     fn unit_integ_dxrpg() {
         let mut gm = GameManager::try_new("offlines").unwrap();
         gm.start_new_game();
@@ -783,6 +911,7 @@ mod tests {
             .get_mut_active_boss_character("Angmar")
             .unwrap()
             .is_current_target = true;
+        // thrain
         let ra = gm.launch_attack("SimpleAtk");
         if ra.all_dodging.len() > 0 && ra.all_dodging[0].is_dodging {
             assert_eq!(
@@ -812,6 +941,7 @@ mod tests {
         }
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(2, gm.game_state.current_round);
+        // elara
         let _ra = gm.launch_attack("SimpleAtk");
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(3, gm.game_state.current_round);

@@ -445,8 +445,10 @@ impl Character {
             return (String::new(), ep.clone());
         }
         if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
-            // TODO
-            return (String::new(), ep.clone());
+            return (
+                format!("Max stat of {} is up by {}%", ep.stats_name, ep.value),
+                new_effect_param,
+            );
         }
         if ep.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE {
             // TODO
@@ -752,7 +754,7 @@ impl Character {
             self.set_stats_on_effect(
                 &ep.stats_name,
                 full_amount,
-                ep.effect_type == EFFECT_PERCENT_CHANGE,
+                ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
                 true,
             );
             return EffectOutcome {
