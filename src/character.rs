@@ -451,8 +451,10 @@ impl Character {
             );
         }
         if ep.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE {
-            // TODO
-            return (String::new(), ep.clone());
+            return (
+                format!("Max stat of {} is up by value:{}", ep.stats_name, ep.value),
+                new_effect_param,
+            );
         }
         if ep.effect_type == EFFECT_REPEAT_AS_MANY_AS {
             // TODO
