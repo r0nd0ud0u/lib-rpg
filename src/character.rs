@@ -547,16 +547,18 @@ impl Character {
         }
     }
 
-    pub fn remove_terminated_effect_on_player(&mut self) {
+    pub fn remove_terminated_effect_on_player(&mut self) -> Vec<EffectParam> {
+        let mut ended_effects: Vec<EffectParam> = Vec::new();
         for gae in self.all_effects.clone() {
             if gae.all_atk_effects.counter_turn == gae.all_atk_effects.nb_turns {
-                // TODO add log: effect is terminated
                 self.remove_malus_effect(&gae.all_atk_effects);
+                ended_effects.push(gae.all_atk_effects);
             }
         }
         self.all_effects.retain(|element| {
             element.all_atk_effects.nb_turns != element.all_atk_effects.counter_turn
         });
+        ended_effects
     }
 
     pub fn reset_all_effects_on_player(&mut self) {
@@ -997,7 +999,7 @@ mod tests {
         // nb-actions-in-round
         assert_eq!(0, c.actions_done_in_round);
         // atk
-        assert_eq!(6, c.attacks_list.len());
+        assert_eq!(7, c.attacks_list.len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
         let root_path = "./tests/offlines";
@@ -1194,6 +1196,7 @@ mod tests {
         assert_eq!("Cooldown actif sur  de 10 tours.", result);
 
         // test - critical
+        ep.stats_name = HP.to_owned();
         ep.effect_type = EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned();
         ep.value = 10;
         let (output_ep, result) = c.process_one_effect(&ep, false, &atk, &game_state, true);
@@ -1202,7 +1205,7 @@ mod tests {
         assert_eq!(c.name, output_ep.target);
         assert_eq!(15, output_ep.value);
         assert_eq!(0, output_ep.sub_value_effect);
-        assert_eq!("", result);
+        assert_eq!("Max stat of HP is up by value:15", result);
 
         // conditions - number of died ennemies
         game_state.current_turn_nb = 1;
@@ -1218,7 +1221,7 @@ mod tests {
         // focus on value
         assert_eq!(10, output_ep.value);
         assert_eq!(10, output_ep.sub_value_effect);
-        assert_eq!("", result);
+        assert_eq!("Max stat of HP is up by 10%", result);
     }
 
     #[test]

@@ -276,7 +276,12 @@ impl PlayerManager {
         self.active_bosses.iter().find(|c| c.name == name)
     }
 
-    pub fn update_current_player(&mut self, game_state: &GameState, name: &str) -> Result<()> {
+    pub fn update_current_player(
+        &mut self,
+        game_state: &GameState,
+        name: &str,
+    ) -> Result<Vec<String>> {
+        let mut logs = Vec::new();
         match self.get_mut_active_character(name) {
             Some(c) => {
                 self.current_player = c.clone();
@@ -284,29 +289,32 @@ impl PlayerManager {
                 // update the shadow current player
                 self.current_player.actions_done_in_round = 0;
 
-                let mut _logs = Vec::new();
-
                 if self.current_player.extended_character.is_first_round {
                     self.current_player.extended_character.is_first_round = false;
                     // aggro is initialized before any action
                     self.current_player
                         .init_aggro_on_turn(game_state.current_turn_nb);
-                    self.current_player.remove_terminated_effect_on_player();
-
+                    let _ = self
+                        .current_player
+                        .remove_terminated_effect_on_player()
+                        .iter()
+                        .map(|e| {
+                            logs.push(format!("{} on {}", e.effect_type, e.stats_name));
+                        });
                     // TODO apply passive power
 
                     // apply hot and dot
-                    let (process_logs, hot_or_dot) = self.process_hot_and_dot(game_state);
+                    let (mut process_logs, hot_or_dot) = self.process_hot_and_dot(game_state);
                     self.apply_hot_or_dot(game_state, hot_or_dot);
 
                     //self.apply_all_effects_on_player(game_state, false);
                     // process logs
-                    _logs = process_logs;
+                    logs.append(&mut process_logs);
                 }
 
                 // update the active character
                 self.modify_active_character(name);
-                Ok(())
+                Ok(logs)
             }
             None => {
                 bail!("Character '{}' not found", name)

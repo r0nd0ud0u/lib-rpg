@@ -11,7 +11,7 @@ use crate::{
     players_manager::{DodgeInfo, GameAtkEffects, PlayerManager},
     utils,
 };
-use anyhow::{Ok, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -21,6 +21,7 @@ pub struct ResultLaunchAttack {
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
     pub is_auto_atk: bool,
+    pub logs_new_round: Vec<String>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -78,7 +79,7 @@ impl GameManager {
         Ok(())
     }
 
-    pub fn start_new_turn(&mut self) -> bool {
+    pub fn start_new_turn(&mut self) -> (bool, Vec<String>) {
         // For each turn now
         // Process the order of the players
         self.process_order_to_play();
@@ -145,22 +146,19 @@ impl GameManager {
         all_bosses_dead || all_heroes_dead
     }
 
-    pub fn new_round(&mut self) -> bool {
+    pub fn new_round(&mut self) -> (bool, Vec<String>) {
         self.game_state.new_round();
         // Still round to play
         if self.game_state.current_round > self.game_state.order_to_play.len() {
-            return false;
+            return (false, Vec::new());
         }
-        if self
-            .pm
-            .update_current_player(
-                &self.game_state,
-                &self.game_state.order_to_play[self.game_state.current_round - 1],
-            )
-            .is_err()
-        {
-            return false;
-        }
+        let Ok(logs) = self.pm.update_current_player(
+            &self.game_state,
+            &self.game_state.order_to_play[self.game_state.current_round - 1],
+        ) else {
+            return (false, Vec::new());
+        };
+
         if self.pm.current_player.is_dead() == Some(true) {
             self.new_round();
         }
@@ -175,7 +173,7 @@ impl GameManager {
 
         // reinit each round
 
-        true
+        (true, logs)
     }
 
     pub fn is_auto_atk(&self) -> bool {
@@ -277,20 +275,30 @@ impl GameManager {
             .modify_active_character(&self.pm.current_player.name.clone());
 
         // process end of attack
-        let result_attack = ResultLaunchAttack {
+        let mut result_attack = ResultLaunchAttack {
             launcher_name: self.pm.current_player.name.clone(),
             is_crit,
             outcomes: output,
             all_dodging,
             is_auto_atk: self.is_auto_atk(),
+            logs_new_round: Vec::new(),
         };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
-        } else if self.new_round() {
-            self.game_state.status = GameStatus::StartRound;
         } else {
-            self.start_new_turn();
-            self.game_state.status = GameStatus::StartRound;
+            let (is_new_round, logs) = self.new_round();
+            if is_new_round {
+                self.game_state.status = GameStatus::StartRound;
+                result_attack.logs_new_round = logs;
+            } else {
+                let (is_new_turn, logs) = self.start_new_turn();
+                if is_new_turn {
+                    result_attack.logs_new_round = logs;
+                    self.game_state.status = GameStatus::StartRound;
+                } else {
+                    self.game_state.status = GameStatus::EndOfGame;
+                }
+            }
         }
 
         self.game_state.last_result_atk = result_attack.clone();
@@ -452,7 +460,7 @@ mod tests {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_new_game();
         let result = gm.start_new_turn();
-        assert_eq!(result, true);
+        assert_eq!(result.0, true);
         assert_eq!(gm.game_state.current_round, 1);
         // TODO add second hero player to test the current round and avoid auto atk of boss
 
@@ -460,18 +468,18 @@ mod tests {
         gm.game_state.current_round = 0;
         gm.pm.active_heroes[0].stats.all_stats[HP].current = 0;
         let result = gm.new_round();
-        assert_eq!(true, result);
+        assert_eq!(true, result.0);
         assert_eq!(gm.game_state.current_round, 2);
         // test current round > table order to play
         gm.game_state.current_round = 1000;
         let result = gm.new_round();
-        assert_eq!(false, result);
+        assert_eq!(false, result.0);
         // character name in orderToplay list is not a player
         gm.game_state.order_to_play.clear();
         gm.game_state.order_to_play.push("unknown".to_owned());
         gm.game_state.current_round = 0;
         let result = gm.new_round();
-        assert_eq!(false, result);
+        assert_eq!(false, result.0);
     }
 
     #[test]
