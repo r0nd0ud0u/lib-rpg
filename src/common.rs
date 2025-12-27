@@ -73,9 +73,9 @@ pub mod effect_const {
     pub const EFFECT_CHANGE_HEAL_RX_BY_PERCENT: &str = "Up/down heal RX en %";
     pub const EFFECT_CHANGE_HEAL_TX_BY_PERCENT: &str = "Up/down heal TX en %";
 
-    /// Effect to improve cuurent value of a stat by value
+    /// Effect to improve current value of a stat by value
     pub const EFFECT_VALUE_CHANGE: &str = "Changement par valeur";
-    /// Effect to improve cuurent value of a stat by percent
+    /// Effect to improve current value of a stat by percent
     pub const EFFECT_PERCENT_CHANGE: &str = "Changement par %";
     /// Assess the amount of applies for a stat
     pub const EFFECT_REPEAT_AS_MANY_AS: &str = "Répète tant que possible";

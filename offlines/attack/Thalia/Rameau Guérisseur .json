@@ -16,7 +16,7 @@
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Pouvoir magique",
+            "Stat": "Magic power",
             "Tours actifs": 4,
             "Type": "Up par %",
             "Valeur de l'effet": 0,

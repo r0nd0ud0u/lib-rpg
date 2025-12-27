@@ -28,7 +28,7 @@
         {
             "Cible": "Tous les heroes",
             "Portée": "Zone",
-            "Stat": "Pouvoir physique",
+            "Stat": "Physical power",
             "Tours actifs": 3,
             "Type": "Up par %",
             "Valeur de l'effet": 0,
@@ -37,7 +37,7 @@
 		{
             "Cible": "Tous les heroes",
             "Portée": "Zone",
-            "Stat": "Pouvoir magique",
+            "Stat": "Magic power",
             "Tours actifs": 3,
             "Type": "Up par %",
             "Valeur de l'effet": 0,
