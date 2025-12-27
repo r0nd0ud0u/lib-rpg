@@ -311,7 +311,7 @@ impl Character {
         stat.current = (stat.max as f64 * ratio).round() as u64;
     }
 
-    // TODO if i remove a malus percent for DamageTx with EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT, how can if make the difference with a value which is not percent
+    // TODO if I remove a malus percent for DamageTx with EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT, how can if make the difference with a value which is not percent
     pub fn remove_malus_effect(&mut self, ep: &EffectParam) {
         if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
             self.set_stats_on_effect(&ep.stats_name, -ep.value, true, true);
@@ -445,12 +445,16 @@ impl Character {
             return (String::new(), ep.clone());
         }
         if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
-            // TODO
-            return (String::new(), ep.clone());
+            return (
+                format!("Max stat of {} is up by {}%", ep.stats_name, ep.value),
+                new_effect_param,
+            );
         }
         if ep.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE {
-            // TODO
-            return (String::new(), ep.clone());
+            return (
+                format!("Max stat of {} is up by value:{}", ep.stats_name, ep.value),
+                new_effect_param,
+            );
         }
         if ep.effect_type == EFFECT_REPEAT_AS_MANY_AS {
             // TODO
@@ -543,16 +547,18 @@ impl Character {
         }
     }
 
-    pub fn remove_terminated_effect_on_player(&mut self) {
+    pub fn remove_terminated_effect_on_player(&mut self) -> Vec<EffectParam> {
+        let mut ended_effects: Vec<EffectParam> = Vec::new();
         for gae in self.all_effects.clone() {
             if gae.all_atk_effects.counter_turn == gae.all_atk_effects.nb_turns {
-                // TODO add log: effect is terminated
                 self.remove_malus_effect(&gae.all_atk_effects);
+                ended_effects.push(gae.all_atk_effects);
             }
         }
         self.all_effects.retain(|element| {
             element.all_atk_effects.nb_turns != element.all_atk_effects.counter_turn
         });
+        ended_effects
     }
 
     pub fn reset_all_effects_on_player(&mut self) {
@@ -752,7 +758,7 @@ impl Character {
             self.set_stats_on_effect(
                 &ep.stats_name,
                 full_amount,
-                ep.effect_type == EFFECT_PERCENT_CHANGE,
+                ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
                 true,
             );
             return EffectOutcome {
@@ -993,7 +999,7 @@ mod tests {
         // nb-actions-in-round
         assert_eq!(0, c.actions_done_in_round);
         // atk
-        assert_eq!(6, c.attacks_list.len());
+        assert_eq!(7, c.attacks_list.len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
         let root_path = "./tests/offlines";
@@ -1190,6 +1196,7 @@ mod tests {
         assert_eq!("Cooldown actif sur  de 10 tours.", result);
 
         // test - critical
+        ep.stats_name = HP.to_owned();
         ep.effect_type = EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned();
         ep.value = 10;
         let (output_ep, result) = c.process_one_effect(&ep, false, &atk, &game_state, true);
@@ -1198,7 +1205,7 @@ mod tests {
         assert_eq!(c.name, output_ep.target);
         assert_eq!(15, output_ep.value);
         assert_eq!(0, output_ep.sub_value_effect);
-        assert_eq!("", result);
+        assert_eq!("Max stat of HP is up by value:15", result);
 
         // conditions - number of died ennemies
         game_state.current_turn_nb = 1;
@@ -1214,7 +1221,7 @@ mod tests {
         // focus on value
         assert_eq!(10, output_ep.value);
         assert_eq!(10, output_ep.sub_value_effect);
-        assert_eq!("", result);
+        assert_eq!("Max stat of HP is up by 10%", result);
     }
 
     #[test]

@@ -11,7 +11,7 @@ use crate::{
     players_manager::{DodgeInfo, GameAtkEffects, PlayerManager},
     utils,
 };
-use anyhow::{Ok, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -21,6 +21,7 @@ pub struct ResultLaunchAttack {
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
     pub is_auto_atk: bool,
+    pub logs_new_round: Vec<String>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -78,7 +79,7 @@ impl GameManager {
         Ok(())
     }
 
-    pub fn start_new_turn(&mut self) -> bool {
+    pub fn start_new_turn(&mut self) -> (bool, Vec<String>) {
         // For each turn now
         // Process the order of the players
         self.process_order_to_play();
@@ -145,22 +146,19 @@ impl GameManager {
         all_bosses_dead || all_heroes_dead
     }
 
-    pub fn new_round(&mut self) -> bool {
+    pub fn new_round(&mut self) -> (bool, Vec<String>) {
         self.game_state.new_round();
         // Still round to play
         if self.game_state.current_round > self.game_state.order_to_play.len() {
-            return false;
+            return (false, Vec::new());
         }
-        if self
-            .pm
-            .update_current_player(
-                &self.game_state,
-                &self.game_state.order_to_play[self.game_state.current_round - 1],
-            )
-            .is_err()
-        {
-            return false;
-        }
+        let Ok(logs) = self.pm.update_current_player(
+            &self.game_state,
+            &self.game_state.order_to_play[self.game_state.current_round - 1],
+        ) else {
+            return (false, Vec::new());
+        };
+
         if self.pm.current_player.is_dead() == Some(true) {
             self.new_round();
         }
@@ -175,7 +173,7 @@ impl GameManager {
 
         // reinit each round
 
-        true
+        (true, logs)
     }
 
     pub fn is_auto_atk(&self) -> bool {
@@ -277,20 +275,30 @@ impl GameManager {
             .modify_active_character(&self.pm.current_player.name.clone());
 
         // process end of attack
-        let result_attack = ResultLaunchAttack {
+        let mut result_attack = ResultLaunchAttack {
             launcher_name: self.pm.current_player.name.clone(),
             is_crit,
             outcomes: output,
             all_dodging,
             is_auto_atk: self.is_auto_atk(),
+            logs_new_round: Vec::new(),
         };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
-        } else if self.new_round() {
-            self.game_state.status = GameStatus::StartRound;
         } else {
-            self.start_new_turn();
-            self.game_state.status = GameStatus::StartRound;
+            let (is_new_round, logs) = self.new_round();
+            if is_new_round {
+                self.game_state.status = GameStatus::StartRound;
+                result_attack.logs_new_round = logs;
+            } else {
+                let (is_new_turn, logs) = self.start_new_turn();
+                if is_new_turn {
+                    result_attack.logs_new_round = logs;
+                    self.game_state.status = GameStatus::StartRound;
+                } else {
+                    self.game_state.status = GameStatus::EndOfGame;
+                }
+            }
         }
 
         self.game_state.last_result_atk = result_attack.clone();
@@ -360,6 +368,7 @@ mod tests {
     use crate::common::paths_const::{self, OFFLINE_ROOT};
     use crate::game_manager::ResultLaunchAttack;
     use crate::game_state::GameStatus;
+    use crate::players_manager::PlayerManager;
     use crate::utils;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
@@ -451,7 +460,7 @@ mod tests {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_new_game();
         let result = gm.start_new_turn();
-        assert_eq!(result, true);
+        assert_eq!(result.0, true);
         assert_eq!(gm.game_state.current_round, 1);
         // TODO add second hero player to test the current round and avoid auto atk of boss
 
@@ -459,18 +468,18 @@ mod tests {
         gm.game_state.current_round = 0;
         gm.pm.active_heroes[0].stats.all_stats[HP].current = 0;
         let result = gm.new_round();
-        assert_eq!(true, result);
+        assert_eq!(true, result.0);
         assert_eq!(gm.game_state.current_round, 2);
         // test current round > table order to play
         gm.game_state.current_round = 1000;
         let result = gm.new_round();
-        assert_eq!(false, result);
+        assert_eq!(false, result.0);
         // character name in orderToplay list is not a player
         gm.game_state.order_to_play.clear();
         gm.game_state.order_to_play.push("unknown".to_owned());
         gm.game_state.current_round = 0;
         let result = gm.new_round();
-        assert_eq!(false, result);
+        assert_eq!(false, result.0);
     }
 
     #[test]
@@ -767,6 +776,189 @@ mod tests {
     }
 
     #[test]
+    fn unit_launch_attack_case_eclat_despoir() {
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        gm.pm = PlayerManager::testing_pm();
+        gm.start_new_game();
+        gm.start_new_turn();
+        gm.pm.update_current_player(&gm.game_state, "test").unwrap();
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let old_hp_test = gm
+            .pm
+            .get_active_hero_character("test")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let old_mag_pow_test = gm
+            .pm
+            .get_active_hero_character("test")
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_POWER]
+            .max;
+        let old_phy_pow_test = gm
+            .pm
+            .get_active_hero_character("test")
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+        let old_hp_test2 = gm
+            .pm
+            .get_active_hero_character("test2")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let old_mag_pow_test2 = gm
+            .pm
+            .get_active_hero_character("test2")
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_POWER]
+            .max;
+        let old_phy_pow_test2 = gm
+            .pm
+            .get_active_hero_character("test2")
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+        let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
+        gm.launch_attack("Eclat d'espoir");
+        assert_eq!(false, gm.check_end_of_game());
+        // "Changement par %"
+        // + 30 % of max HP:135 = 40.5
+        assert_eq!(
+            old_hp_test2 + 40,
+            gm.pm
+                .get_active_hero_character("test2")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
+        assert_eq!(
+            old_hp_test,
+            gm.pm
+                .get_active_hero_character("test")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
+        // -18%, mana max = 200
+        assert_eq!(
+            old_mana_launcher - 36,
+            gm.pm
+                .get_active_hero_character("test")
+                .unwrap()
+                .stats
+                .all_stats[MANA]
+                .current
+        );
+        // "Magic power"
+        // "Up par %" 15
+        // +15%, mag power max = 20
+        assert_eq!(
+            old_mag_pow_test2 + 3,
+            gm.pm
+                .get_active_hero_character("test2")
+                .unwrap()
+                .stats
+                .all_stats[MAGICAL_POWER]
+                .max
+        );
+        assert_eq!(
+            old_mag_pow_test,
+            gm.pm
+                .get_active_hero_character("test")
+                .unwrap()
+                .stats
+                .all_stats[MAGICAL_POWER]
+                .max
+        );
+        // "Physical power"
+        // "Up par %" 15
+        // +15%, phy power max = 10
+        assert_eq!(
+            old_phy_pow_test2 + 1,
+            gm.pm
+                .get_active_hero_character("test2")
+                .unwrap()
+                .stats
+                .all_stats[PHYSICAL_POWER]
+                .max
+        );
+        assert_eq!(
+            old_phy_pow_test,
+            gm.pm
+                .get_active_hero_character("test")
+                .unwrap()
+                .stats
+                .all_stats[PHYSICAL_POWER]
+                .max
+        );
+    }
+
+    #[test]
+    fn unit_launch_attack_end_of_effect() {
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        gm.start_new_game();
+        gm.create_game_dirs().unwrap();
+        // turn 1 round 1 (test)
+        gm.start_new_turn();
+        assert_eq!(gm.game_state.order_to_play.len(), 5);
+        while gm.pm.current_player.name != "test".to_owned() {
+            gm.new_round();
+        }
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        // apply effect Magic power - up by % for 2 turns (for turn1 and turn2 and is ending on turn 3)
+        gm.launch_attack("Eclat d'espoir");
+        // turn 1 round 2 (test2)
+        while gm.pm.current_player.name != "test2".to_owned() {
+            gm.new_round();
+        }
+        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        // turn 1 round 3 (boss1)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "Boss1".to_owned());
+        // turn 1 round 1 (test)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        // turn 1 round 2 (test2)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        // turn 2 round 1
+        gm.start_new_turn();
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        // turn 2 round 2 (test2)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        // 2 effects received from eclat d espoir (counter turn 1/2, 1 on 2 )
+        assert_eq!(gm.pm.current_player.all_effects.len(), 2);
+        // turn 2 round 3 (boss1)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "Boss1".to_owned());
+        // turn 2 round 4 (test)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        // turn 2 round 5 (test2)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        // turn 3 round 1 test
+        gm.start_new_turn();
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        // turn 3 round 2 (test2)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        // effects ended after 2 turns
+        assert!(gm.pm.current_player.all_effects.is_empty());
+    }
+
+    #[test]
     fn unit_integ_dxrpg() {
         let mut gm = GameManager::try_new("offlines").unwrap();
         gm.start_new_game();
@@ -783,8 +975,9 @@ mod tests {
             .get_mut_active_boss_character("Angmar")
             .unwrap()
             .is_current_target = true;
+        // thrain
         let ra = gm.launch_attack("SimpleAtk");
-        if ra.all_dodging.len() > 0 && ra.all_dodging[0].is_dodging {
+        if ra.all_dodging.is_empty() && ra.all_dodging[0].is_dodging {
             assert_eq!(
                 old_hp_boss,
                 gm.pm
@@ -812,6 +1005,7 @@ mod tests {
         }
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(2, gm.game_state.current_round);
+        // elara
         let _ra = gm.launch_attack("SimpleAtk");
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(3, gm.game_state.current_round);
