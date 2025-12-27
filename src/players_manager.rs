@@ -130,7 +130,9 @@ impl PlayerManager {
         for c in self.active_heroes.iter_mut() {
             c.increment_counter_effect();
         }
-        // TODO boss
+        for c in self.active_bosses.iter_mut() {
+            c.increment_counter_effect();
+        }
     }
 
     /*
