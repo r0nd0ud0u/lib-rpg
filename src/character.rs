@@ -311,7 +311,7 @@ impl Character {
         stat.current = (stat.max as f64 * ratio).round() as u64;
     }
 
-    // TODO if i remove a malus percent for DamageTx with EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT, how can if make the difference with a value which is not percent
+    // TODO if I remove a malus percent for DamageTx with EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT, how can if make the difference with a value which is not percent
     pub fn remove_malus_effect(&mut self, ep: &EffectParam) {
         if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
             self.set_stats_on_effect(&ep.stats_name, -ep.value, true, true);

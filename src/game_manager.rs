@@ -903,6 +903,62 @@ mod tests {
     }
 
     #[test]
+    fn unit_launch_attack_end_of_effect() {
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        gm.start_new_game();
+        gm.create_game_dirs().unwrap();
+        // turn 1 round 1 (test)
+        gm.start_new_turn();
+        assert_eq!(gm.game_state.order_to_play.len(), 5);
+        while gm.pm.current_player.name != "test".to_owned() {
+            gm.new_round();
+        }
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        // apply effect Magic power - up by % for 2 turns (for turn1 and turn2 and is ending on turn 3)
+        gm.launch_attack("Eclat d'espoir");
+        // turn 1 round 2 (test2)
+        while gm.pm.current_player.name != "test2".to_owned() {
+            gm.new_round();
+        }
+        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        // turn 1 round 3 (boss1)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "Boss1".to_owned());
+        // turn 1 round 1 (test)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        // turn 1 round 2 (test2)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        // turn 2 round 1
+        gm.start_new_turn();
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        // turn 2 round 2 (test2)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        // 2 effects received from eclat d espoir (counter turn 1/2, 1 on 2 )
+        assert_eq!(gm.pm.current_player.all_effects.len(), 2);
+        // turn 2 round 3 (boss1)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "Boss1".to_owned());
+        // turn 2 round 4 (test)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        // turn 2 round 5 (test2)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        // turn 3 round 1 test
+        gm.start_new_turn();
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        // turn 3 round 2 (test2)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        // effects ended after 2 turns
+        assert!(gm.pm.current_player.all_effects.is_empty());
+    }
+
+    #[test]
     fn unit_integ_dxrpg() {
         let mut gm = GameManager::try_new("offlines").unwrap();
         gm.start_new_game();
@@ -921,7 +977,7 @@ mod tests {
             .is_current_target = true;
         // thrain
         let ra = gm.launch_attack("SimpleAtk");
-        if ra.all_dodging.len() > 0 && ra.all_dodging[0].is_dodging {
+        if ra.all_dodging.is_empty() && ra.all_dodging[0].is_dodging {
             assert_eq!(
                 old_hp_boss,
                 gm.pm

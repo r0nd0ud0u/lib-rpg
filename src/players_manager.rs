@@ -130,6 +130,7 @@ impl PlayerManager {
         for c in self.active_heroes.iter_mut() {
             c.increment_counter_effect();
         }
+        // TODO boss
     }
 
     /*
@@ -137,10 +138,10 @@ impl PlayerManager {
      * The boolean is_first_round is reset for all the characters of the game.
      */
     pub fn reset_is_first_round(&mut self) {
-        for c in &mut self.all_heroes {
+        for c in &mut self.active_heroes {
             c.extended_character.is_first_round = true;
         }
-        for c in &mut self.all_bosses {
+        for c in &mut self.active_bosses {
             c.extended_character.is_first_round = true;
         }
     }
