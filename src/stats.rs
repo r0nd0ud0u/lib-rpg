@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 use serde::{Deserialize, Serialize};
 
 use crate::common::stats_const::{
-    AGGRO, AGGRO_RATE, BERSECK, BERSECK_RATE, CRITICAL_STRIKE, DODGE, HP, HP_REGEN, MAGICAL_ARMOR,
+    AGGRO, AGGRO_RATE, BERSECK_RATE, BERSERK, CRITICAL_STRIKE, DODGE, HP, HP_REGEN, MAGICAL_ARMOR,
     MAGICAL_POWER, MANA, MANA_REGEN, PHYSICAL_ARMOR, PHYSICAL_POWER, SPEED, SPEED_REGEN, VIGOR,
     VIGOR_REGEN,
 };
@@ -160,7 +160,7 @@ impl Stats {
         self.all_stats.insert(MANA.to_string(), self.mana.clone());
         self.all_stats.insert(VIGOR.to_string(), self.vigor.clone());
         self.all_stats
-            .insert(BERSECK.to_string(), self.berseck.clone());
+            .insert(BERSERK.to_string(), self.berseck.clone());
         self.all_stats
             .insert(BERSECK_RATE.to_string(), self.berseck_rate.clone());
         self.all_stats.insert(SPEED.to_string(), self.speed.clone());
@@ -184,7 +184,7 @@ impl Stats {
     }
 
     pub fn is_energy_stat(name: &str) -> bool {
-        name == HP || name == MANA || name == VIGOR || name == BERSECK
+        name == HP || name == MANA || name == VIGOR || name == BERSERK
     }
 
     pub fn get_power_stat(&self, is_magic: bool) -> i64 {
@@ -244,7 +244,7 @@ mod tests {
         assert_eq!(Stats::is_energy_stat(HP), true);
         assert_eq!(Stats::is_energy_stat(MANA), true);
         assert_eq!(Stats::is_energy_stat(VIGOR), true);
-        assert_eq!(Stats::is_energy_stat(BERSECK), true);
+        assert_eq!(Stats::is_energy_stat(BERSERK), true);
         assert_eq!(Stats::is_energy_stat(SPEED), false);
     }
 

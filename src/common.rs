@@ -17,7 +17,7 @@ pub mod stats_const {
     pub const HP: &str = "HP";
     pub const MANA: &str = "Mana";
     pub const VIGOR: &str = "Vigor";
-    pub const BERSECK: &str = "Berserk";
+    pub const BERSERK: &str = "Berserk";
     pub const PHYSICAL_ARMOR: &str = "Physical armor";
     pub const MAGICAL_ARMOR: &str = "Magic armor";
     pub const PHYSICAL_POWER: &str = "Physical power";

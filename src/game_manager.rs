@@ -994,6 +994,37 @@ mod tests {
     }
 
     #[test]
+    fn unit_launch_attack_changement_par_value_berserk() {
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        gm.start_new_game();
+        gm.create_game_dirs().unwrap();
+        // turn 1 round 1 (test)
+        gm.start_new_turn();
+        while gm.pm.current_player.name != "test".to_owned() {
+            gm.new_round();
+        }
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let old_berserk = gm
+            .pm
+            .get_mut_active_character("test")
+            .unwrap()
+            .stats
+            .all_stats[BERSERK]
+            .current;
+        let result = gm.launch_attack("changement-par-valeur-berseck");
+        let new_berserk = gm
+            .pm
+            .get_mut_active_character("test")
+            .unwrap()
+            .stats
+            .all_stats[BERSERK]
+            .current;
+        assert_eq!(result.outcomes.len(), 1);
+        assert_eq!(new_berserk, old_berserk + 20);
+    }
+
+    #[test]
     fn unit_integ_dxrpg() {
         let mut gm = GameManager::try_new("offlines").unwrap();
         gm.start_new_game();
