@@ -775,7 +775,7 @@ impl Character {
             );
             return EffectOutcome {
                 full_atk_amount_tx: full_amount,
-                real_amount_tx: full_amount,
+                real_hp_amount_tx: full_amount,
                 new_effect_param,
                 target_name: self.name.clone(),
                 ..Default::default()
@@ -789,7 +789,7 @@ impl Character {
             full_amount = 10 * full_amount / 100;
         }
         // Calculation of the real amount of the value of the effect and update the energy stats
-        let real_amount = self.update_hp_process_real_amount(ep, full_amount);
+        let real_hp_amount = self.update_hp_process_real_amount(ep, full_amount);
 
         // process aggro
         if ep.effect_type != EFFECT_IMPROVE_MAX_STAT_BY_VALUE
@@ -797,7 +797,7 @@ impl Character {
         {
             if ep.stats_name == HP {
                 // process aggro for the launcher
-                self.process_aggro(real_amount, 0, current_turn);
+                self.process_aggro(real_hp_amount, 0, current_turn);
             } else {
                 // Add aggro to a target
                 self.process_aggro(0, ep.value, current_turn);
@@ -807,7 +807,7 @@ impl Character {
         // update stats in game
         let eo = EffectOutcome {
             full_atk_amount_tx: full_amount,
-            real_amount_tx: real_amount,
+            real_hp_amount_tx: real_hp_amount,
             new_effect_param,
             target_name: self.name.clone(),
             ..Default::default()
@@ -834,7 +834,7 @@ impl Character {
         if ep.stats_name != HP {
             return 0;
         }
-        let real_amount;
+        let real_hp_amount;
         if full_amount > 0 {
             // heal
             let delta =
@@ -843,15 +843,15 @@ impl Character {
                 full_amount + self.stats.all_stats[HP].current as i64,
                 self.stats.all_stats[HP].max as i64,
             ) as u64;
-            real_amount = std::cmp::min(delta, full_amount);
+            real_hp_amount = std::cmp::min(delta, full_amount);
         } else {
             // damage
             let tmp = self.stats.all_stats[HP].current as i64;
             self.stats.all_stats[HP].current =
                 std::cmp::max(0, self.stats.all_stats[HP].current as i64 + full_amount) as u64;
-            real_amount = std::cmp::max(-tmp, full_amount);
+            real_hp_amount = std::cmp::max(-tmp, full_amount);
         }
-        real_amount
+        real_hp_amount
     }
 
     pub fn process_aggro(&mut self, atk_value: i64, aggro_value: i64, turn_nb: usize) {
@@ -1479,7 +1479,7 @@ mod tests {
         let old_hp = c2.stats.all_stats[HP].current;
         let eo = c2.apply_effect_outcome(&ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, 20);
-        assert_eq!(eo.real_amount_tx, 20);
+        assert_eq!(eo.real_hp_amount_tx, 20);
         assert_eq!(eo.new_effect_param.value, 20);
         assert_eq!(old_hp + 20, c2.stats.all_stats[HP].current);
         assert_eq!(eo.new_effect_param.effect_type, EFFECT_VALUE_CHANGE);
@@ -1500,7 +1500,7 @@ mod tests {
         let old_hp = boss1.stats.all_stats[HP].current;
         let eo = boss1.apply_effect_outcome(&ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, -40);
-        assert_eq!(eo.real_amount_tx, -40);
+        assert_eq!(eo.real_hp_amount_tx, -40);
         assert_eq!(eo.new_effect_param.value, -40);
         assert_eq!(old_hp - 40, boss1.stats.all_stats[HP].current);
     }
