@@ -25,7 +25,7 @@
         {
             "Cible": "Tous les heroes",
             "Portée": "Zone",
-            "Stat": "Esquive",
+            "Stat": "Dodge",
             "Tours actifs": 5,
             "Type": "Changement par valeur",
             "Valeur de l'effet": 0,

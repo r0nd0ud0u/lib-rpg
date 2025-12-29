@@ -19,7 +19,7 @@
         {
             "Cible": "Ennemie",
             "Portée": "Zone",
-            "Stat": "Esquive",
+            "Stat": "Dodge",
             "Tours actifs": 3,
             "Type": "Changement par valeur",
             "Valeur de l'effet": 0,
