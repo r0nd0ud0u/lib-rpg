@@ -8,7 +8,7 @@ use crate::{
     common::{paths_const::*, stats_const::*},
     effect::EffectOutcome,
     game_state::{GameState, GameStatus},
-    players_manager::{DodgeInfo, GameAtkEffects, PlayerManager},
+    players_manager::{DodgeInfo, PlayerManager},
     utils,
 };
 use anyhow::Result;
@@ -222,35 +222,35 @@ impl GameManager {
         let mut all_dodging = vec![];
         for ep in &all_effects_param {
             for target in &all_players {
-                if let Some(c) = self.pm.get_mut_active_character(target) {
-                    if c.is_dead() == Some(true) {
-                        continue;
-                    }
-                    // check if the effect is applied on the target
-                    if c.is_targeted(ep, &name, &kind) {
-                        // TODO check if the effect is not already applied
-                        output.push(c.apply_effect_outcome(
-                            ep,
-                            &launcher_stats,
-                            is_crit,
-                            self.game_state.current_turn_nb,
-                        ));
-                        // assess the blocking
-                        all_dodging.push(c.dodge_info.clone());
-                        // update all effects
-                        c.all_effects.push(GameAtkEffects {
-                            all_atk_effects: ep.clone(),
-                            atk: atk.clone(),
-                            launcher: name.clone(),
-                            target: "".to_owned(),
-                            launching_turn: self.game_state.current_turn_nb,
-                        });
-                    }
-                    // assess the dodging
-                    if c.is_dodging(&ep.target) && c.kind != kind && c.is_current_target {
-                        all_dodging.push(c.dodge_info.clone());
-                    }
+                let mut o: Option<EffectOutcome> = None;
+                let mut all_di: Option<Vec<DodgeInfo>> = None;
+                if name == *target {
+                    (o, all_di) = self.pm.current_player.is_receiving_atk(
+                        ep,
+                        &name,
+                        &kind,
+                        self.game_state.current_turn_nb,
+                        is_crit,
+                        &launcher_stats.clone(),
+                        &atk,
+                    );
+                } else if let Some(c) = self.pm.get_mut_active_character(target) {
+                    (o, all_di) = c.is_receiving_atk(
+                        ep,
+                        &name,
+                        &kind,
+                        self.game_state.current_turn_nb,
+                        is_crit,
+                        &launcher_stats.clone(),
+                        &atk,
+                    );
                 }
+                if let Some(mut di) = all_di {
+                    all_dodging.append(&mut di);
+                };
+                if let Some(eo) = o {
+                    output.push(eo);
+                };
             }
         }
 
@@ -271,6 +271,7 @@ impl GameManager {
         // if boss -> loot
         // handle end of game if all bosses are dead
 
+        // update active character for cost atk and buf received.
         self.pm
             .modify_active_character(&self.pm.current_player.name.clone());
 
@@ -780,8 +781,11 @@ mod tests {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.pm = PlayerManager::testing_pm();
         gm.start_new_game();
+        // turn 1 round 1 (test)
         gm.start_new_turn();
-        gm.pm.update_current_player(&gm.game_state, "test").unwrap();
+        while gm.pm.current_player.name != "test".to_owned() {
+            gm.new_round();
+        }
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_test = gm
             .pm
@@ -840,7 +844,7 @@ mod tests {
                 .current
         );
         assert_eq!(
-            old_hp_test,
+            old_hp_test + 40,
             gm.pm
                 .get_active_hero_character("test")
                 .unwrap()
@@ -871,7 +875,7 @@ mod tests {
                 .max
         );
         assert_eq!(
-            old_mag_pow_test,
+            old_mag_pow_test + 3,
             gm.pm
                 .get_active_hero_character("test")
                 .unwrap()
@@ -892,7 +896,7 @@ mod tests {
                 .max
         );
         assert_eq!(
-            old_phy_pow_test,
+            old_phy_pow_test + 1,
             gm.pm
                 .get_active_hero_character("test")
                 .unwrap()
@@ -956,6 +960,37 @@ mod tests {
         assert_eq!(gm.pm.current_player.name, "test2".to_owned());
         // effects ended after 2 turns
         assert!(gm.pm.current_player.all_effects.is_empty());
+    }
+
+    #[test]
+    fn unit_launch_attack_up_par_valeur() {
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        gm.start_new_game();
+        gm.create_game_dirs().unwrap();
+        // turn 1 round 1 (test)
+        gm.start_new_turn();
+        while gm.pm.current_player.name != "test".to_owned() {
+            gm.new_round();
+        }
+        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let old_dodge = gm
+            .pm
+            .get_mut_active_character("test")
+            .unwrap()
+            .stats
+            .all_stats[DODGE]
+            .max;
+        let result = gm.launch_attack("up-par-valeur");
+        let new_dodge = gm
+            .pm
+            .get_mut_active_character("test")
+            .unwrap()
+            .stats
+            .all_stats[DODGE]
+            .max;
+        assert_eq!(result.outcomes.len(), 1);
+        assert_eq!(new_dodge, old_dodge + 20);
     }
 
     #[test]
