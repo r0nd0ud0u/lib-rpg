@@ -1,0 +1,23 @@
+{
+    "Cible": "Soi-même",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "Dodge",
+            "Tours actifs": 2,
+            "Type": "Up par valeur",
+            "Valeur de l'effet": 0,
+            "Value": 20
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 2,
+    "Nom": "up-par-valeur",
+    "Photo": "Thraïn.png",
+    "Portée": "Individuel"
+}
+

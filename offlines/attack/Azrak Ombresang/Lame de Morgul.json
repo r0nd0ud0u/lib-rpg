@@ -16,7 +16,7 @@
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "Esquive",
+            "Stat": "Dodge",
             "Tours actifs": 2,
             "Type": "Up par valeur",
             "Valeur de l'effet": 0,

@@ -863,6 +863,45 @@ impl Character {
             }
         }
     }
+
+    pub fn is_receiving_atk(
+        &mut self,
+        ep: &EffectParam,
+        launcher_name: &str,
+        launcher_kind: &CharacterType,
+        current_turn: usize,
+        is_crit: bool,
+        launcher_stats: &Stats,
+        launcher_atk_type: &AttackType,
+    ) -> (Option<EffectOutcome>, Option<Vec<DodgeInfo>>) {
+        let mut eo: Option<EffectOutcome> = None;
+        let mut di: Vec<DodgeInfo> = Vec::new();
+        if self.is_dead() == Some(true) {
+            return (None, None);
+        }
+        // check if the effect is applied on the target
+        if self.is_targeted(ep, &launcher_name, &launcher_kind) {
+            // TODO check if the effect is not already applied
+            eo = Some(self.apply_effect_outcome(ep, &launcher_stats, is_crit, current_turn));
+            // assess the blocking
+            di.push(self.dodge_info.clone());
+            // update all effects
+            self.all_effects.push(GameAtkEffects {
+                all_atk_effects: ep.clone(),
+                atk: launcher_atk_type.clone(),
+                launcher: launcher_name.to_owned().clone(),
+                target: "".to_owned(),
+                launching_turn: current_turn,
+            });
+        }
+        // assess the dodging
+        if self.is_dodging(&ep.target) && self.kind != *launcher_kind && self.is_current_target {
+            di.push(self.dodge_info.clone());
+        }
+
+        let all_dodging = (!di.is_empty()).then_some(di);
+        return (eo, all_dodging);
+    }
 }
 
 #[cfg(test)]
@@ -999,7 +1038,7 @@ mod tests {
         // nb-actions-in-round
         assert_eq!(0, c.actions_done_in_round);
         // atk
-        assert_eq!(7, c.attacks_list.len());
+        assert_eq!(8, c.attacks_list.len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
         let root_path = "./tests/offlines";
@@ -1086,6 +1125,9 @@ mod tests {
         c.stats.all_stats[HP].max_raw = 0;
         assert_eq!(135, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
+        c.set_stats_on_effect(DODGE, 20, false, true);
+        assert_eq!(25, c.stats.all_stats[DODGE].max);
+        assert_eq!(5, c.stats.all_stats[DODGE].current);
     }
 
     #[test]
