@@ -276,6 +276,15 @@ impl Character {
         self.tx_rx[AmountType::Aggro as usize].insert(turn_nb as u64, 0);
     }
 
+    pub fn set_current_stats(&mut self, attribute_name: &str, value: i64) {
+        let stat = self
+            .stats
+            .all_stats
+            .get_mut(attribute_name)
+            .expect("Stat not found");
+        stat.current = std::cmp::min(stat.current + value as u64, stat.max);
+    }
+
     /// stat.m_RawMaxValue of a stat cannot be equal to 0.
     /// updateEffect: false -> enable to update current value et max value only with equipments buf
     pub fn set_stats_on_effect(
@@ -583,7 +592,7 @@ impl Character {
             if let Some(vigor) = self.stats.all_stats.get_mut(VIGOR) {
                 vigor.current = std::cmp::max(0, vigor.current - atk.vigor_cost * vigor.max / 100);
             }
-            if let Some(berseck) = self.stats.all_stats.get_mut(BERSECK) {
+            if let Some(berseck) = self.stats.all_stats.get_mut(BERSERK) {
                 berseck.current =
                     std::cmp::max(0, berseck.current - atk.berseck_cost * berseck.max / 100);
             }
@@ -754,7 +763,10 @@ impl Character {
 
         // Otherwise update the current value of the stats or the HOT/DOT
         // stats update
-        if !Stats::is_energy_stat(&ep.stats_name) {
+        if ep.stats_name != HP
+            && (ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
+                || ep.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
+        {
             self.set_stats_on_effect(
                 &ep.stats_name,
                 full_amount,
@@ -769,13 +781,15 @@ impl Character {
                 ..Default::default()
             };
         }
-
+        if ep.stats_name != HP && ep.effect_type == EFFECT_VALUE_CHANGE {
+            self.set_current_stats(&ep.stats_name, full_amount);
+        }
         // blocking the atk
         if self.dodge_info.is_blocking && ep.stats_name == HP && ep.target == TARGET_ENNEMY {
             full_amount = 10 * full_amount / 100;
         }
         // Calculation of the real amount of the value of the effect and update the energy stats
-        let real_amount = self.process_real_amount(ep, full_amount);
+        let real_amount = self.update_hp_process_real_amount(ep, full_amount);
 
         // process aggro
         if ep.effect_type != EFFECT_IMPROVE_MAX_STAT_BY_VALUE
@@ -816,7 +830,7 @@ impl Character {
     }
 
     /// access the real amount received by the effect on that character
-    pub fn process_real_amount(&mut self, ep: &EffectParam, full_amount: i64) -> i64 {
+    pub fn update_hp_process_real_amount(&mut self, ep: &EffectParam, full_amount: i64) -> i64 {
         if ep.stats_name != HP {
             return 0;
         }
@@ -978,8 +992,8 @@ mod tests {
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].current);
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].max);
         // stats - berseck
-        assert_eq!(200, c.stats.all_stats[BERSECK].current);
-        assert_eq!(200, c.stats.all_stats[BERSECK].max);
+        assert_eq!(100, c.stats.all_stats[BERSERK].current);
+        assert_eq!(200, c.stats.all_stats[BERSERK].max);
         // stats - berseck_rate
         assert_eq!(1, c.stats.all_stats[BERSECK_RATE].current);
         assert_eq!(1, c.stats.all_stats[BERSECK_RATE].max);
@@ -1038,7 +1052,7 @@ mod tests {
         // nb-actions-in-round
         assert_eq!(0, c.actions_done_in_round);
         // atk
-        assert_eq!(8, c.attacks_list.len());
+        assert_eq!(9, c.attacks_list.len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
         let root_path = "./tests/offlines";
@@ -1498,7 +1512,7 @@ mod tests {
             Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
                 .unwrap();
         let old_hp = c.stats.all_stats[HP].current;
-        let result = c.process_real_amount(
+        let result = c.update_hp_process_real_amount(
             &build_dmg_effect_individual(),
             -(c.stats.all_stats[HP].current as i64) - 10,
         );
