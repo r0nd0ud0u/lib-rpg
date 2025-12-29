@@ -170,7 +170,7 @@ impl PlayerManager {
             let mut berseck = pl
                 .stats
                 .all_stats
-                .swap_remove(BERSECK)
+                .swap_remove(BERSERK)
                 .expect("berseck is missing");
             let mut vigor = pl
                 .stats
@@ -219,7 +219,7 @@ impl PlayerManager {
             pl.stats.all_stats.insert(MANA.to_owned(), mana);
             pl.stats.all_stats.insert(VIGOR.to_owned(), vigor);
             pl.stats.all_stats.insert(SPEED.to_owned(), speed);
-            pl.stats.all_stats.insert(BERSECK.to_owned(), berseck);
+            pl.stats.all_stats.insert(BERSERK.to_owned(), berseck);
         }
     }
 
@@ -595,7 +595,7 @@ mod tests {
         let hp_regen = pl.all_heroes[0].stats.all_stats[HP_REGEN].current;
         let old_mana = pl.all_heroes[0].stats.all_stats[MANA].current;
         let mana_regen = pl.all_heroes[0].stats.all_stats[MANA_REGEN].current;
-        let old_berseck = pl.all_heroes[0].stats.all_stats[BERSECK].current;
+        let old_berseck = pl.all_heroes[0].stats.all_stats[BERSERK].current;
         let berseck_regen = pl.all_heroes[0].stats.all_stats[BERSECK_RATE].current;
         let old_vigor = pl.all_heroes[0].stats.all_stats[VIGOR].current;
         let vigor_regen = pl.all_heroes[0].stats.all_stats[VIGOR_REGEN].current;
@@ -616,9 +616,9 @@ mod tests {
         assert_eq!(
             std::cmp::min(
                 old_berseck + berseck_regen,
-                pl.all_heroes[0].stats.all_stats[BERSECK].max
+                pl.all_heroes[0].stats.all_stats[BERSERK].max
             ),
-            pl.all_heroes[0].stats.all_stats[BERSECK].current
+            pl.all_heroes[0].stats.all_stats[BERSERK].current
         );
         assert_eq!(
             std::cmp::min(

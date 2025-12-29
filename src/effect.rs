@@ -49,7 +49,7 @@ pub struct EffectOutcome {
     pub log_display: String,
     pub new_effects: Vec<EffectParam>,
     pub full_atk_amount_tx: i64,
-    pub real_amount_tx: i64,
+    pub real_hp_amount_tx: i64,
     pub target_name: String,
     pub atk: String,
     pub is_critical: bool,

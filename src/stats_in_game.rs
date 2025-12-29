@@ -17,10 +17,10 @@ impl StatsInGame {
             .position(|item| item.atk_name == eo.atk)
         {
             self.all_atk_info[i].nb_use += 1;
-            self.all_atk_info[i].all_damages_by_target[temp_target] = eo.real_amount_tx;
+            self.all_atk_info[i].all_damages_by_target[temp_target] = eo.real_hp_amount_tx;
         } else {
             let mut im = IndexMap::new();
-            im.insert(eo.atk.clone(), eo.real_amount_tx);
+            im.insert(eo.atk.clone(), eo.real_hp_amount_tx);
             self.all_atk_info.push(AtksInfo {
                 atk_name: eo.target_name.clone(),
                 nb_use: 1,
