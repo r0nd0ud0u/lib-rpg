@@ -19,7 +19,7 @@
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
-            "Stat": "Armure magique",
+            "Stat": "Magic armor",
             "Tours actifs": 4,
             "Type": "Up par %",
             "Valeur de l'effet": 0,
