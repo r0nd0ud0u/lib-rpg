@@ -16,7 +16,7 @@
         {
             "Cible": "Tous les heroes",
             "Portée": "Zone",
-            "Stat": "Armure magique",
+            "Stat": "Magic armor",
             "Tours actifs": 3,
             "Type": "Up par %",
             "Valeur de l'effet": 0,
@@ -25,7 +25,7 @@
         {
             "Cible": "Tous les heroes",
             "Portée": "Zone",
-            "Stat": "Armure physique",
+            "Stat": "Physical armor",
             "Tours actifs": 3,
             "Type": "Up par %",
             "Valeur de l'effet": 0,
