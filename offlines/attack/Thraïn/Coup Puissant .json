@@ -25,7 +25,7 @@
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
-            "Stat": "Armure physique",
+            "Stat": "Physical armor",
             "Tours actifs": 3,
             "Type": "Up par %",
             "Valeur de l'effet": 0,
