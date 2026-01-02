@@ -4,6 +4,7 @@ use std::{
 };
 
 use crate::{
+    attack_type::LauncherAtkInfo,
     character::{AmountType, CharacterType},
     common::{paths_const::*, stats_const::*},
     effect::EffectOutcome,
@@ -196,13 +197,14 @@ impl GameManager {
         } else {
             return ResultLaunchAttack::default();
         };
+        // can be launched
         // process cost
         self.pm.current_player.process_atk_cost(atk_name);
 
         // is dodging ?
         self.pm.process_all_dodging(
             &all_players,
-            self.pm.current_player.attacks_list[atk_name].level.into(),
+            self.pm.current_player.attacks_list[atk_name].level,
             &self.pm.current_player.clone().kind,
         );
 
@@ -220,6 +222,12 @@ impl GameManager {
         let name = self.pm.current_player.name.clone();
         let kind = self.pm.current_player.kind.clone();
         let mut all_dodging = vec![];
+        let launcher_info = LauncherAtkInfo {
+            name: name.clone(),
+            kind,
+            stats: launcher_stats,
+            atk_type: atk.clone(),
+        };
         for ep in &all_effects_param {
             for target in &all_players {
                 let mut o: Option<EffectOutcome> = None;
@@ -227,22 +235,16 @@ impl GameManager {
                 if name == *target {
                     (o, all_di) = self.pm.current_player.is_receiving_atk(
                         ep,
-                        &name,
-                        &kind,
                         self.game_state.current_turn_nb,
                         is_crit,
-                        &launcher_stats.clone(),
-                        &atk,
+                        &launcher_info,
                     );
                 } else if let Some(c) = self.pm.get_mut_active_character(target) {
                     (o, all_di) = c.is_receiving_atk(
                         ep,
-                        &name,
-                        &kind,
                         self.game_state.current_turn_nb,
                         is_crit,
-                        &launcher_stats.clone(),
-                        &atk,
+                        &launcher_info,
                     );
                 }
                 if let Some(mut di) = all_di {
@@ -366,6 +368,7 @@ impl GameManager {
 mod tests {
     use crate::character::Class;
     use crate::common::attak_const::COEFF_CRIT_DMG;
+    use crate::common::effect_const::EFFECT_NB_COOL_DOWN;
     use crate::common::paths_const::{self, OFFLINE_ROOT};
     use crate::game_manager::ResultLaunchAttack;
     use crate::game_state::GameStatus;
@@ -1022,6 +1025,31 @@ mod tests {
             .current;
         assert_eq!(result.outcomes.len(), 1);
         assert_eq!(new_berserk, old_berserk + 20);
+    }
+
+    #[test]
+    fn unit_launch_attack_case_cooldown() {
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        gm.pm = PlayerManager::testing_pm();
+        gm.start_new_game();
+        // turn 1 round 1 (test)
+        gm.start_new_turn();
+        while gm.pm.current_player.name != "test".to_owned() {
+            gm.new_round();
+        }
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let result = gm.launch_attack("cooldown");
+        assert_eq!(false, gm.check_end_of_game());
+        assert_eq!(result.outcomes.len(), 1);
+        assert_eq!(
+            result
+                .outcomes
+                .first()
+                .unwrap()
+                .new_effect_param
+                .effect_type,
+            EFFECT_NB_COOL_DOWN
+        );
     }
 
     #[test]

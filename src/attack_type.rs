@@ -5,12 +5,14 @@ use std::{path::Path, vec};
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    character::CharacterType,
     common::{
         all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
         reach_const::INDIVIDUAL,
-        stats_const::HP,
+        stats_const::*,
     },
     effect::EffectParam,
+    stats::Stats,
     utils,
 };
 
@@ -21,6 +23,14 @@ pub struct AtksInfo {
     pub all_damages_by_target: IndexMap<String, i64>, // key target, i64 dmg or heal accumulated
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct LauncherAtkInfo {
+    pub name: String,
+    pub kind: CharacterType,
+    pub stats: Stats,
+    pub atk_type: AttackType,
+}
+
 /// Defines the parameters of an attack.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(default)]
@@ -29,7 +39,7 @@ pub struct AttackType {
     #[serde(rename = "Nom")]
     pub name: String,
     #[serde(rename = "Niveau")]
-    pub level: u8,
+    pub level: u64,
     #[serde(rename = "Coût de mana")]
     pub mana_cost: u64,
     #[serde(rename = "Coût de vigueur")]
@@ -101,7 +111,7 @@ mod tests {
         attack_type::AttackType,
         common::{
             all_target_const::TARGET_ENNEMY, character_json_key::STANDARD_CLASS,
-            effect_const::EFFECT_VALUE_CHANGE, reach_const::INDIVIDUAL, stats_const::HP,
+            effect_const::EFFECT_VALUE_CHANGE, reach_const::INDIVIDUAL, stats_const::*,
         },
         testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
     };

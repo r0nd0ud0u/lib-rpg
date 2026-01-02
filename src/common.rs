@@ -59,7 +59,7 @@ pub mod character_json_key {
 pub mod character_const {
     pub const SPEED_THRESHOLD: u64 = 100;
     pub const NB_TURN_SUM_AGGRO: usize = 5;
-    pub const ULTIMATE_LEVEL: i64 = 13;
+    pub const ULTIMATE_LEVEL: u64 = 13;
 }
 
 pub mod effect_const {

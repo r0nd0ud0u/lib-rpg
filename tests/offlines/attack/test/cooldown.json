@@ -1,0 +1,24 @@
+{
+    "Cible": "Allié",
+    "Coût de mana": 12,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Soi-même",
+            "Portée": "Individuel",
+            "Stat": "",
+            "Tours actifs": 2,
+            "Type": "Tours de recharge",
+            "Valeur de l'effet": 0,
+            "Value": 0
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 2,
+    "Nom": "cooldown",
+    "Photo": "default.png",
+    "Portée": "Individuel",
+    "Sound": ""
+}
+

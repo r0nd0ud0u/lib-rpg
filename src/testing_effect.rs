@@ -20,6 +20,21 @@ pub fn build_cooldown_effect() -> EffectParam {
 }
 
 #[cfg(not(tarpaulin_include))]
+pub fn build_heal_atk_blocked() -> EffectParam {
+    EffectParam {
+        effect_type: "".to_owned(),
+        nb_turns: 1,
+        sub_value_effect: 0,
+        target: TARGET_ALL_HEROES.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        stats_name: HP.to_owned(),
+        value: 0,
+        number_of_applies: 1,
+        ..Default::default()
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
 pub fn build_dot_effect_individual() -> EffectParam {
     EffectParam {
         effect_type: EFFECT_VALUE_CHANGE.to_owned(),

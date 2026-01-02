@@ -411,7 +411,7 @@ impl PlayerManager {
     pub fn process_all_dodging(
         &mut self,
         all_targets: &Vec<String>,
-        atk_level: i64,
+        atk_level: u64,
         kind: &CharacterType,
     ) {
         for t in all_targets {
