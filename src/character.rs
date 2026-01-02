@@ -914,6 +914,51 @@ impl Character {
         let all_dodging = (!di.is_empty()).then_some(di);
         (eo, all_dodging)
     }
+
+    /////////////////////////////////////////
+    /// \brief Character::CanBeLaunched
+    /// The attak can be launched if the character has enough mana, vigor and
+    /// berseck.
+    /// If the atk can be launched, true is returned and the optional<QString> is
+    /// set to nullopt Otherwise the boolean is false and a reason must be set.
+    ///
+    pub fn can_be_launched(&self, atk_type: &AttackType) -> bool {
+        // needed level too high
+        if self.level < atk_type.level {
+            return false;
+        }
+
+        // that attack has a cooldown
+        for atk_effect in &atk_type.all_effects {
+            if atk_effect.effect_type == EFFECT_NB_COOL_DOWN {
+                for e in &self.all_effects {
+                    if e.atk.name == atk_type.name
+                        && e.all_atk_effects.nb_turns - e.all_atk_effects.counter_turn > 0
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            if atk_effect.stats_name == HP
+                && (atk_effect.target == TARGET_ALLY
+                    || atk_effect.target == TARGET_ONLY_ALLY
+                    || atk_effect.target == TARGET_ALL_HEROES)
+                && self.extended_character.is_heal_atk_blocked
+            {
+                return false;
+            }
+        }
+
+        // atk cost enough ?
+        let mana = &self.stats.all_stats[MANA];
+        let vigor = &self.stats.all_stats[VIGOR];
+        let berserk = &self.stats.all_stats[BERSERK];
+
+        atk_type.mana_cost * mana.max / 100 <= mana.current
+            && atk_type.vigor_cost * vigor.max / 100 <= vigor.current
+            && atk_type.berseck_cost <= berserk.current
+    }
 }
 
 #[cfg(test)]
@@ -1567,5 +1612,80 @@ mod tests {
         c.reset_all_buffers();
         assert_eq!(c.all_buffers[0].value, 0);
         assert_eq!(c.all_buffers[0].is_percent, false);
+    }
+
+    #[test]
+    fn unit_can_be_launched() {
+        let mut atk_type = self::AttackType::default();
+        let root_path = "./tests/offlines";
+        let mut c1 =
+            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
+                .unwrap();
+        // nominal case
+        atk_type.level = 1;
+        atk_type.mana_cost = 0;
+        atk_type.vigor_cost = 0;
+        atk_type.berseck_cost = 0;
+        atk_type.name = "atk_test".to_owned();
+        c1.level = 1;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(result);
+        // character level too low
+        c1.level = 0;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        // not enough mana
+        c1.level = 1;
+        atk_type.mana_cost = c1.stats.all_stats[MANA].current + 100;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        // heal atk blocked
+        // c1 (test.json heal_atk_blocked = true)
+        atk_type.all_effects.push(build_heal_atk_blocked());
+        atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        c1.extended_character.is_heal_atk_blocked = false;
+        // active cooldown
+        atk_type.all_effects.clear();
+        atk_type.all_effects.push(build_cooldown_effect());
+        c1.all_effects.push(GameAtkEffects {
+            all_atk_effects: build_cooldown_effect(),
+            atk: atk_type.clone(),
+            ..Default::default()
+        });
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        // inactive cooldown
+        atk_type.all_effects.clear();
+        atk_type.all_effects.push(build_cooldown_effect());
+        let mut effect = build_cooldown_effect();
+        effect.counter_turn = effect.nb_turns;
+        c1.all_effects.clear();
+        c1.all_effects.push(GameAtkEffects {
+            all_atk_effects: effect.clone(),
+            atk: atk_type.clone(),
+            ..Default::default()
+        });
+        let result = c1.can_be_launched(&atk_type);
+        assert!(result);
+        // not enough berseck
+        atk_type.all_effects.clear();
+        atk_type.all_effects.push(build_hot_effect_individual());
+        c1.all_effects.clear();
+        atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current + 100;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        // not enough vigor
+        atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current;
+        atk_type.vigor_cost = c1.stats.all_stats[VIGOR].current + 100;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        // enough energy
+        atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current;
+        atk_type.vigor_cost = c1.stats.all_stats[VIGOR].current / 100;
+        atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(result);
     }
 }
