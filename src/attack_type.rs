@@ -40,7 +40,7 @@ pub struct AttackType {
     #[serde(rename = "Nom")]
     pub name: String,
     #[serde(rename = "Niveau")]
-    pub level: u8,
+    pub level: u64,
     #[serde(rename = "Coût de mana")]
     pub mana_cost: u64,
     #[serde(rename = "Coût de vigueur")]
@@ -114,7 +114,7 @@ impl AttackType {
     ///
     pub fn can_be_launched(
         &self,
-        character_level: u8,
+        character_level: u64,
         is_heal_atk_blocked: bool, // TODO pass other argument -> global passive power ?
         stats: &Stats,
     ) -> bool {

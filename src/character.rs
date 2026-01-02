@@ -603,7 +603,7 @@ impl Character {
         self.dodge_info.is_dodging && target == TARGET_ENNEMY
     }
 
-    pub fn process_dodging(&mut self, atk_level: i64) {
+    pub fn process_dodging(&mut self, atk_level: u64) {
         let dodge_info = if atk_level == ULTIMATE_LEVEL {
             DodgeInfo {
                 name: self.name.clone(),

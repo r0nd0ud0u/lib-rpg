@@ -204,7 +204,7 @@ impl GameManager {
         // is dodging ?
         self.pm.process_all_dodging(
             &all_players,
-            self.pm.current_player.attacks_list[atk_name].level.into(),
+            self.pm.current_player.attacks_list[atk_name].level,
             &self.pm.current_player.clone().kind,
         );
 
