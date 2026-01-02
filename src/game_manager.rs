@@ -368,6 +368,7 @@ impl GameManager {
 mod tests {
     use crate::character::Class;
     use crate::common::attak_const::COEFF_CRIT_DMG;
+    use crate::common::effect_const::EFFECT_NB_COOL_DOWN;
     use crate::common::paths_const::{self, OFFLINE_ROOT};
     use crate::game_manager::ResultLaunchAttack;
     use crate::game_state::GameStatus;
@@ -1024,6 +1025,31 @@ mod tests {
             .current;
         assert_eq!(result.outcomes.len(), 1);
         assert_eq!(new_berserk, old_berserk + 20);
+    }
+
+    #[test]
+    fn unit_launch_attack_case_cooldown() {
+        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        gm.pm = PlayerManager::testing_pm();
+        gm.start_new_game();
+        // turn 1 round 1 (test)
+        gm.start_new_turn();
+        while gm.pm.current_player.name != "test".to_owned() {
+            gm.new_round();
+        }
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let result = gm.launch_attack("cooldown");
+        assert_eq!(false, gm.check_end_of_game());
+        assert_eq!(result.outcomes.len(), 1);
+        assert_eq!(
+            result
+                .outcomes
+                .first()
+                .unwrap()
+                .new_effect_param
+                .effect_type,
+            EFFECT_NB_COOL_DOWN
+        );
     }
 
     #[test]

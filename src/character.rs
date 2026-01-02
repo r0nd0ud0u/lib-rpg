@@ -720,7 +720,10 @@ impl Character {
         current_turn: usize, // to process aggro
     ) -> EffectOutcome {
         if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
-            return EffectOutcome::default();
+            return EffectOutcome {
+                new_effect_param: ep.clone(),
+                ..Default::default()
+            };
         }
         let mut full_amount;
         let mut new_effect_param = ep.clone();
@@ -1098,7 +1101,7 @@ mod tests {
         // nb-actions-in-round
         assert_eq!(0, c.actions_done_in_round);
         // atk
-        assert_eq!(9, c.attacks_list.len());
+        assert_eq!(10, c.attacks_list.len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
         let root_path = "./tests/offlines";
@@ -1518,7 +1521,13 @@ mod tests {
         let launcher_stats = c.stats.clone();
         // target is himself
         let eo = c.apply_effect_outcome(&ep, &launcher_stats, false, 0);
-        assert_eq!(eo, EffectOutcome::default());
+        assert_eq!(
+            eo,
+            EffectOutcome {
+                new_effect_param: ep,
+                ..Default::default()
+            }
+        );
 
         // target is other ally
         ep = build_hot_effect_individual();
