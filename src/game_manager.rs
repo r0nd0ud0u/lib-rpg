@@ -196,6 +196,7 @@ impl GameManager {
         } else {
             return ResultLaunchAttack::default();
         };
+        // can be launched
         // process cost
         self.pm.current_player.process_atk_cost(atk_name);
 

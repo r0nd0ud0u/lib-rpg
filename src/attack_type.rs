@@ -6,11 +6,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     common::{
-        all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+        all_target_const::{TARGET_ALLY, TARGET_ALL_HEROES, TARGET_ENNEMY, TARGET_ONLY_ALLY},
+        effect_const::EFFECT_NB_COOL_DOWN,
         reach_const::INDIVIDUAL,
-        stats_const::HP,
+        stats_const::{BERSERK, HP, MANA, VIGOR},
     },
     effect::EffectParam,
+    stats::Stats,
     utils,
 };
 
@@ -93,17 +95,71 @@ impl AttackType {
         }
         false
     }
+
+    /////////////////////////////////////////
+    /// \brief Character::CanBeLaunched
+    /// The attak can be launched if the character has enough mana, vigor and
+    /// berseck.
+    /// If the atk can be launched, true is returned and the optional<QString> is
+    /// set to nullopt Otherwise the boolean is false and a reason must be set.
+    ///
+    pub fn can_be_launched(
+        &self,
+        character_level: u8,
+        is_heal_atk_blocked: bool, // TODO pass other argument -> global passive power ?
+        stats: &Stats,
+    ) -> bool {
+        // needed level too high
+        if character_level < self.level {
+            return false;
+        }
+
+        // that attack has a cooldown
+        for e in &self.all_effects {
+            if e.effect_type == EFFECT_NB_COOL_DOWN.to_owned() && e.nb_turns - e.counter_turn > 0 {
+                return false;
+            }
+            // TODO test atk
+            if e.stats_name == HP
+                && (e.target == TARGET_ALLY
+                    || e.target == TARGET_ONLY_ALLY
+                    || e.target == TARGET_ALL_HEROES)
+                && is_heal_atk_blocked
+            {
+                return false;
+            }
+        }
+
+        // atk cost enough ?
+        let mana = &stats.all_stats[MANA];
+        let vigor = &stats.all_stats[VIGOR];
+        let berserk = &stats.all_stats[BERSERK];
+
+        if self.mana_cost * mana.max / 100 > mana.current
+            || self.vigor_cost * vigor.max / 100 > vigor.current
+            || self.berseck_cost * berserk.max > berserk.current
+        {
+            return false;
+        }
+
+        true
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
         attack_type::AttackType,
+        character::Character,
         common::{
-            all_target_const::TARGET_ENNEMY, character_json_key::STANDARD_CLASS,
-            effect_const::EFFECT_VALUE_CHANGE, reach_const::INDIVIDUAL, stats_const::HP,
+            all_target_const::TARGET_ENNEMY,
+            character_json_key::STANDARD_CLASS,
+            effect_const::EFFECT_VALUE_CHANGE,
+            reach_const::INDIVIDUAL,
+            stats_const::{HP, MANA},
         },
         testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
+        testing_effect::{build_cooldown_effect, build_heal_atk_blocked},
     };
 
     #[test]
@@ -147,5 +203,38 @@ mod tests {
 
         atk_heal.target = TARGET_ENNEMY.to_owned();
         assert_eq!(false, atk_heal.has_only_heal_effect());
+    }
+
+    #[test]
+    fn unit_can_be_launched() {
+        let mut atk_type = self::AttackType::default();
+        let root_path = "./tests/offlines";
+        let c1 =
+            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
+                .unwrap();
+        // nominal case
+        atk_type.level = 1;
+        atk_type.mana_cost = 0;
+        atk_type.vigor_cost = 0;
+        atk_type.berseck_cost = 0;
+        let result = atk_type.can_be_launched(1, false, &c1.stats);
+        assert!(result);
+        // character level too low
+        let result = atk_type.can_be_launched(0, false, &c1.stats);
+        assert!(!result);
+        // not enough mana
+        atk_type.mana_cost = c1.stats.all_stats[MANA].current + 100;
+        let result = atk_type.can_be_launched(1, false, &c1.stats);
+        assert!(!result);
+        // heal atk blocked
+        atk_type.all_effects.push(build_heal_atk_blocked());
+        atk_type.mana_cost = c1.stats.all_stats[MANA].current;
+        let result = atk_type.can_be_launched(1, true, &c1.stats);
+        assert!(!result);
+        // cooldown
+        atk_type.all_effects.clear();
+        atk_type.all_effects.push(build_cooldown_effect());
+        let result = atk_type.can_be_launched(1, false, &c1.stats);
+        assert!(!result);
     }
 }
