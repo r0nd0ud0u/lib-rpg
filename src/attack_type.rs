@@ -144,14 +144,9 @@ impl AttackType {
         let vigor = &stats.all_stats[VIGOR];
         let berserk = &stats.all_stats[BERSERK];
 
-        if self.mana_cost * mana.max / 100 > mana.current
-            || self.vigor_cost * vigor.max / 100 > vigor.current
-            || self.berseck_cost > berserk.current
-        {
-            return false;
-        }
-
-        true
+        self.mana_cost * mana.max / 100 <= mana.current
+            && self.vigor_cost * vigor.max / 100 <= vigor.current
+            && self.berseck_cost <= berserk.current
     }
 }
 
