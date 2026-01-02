@@ -5,6 +5,7 @@ use std::{path::Path, vec};
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    character::CharacterType,
     common::{
         all_target_const::{TARGET_ALLY, TARGET_ALL_HEROES, TARGET_ENNEMY, TARGET_ONLY_ALLY},
         effect_const::EFFECT_NB_COOL_DOWN,
@@ -21,6 +22,14 @@ pub struct AtksInfo {
     pub atk_name: String,
     pub nb_use: i64,
     pub all_damages_by_target: IndexMap<String, i64>, // key target, i64 dmg or heal accumulated
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct LauncherAtkInfo {
+    pub name: String,
+    pub kind: CharacterType,
+    pub stats: Stats,
+    pub atk_type: AttackType,
 }
 
 /// Defines the parameters of an attack.
@@ -116,7 +125,7 @@ impl AttackType {
 
         // that attack has a cooldown
         for e in &self.all_effects {
-            if e.effect_type == EFFECT_NB_COOL_DOWN.to_owned() && e.nb_turns - e.counter_turn > 0 {
+            if e.effect_type == EFFECT_NB_COOL_DOWN && e.nb_turns - e.counter_turn > 0 {
                 return false;
             }
             // TODO test atk
@@ -137,7 +146,7 @@ impl AttackType {
 
         if self.mana_cost * mana.max / 100 > mana.current
             || self.vigor_cost * vigor.max / 100 > vigor.current
-            || self.berseck_cost * berserk.max > berserk.current
+            || self.berseck_cost > berserk.current
         {
             return false;
         }
@@ -156,7 +165,7 @@ mod tests {
             character_json_key::STANDARD_CLASS,
             effect_const::EFFECT_VALUE_CHANGE,
             reach_const::INDIVIDUAL,
-            stats_const::{HP, MANA},
+            stats_const::{BERSERK, HP, MANA, VIGOR},
         },
         testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
         testing_effect::{build_cooldown_effect, build_heal_atk_blocked},
@@ -228,13 +237,35 @@ mod tests {
         assert!(!result);
         // heal atk blocked
         atk_type.all_effects.push(build_heal_atk_blocked());
-        atk_type.mana_cost = c1.stats.all_stats[MANA].current;
+        atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
         let result = atk_type.can_be_launched(1, true, &c1.stats);
         assert!(!result);
-        // cooldown
+        // active cooldown
         atk_type.all_effects.clear();
         atk_type.all_effects.push(build_cooldown_effect());
         let result = atk_type.can_be_launched(1, false, &c1.stats);
         assert!(!result);
+        // inactive cooldown
+        atk_type.all_effects.clear();
+        let mut effect = build_cooldown_effect();
+        effect.counter_turn = effect.nb_turns;
+        atk_type.all_effects.push(effect);
+        let result = atk_type.can_be_launched(1, false, &c1.stats);
+        assert!(result);
+        // not enough berseck
+        atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current + 100;
+        let result = atk_type.can_be_launched(1, false, &c1.stats);
+        assert!(!result);
+        // not enough vigor
+        atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current;
+        atk_type.vigor_cost = c1.stats.all_stats[VIGOR].current + 100;
+        let result = atk_type.can_be_launched(1, false, &c1.stats);
+        assert!(!result);
+        // enough energy
+        atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current;
+        atk_type.vigor_cost = c1.stats.all_stats[VIGOR].current / 100;
+        atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
+        let result = atk_type.can_be_launched(1, false, &c1.stats);
+        assert!(result);
     }
 }

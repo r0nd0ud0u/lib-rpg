@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
-    attack_type::AttackType,
+    attack_type::{AttackType, LauncherAtkInfo},
     buffers::{update_damage_by_buf, update_heal_by_multi, BufTypes, Buffers},
     common::{
         all_target_const::*,
@@ -881,12 +881,9 @@ impl Character {
     pub fn is_receiving_atk(
         &mut self,
         ep: &EffectParam,
-        launcher_name: &str,
-        launcher_kind: &CharacterType,
         current_turn: usize,
         is_crit: bool,
-        launcher_stats: &Stats,
-        launcher_atk_type: &AttackType,
+        launcher_info: &LauncherAtkInfo,
     ) -> (Option<EffectOutcome>, Option<Vec<DodgeInfo>>) {
         let mut eo: Option<EffectOutcome> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
@@ -894,27 +891,28 @@ impl Character {
             return (None, None);
         }
         // check if the effect is applied on the target
-        if self.is_targeted(ep, &launcher_name, &launcher_kind) {
+        if self.is_targeted(ep, &launcher_info.name, &launcher_info.kind) {
             // TODO check if the effect is not already applied
-            eo = Some(self.apply_effect_outcome(ep, &launcher_stats, is_crit, current_turn));
+            eo = Some(self.apply_effect_outcome(ep, &launcher_info.stats, is_crit, current_turn));
             // assess the blocking
             di.push(self.dodge_info.clone());
             // update all effects
             self.all_effects.push(GameAtkEffects {
                 all_atk_effects: ep.clone(),
-                atk: launcher_atk_type.clone(),
-                launcher: launcher_name.to_owned().clone(),
+                atk: launcher_info.atk_type.clone(),
+                launcher: launcher_info.name.clone(),
                 target: "".to_owned(),
                 launching_turn: current_turn,
             });
         }
         // assess the dodging
-        if self.is_dodging(&ep.target) && self.kind != *launcher_kind && self.is_current_target {
+        if self.is_dodging(&ep.target) && self.kind != launcher_info.kind && self.is_current_target
+        {
             di.push(self.dodge_info.clone());
         }
 
         let all_dodging = (!di.is_empty()).then_some(di);
-        return (eo, all_dodging);
+        (eo, all_dodging)
     }
 }
 

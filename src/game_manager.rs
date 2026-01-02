@@ -4,6 +4,7 @@ use std::{
 };
 
 use crate::{
+    attack_type::LauncherAtkInfo,
     character::{AmountType, CharacterType},
     common::{paths_const::*, stats_const::*},
     effect::EffectOutcome,
@@ -221,6 +222,12 @@ impl GameManager {
         let name = self.pm.current_player.name.clone();
         let kind = self.pm.current_player.kind.clone();
         let mut all_dodging = vec![];
+        let launcher_info = LauncherAtkInfo {
+            name: name.clone(),
+            kind,
+            stats: launcher_stats,
+            atk_type: atk.clone(),
+        };
         for ep in &all_effects_param {
             for target in &all_players {
                 let mut o: Option<EffectOutcome> = None;
@@ -228,22 +235,16 @@ impl GameManager {
                 if name == *target {
                     (o, all_di) = self.pm.current_player.is_receiving_atk(
                         ep,
-                        &name,
-                        &kind,
                         self.game_state.current_turn_nb,
                         is_crit,
-                        &launcher_stats.clone(),
-                        &atk,
+                        &launcher_info,
                     );
                 } else if let Some(c) = self.pm.get_mut_active_character(target) {
                     (o, all_di) = c.is_receiving_atk(
                         ep,
-                        &name,
-                        &kind,
                         self.game_state.current_turn_nb,
                         is_crit,
-                        &launcher_stats.clone(),
-                        &atk,
+                        &launcher_info,
                     );
                 }
                 if let Some(mut di) = all_di {
