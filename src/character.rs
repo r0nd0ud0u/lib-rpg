@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
-    attack_type::AttackType,
+    attack_type::{AttackType, LauncherAtkInfo},
     buffers::{update_damage_by_buf, update_heal_by_multi, BufTypes, Buffers},
     common::{
         all_target_const::*,
@@ -401,7 +401,10 @@ impl Character {
 
         match ep.effect_type.as_str() {
             EFFECT_NB_COOL_DOWN => {
-                output_log = format!("Cooldown actif sur {} de {} tours.", atk.name, ep.nb_turns);
+                return (
+                    format!("Cooldown actif sur {} de {} tours.", atk.name, ep.nb_turns),
+                    new_effect_param,
+                );
             }
             EFFECT_NB_DECREASE_ON_TURN => {
                 // TODO
@@ -603,7 +606,7 @@ impl Character {
         self.dodge_info.is_dodging && target == TARGET_ENNEMY
     }
 
-    pub fn process_dodging(&mut self, atk_level: i64) {
+    pub fn process_dodging(&mut self, atk_level: u64) {
         let dodge_info = if atk_level == ULTIMATE_LEVEL {
             DodgeInfo {
                 name: self.name.clone(),
@@ -717,7 +720,10 @@ impl Character {
         current_turn: usize, // to process aggro
     ) -> EffectOutcome {
         if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
-            return EffectOutcome::default();
+            return EffectOutcome {
+                new_effect_param: ep.clone(),
+                ..Default::default()
+            };
         }
         let mut full_amount;
         let mut new_effect_param = ep.clone();
@@ -881,12 +887,9 @@ impl Character {
     pub fn is_receiving_atk(
         &mut self,
         ep: &EffectParam,
-        launcher_name: &str,
-        launcher_kind: &CharacterType,
         current_turn: usize,
         is_crit: bool,
-        launcher_stats: &Stats,
-        launcher_atk_type: &AttackType,
+        launcher_info: &LauncherAtkInfo,
     ) -> (Option<EffectOutcome>, Option<Vec<DodgeInfo>>) {
         let mut eo: Option<EffectOutcome> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
@@ -894,27 +897,73 @@ impl Character {
             return (None, None);
         }
         // check if the effect is applied on the target
-        if self.is_targeted(ep, &launcher_name, &launcher_kind) {
+        if self.is_targeted(ep, &launcher_info.name, &launcher_info.kind) {
             // TODO check if the effect is not already applied
-            eo = Some(self.apply_effect_outcome(ep, &launcher_stats, is_crit, current_turn));
+            eo = Some(self.apply_effect_outcome(ep, &launcher_info.stats, is_crit, current_turn));
             // assess the blocking
             di.push(self.dodge_info.clone());
             // update all effects
             self.all_effects.push(GameAtkEffects {
                 all_atk_effects: ep.clone(),
-                atk: launcher_atk_type.clone(),
-                launcher: launcher_name.to_owned().clone(),
+                atk: launcher_info.atk_type.clone(),
+                launcher: launcher_info.name.clone(),
                 target: "".to_owned(),
                 launching_turn: current_turn,
             });
         }
         // assess the dodging
-        if self.is_dodging(&ep.target) && self.kind != *launcher_kind && self.is_current_target {
+        if self.is_dodging(&ep.target) && self.kind != launcher_info.kind && self.is_current_target
+        {
             di.push(self.dodge_info.clone());
         }
 
         let all_dodging = (!di.is_empty()).then_some(di);
-        return (eo, all_dodging);
+        (eo, all_dodging)
+    }
+
+    /////////////////////////////////////////
+    /// \brief Character::CanBeLaunched
+    /// The attak can be launched if the character has enough mana, vigor and
+    /// berseck.
+    /// If the atk can be launched, true is returned and the optional<QString> is
+    /// set to nullopt Otherwise the boolean is false and a reason must be set.
+    ///
+    pub fn can_be_launched(&self, atk_type: &AttackType) -> bool {
+        // needed level too high
+        if self.level < atk_type.level {
+            return false;
+        }
+
+        // that attack has a cooldown
+        for atk_effect in &atk_type.all_effects {
+            if atk_effect.effect_type == EFFECT_NB_COOL_DOWN {
+                for e in &self.all_effects {
+                    if e.atk.name == atk_type.name
+                        && e.all_atk_effects.nb_turns - e.all_atk_effects.counter_turn > 0
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            if atk_effect.stats_name == HP
+                && (atk_effect.target == TARGET_ALLY
+                    || atk_effect.target == TARGET_ONLY_ALLY
+                    || atk_effect.target == TARGET_ALL_HEROES)
+                && self.extended_character.is_heal_atk_blocked
+            {
+                return false;
+            }
+        }
+
+        // atk cost enough ?
+        let mana = &self.stats.all_stats[MANA];
+        let vigor = &self.stats.all_stats[VIGOR];
+        let berserk = &self.stats.all_stats[BERSERK];
+
+        atk_type.mana_cost * mana.max / 100 <= mana.current
+            && atk_type.vigor_cost * vigor.max / 100 <= vigor.current
+            && atk_type.berseck_cost <= berserk.current
     }
 }
 
@@ -1052,7 +1101,7 @@ mod tests {
         // nb-actions-in-round
         assert_eq!(0, c.actions_done_in_round);
         // atk
-        assert_eq!(9, c.attacks_list.len());
+        assert_eq!(10, c.attacks_list.len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
         let root_path = "./tests/offlines";
@@ -1472,7 +1521,13 @@ mod tests {
         let launcher_stats = c.stats.clone();
         // target is himself
         let eo = c.apply_effect_outcome(&ep, &launcher_stats, false, 0);
-        assert_eq!(eo, EffectOutcome::default());
+        assert_eq!(
+            eo,
+            EffectOutcome {
+                new_effect_param: ep,
+                ..Default::default()
+            }
+        );
 
         // target is other ally
         ep = build_hot_effect_individual();
@@ -1569,5 +1624,80 @@ mod tests {
         c.reset_all_buffers();
         assert_eq!(c.all_buffers[0].value, 0);
         assert_eq!(c.all_buffers[0].is_percent, false);
+    }
+
+    #[test]
+    fn unit_can_be_launched() {
+        let mut atk_type = self::AttackType::default();
+        let root_path = "./tests/offlines";
+        let mut c1 =
+            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
+                .unwrap();
+        // nominal case
+        atk_type.level = 1;
+        atk_type.mana_cost = 0;
+        atk_type.vigor_cost = 0;
+        atk_type.berseck_cost = 0;
+        atk_type.name = "atk_test".to_owned();
+        c1.level = 1;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(result);
+        // character level too low
+        c1.level = 0;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        // not enough mana
+        c1.level = 1;
+        atk_type.mana_cost = c1.stats.all_stats[MANA].current + 100;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        // heal atk blocked
+        // c1 (test.json heal_atk_blocked = true)
+        atk_type.all_effects.push(build_heal_atk_blocked());
+        atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        c1.extended_character.is_heal_atk_blocked = false;
+        // active cooldown
+        atk_type.all_effects.clear();
+        atk_type.all_effects.push(build_cooldown_effect());
+        c1.all_effects.push(GameAtkEffects {
+            all_atk_effects: build_cooldown_effect(),
+            atk: atk_type.clone(),
+            ..Default::default()
+        });
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        // inactive cooldown
+        atk_type.all_effects.clear();
+        atk_type.all_effects.push(build_cooldown_effect());
+        let mut effect = build_cooldown_effect();
+        effect.counter_turn = effect.nb_turns;
+        c1.all_effects.clear();
+        c1.all_effects.push(GameAtkEffects {
+            all_atk_effects: effect.clone(),
+            atk: atk_type.clone(),
+            ..Default::default()
+        });
+        let result = c1.can_be_launched(&atk_type);
+        assert!(result);
+        // not enough berseck
+        atk_type.all_effects.clear();
+        atk_type.all_effects.push(build_hot_effect_individual());
+        c1.all_effects.clear();
+        atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current + 100;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        // not enough vigor
+        atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current;
+        atk_type.vigor_cost = c1.stats.all_stats[VIGOR].current + 100;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(!result);
+        // enough energy
+        atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current;
+        atk_type.vigor_cost = c1.stats.all_stats[VIGOR].current / 100;
+        atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
+        let result = c1.can_be_launched(&atk_type);
+        assert!(result);
     }
 }
