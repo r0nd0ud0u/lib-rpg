@@ -401,7 +401,10 @@ impl Character {
 
         match ep.effect_type.as_str() {
             EFFECT_NB_COOL_DOWN => {
-                output_log = format!("Cooldown actif sur {} de {} tours.", atk.name, ep.nb_turns);
+                return (
+                    format!("Cooldown actif sur {} de {} tours.", atk.name, ep.nb_turns),
+                    new_effect_param,
+                );
             }
             EFFECT_NB_DECREASE_ON_TURN => {
                 // TODO
