@@ -455,7 +455,7 @@ impl PlayerManager {
 
     pub fn set_one_target(&mut self, launcher_name: &str, atk_name: &str, target_name: &str) {
         if let Some(h) = self.get_mut_active_character(launcher_name) {
-            let Some(atk) = h.attacks_list.iter().find(|a| a.0 == atk_name).map(|a| a) else {
+            let Some(atk) = h.attacks_list.iter().find(|a| a.0 == atk_name) else {
                 return;
             };
             if atk.1.reach == ZONE {
