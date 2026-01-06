@@ -139,7 +139,7 @@ pub struct Character {
     pub is_current_target: bool,
     /// Fight information: is_current_target
     #[serde(default, rename = "is-potential-target")]
-    /// Targed by an individual effect of an atk
+    /// Potential target by an individual effect of an atk
     pub is_potential_target: bool,
     /// Fight information: stats_in_game
     #[serde(default)]

@@ -468,44 +468,57 @@ impl PlayerManager {
         }
     }
 
-    pub fn set_targeted_characters(&mut self, launcher: &Character, atk: &AttackType) {
+    pub fn set_targeted_characters(&mut self, launcher_name: &str, atk_name: &str) {
         self.reset_targeted_character();
         self.reset_potential_targeted_character();
 
-        let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
-        let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
-        let is_boss_ennemy = launcher.kind == CharacterType::Boss && atk.target == TARGET_ENNEMY;
-        let is_hero_ennemy = launcher.kind == CharacterType::Hero && atk.target == TARGET_ENNEMY;
+        if let Some(launcher) = self.get_mut_active_character(launcher_name) {
+            let Some(atk) = launcher
+                .attacks_list
+                .iter()
+                .find(|a| a.0 == atk_name)
+                .map(|a| a.1.clone())
+            else {
+                return;
+            };
 
-        if (is_boss_ennemy || is_hero_ally) && atk.reach == INDIVIDUAL {
-            if let Some(c) = self.active_heroes.first_mut() {
-                c.is_current_target = true;
-                c.is_potential_target = true
+            let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
+            let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
+            let is_boss_ennemy =
+                launcher.kind == CharacterType::Boss && atk.target == TARGET_ENNEMY;
+            let is_hero_ennemy =
+                launcher.kind == CharacterType::Hero && atk.target == TARGET_ENNEMY;
+
+            if (is_boss_ennemy || is_hero_ally) && atk.reach == INDIVIDUAL {
+                if let Some(c) = self.active_heroes.first_mut() {
+                    c.is_current_target = true;
+                    c.is_potential_target = true
+                }
+                self.active_heroes
+                    .iter_mut()
+                    .skip(1)
+                    .for_each(|c| c.is_potential_target = true);
             }
-            self.active_heroes
-                .iter_mut()
-                .skip(1)
-                .for_each(|c| c.is_potential_target = true);
-        }
-        if (is_boss_ally || is_hero_ennemy) && atk.reach == INDIVIDUAL {
-            if let Some(c) = self.active_bosses.first_mut() {
-                c.is_current_target = true;
-                c.is_potential_target = true
+            if (is_boss_ally || is_hero_ennemy) && atk.reach == INDIVIDUAL {
+                if let Some(c) = self.active_bosses.first_mut() {
+                    c.is_current_target = true;
+                    c.is_potential_target = true
+                }
+                self.active_bosses
+                    .iter_mut()
+                    .skip(1)
+                    .for_each(|c| c.is_potential_target = true);
             }
-            self.active_bosses
-                .iter_mut()
-                .skip(1)
-                .for_each(|c| c.is_potential_target = true);
-        }
-        if (is_boss_ennemy || is_hero_ally) && atk.reach == ZONE {
-            self.active_heroes
-                .iter_mut()
-                .for_each(|c| c.is_current_target = true);
-        }
-        if (is_boss_ally || is_hero_ennemy) && atk.reach == ZONE {
-            self.active_bosses
-                .iter_mut()
-                .for_each(|c| c.is_current_target = true);
+            if (is_boss_ennemy || is_hero_ally) && atk.reach == ZONE {
+                self.active_heroes
+                    .iter_mut()
+                    .for_each(|c| c.is_current_target = true);
+            }
+            if (is_boss_ally || is_hero_ennemy) && atk.reach == ZONE {
+                self.active_bosses
+                    .iter_mut()
+                    .for_each(|c| c.is_current_target = true);
+            }
         }
     }
 
@@ -816,29 +829,28 @@ mod tests {
         let mut pl = PlayerManager::testing_pm();
         // hero is attacking
         // atk to ennemy - effect dmg indiv
-        let atk = build_atk_damage_indiv();
-        pl.set_targeted_characters(&pl.active_heroes[0].clone(), &atk);
+        pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "SimpleAtk");
         assert_eq!(pl.active_bosses[0].is_current_target, true);
         assert_eq!(pl.active_bosses[0].is_potential_target, true);
         assert_eq!(pl.active_heroes[0].is_current_target, false);
         assert_eq!(pl.active_heroes[0].is_potential_target, false);
         // atk to ennemy - effect dmg zone
         let atk = build_atk_damage_zone();
-        pl.set_targeted_characters(&pl.active_heroes[0].clone(), &atk);
+        pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "simple-atk-zone");
         assert_eq!(pl.active_bosses[0].is_current_target, true);
         assert_eq!(pl.active_bosses[0].is_potential_target, false);
         assert_eq!(pl.active_heroes[0].is_current_target, false);
         assert_eq!(pl.active_heroes[0].is_potential_target, false);
         // atk to ally(himself in this example) - effect heal indiv
         let atk = build_atk_heal1_indiv();
-        pl.set_targeted_characters(&pl.active_heroes[0].clone(), &atk);
+        pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "simple-atk-himself");
         assert_eq!(pl.active_bosses[0].is_current_target, false);
         assert_eq!(pl.active_bosses[0].is_potential_target, false);
         assert_eq!(pl.active_heroes[0].is_current_target, true);
         assert_eq!(pl.active_heroes[0].is_potential_target, true);
         // atk to ally(himself in this example) - effect heal zone  => ZONE is not himself
         let atk = build_atk_heal1_zone();
-        pl.set_targeted_characters(&pl.active_heroes[0].clone(), &atk);
+        pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "simple-atk-ally-zone");
         assert_eq!(pl.active_bosses[0].is_current_target, false);
         assert_eq!(pl.active_bosses[0].is_potential_target, false);
         assert_eq!(pl.active_heroes[0].is_current_target, true);
@@ -847,28 +859,28 @@ mod tests {
         // boss is attacking
         // atk to ennemy - effect dmg indiv
         let atk = build_atk_damage_indiv();
-        pl.set_targeted_characters(&pl.active_bosses[0].clone(), &atk);
+        pl.set_targeted_characters(&pl.active_bosses[0].name.clone(), "SimpleAtk");
         assert_eq!(pl.active_bosses[0].is_current_target, false);
         assert_eq!(pl.active_bosses[0].is_potential_target, false);
         assert_eq!(pl.active_heroes[0].is_current_target, true);
         assert_eq!(pl.active_heroes[0].is_potential_target, true);
         // atk to ennemy - effect dmg zone
         let atk = build_atk_damage_zone();
-        pl.set_targeted_characters(&pl.active_bosses[0].clone(), &atk);
+        pl.set_targeted_characters(&pl.active_bosses[0].name.clone(), "simple-atk-zone");
         assert_eq!(pl.active_bosses[0].is_current_target, false);
         assert_eq!(pl.active_bosses[0].is_potential_target, false);
         assert_eq!(pl.active_heroes[0].is_current_target, true);
         assert_eq!(pl.active_heroes[0].is_potential_target, false);
         // atk to ally(himself in this example) - effect heal indiv
         let atk = build_atk_heal1_indiv();
-        pl.set_targeted_characters(&pl.active_bosses[0].clone(), &atk);
+        pl.set_targeted_characters(&pl.active_bosses[0].name.clone(), "simple-atk-himself");
         assert_eq!(pl.active_bosses[0].is_current_target, true);
         assert_eq!(pl.active_bosses[0].is_potential_target, true);
         assert_eq!(pl.active_heroes[0].is_current_target, false);
         assert_eq!(pl.active_heroes[0].is_potential_target, false);
         // atk to ally(himself in this example) - effect heal zone  => ZONE is not himself
         let atk = build_atk_heal1_zone();
-        pl.set_targeted_characters(&pl.active_bosses[0].clone(), &atk);
+        pl.set_targeted_characters(&pl.active_bosses[0].name.clone(), "simple-atk-ally-zone");
         assert_eq!(pl.active_bosses[0].is_current_target, true);
         assert_eq!(pl.active_bosses[0].is_potential_target, false);
         assert_eq!(pl.active_heroes[0].is_current_target, false);
