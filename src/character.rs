@@ -222,7 +222,6 @@ impl Character {
                 let attack_path_dir = root_path.as_ref().join(*OFFLINE_ATTACKS).join(&value.name);
                 match list_files_in_dir(&attack_path_dir) {
                     Ok(list) => list.iter().for_each(|attack_path| {
-                        println!("{:?}", attack_path);
                         match AttackType::try_new_from_json(attack_path) {
                             Ok(atk) => {
                                 value.attacks_list.insert(atk.name.clone(), atk);
