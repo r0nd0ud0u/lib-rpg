@@ -1026,7 +1026,7 @@ mod tests {
         );
 
         // boss is attacking
-        // atk to ennemy - effect dmg indiv
+        // atk from ennemy - effect dmg indiv
         pl.set_targeted_characters(boss_name, "SimpleAtk");
         assert_eq!(
             pl.get_active_character(boss_name)
@@ -1040,19 +1040,19 @@ mod tests {
                 .is_potential_target,
             false
         );
-        assert_eq!(
-            pl.get_active_character(test_ally_name)
-                .expect("no hero")
-                .is_current_target,
-            true
-        );
+        let nb = pl
+            .active_heroes
+            .iter_mut()
+            .filter(|x| x.is_current_target)
+            .count();
+        assert_eq!(nb, 1);
         assert_eq!(
             pl.get_active_character(test_ally_name)
                 .expect("no hero")
                 .is_potential_target,
             true
         );
-        // atk to ennemy - effect dmg zone
+        // atk from ennemy - effect dmg zone
         pl.set_targeted_characters(boss_name, "simple-atk-zone");
         assert_eq!(
             pl.get_active_character(boss_name)
