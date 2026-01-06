@@ -1086,6 +1086,7 @@ mod tests {
             if ra.is_crit {
                 crit_coeff = COEFF_CRIT_DMG as u64;
             }
+            // TODO sometimes that test is not passing because of random dodge/crit
             assert!(
                 old_hp_boss - 31 * crit_coeff
                     >= gm
