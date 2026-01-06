@@ -453,13 +453,18 @@ impl PlayerManager {
         }
     }
 
-    pub fn set_one_target(&mut self, name: &str, reach: &str) {
-        if reach == ZONE {
-            return;
-        }
-        self.reset_targeted_character();
-        if let Some(h) = self.get_mut_active_character(name) {
-            h.is_current_target = true;
+    pub fn set_one_target(&mut self, launcher_name: &str, atk_name: &str, target_name: &str) {
+        if let Some(h) = self.get_mut_active_character(launcher_name) {
+            let Some(atk) = h.attacks_list.iter().find(|a| a.0 == atk_name).map(|a| a) else {
+                return;
+            };
+            if atk.1.reach == ZONE {
+                return;
+            }
+            self.reset_targeted_character();
+            if let Some(target) = self.get_mut_active_character(target_name) {
+                target.is_current_target = true;
+            }
         }
     }
 
@@ -539,10 +544,7 @@ fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &
 #[cfg(test)]
 mod tests {
     use crate::{
-        common::{
-            reach_const::{INDIVIDUAL, ZONE},
-            stats_const::*,
-        },
+        common::stats_const::*,
         game_state::GameState,
         players_manager::GameAtkEffects,
         testing_atk::{
@@ -769,34 +771,32 @@ mod tests {
     #[test]
     fn unit_set_one_target() {
         let mut pl = PlayerManager::testing_pm();
-        pl.set_one_target("test", INDIVIDUAL);
-        assert_eq!(
-            true,
+        // simpleAtk is indiv launched by a boss
+        pl.set_one_target("Boss1", "SimpleAtk", "test");
+        assert!(
             pl.get_mut_active_hero_character("test")
                 .unwrap()
                 .is_current_target
         );
-        assert_eq!(
-            false,
+        assert!(
+            !pl.get_mut_active_boss_character("Boss1")
+                .unwrap()
+                .is_current_target
+        );
+        // indiv launched a hero
+        pl.set_one_target("test", "SimpleAtk", "Boss1");
+        assert!(
+            !pl.get_mut_active_hero_character("test")
+                .unwrap()
+                .is_current_target
+        );
+        assert!(
             pl.get_mut_active_boss_character("Boss1")
                 .unwrap()
                 .is_current_target
         );
-        pl.set_one_target("Boss1", INDIVIDUAL);
-        assert_eq!(
-            false,
-            pl.get_mut_active_hero_character("test")
-                .unwrap()
-                .is_current_target
-        );
-        assert_eq!(
-            true,
-            pl.get_mut_active_boss_character("Boss1")
-                .unwrap()
-                .is_current_target
-        );
-        // with ZONE no reset is done
-        pl.set_one_target("Boss1", ZONE);
+        // whatever launched with ZONE no reset is done
+        pl.set_one_target("test", "simple-atk-zone", "Boss1");
         assert_eq!(
             false,
             pl.get_mut_active_hero_character("test")
