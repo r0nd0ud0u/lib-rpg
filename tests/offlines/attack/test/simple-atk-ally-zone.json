@@ -20,6 +20,6 @@
     "Niveau": 1,
     "Nom": "simple-atk-ally-zone",
     "Photo": "SimpleAtk.png",
-    "Portée": "Individuel"
+    "Portée": "Zone"
 }
 
