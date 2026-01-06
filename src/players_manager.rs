@@ -473,12 +473,14 @@ impl PlayerManager {
         self.reset_potential_targeted_character();
 
         if let Some(launcher) = self.get_mut_active_character(launcher_name) {
+            println!("1");
             let Some(atk) = launcher
                 .attacks_list
                 .iter()
                 .find(|a| a.0 == atk_name)
                 .map(|a| a.1.clone())
             else {
+                println!("2");
                 return;
             };
 
@@ -490,6 +492,7 @@ impl PlayerManager {
                 launcher.kind == CharacterType::Hero && atk.target == TARGET_ENNEMY;
 
             if (is_boss_ennemy || is_hero_ally) && atk.reach == INDIVIDUAL {
+                println!("3");
                 if let Some(c) = self.active_heroes.first_mut() {
                     c.is_current_target = true;
                     c.is_potential_target = true
@@ -500,6 +503,7 @@ impl PlayerManager {
                     .for_each(|c| c.is_potential_target = true);
             }
             if (is_boss_ally || is_hero_ennemy) && atk.reach == INDIVIDUAL {
+                println!("4");
                 if let Some(c) = self.active_bosses.first_mut() {
                     c.is_current_target = true;
                     c.is_potential_target = true
@@ -510,15 +514,19 @@ impl PlayerManager {
                     .for_each(|c| c.is_potential_target = true);
             }
             if (is_boss_ennemy || is_hero_ally) && atk.reach == ZONE {
+                println!("5");
                 self.active_heroes
                     .iter_mut()
                     .for_each(|c| c.is_current_target = true);
             }
             if (is_boss_ally || is_hero_ennemy) && atk.reach == ZONE {
+                println!("6");
                 self.active_bosses
                     .iter_mut()
                     .for_each(|c| c.is_current_target = true);
             }
+        } else {
+            println!("7");
         }
     }
 
@@ -825,11 +833,11 @@ mod tests {
         let mut pl = PlayerManager::testing_pm();
         // hero is attacking
         // atk to ennemy - effect dmg indiv
-/*         pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "SimpleAtk");
+        pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "SimpleAtk");
         assert_eq!(pl.active_bosses[0].is_current_target, true);
         assert_eq!(pl.active_bosses[0].is_potential_target, true);
         assert_eq!(pl.active_heroes[0].is_current_target, false);
-        assert_eq!(pl.active_heroes[0].is_potential_target, false); */
+        assert_eq!(pl.active_heroes[0].is_potential_target, false);
         // atk to ennemy - effect dmg zone
         pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "simple-atk-zone");
         assert_eq!(pl.active_bosses[0].is_current_target, true);
