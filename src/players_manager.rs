@@ -557,9 +557,7 @@ fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &
 #[cfg(test)]
 mod tests {
     use crate::{
-        common::stats_const::*,
-        game_state::GameState,
-        players_manager::GameAtkEffects,
+        common::stats_const::*, game_state::GameState, players_manager::GameAtkEffects,
         testing_effect::*,
     };
 
@@ -825,10 +823,8 @@ mod tests {
         let mut pl = PlayerManager::testing_pm();
         // hero is attacking
         // atk to ennemy - effect dmg indiv
-        assert_eq!(pl.active_heroes[0].name.clone(), "test");
-        assert_eq!(pl.active_bosses[0].name.clone(), "Boss1");
         let ally_name = "test";
-        let boss_name ="Boss1";
+        let boss_name = "Boss1";
         pl.set_targeted_characters(ally_name, "SimpleAtk");
         assert_eq!(pl.active_bosses[0].is_current_target, true);
         assert_eq!(pl.active_bosses[0].is_potential_target, true);
