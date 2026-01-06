@@ -468,6 +468,7 @@ impl PlayerManager {
         }
     }
 
+    // TODO test with a second boss!!!
     pub fn set_targeted_characters(&mut self, launcher_name: &str, atk_name: &str) {
         self.reset_targeted_character();
         self.reset_potential_targeted_character();
@@ -528,6 +529,10 @@ impl PlayerManager {
                         c.is_current_target = true;
                         c.is_potential_target = true
                     }
+                    self.active_bosses
+                        .iter_mut()
+                        .filter(|x| x.name == launcher_name)
+                        .for_each(|c| c.is_potential_target = true);
                 } else {
                     if let Some(item) = self
                         .active_bosses
