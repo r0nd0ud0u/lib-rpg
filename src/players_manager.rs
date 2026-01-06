@@ -543,7 +543,6 @@ impl PlayerManager {
                     }
                     self.active_bosses
                         .iter_mut()
-                        .filter(|x| x.name == launcher_name)
                         .for_each(|c| c.is_potential_target = true);
                 }
             }
