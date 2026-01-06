@@ -807,7 +807,7 @@ mod tests {
         let result = pl.load_active_characters_from_saved_game(file_path);
         assert!(result.is_ok());
         assert_eq!(2, pl.active_heroes.len());
-        assert_eq!(1, pl.active_bosses.len());
+        assert_eq!(2, pl.active_bosses.len());
         // we are not loading for a save game
         // atks are not loaded from atk files
         assert_eq!(true, pl.active_heroes[0].attacks_list.is_empty());

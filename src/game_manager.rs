@@ -414,13 +414,14 @@ mod tests {
             .stats
             .all_stats[SPEED]
             .clone();
-        assert_eq!(gm.game_state.order_to_play.len(), 5);
+        assert_eq!(gm.game_state.order_to_play.len(), 6);
         assert_eq!(gm.game_state.order_to_play[0], "test");
         assert_eq!(gm.game_state.order_to_play[1], "test2");
         assert_eq!(gm.game_state.order_to_play[2], "Boss1");
+        assert_eq!(gm.game_state.order_to_play[3], "Boss2");
         // supplementary atk
-        assert_eq!(gm.game_state.order_to_play[3], "test");
-        assert_eq!(gm.game_state.order_to_play[4], "test2");
+        assert_eq!(gm.game_state.order_to_play[4], "test");
+        assert_eq!(gm.game_state.order_to_play[5], "test2");
         assert_eq!(old_speed.current - SPEED_THRESHOLD, new_speed.current);
         assert_eq!(old_speed.max - SPEED_THRESHOLD, new_speed.max);
         assert_eq!(old_speed.max_raw - SPEED_THRESHOLD, new_speed.max_raw);
@@ -431,18 +432,20 @@ mod tests {
         // one hero player is dead
         gm.pm.active_heroes[0].stats.all_stats[HP].current = 0;
         gm.process_order_to_play();
-        assert_eq!(gm.game_state.order_to_play.len(), 4);
+        assert_eq!(gm.game_state.order_to_play.len(), 5);
         assert_eq!(gm.game_state.order_to_play[0], "test2");
         assert_eq!(gm.game_state.order_to_play[1], "test");
         assert_eq!(gm.game_state.order_to_play[2], "Boss1");
-        assert_eq!(gm.game_state.order_to_play[3], "test2");
+        assert_eq!(gm.game_state.order_to_play[3], "Boss2");
+        assert_eq!(gm.game_state.order_to_play[4], "test2");
         // boss is dead
         gm.pm.active_bosses[0].stats.all_stats[HP].current = 0;
         gm.process_order_to_play();
-        assert_eq!(gm.game_state.order_to_play.len(), 3);
+        assert_eq!(gm.game_state.order_to_play.len(), 4);
         assert_eq!(gm.game_state.order_to_play[0], "test2");
         assert_eq!(gm.game_state.order_to_play[1], "test");
-        assert_eq!(gm.game_state.order_to_play[2], "test2");
+        assert_eq!(gm.game_state.order_to_play[2], "Boss2");
+        assert_eq!(gm.game_state.order_to_play[3], "test2");
     }
 
     #[test]
@@ -916,7 +919,7 @@ mod tests {
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_new_turn();
-        assert_eq!(gm.game_state.order_to_play.len(), 5);
+        assert_eq!(gm.game_state.order_to_play.len(), 6);
         while gm.pm.current_player.name != "test".to_owned() {
             gm.new_round();
         }
@@ -932,10 +935,13 @@ mod tests {
         // turn 1 round 3 (boss1)
         gm.new_round();
         assert_eq!(gm.pm.current_player.name, "Boss1".to_owned());
-        // turn 1 round 1 (test)
+        // turn 1 round 4 (boss2)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "Boss2".to_owned());
+        // turn 1 round 5 (test)
         gm.new_round();
         assert_eq!(gm.pm.current_player.name, "test".to_owned());
-        // turn 1 round 2 (test2)
+        // turn 1 round 6 (test2)
         gm.new_round();
         assert_eq!(gm.pm.current_player.name, "test2".to_owned());
         // turn 2 round 1
@@ -949,10 +955,13 @@ mod tests {
         // turn 2 round 3 (boss1)
         gm.new_round();
         assert_eq!(gm.pm.current_player.name, "Boss1".to_owned());
-        // turn 2 round 4 (test)
+        // turn 2 round 4 (boss2)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.name, "Boss2".to_owned());
+        // turn 2 round 5 (test)
         gm.new_round();
         assert_eq!(gm.pm.current_player.name, "test".to_owned());
-        // turn 2 round 5 (test2)
+        // turn 2 round 6 (test2)
         gm.new_round();
         assert_eq!(gm.pm.current_player.name, "test2".to_owned());
         // turn 3 round 1 test
