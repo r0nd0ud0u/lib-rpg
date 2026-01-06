@@ -474,13 +474,16 @@ impl PlayerManager {
 
         if let Some(launcher) = self.get_mut_active_character(launcher_name) {
             println!("1");
+            launcher
+                .attacks_list
+                .iter().for_each(|a|println!("{}\n", a.0));
             let Some(atk) = launcher
                 .attacks_list
                 .iter()
                 .find(|a| a.0 == atk_name)
                 .map(|a| a.1.clone())
             else {
-                println!("2");
+                println!("2 {}", atk_name);
                 return;
             };
 
@@ -833,14 +836,14 @@ mod tests {
         let mut pl = PlayerManager::testing_pm();
         // hero is attacking
         // atk to ennemy - effect dmg indiv
-        /* pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "SimpleAtk");
+        pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "SimpleAtk");
         assert_eq!(pl.active_bosses[0].is_current_target, true);
         assert_eq!(pl.active_bosses[0].is_potential_target, true);
         assert_eq!(pl.active_heroes[0].is_current_target, false);
-        assert_eq!(pl.active_heroes[0].is_potential_target, false); */
+        assert_eq!(pl.active_heroes[0].is_potential_target, false);
         // atk to ennemy - effect dmg zone
         pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "simple-atk-zone");
-        assert_eq!(pl.active_bosses[0].is_current_target, true);
+        assert_eq!(pl.active_bosses[0].is_current_target, false);
         assert_eq!(pl.active_bosses[0].is_potential_target, false);
         assert_eq!(pl.active_heroes[0].is_current_target, false);
         assert_eq!(pl.active_heroes[0].is_potential_target, false);
