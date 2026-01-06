@@ -514,6 +514,7 @@ impl PlayerManager {
                         .find(|x| x.name != launcher_name)
                     {
                         item.is_current_target = true;
+                        item.is_potential_target = true
                     }
                     self.active_heroes
                         .iter_mut()
@@ -531,7 +532,7 @@ impl PlayerManager {
                     }
                     self.active_bosses
                         .iter_mut()
-                        .filter(|x| x.name == launcher_name)
+                        .filter(|x| x.name != launcher_name)
                         .for_each(|c| c.is_potential_target = true);
                 } else {
                     if let Some(item) = self
@@ -864,18 +865,22 @@ mod tests {
         let test_ally_name = "test";
         let test2_ally_name = "test2";
         let boss_name = "Boss1";
+        let _boss2_name = "Boss2";
         pl.get_active_character(test_ally_name).expect("no hero");
         pl.set_targeted_characters(test_ally_name, "SimpleAtk");
-        assert!(
-            pl.get_active_character(boss_name)
-                .expect("no boss")
-                .is_current_target
-        );
-        assert!(
-            pl.get_active_character(boss_name)
-                .expect("no boss")
-                .is_potential_target
-        );
+        assert_eq!(2, pl.active_bosses.len());
+        let current_nb = pl
+            .active_bosses
+            .iter_mut()
+            .filter(|x| x.is_current_target)
+            .count();
+        assert_eq!(current_nb, 1);
+        let potential_nb = pl
+            .active_bosses
+            .iter_mut()
+            .filter(|x| x.is_potential_target)
+            .count();
+        assert_eq!(potential_nb, 2);
         assert!(
             !pl.get_active_character(test_ally_name)
                 .expect("no hero")
