@@ -1,13 +1,13 @@
 {
     "Aggro": 0,
-    "Cible": "Ennemie",
+    "Cible": "Allié",
     "Coût de mana": 9,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
-            "Cible": "Ennemie",
+            "Cible": "Allié",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
@@ -18,7 +18,7 @@
     ],
     "Forme": "Standard",
     "Niveau": 1,
-    "Nom": "simple-atk-zone",
+    "Nom": "simple-atk-ally-zone",
     "Photo": "SimpleAtk.png",
     "Portée": "Zone"
 }

@@ -139,7 +139,7 @@ pub struct Character {
     pub is_current_target: bool,
     /// Fight information: is_current_target
     #[serde(default, rename = "is-potential-target")]
-    /// Targed by an individual effect of an atk
+    /// Potential target by an individual effect of an atk
     pub is_potential_target: bool,
     /// Fight information: stats_in_game
     #[serde(default)]
@@ -1101,7 +1101,7 @@ mod tests {
         // nb-actions-in-round
         assert_eq!(0, c.actions_done_in_round);
         // atk
-        assert_eq!(10, c.attacks_list.len());
+        assert_eq!(13, c.attacks_list.len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
         let root_path = "./tests/offlines";
