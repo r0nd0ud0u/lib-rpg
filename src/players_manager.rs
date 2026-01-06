@@ -560,10 +560,6 @@ mod tests {
         common::stats_const::*,
         game_state::GameState,
         players_manager::GameAtkEffects,
-        testing_atk::{
-            build_atk_damage_indiv, build_atk_damage_zone, build_atk_heal1_indiv,
-            build_atk_heal1_zone,
-        },
         testing_effect::*,
     };
 
