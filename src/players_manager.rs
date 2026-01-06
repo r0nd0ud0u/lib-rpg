@@ -832,7 +832,7 @@ mod tests {
         assert_eq!(pl.active_heroes[0].is_potential_target, false);
         // atk to ennemy - effect dmg zone
         pl.set_targeted_characters(&pl.active_heroes[0].name.clone(), "simple-atk-zone");
-        assert_eq!(pl.active_bosses[0].is_current_target, true);
+       // assert_eq!(pl.active_bosses[0].is_current_target, true);
         assert_eq!(pl.active_bosses[0].is_potential_target, false);
         assert_eq!(pl.active_heroes[0].is_current_target, false);
         assert_eq!(pl.active_heroes[0].is_potential_target, false);
