@@ -123,17 +123,14 @@ mod tests {
 
     #[test]
     fn tunit_is_effet_hot_or_dot() {
-        assert_eq!(is_effet_hot_or_dot(EFFECT_VALUE_CHANGE), true);
-        assert_eq!(is_effet_hot_or_dot("hehe"), false);
+        assert!(is_effet_hot_or_dot(EFFECT_VALUE_CHANGE));
+        assert!(!is_effet_hot_or_dot("hehe"));
     }
 
     #[test]
     fn unit_is_boosted_by_crit() {
-        assert_eq!(
-            is_boosted_by_crit(EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE),
-            true
-        );
-        assert_eq!(is_effet_hot_or_dot("hehe"), false);
+        assert!(is_boosted_by_crit(EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE));
+        assert!(!is_effet_hot_or_dot("hehe"));
     }
 
     #[test]
@@ -143,21 +140,20 @@ mod tests {
             ..Default::default()
         };
         let result = process_decrease_on_turn(&ep);
-        assert!(result <= 3 && result >= 0);
+        assert!((0..=3).contains(&result));
     }
 
     #[test]
     fn unit_is_effect_only_at_atk_launch() {
-        assert_eq!(
-            is_effect_only_at_atk_launch(EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE),
-            true
-        );
-        assert_eq!(is_effect_only_at_atk_launch("hehe"), false);
+        assert!(is_effect_only_at_atk_launch(
+            EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
+        ));
+        assert!(!is_effect_only_at_atk_launch("hehe"));
     }
 
     #[test]
     fn unit_is_target_ally() {
-        assert_eq!(is_target_ally(TARGET_ALLY), true);
-        assert_eq!(is_target_ally("hehe"), false);
+        assert!(is_target_ally(TARGET_ALLY));
+        assert!(!is_target_ally("hehe"));
     }
 }

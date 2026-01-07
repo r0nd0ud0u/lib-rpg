@@ -1,13 +1,13 @@
 {
     "Aggro": 0,
-    "Cible": "Soi-même",
+    "Cible": "Tous les heroes",
     "Coût de mana": 9,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
-            "Cible": "Soi-même",
+            "Cible": "Tous les heroes",
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
@@ -18,7 +18,7 @@
     ],
     "Forme": "Standard",
     "Niveau": 1,
-    "Nom": "simple-atk-himself",
+    "Nom": "simple-atk-all-heroes",
     "Photo": "SimpleAtk.png",
     "Portée": "Individuel"
 }
