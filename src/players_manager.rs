@@ -558,7 +558,10 @@ impl PlayerManager {
             if (is_boss_ennemy || is_hero_ally) && atk.reach == ZONE {
                 self.active_heroes
                     .iter_mut()
-                    .for_each(|c| c.is_current_target = true);
+                    .for_each(|c| {
+                        c.is_current_target = true;
+                        println!("{}", c.name.clone());
+                    });
             }
             if (is_boss_ally || is_hero_ennemy) && atk.reach == ZONE {
                 self.active_bosses
@@ -1010,7 +1013,7 @@ mod tests {
                 .expect("no hero")
                 .is_potential_target
         );
-        // atk to ally(himself in this example) - effect heal zone  => ZONE is not himself
+        // atk to ally - effect heal zone
         pl.set_targeted_characters(test_ally_name, "simple-atk-ally-zone");
         assert!(
             !pl.get_active_character(boss_name)
