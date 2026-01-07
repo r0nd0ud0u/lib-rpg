@@ -560,11 +560,14 @@ impl PlayerManager {
                     self.active_heroes
                         .iter_mut()
                         .filter(|x| x.name != launcher_name)
-                        .for_each(|c| c.is_current_target = true);
+                        .for_each(|c| {
+                            c.is_current_target = true;
+                            println!("{}", c.name.clone());
+                        });
+                    
                 } else {
                     self.active_heroes.iter_mut().for_each(|c| {
                         c.is_current_target = true;
-                        println!("{}", c.name.clone());
                     });
                 }
             }
