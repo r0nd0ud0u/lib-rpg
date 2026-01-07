@@ -18,7 +18,7 @@
     ],
     "Forme": "Standard",
     "Niveau": 1,
-    "Nom": "simple-atk-ally-zone",
+    "Nom": "simple-atk-ally-individual-zone",
     "Photo": "SimpleAtk.png",
     "Portée": "Individuel"
 }
