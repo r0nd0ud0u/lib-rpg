@@ -467,7 +467,7 @@ mod tests {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.start_new_game();
         let result = gm.start_new_turn();
-        assert_eq!(result.0, true);
+        assert!(result.0);
         assert_eq!(gm.game_state.current_round, 1);
         // TODO add second hero player to test the current round and avoid auto atk of boss
 
@@ -475,18 +475,18 @@ mod tests {
         gm.game_state.current_round = 0;
         gm.pm.active_heroes[0].stats.all_stats[HP].current = 0;
         let result = gm.new_round();
-        assert_eq!(true, result.0);
+        assert!(result.0);
         assert_eq!(gm.game_state.current_round, 2);
         // test current round > table order to play
         gm.game_state.current_round = 1000;
         let result = gm.new_round();
-        assert_eq!(false, result.0);
+        assert!(!result.0);
         // character name in orderToplay list is not a player
         gm.game_state.order_to_play.clear();
         gm.game_state.order_to_play.push("unknown".to_owned());
         gm.game_state.current_round = 0;
         let result = gm.new_round();
-        assert_eq!(false, result.0);
+        assert!(!result.0);
     }
 
     #[test]
@@ -532,9 +532,9 @@ mod tests {
         assert_eq!(1, ra.outcomes.len());
         assert_eq!(1, ra.all_dodging.len());
         assert_eq!("Boss1", ra.all_dodging[0].name);
-        assert_eq!(false, ra.all_dodging[0].is_dodging);
+        assert!(!ra.all_dodging[0].is_dodging);
         // not dead boss : end of game
-        assert_eq!(false, gm.check_end_of_game());
+        assert!(!gm.check_end_of_game());
         assert_eq!(
             old_hp_boss - 40,
             gm.pm
@@ -592,7 +592,7 @@ mod tests {
         let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name);
         // not dead boss : end of game
-        assert_eq!(false, gm.check_end_of_game());
+        assert!(!gm.check_end_of_game());
         assert_eq!(
             old_hp_boss,
             gm.pm
@@ -650,7 +650,7 @@ mod tests {
         let old_hero_name = gm.pm.current_player.name.clone();
         gm.launch_attack(&atk.clone().name);
         // 1 dead boss : end of game
-        // assert_eq!(true, gm.check_end_of_game());
+        // assert!(gm.check_end_of_game());
         // at least coeff critical strike = 2.0 (-40 * 2.0 = -80)
         assert!(
             old_hp_boss - 80
@@ -712,7 +712,7 @@ mod tests {
             .is_current_target = true;
         gm.launch_attack(&atk.clone().name);
         // not dead boss : end of game
-        assert_eq!(false, gm.check_end_of_game());
+        assert!(!gm.check_end_of_game());
         // blocking 10% of the damage is received (10% of 40)
         assert_eq!(
             old_hp_boss - 4,
@@ -759,7 +759,7 @@ mod tests {
             .current;
         let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack(&atk.clone().name);
-        assert_eq!(false, gm.check_end_of_game());
+        assert!(!gm.check_end_of_game());
         // + 30  of max HP:135 = 40.5
         assert_eq!(
             old_hp_test2 + 40,
@@ -789,7 +789,7 @@ mod tests {
         gm.start_new_game();
         // turn 1 round 1 (test)
         gm.start_new_turn();
-        while gm.pm.current_player.name != "test".to_owned() {
+        while gm.pm.current_player.name != "test" {
             gm.new_round();
         }
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
@@ -837,7 +837,7 @@ mod tests {
             .max;
         let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack("Eclat d'espoir");
-        assert_eq!(false, gm.check_end_of_game());
+        assert!(!gm.check_end_of_game());
         // "Changement par %"
         // + 30 % of max HP:135 = 40.5
         assert_eq!(
@@ -920,7 +920,7 @@ mod tests {
         // turn 1 round 1 (test)
         gm.start_new_turn();
         assert_eq!(gm.game_state.order_to_play.len(), 6);
-        while gm.pm.current_player.name != "test".to_owned() {
+        while gm.pm.current_player.name != "test" {
             gm.new_round();
         }
         assert_eq!(gm.pm.current_player.name, "test".to_owned());
@@ -928,7 +928,7 @@ mod tests {
         // apply effect Magic power - up by % for 2 turns (for turn1 and turn2 and is ending on turn 3)
         gm.launch_attack("Eclat d'espoir");
         // turn 1 round 2 (test2)
-        while gm.pm.current_player.name != "test2".to_owned() {
+        while gm.pm.current_player.name != "test2" {
             gm.new_round();
         }
         assert_eq!(gm.pm.current_player.name, "test2".to_owned());
@@ -981,10 +981,10 @@ mod tests {
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_new_turn();
-        while gm.pm.current_player.name != "test".to_owned() {
+        while gm.pm.current_player.name != "test" {
             gm.new_round();
         }
-        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.name, "test");
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_dodge = gm
             .pm
@@ -1012,7 +1012,7 @@ mod tests {
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_new_turn();
-        while gm.pm.current_player.name != "test".to_owned() {
+        while gm.pm.current_player.name != "test" {
             gm.new_round();
         }
         assert_eq!(gm.pm.current_player.name, "test".to_owned());
@@ -1043,12 +1043,12 @@ mod tests {
         gm.start_new_game();
         // turn 1 round 1 (test)
         gm.start_new_turn();
-        while gm.pm.current_player.name != "test".to_owned() {
+        while gm.pm.current_player.name != "test" {
             gm.new_round();
         }
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let result = gm.launch_attack("cooldown");
-        assert_eq!(false, gm.check_end_of_game());
+        assert!(!gm.check_end_of_game());
         assert_eq!(result.outcomes.len(), 1);
         assert_eq!(
             result
@@ -1117,19 +1117,19 @@ mod tests {
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk");
-        assert_eq!(gm.check_end_of_game(), false);
+        assert!(!gm.check_end_of_game());
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(5, gm.game_state.current_round);
         // check if a boss is auto playing
-        assert_eq!(true, gm.is_round_auto());
+        assert!(gm.is_round_auto());
         let _ra = gm.launch_attack("SimpleAtk"); // one hero could be dead
-        assert_eq!(gm.check_end_of_game(), false);
+        assert!(!gm.check_end_of_game());
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(6, gm.game_state.current_round);
         let _ra = gm.launch_attack("SimpleAtk"); // one hero could be dead
-        assert_eq!(gm.check_end_of_game(), false);
+        assert!(!gm.check_end_of_game());
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(2, gm.game_state.current_turn_nb);
         assert_eq!(1, gm.game_state.current_round);
@@ -1144,7 +1144,7 @@ mod tests {
         let big_list = utils::list_dirs_in_dir(path);
         let one_save = big_list.unwrap()[0].clone();
         let result = gm.load_game("");
-        assert_eq!(true, result.is_err());
+        assert!(result.is_err());
         let _ = gm.load_game(one_save);
         let _ = gm.save_game_manager();
     }

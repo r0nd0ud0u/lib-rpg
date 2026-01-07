@@ -1000,8 +1000,8 @@ mod tests {
         assert_eq!(12, c.all_buffers.len());
         // TODO change
         assert_eq!(3, c.all_buffers[0].buf_type);
-        assert_eq!(false, c.all_buffers[0].is_passive_enabled);
-        assert_eq!(true, c.all_buffers[0].is_percent);
+        assert!(!c.all_buffers[0].is_passive_enabled);
+        assert!(c.all_buffers[0].is_percent);
         assert_eq!(100, c.all_buffers[0].value);
         // Class
         assert_eq!(Class::Standard, c.class);
@@ -1010,16 +1010,16 @@ mod tests {
         // Experience
         assert_eq!(50, c.exp);
         // extended character
-        assert_eq!(true, c.extended_character.is_first_round);
-        assert_eq!(true, c.extended_character.is_heal_atk_blocked);
-        assert_eq!(false, c.extended_character.is_random_target);
+        assert!(c.extended_character.is_first_round);
+        assert!(c.extended_character.is_heal_atk_blocked);
+        assert!(!c.extended_character.is_random_target);
         // level
         assert_eq!(1, c.level);
         // photo
         assert_eq!("phototest", c.photo_name);
         // powers
-        assert_eq!(false, c.power.is_crit_heal_after_crit);
-        assert_eq!(true, c.power.is_damage_tx_heal_needy_ally);
+        assert!(!c.power.is_crit_heal_after_crit);
+        assert!(c.power.is_damage_tx_heal_needy_ally);
         // rank
         assert_eq!(4, c.rank);
         // shape
@@ -1095,7 +1095,7 @@ mod tests {
         // Type - kind
         assert_eq!(CharacterType::Hero, c.kind);
         // is-blocking-atk
-        assert_eq!(false, c.is_blocking_atk);
+        assert!(!c.is_blocking_atk);
         // max_actions_by_round
         assert_eq!(1, c.max_actions_by_round);
         // nb-actions-in-round
@@ -1113,9 +1113,9 @@ mod tests {
         let mut c = Character::default();
         c.stats.init();
         assert!(c.is_dead().is_some());
-        assert_eq!(true, c.is_dead().unwrap());
+        assert!(c.is_dead().unwrap());
         c.stats.all_stats.get_mut(HP).unwrap().current = 15;
-        assert_eq!(false, c.is_dead().unwrap());
+        assert!(!c.is_dead().unwrap());
     }
 
     #[test]
@@ -1225,7 +1225,7 @@ mod tests {
             ..Default::default()
         };
         c.remove_malus_effect(&ep);
-        assert_eq!(false, c.extended_character.is_heal_atk_blocked);
+        assert!(!c.extended_character.is_heal_atk_blocked);
         let ep = EffectParam {
             effect_type: EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT.to_string(),
             stats_name: HP.to_string(),
@@ -1269,7 +1269,7 @@ mod tests {
         let mut c = c.unwrap();
         c.update_buf(BufTypes::DamageTx, 10, false, HP);
         assert_eq!(10, c.all_buffers[BufTypes::DamageTx as usize].value);
-        assert_eq!(false, c.all_buffers[BufTypes::DamageTx as usize].is_percent);
+        assert!(!c.all_buffers[BufTypes::DamageTx as usize].is_percent);
         assert_eq!(
             HP,
             c.all_buffers[BufTypes::DamageTx as usize].all_stats_name[0]
@@ -1355,43 +1355,40 @@ mod tests {
         // ultimate atk cannot be dodged
         let atk_level = 13;
         c.process_dodging(atk_level);
-        assert_eq!(false, c.dodge_info.is_dodging);
-        assert_eq!(false, c.dodge_info.is_blocking);
+        assert!(!c.dodge_info.is_dodging);
+        assert!(!c.dodge_info.is_blocking);
 
         // impossible to dodge
         let atk_level = 1;
         c.stats.all_stats[DODGE].current = 0;
         c.process_dodging(atk_level);
-        assert_eq!(false, c.dodge_info.is_dodging);
-        assert_eq!(false, c.dodge_info.is_blocking);
+        assert!(!c.dodge_info.is_dodging);
+        assert!(!c.dodge_info.is_blocking);
 
         // total dodge
         let atk_level = 1;
         c.stats.all_stats[DODGE].current = 100;
         c.process_dodging(atk_level);
-        assert_eq!(true, c.dodge_info.is_dodging);
-        assert_eq!(false, c.dodge_info.is_blocking);
+        assert!(c.dodge_info.is_dodging);
+        assert!(!c.dodge_info.is_blocking);
 
         // A tank is not dodging, he is blocking
         let atk_level = 1;
         c.stats.all_stats[DODGE].current = 100;
         c.class = Class::Tank;
         c.process_dodging(atk_level);
-        assert_eq!(false, c.dodge_info.is_dodging);
-        assert_eq!(true, c.dodge_info.is_blocking);
+        assert!(!c.dodge_info.is_dodging);
+        assert!(c.dodge_info.is_blocking);
     }
 
     #[test]
     fn unit_process_critical_strike() {
         let mut c = testing_character();
         c.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        assert_eq!(false, c.process_critical_strike("atk1"));
+        assert!(!c.process_critical_strike("atk1"));
         c.stats.all_stats[CRITICAL_STRIKE].current = 100;
-        assert_eq!(true, c.process_critical_strike("atk1"));
-        assert_eq!(
-            false,
-            c.all_buffers[BufTypes::NextHealAtkIsCrit as usize].is_passive_enabled
-        );
+        assert!(c.process_critical_strike("atk1"));
+        assert!(!c.all_buffers[BufTypes::NextHealAtkIsCrit as usize].is_passive_enabled);
     }
 
     #[test]
@@ -1435,77 +1432,77 @@ mod tests {
         // effect on himself
         let mut ep = build_cooldown_effect();
         // target is himself
-        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
-        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!boss1.is_targeted(&ep, &c1.name, &c1.kind));
 
         // effect on ally individual
         ep = build_hot_effect_individual();
         // target is himself
-        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
         // not targeted on main atk
         c2.is_current_target = false;
-        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!c2.is_targeted(&ep, &c1.name, &c1.kind));
         // targeted on main atk
         c2.is_current_target = true;
-        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!boss1.is_targeted(&ep, &c1.name, &c1.kind));
 
         // effect on ennemy individual
         ep = build_dmg_effect_individual();
-        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
-        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
         // targeted on main atk
         boss1.is_current_target = true;
-        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(boss1.is_targeted(&ep, &c1.name, &c1.kind));
         // not targeted on main atk
         boss1.is_current_target = false;
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!boss1.is_targeted(&ep, &c1.name, &c1.kind));
 
         // effect on ally ZONE
         ep = build_hot_effect_zone();
         // target is himself
-        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
         // targeted on main atk
-        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!boss1.is_targeted(&ep, &c1.name, &c1.kind));
 
         // effect on ennemy ZONE
         ep = build_dot_effect_zone();
         // target is himself
-        assert_eq!(false, c1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
-        assert_eq!(false, c2.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
         // targeted on main atk
         boss1.is_current_target = true;
-        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(boss1.is_targeted(&ep, &c1.name, &c1.kind));
         // not targeted on main atk
         boss1.is_current_target = false;
-        assert_eq!(true, boss1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(boss1.is_targeted(&ep, &c1.name, &c1.kind));
 
         // effect on all allies
         ep = build_hot_effect_all();
         // target is himself
-        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind));
-        assert_eq!(true, c1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(c1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(c1.is_targeted(&ep, &c1.name, &c1.kind));
         // other ally
-        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind));
-        assert_eq!(true, c2.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(c2.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(c2.is_targeted(&ep, &c1.name, &c1.kind));
         // boss
         // targeted on main atk
         boss1.is_current_target = true;
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!boss1.is_targeted(&ep, &c1.name, &c1.kind));
         boss1.is_current_target = false;
-        assert_eq!(false, boss1.is_targeted(&ep, &c1.name, &c1.kind));
+        assert!(!boss1.is_targeted(&ep, &c1.name, &c1.kind));
     }
 
     #[test]
@@ -1541,7 +1538,7 @@ mod tests {
         assert_eq!(eo.new_effect_param.stats_name, HP);
         assert_eq!(eo.new_effect_param.nb_turns, 2);
         assert_eq!(eo.new_effect_param.number_of_applies, 1);
-        assert_eq!(eo.new_effect_param.is_magic_atk, false);
+        assert!(!eo.new_effect_param.is_magic_atk);
         assert_eq!(eo.new_effect_param.target, TARGET_ALLY);
 
         // target is ennemy
@@ -1609,7 +1606,7 @@ mod tests {
             hp_without_malus - effect_value,
             c.stats.all_stats[HP].max as i64
         );
-        assert_eq!(c.all_effects.is_empty(), true);
+        assert!(c.all_effects.is_empty());
     }
 
     #[test]
@@ -1623,7 +1620,7 @@ mod tests {
         c.all_buffers.push(b);
         c.reset_all_buffers();
         assert_eq!(c.all_buffers[0].value, 0);
-        assert_eq!(c.all_buffers[0].is_percent, false);
+        assert!(!c.all_buffers[0].is_percent);
     }
 
     #[test]

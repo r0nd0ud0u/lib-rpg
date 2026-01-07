@@ -784,7 +784,7 @@ mod tests {
         assert_eq!(0, logs.len());
         assert_eq!(0, hot_and_dot);
         // add test HOT on different turn
-        let _ = gs.start_new_turn();
+        gs.start_new_turn();
         let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(1, logs.len());
         assert_eq!(30, hot_and_dot);
@@ -828,7 +828,7 @@ mod tests {
         assert_eq!(2, pl.active_bosses.len());
         // we are not loading for a save game
         // atks are not loaded from atk files
-        assert_eq!(true, pl.active_heroes[0].attacks_list.is_empty());
+        assert!(pl.active_heroes[0].attacks_list.is_empty());
     }
 
     #[test]
@@ -860,14 +860,12 @@ mod tests {
         );
         // whatever launched with ZONE no reset is done
         pl.set_one_target("test", "simple-atk-zone", "Boss1");
-        assert_eq!(
-            false,
-            pl.get_mut_active_hero_character("test")
+        assert!(
+            !pl.get_mut_active_hero_character("test")
                 .unwrap()
                 .is_current_target
         );
-        assert_eq!(
-            true,
+        assert!(
             pl.get_mut_active_boss_character("Boss1")
                 .unwrap()
                 .is_current_target
@@ -1070,17 +1068,15 @@ mod tests {
         // boss is attacking
         // atk from ennemy - effect dmg indiv
         pl.set_targeted_characters(boss_name, "SimpleAtk");
-        assert_eq!(
-            pl.get_active_character(boss_name)
+        assert!(
+            !pl.get_active_character(boss_name)
                 .expect("no boss")
-                .is_current_target,
-            false
+                .is_current_target
         );
-        assert_eq!(
-            pl.get_active_character(boss_name)
+        assert!(
+            !pl.get_active_character(boss_name)
                 .expect("no boss")
-                .is_potential_target,
-            false
+                .is_potential_target
         );
         let nb = pl
             .active_heroes
@@ -1088,89 +1084,76 @@ mod tests {
             .filter(|x| x.is_current_target)
             .count();
         assert_eq!(nb, 1);
-        assert_eq!(
+        assert!(
             pl.get_active_character(test_ally_name)
                 .expect("no hero")
                 .is_potential_target,
-            true
         );
         // atk from ennemy - effect dmg zone
         pl.set_targeted_characters(boss_name, "simple-atk-zone");
-        assert_eq!(
-            pl.get_active_character(boss_name)
+        assert!(
+            !pl.get_active_character(boss_name)
                 .expect("no boss")
-                .is_current_target,
-            false
+                .is_current_target
         );
-        assert_eq!(
-            pl.get_active_character(boss_name)
+        assert!(
+            !pl.get_active_character(boss_name)
                 .expect("no boss")
-                .is_potential_target,
-            false
+                .is_potential_target
         );
-        assert_eq!(
+        assert!(
             pl.get_active_character(test_ally_name)
                 .expect("no hero")
-                .is_current_target,
-            true
+                .is_current_target
         );
-        assert_eq!(
-            pl.get_active_character(test_ally_name)
+        assert!(
+            !pl.get_active_character(test_ally_name)
                 .expect("no hero")
-                .is_potential_target,
-            false
+                .is_potential_target
         );
         // atk to ally(himself in this example) - effect heal indiv
         pl.set_targeted_characters(boss_name, "simple-atk-himself");
-        assert_eq!(
+        assert!(
             pl.get_active_character(boss_name)
                 .expect("no boss")
-                .is_current_target,
-            true
+                .is_current_target
         );
-        assert_eq!(
+        assert!(
             pl.get_active_character(boss_name)
                 .expect("no boss")
-                .is_potential_target,
-            true
+                .is_potential_target
         );
-        assert_eq!(
-            pl.get_active_character(test_ally_name)
+        assert!(
+            !pl.get_active_character(test_ally_name)
                 .expect("no hero")
-                .is_current_target,
-            false
+                .is_current_target
         );
-        assert_eq!(
-            pl.get_active_character(test_ally_name)
+        assert!(
+            !pl.get_active_character(test_ally_name)
                 .expect("no hero")
-                .is_potential_target,
-            false
+                .is_potential_target
         );
         // atk to ally(himself in this example) - effect heal zone  => ZONE is not himself
         pl.set_targeted_characters(boss_name, "simple-atk-ally-zone");
-        assert_eq!(
+        assert!(
             pl.get_active_character(boss_name)
                 .expect("no boss")
-                .is_current_target,
-            true
+                .is_current_target
         );
-        assert_eq!(
-            pl.get_active_character(boss_name)
+        assert!(
+            !pl.get_active_character(boss_name)
                 .expect("no boss")
-                .is_potential_target,
-            false
+                .is_potential_target
         );
-        assert_eq!(
-            pl.get_active_character(test_ally_name)
+        assert!(
+            !pl.get_active_character(test_ally_name)
                 .expect("no hero")
-                .is_current_target,
-            false
+                .is_current_target
         );
-        assert_eq!(
-            pl.get_active_character(test_ally_name)
+        assert!(
+            !pl.get_active_character(test_ally_name)
                 .expect("no hero")
-                .is_potential_target,
-            false
+                .is_potential_target
         );
     }
 }
