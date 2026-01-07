@@ -484,7 +484,7 @@ impl PlayerManager {
                 return;
             };
 
-            println!("3");
+            println!("3, l:{}, atk:{}, tar{}, r{}", launcher_name, atk.name,  atk.target, atk.reach);
             let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
             let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
             let is_boss_ennemy =
