@@ -468,7 +468,6 @@ impl PlayerManager {
         }
     }
 
-    // TODO test for all heroes target
     pub fn set_targeted_characters(&mut self, launcher_name: &str, atk_name: &str) {
         self.reset_targeted_character();
         self.reset_potential_targeted_character();
@@ -1043,6 +1042,20 @@ mod tests {
                 .expect("no hero")
                 .is_potential_target
         );
+        // atk to all heroes target
+        pl.set_targeted_characters(test_ally_name, "simple-atk-all-heroes");
+        let current_nb = pl
+            .active_heroes
+            .iter_mut()
+            .filter(|x| x.is_current_target)
+            .count();
+        assert_eq!(current_nb, 2);
+        let potential_nb = pl
+            .active_heroes
+            .iter_mut()
+            .filter(|x| x.is_potential_target)
+            .count();
+        assert_eq!(potential_nb, 2);        
 
         // boss is attacking
         // atk from ennemy - effect dmg indiv
