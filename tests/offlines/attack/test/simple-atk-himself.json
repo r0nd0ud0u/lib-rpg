@@ -1,13 +1,13 @@
 {
     "Aggro": 0,
-    "Cible": "Allié",
+    "Cible": "Soi-même",
     "Coût de mana": 9,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
-            "Cible": "Allié",
+            "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,

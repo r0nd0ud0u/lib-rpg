@@ -241,22 +241,24 @@ mod tests {
 
     #[test]
     pub fn unit_stats_is_energy_stat() {
-        assert_eq!(Stats::is_energy_stat(HP), true);
-        assert_eq!(Stats::is_energy_stat(MANA), true);
-        assert_eq!(Stats::is_energy_stat(VIGOR), true);
-        assert_eq!(Stats::is_energy_stat(BERSERK), true);
-        assert_eq!(Stats::is_energy_stat(SPEED), false);
+        assert!(Stats::is_energy_stat(HP));
+        assert!(Stats::is_energy_stat(MANA));
+        assert!(Stats::is_energy_stat(VIGOR));
+        assert!(Stats::is_energy_stat(BERSERK));
+        assert!(!Stats::is_energy_stat(SPEED));
     }
 
     #[test]
     pub fn unit_attribute() {
-        let mut attr = Attribute::default();
-        attr.current = 10;
-        attr.max = 20;
-        attr.buf_effect_value = 5;
-        attr.buf_effect_percent = 10;
-        attr.buf_equip_value = 15;
-        attr.buf_equip_percent = 20;
+        let mut attr = Attribute {
+            current: 10,
+            max: 20,
+            buf_effect_value: 5,
+            buf_effect_percent: 10,
+            buf_equip_value: 15,
+            buf_equip_percent: 20,
+            ..Default::default()
+        };
         attr.sync_raw_values();
         assert_eq!(attr.current_raw, 10);
         assert_eq!(attr.max_raw, 20);

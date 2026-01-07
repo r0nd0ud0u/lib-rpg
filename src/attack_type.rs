@@ -150,12 +150,12 @@ mod tests {
     #[test]
     fn unit_has_only_heal_effect() {
         let atk_dmg = build_atk_damage_indiv();
-        assert_eq!(false, atk_dmg.has_only_heal_effect());
+        assert!(!atk_dmg.has_only_heal_effect());
 
         let mut atk_heal = build_atk_heal1_indiv();
-        assert_eq!(true, atk_heal.has_only_heal_effect());
+        assert!(atk_heal.has_only_heal_effect());
 
         atk_heal.target = TARGET_ENNEMY.to_owned();
-        assert_eq!(false, atk_heal.has_only_heal_effect());
+        assert!(!atk_heal.has_only_heal_effect());
     }
 }

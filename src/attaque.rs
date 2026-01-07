@@ -22,9 +22,9 @@ mod tests {
     #[test]
     fn unit_is_heal_effect() {
         let result = is_heal_effect(HP, TARGET_ENNEMY);
-        assert_eq!(false, result);
+        assert!(!result);
 
         let result = is_heal_effect(HP, TARGET_ALLY);
-        assert_eq!(true, result);
+        assert!(result);
     }
 }

@@ -112,17 +112,17 @@ mod tests {
     fn unit_set_buffers() {
         let mut buff = Buffers::default();
         buff.set_buffers(10, false);
-        assert_eq!(buff.is_percent, false);
+        assert!(!buff.is_percent);
         assert_eq!(buff.buf_type, 0);
-        assert_eq!(buff.all_stats_name.is_empty(), true);
-        assert_eq!(buff.is_passive_enabled, false);
+        assert!(buff.all_stats_name.is_empty());
+        assert!(!buff.is_passive_enabled);
         assert_eq!(buff.value, 10);
 
         buff.set_buffers(20, true);
-        assert_eq!(buff.is_percent, true);
+        assert!(buff.is_percent);
         assert_eq!(buff.buf_type, 0);
-        assert_eq!(buff.all_stats_name.is_empty(), true);
-        assert_eq!(buff.is_passive_enabled, false);
+        assert!(buff.all_stats_name.is_empty());
+        assert!(!buff.is_passive_enabled);
         assert_eq!(buff.value, 20);
     }
 }
