@@ -472,7 +472,6 @@ impl PlayerManager {
         self.reset_targeted_character();
         self.reset_potential_targeted_character();
 
-        println!("1");
         if let Some(launcher) = self.get_mut_active_character(launcher_name) {
             let Some(atk) = launcher
                 .attacks_list
@@ -480,11 +479,9 @@ impl PlayerManager {
                 .find(|a| a.0 == atk_name)
                 .map(|a| a.1.clone())
             else {
-                println!("2");
                 return;
             };
 
-            println!("3, l:{}, atk:{}, tar{}, r{}", launcher_name, atk.name,  atk.target, atk.reach);
             let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
             let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
             let is_boss_ennemy =
@@ -496,7 +493,6 @@ impl PlayerManager {
             if atk.target == TARGET_HIMSELF {
                 launcher.is_current_target = true;
                 launcher.is_potential_target = true;
-                println!("4");
                 return;
             }
             // all heroes - atk
@@ -505,7 +501,6 @@ impl PlayerManager {
                     c.is_potential_target = true;
                     c.is_current_target = true;
                 });
-                println!("5");
                 return;
             }
             // individual atk on an hero
@@ -537,7 +532,6 @@ impl PlayerManager {
 
             // individual atk on an ennemy
             if (is_boss_ally || is_hero_ennemy) && atk.reach == INDIVIDUAL {
-                println!("6");
                 if is_hero_ennemy {
                     if let Some(c) = self.active_bosses.first_mut() {
                         c.is_current_target = true;
@@ -562,7 +556,6 @@ impl PlayerManager {
             }
             // Zone atk
             if (is_boss_ennemy || is_hero_ally) && atk.reach == ZONE {
-                println!("7");
                 if is_hero_ally {
                     self.active_heroes
                         .iter_mut()
@@ -571,7 +564,6 @@ impl PlayerManager {
                             c.is_current_target = true;
                             println!("{}", c.name.clone());
                         });
-                    
                 } else {
                     self.active_heroes.iter_mut().for_each(|c| {
                         c.is_current_target = true;
@@ -579,7 +571,6 @@ impl PlayerManager {
                 }
             }
             if (is_boss_ally || is_hero_ennemy) && atk.reach == ZONE {
-                println!("8");
                 self.active_bosses
                     .iter_mut()
                     .for_each(|c| c.is_current_target = true);
