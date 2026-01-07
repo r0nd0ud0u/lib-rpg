@@ -7,7 +7,7 @@ use crate::{
     attack_type::AttackType,
     character::{AmountType, Character, CharacterType},
     common::{
-        all_target_const::{TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF},
+        all_target_const::{TARGET_ALLY, TARGET_ALL_HEROES, TARGET_ENNEMY, TARGET_HIMSELF},
         character_const::*,
         paths_const::OFFLINE_CHARACTERS,
         reach_const::{INDIVIDUAL, ZONE},
@@ -468,7 +468,7 @@ impl PlayerManager {
         }
     }
 
-    // TODO test with a second boss!!!
+    // TODO test for all heroes target
     pub fn set_targeted_characters(&mut self, launcher_name: &str, atk_name: &str) {
         self.reset_targeted_character();
         self.reset_potential_targeted_character();
@@ -494,6 +494,14 @@ impl PlayerManager {
             if atk.target == TARGET_HIMSELF {
                 launcher.is_current_target = true;
                 launcher.is_potential_target = true;
+                return;
+            }
+            // all heroes - atk
+            if atk.target == TARGET_ALL_HEROES {
+                self.active_heroes.iter_mut().for_each(|c| {
+                    c.is_potential_target = true;
+                    c.is_current_target = true;
+                });
                 return;
             }
             // individual atk on an hero
@@ -852,6 +860,12 @@ mod tests {
         assert_eq!(
             true,
             pl.get_mut_active_boss_character("Boss1")
+                .unwrap()
+                .is_current_target
+        );
+        pl.set_one_target("test", "Offrande vitale", "test2");
+        assert!(
+            pl.get_mut_active_hero_character("test2")
                 .unwrap()
                 .is_current_target
         );
