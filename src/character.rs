@@ -53,10 +53,10 @@ impl Default for ExtendedCharacter {
 /// ExtendedCharacter
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct HotBufNbs {
-    hot: u64,
-    dot: u64,
-    buf: u64,
-    debuf: u64,
+    pub hot: u64,
+    pub dot: u64,
+    pub buf: u64,
+    pub debuf: u64,
 }
 impl ExtendedCharacter {
     /// Output: hot, dot, buf, debuf
