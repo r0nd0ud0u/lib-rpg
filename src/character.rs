@@ -15,7 +15,7 @@ use crate::{
         reach_const::*,
         stats_const::*,
     },
-    effect::{is_boosted_by_crit, process_decrease_on_turn, EffectOutcome, EffectParam},
+    effect::{is_boosted_by_crit, is_hot, process_decrease_on_turn, EffectOutcome, EffectParam},
     equipment::Equipment,
     game_state::GameState,
     players_manager::{DodgeInfo, GameAtkEffects},
@@ -47,6 +47,40 @@ impl Default for ExtendedCharacter {
             is_heal_atk_blocked: false,
             is_first_round: true,
         }
+    }
+}
+
+/// ExtendedCharacter
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct HotBufNbs {
+    pub hot: u64,
+    pub dot: u64,
+    pub buf: u64,
+    pub debuf: u64,
+}
+impl ExtendedCharacter {
+    /// Output: hot, dot, buf, debuf
+    pub fn get_hot_and_buf_nbs(all_effects: &Vec<GameAtkEffects>) -> HotBufNbs {
+        let mut hot_buf_nbs = HotBufNbs::default();
+        for e in all_effects {
+            if e.all_atk_effects.nb_turns < 2 {
+                continue;
+            }
+            if is_hot(
+                &e.all_atk_effects.effect_type,
+                &e.all_atk_effects.stats_name,
+                e.all_atk_effects.value,
+            ) {
+                hot_buf_nbs.hot += 1;
+            } else if e.all_atk_effects.stats_name == HP {
+                hot_buf_nbs.dot += 1;
+            } else if e.all_atk_effects.value > 0 {
+                hot_buf_nbs.buf += 1;
+            } else {
+                hot_buf_nbs.debuf += 1;
+            }
+        }
+        hot_buf_nbs
     }
 }
 
@@ -974,7 +1008,7 @@ mod tests {
     use super::Character;
     use crate::attack_type::AttackType;
     use crate::buffers::Buffers;
-    use crate::character::AmountType;
+    use crate::character::{AmountType, ExtendedCharacter, HotBufNbs};
     use crate::effect::EffectOutcome;
     use crate::testing_all_characters::testing_character;
     use crate::{
@@ -1696,5 +1730,91 @@ mod tests {
         atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
         let result = c1.can_be_launched(&atk_type);
         assert!(result);
+    }
+
+    /////////////
+    /// extented character test
+    ///
+    ///
+    #[test]
+    fn unit_get_hot_and_buf_nbs() {
+        let result = ExtendedCharacter::get_hot_and_buf_nbs(&vec![]);
+        assert_eq!(result, HotBufNbs::default());
+        let mut all_effects: Vec<GameAtkEffects> = vec![];
+        // add a 1-turn-effect
+        all_effects.push(GameAtkEffects {
+            all_atk_effects: build_dmg_effect_individual(),
+            ..Default::default()
+        });
+        let result = ExtendedCharacter::get_hot_and_buf_nbs(&all_effects);
+        assert_eq!(
+            result,
+            HotBufNbs {
+                hot: 0,
+                dot: 0,
+                buf: 0,
+                debuf: 0
+            }
+        );
+        // add a 2-turn-effect HOT
+        all_effects.push(GameAtkEffects {
+            all_atk_effects: build_hot_effect_individual(),
+            ..Default::default()
+        });
+        let result = ExtendedCharacter::get_hot_and_buf_nbs(&all_effects);
+        assert_eq!(
+            result,
+            HotBufNbs {
+                hot: 1,
+                dot: 0,
+                buf: 0,
+                debuf: 0
+            }
+        );
+        // add a 3-turn-effect DOT
+        all_effects.push(GameAtkEffects {
+            all_atk_effects: build_dot_effect_individual(),
+            ..Default::default()
+        });
+        let result = ExtendedCharacter::get_hot_and_buf_nbs(&all_effects);
+        assert_eq!(
+            result,
+            HotBufNbs {
+                hot: 1,
+                dot: 1,
+                buf: 0,
+                debuf: 0
+            }
+        );
+        // add a 3-turn-effect DOT
+        all_effects.push(GameAtkEffects {
+            all_atk_effects: build_buf_effect_individual(),
+            ..Default::default()
+        });
+        let result = ExtendedCharacter::get_hot_and_buf_nbs(&all_effects);
+        assert_eq!(
+            result,
+            HotBufNbs {
+                hot: 1,
+                dot: 1,
+                buf: 1,
+                debuf: 0
+            }
+        );
+        // add a 3-turn-effect DOT
+        all_effects.push(GameAtkEffects {
+            all_atk_effects: build_debuf_effect_individual(),
+            ..Default::default()
+        });
+        let result = ExtendedCharacter::get_hot_and_buf_nbs(&all_effects);
+        assert_eq!(
+            result,
+            HotBufNbs {
+                hot: 1,
+                dot: 1,
+                buf: 1,
+                debuf: 1
+            }
+        );
     }
 }

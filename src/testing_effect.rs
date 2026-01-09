@@ -153,3 +153,33 @@ pub fn build_effect_max_stats() -> EffectParam {
         ..Default::default()
     }
 }
+
+#[cfg(not(tarpaulin_include))]
+pub fn build_debuf_effect_individual() -> EffectParam {
+    EffectParam {
+        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+        nb_turns: 3,
+        sub_value_effect: 0,
+        target: TARGET_ENNEMY.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        stats_name: MAGICAL_ARMOR.to_owned(),
+        value: -20,
+        number_of_applies: 1,
+        ..Default::default()
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+pub fn build_buf_effect_individual() -> EffectParam {
+    EffectParam {
+        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+        nb_turns: 3,
+        sub_value_effect: 0,
+        target: TARGET_ENNEMY.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        stats_name: MAGICAL_ARMOR.to_owned(),
+        value: 20,
+        number_of_applies: 1,
+        ..Default::default()
+    }
+}
