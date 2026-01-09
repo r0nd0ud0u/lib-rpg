@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::common::effect_const::*;
+use crate::common::{effect_const::*, stats_const::HP};
 
 /// Define the parameters of an effect.
 /// An effect can be enabled from an attack, a passive power or an object.
@@ -66,6 +66,10 @@ pub fn is_effet_hot_or_dot(effect_name: &str) -> bool {
     .cloned()
     .collect();
     effects_hot_or_dot.contains(effect_name)
+}
+
+pub fn is_hot(effect_name: &str, stats: &str, value: i64) -> bool {
+    is_effet_hot_or_dot(effect_name) && stats == HP && value > 0
 }
 
 pub fn is_boosted_by_crit(effect_name: &str) -> bool {
@@ -155,5 +159,17 @@ mod tests {
     fn unit_is_target_ally() {
         assert!(is_target_ally(TARGET_ALLY));
         assert!(!is_target_ally("hehe"));
+    }
+
+    #[test]
+    fn unit_is_hot() {
+        let result = is_hot(EFFECT_BLOCK_HEAL_ATK, HP, 0);
+        assert!(!result);
+        let result = is_hot(EFFECT_VALUE_CHANGE, HP, 0);
+        assert!(!result);
+        let result = is_hot(EFFECT_VALUE_CHANGE, HP, 10);
+        assert!(result);
+        let result = is_hot(EFFECT_VALUE_CHANGE, HP, -10);
+        assert!(!result);
     }
 }
