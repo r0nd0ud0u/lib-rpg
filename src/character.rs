@@ -82,6 +82,30 @@ impl ExtendedCharacter {
         }
         hot_buf_nbs
     }
+
+    pub fn get_hot_and_buf_texts(all_effects: &Vec<GameAtkEffects>) -> Vec<String> {
+        let mut texts: Vec<String> = vec![];
+        for e in all_effects {
+            if e.all_atk_effects.nb_turns < 2 {
+                continue;
+            }
+            let text = if e.all_atk_effects.stats_name.is_empty() {
+                format!(
+                    "{}: {}",
+                    e.all_atk_effects.effect_type, e.all_atk_effects.value
+                )
+            } else {
+                format!(
+                    "{}-{}: {}",
+                    e.all_atk_effects.effect_type,
+                    e.all_atk_effects.stats_name,
+                    e.all_atk_effects.value
+                )
+            };
+            texts.push(text);
+        }
+        texts
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, Hash, PartialEq)]
@@ -1816,5 +1840,45 @@ mod tests {
                 debuf: 1
             }
         );
+    }
+
+    #[test]
+    fn unit_get_hot_and_buf_texts() {
+        let mut all_effects: Vec<GameAtkEffects> = vec![];
+        // add a 1-turn-effect
+        all_effects.push(GameAtkEffects {
+            all_atk_effects: build_dmg_effect_individual(),
+            ..Default::default()
+        });
+        let result = ExtendedCharacter::get_hot_and_buf_texts(&all_effects);
+        assert!(result.is_empty());
+        // add a 2-turn-effect HOT
+        all_effects.push(GameAtkEffects {
+            all_atk_effects: build_hot_effect_individual(),
+            ..Default::default()
+        });
+        let result = ExtendedCharacter::get_hot_and_buf_texts(&all_effects);
+        assert_eq!(1, result.len());
+        // add a 3-turn-effect DOT
+        all_effects.push(GameAtkEffects {
+            all_atk_effects: build_dot_effect_individual(),
+            ..Default::default()
+        });
+        let result = ExtendedCharacter::get_hot_and_buf_texts(&all_effects);
+        assert_eq!(2, result.len());
+        // add a 3-turn-effect DOT
+        all_effects.push(GameAtkEffects {
+            all_atk_effects: build_buf_effect_individual(),
+            ..Default::default()
+        });
+        let result = ExtendedCharacter::get_hot_and_buf_texts(&all_effects);
+        assert_eq!(3, result.len());
+        // add a 3-turn-effect DOT
+        all_effects.push(GameAtkEffects {
+            all_atk_effects: build_debuf_effect_individual(),
+            ..Default::default()
+        });
+        let result = ExtendedCharacter::get_hot_and_buf_texts(&all_effects);
+        assert_eq!(4, result.len());
     }
 }
