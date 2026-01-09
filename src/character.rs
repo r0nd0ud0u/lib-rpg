@@ -64,7 +64,7 @@ pub struct HotsBufs {
 }
 impl ExtendedCharacter {
     /// Output: hot, dot, buf, debuf
-    pub fn get_hot_and_buf_nbs(all_effects: &Vec<GameAtkEffects>) -> HotsBufs {
+    pub fn get_hot_and_buf_nbs_txts(all_effects: &Vec<GameAtkEffects>) -> HotsBufs {
         let mut hots_bufs = HotsBufs::default();
         for e in all_effects {
             if e.all_atk_effects.nb_turns < 2 {
@@ -1755,7 +1755,7 @@ mod tests {
     ///
     #[test]
     fn unit_get_hot_and_buf_nbs() {
-        let result = ExtendedCharacter::get_hot_and_buf_nbs(&vec![]);
+        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&vec![]);
         assert_eq!(result, HotsBufs::default());
         let mut all_effects: Vec<GameAtkEffects> = vec![];
         // add a 1-turn-effect
@@ -1763,14 +1763,14 @@ mod tests {
             all_atk_effects: build_dmg_effect_individual(),
             ..Default::default()
         });
-        let result = ExtendedCharacter::get_hot_and_buf_nbs(&all_effects);
+        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(result, HotsBufs::default());
         // add a 2-turn-effect HOT
         all_effects.push(GameAtkEffects {
             all_atk_effects: build_hot_effect_individual(),
             ..Default::default()
         });
-        let result = ExtendedCharacter::get_hot_and_buf_nbs(&all_effects);
+        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(
             result,
             HotsBufs {
@@ -1789,7 +1789,7 @@ mod tests {
             all_atk_effects: build_dot_effect_individual(),
             ..Default::default()
         });
-        let result = ExtendedCharacter::get_hot_and_buf_nbs(&all_effects);
+        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(
             result,
             HotsBufs {
@@ -1808,7 +1808,7 @@ mod tests {
             all_atk_effects: build_buf_effect_individual(),
             ..Default::default()
         });
-        let result = ExtendedCharacter::get_hot_and_buf_nbs(&all_effects);
+        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(
             result,
             HotsBufs {
@@ -1827,7 +1827,7 @@ mod tests {
             all_atk_effects: build_debuf_effect_individual(),
             ..Default::default()
         });
-        let result = ExtendedCharacter::get_hot_and_buf_nbs(&all_effects);
+        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(
             result,
             HotsBufs {
