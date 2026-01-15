@@ -61,7 +61,7 @@ impl GameManager {
             pm,
             game_paths: GamePaths {
                 root: new_path.to_path_buf(),
-                games_dir: PathBuf::from("output/").join(GAMES_DIR.to_path_buf()),
+                games_dir: GAMES_DIR.to_path_buf(),
                 ..Default::default()
             },
         })
@@ -369,7 +369,7 @@ mod tests {
     use crate::character::Class;
     use crate::common::attak_const::COEFF_CRIT_DMG;
     use crate::common::effect_const::EFFECT_NB_COOL_DOWN;
-    use crate::common::paths_const::{self, OFFLINE_ROOT};
+    use crate::common::paths_const;
     use crate::game_manager::ResultLaunchAttack;
     use crate::game_state::GameStatus;
     use crate::players_manager::PlayerManager;
@@ -1140,7 +1140,7 @@ mod tests {
         assert_eq!(GameStatus::EndOfGame, gm.game_state.status);
 
         // check save game
-        let path = OFFLINE_ROOT.join(paths_const::GAMES_DIR.to_path_buf());
+        let path = paths_const::GAMES_DIR.to_path_buf();
         let big_list = utils::list_dirs_in_dir(path);
         let one_save = big_list.unwrap()[0].clone();
         let result = gm.load_game("");
