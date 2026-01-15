@@ -2,5 +2,8 @@
 /lcov.info
 
 /*.profraw
-/offlines/games/*
 /.vscode/settings.json
+
+# output games
+/offlines/games/*
+/output/*
