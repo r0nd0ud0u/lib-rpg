@@ -61,7 +61,7 @@ impl GameManager {
             pm,
             game_paths: GamePaths {
                 root: new_path.to_path_buf(),
-                games_dir: new_path.to_path_buf().join(GAMES_DIR.to_path_buf()),
+                games_dir: PathBuf::from("output/").join(GAMES_DIR.to_path_buf()),
                 ..Default::default()
             },
         })
