@@ -366,18 +366,22 @@ impl GameManager {
     pub fn process_nb_bosses_atk_in_a_row(&self) -> i64 {
         let mut count = 0;
 
-        // Start from current_round and go to the end
-        for i in self.game_state.current_round..self.game_state.order_to_play.len() {
-            let name = &self.game_state.order_to_play[i];
+        if self.game_state.current_round as i64 > 0
+            && self.game_state.current_round as i64 - 1 < self.game_state.order_to_play.len() as i64
+        {
+            // Start from current_round and go to the end
+            for i in self.game_state.current_round - 1..self.game_state.order_to_play.len() {
+                let name = &self.game_state.order_to_play[i];
 
-            if let Some(c) = self.pm.get_active_character(name) {
-                if c.kind == CharacterType::Boss {
-                    count += 1;
+                if let Some(c) = self.pm.get_active_character(name) {
+                    if c.kind == CharacterType::Boss {
+                        count += 1;
+                    } else {
+                        break; // Stop counting when a non-Boss is found
+                    }
                 } else {
-                    break; // Stop counting when a non-Boss is found
+                    break; // Stop counting if character doesn't exist
                 }
-            } else {
-                break; // Stop counting if character doesn't exist
             }
         }
 
