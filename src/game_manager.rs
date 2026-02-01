@@ -21,7 +21,7 @@ pub struct ResultLaunchAttack {
     pub outcomes: Vec<EffectOutcome>,
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
-    pub is_auto_atk: bool,
+    pub is_boss_atk: bool,
     pub logs_new_round: Vec<String>,
 }
 
@@ -177,7 +177,7 @@ impl GameManager {
         (true, logs)
     }
 
-    pub fn is_auto_atk(&self) -> bool {
+    pub fn is_boss_atk(&self) -> bool {
         self.pm.current_player.kind == CharacterType::Boss
     }
 
@@ -283,7 +283,7 @@ impl GameManager {
             is_crit,
             outcomes: output,
             all_dodging,
-            is_auto_atk: self.is_auto_atk(),
+            is_boss_atk: self.is_boss_atk(),
             logs_new_round: Vec::new(),
         };
         if self.check_end_of_game() {
@@ -361,6 +361,31 @@ impl GameManager {
         }
 
         false
+    }
+
+    pub fn process_nb_bosses_atk_in_a_row(&self) -> i64 {
+        let mut count = 0;
+
+        if self.game_state.current_round as i64 > 0
+            && self.game_state.current_round as i64 - 1 < self.game_state.order_to_play.len() as i64
+        {
+            // Start from current_round and go to the end
+            for i in self.game_state.current_round - 1..self.game_state.order_to_play.len() {
+                let name = &self.game_state.order_to_play[i];
+
+                if let Some(c) = self.pm.get_active_character(name) {
+                    if c.kind == CharacterType::Boss {
+                        count += 1;
+                    } else {
+                        break; // Stop counting when a non-Boss is found
+                    }
+                } else {
+                    break; // Stop counting if character doesn't exist
+                }
+            }
+        }
+
+        count
     }
 }
 
@@ -1079,6 +1104,8 @@ mod tests {
             .unwrap()
             .is_current_target = true;
         // thrain
+        // game is starting, ennemy is not playing
+        assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
         let ra = gm.launch_attack("SimpleAtk");
         if ra.all_dodging.is_empty() && ra.all_dodging[0].is_dodging {
             assert_eq!(
@@ -1110,6 +1137,7 @@ mod tests {
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(2, gm.game_state.current_round);
         // elara
+        assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
         let _ra = gm.launch_attack("SimpleAtk");
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(3, gm.game_state.current_round);
@@ -1123,16 +1151,19 @@ mod tests {
         assert_eq!(5, gm.game_state.current_round);
         // check if a boss is auto playing
         assert!(gm.is_round_auto());
+        assert_eq!(2, gm.process_nb_bosses_atk_in_a_row());
         let _ra = gm.launch_attack("SimpleAtk"); // one hero could be dead
         assert!(!gm.check_end_of_game());
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(6, gm.game_state.current_round);
+        assert_eq!(1, gm.process_nb_bosses_atk_in_a_row());
         let _ra = gm.launch_attack("SimpleAtk"); // one hero could be dead
         assert!(!gm.check_end_of_game());
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(2, gm.game_state.current_turn_nb);
         assert_eq!(1, gm.game_state.current_round);
+        assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
         // ensure there is no dead lock -> game can be ended
         while gm.game_state.status == GameStatus::StartRound {
             let _ra = gm.launch_attack("SimpleAtk");
