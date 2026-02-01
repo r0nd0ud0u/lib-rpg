@@ -21,7 +21,7 @@ pub struct ResultLaunchAttack {
     pub outcomes: Vec<EffectOutcome>,
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
-    pub is_auto_atk: bool,
+    pub is_boss_atk: bool,
     pub logs_new_round: Vec<String>,
 }
 
@@ -177,7 +177,7 @@ impl GameManager {
         (true, logs)
     }
 
-    pub fn is_auto_atk(&self) -> bool {
+    pub fn is_boss_atk(&self) -> bool {
         self.pm.current_player.kind == CharacterType::Boss
     }
 
@@ -283,7 +283,7 @@ impl GameManager {
             is_crit,
             outcomes: output,
             all_dodging,
-            is_auto_atk: self.is_auto_atk(),
+            is_boss_atk: self.is_boss_atk(),
             logs_new_round: Vec::new(),
         };
         if self.check_end_of_game() {
@@ -361,6 +361,27 @@ impl GameManager {
         }
 
         false
+    }
+
+    pub fn process_nb_bosses_atk_in_a_row(&self) -> i64 {
+        let mut count = 0;
+
+        // Start from current_round and go to the end
+        for i in self.game_state.current_round..self.game_state.order_to_play.len() {
+            let name = &self.game_state.order_to_play[i];
+
+            if let Some(c) = self.pm.get_active_character(name) {
+                if c.kind == CharacterType::Boss {
+                    count += 1;
+                } else {
+                    break; // Stop counting when a non-Boss is found
+                }
+            } else {
+                break; // Stop counting if character doesn't exist
+            }
+        }
+
+        count
     }
 }
 
