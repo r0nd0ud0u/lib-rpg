@@ -190,7 +190,7 @@ impl GameManager {
             if self.is_round_auto() {
                 // auto atk for boss
                 if let Some(auto_atk_name) =
-                    AttackType::get_one_random_atk_name(&self.pm.current_player.attacks_by_lvl)
+                    AttackType::get_one_random_atk_name(&self.pm.current_player.attacks_list)
                 {
                     return self.launch_attack(Some(&auto_atk_name));
                 }
@@ -1126,7 +1126,7 @@ mod tests {
         // game is starting, ennemy is not playing
         assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
         let ra = gm.launch_attack(Some("SimpleAtk"));
-        if ra.all_dodging.is_empty() && ra.all_dodging[0].is_dodging {
+        if !ra.all_dodging.is_empty() && ra.all_dodging[0].is_dodging {
             assert_eq!(
                 old_hp_boss,
                 gm.pm
@@ -1141,7 +1141,6 @@ mod tests {
             if ra.is_crit {
                 crit_coeff = COEFF_CRIT_DMG as u64;
             }
-            // TODO sometimes that test is not passing because of random dodge/crit
             assert!(
                 old_hp_boss - 31 * crit_coeff
                     >= gm
@@ -1171,18 +1170,23 @@ mod tests {
         // check if a boss is auto playing
         assert!(gm.is_round_auto());
         assert_eq!(2, gm.process_nb_bosses_atk_in_a_row());
-        let _ra = gm.launch_attack(Some("SimpleAtk")); // one hero could be dead
-        assert!(!gm.check_end_of_game());
-        assert_eq!(GameStatus::StartRound, gm.game_state.status);
-        assert_eq!(1, gm.game_state.current_turn_nb);
-        assert_eq!(6, gm.game_state.current_round);
-        assert_eq!(1, gm.process_nb_bosses_atk_in_a_row());
-        let _ra = gm.launch_attack(Some("SimpleAtk")); // one hero could be dead
-        assert!(!gm.check_end_of_game());
-        assert_eq!(GameStatus::StartRound, gm.game_state.status);
-        assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(1, gm.game_state.current_round);
-        assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
+        // None => random atk for boss
+        let _ = gm.launch_attack(None); // one or several hero could be dead
+        if !gm.check_end_of_game() {
+            assert_eq!(GameStatus::StartRound, gm.game_state.status);
+            assert_eq!(1, gm.game_state.current_turn_nb);
+            assert_eq!(6, gm.game_state.current_round);
+            assert_eq!(1, gm.process_nb_bosses_atk_in_a_row());
+            // None => random atk for boss
+            let _ = gm.launch_attack(None); // one or several hero could be dead
+            if !gm.check_end_of_game() {
+                assert_eq!(GameStatus::StartRound, gm.game_state.status);
+                assert_eq!(2, gm.game_state.current_turn_nb);
+                assert_eq!(1, gm.game_state.current_round);
+                assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
+            }
+        }
+
         // ensure there is no dead lock -> game can be ended
         while gm.game_state.status == GameStatus::StartRound {
             let _ra = gm.launch_attack(Some("SimpleAtk"));

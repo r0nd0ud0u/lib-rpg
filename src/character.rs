@@ -73,6 +73,7 @@ pub struct Character {
     /// key: attak name, value: AttakType struct
     pub attacks_list: IndexMap<String, AttackType>,
     /// That vector contains all the atks from m_AttakList and is sorted by level.
+    /// TODO not used for the moment, replace by a function ?
     pub attacks_by_lvl: Vec<AttackType>,
     /// Main color theme of the character
     #[serde(rename = "Color")]
@@ -258,7 +259,7 @@ impl Character {
             .stats
             .all_stats
             .get_mut(attribute_name)
-            .expect("Stat not found");
+            .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
         stat.current = std::cmp::min(stat.current + value as u64, stat.max);
     }
 
@@ -275,7 +276,7 @@ impl Character {
             .stats
             .all_stats
             .get_mut(attribute_name)
-            .expect("Stat not found");
+            .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
         if stat.max_raw == 0 {
             return;
         }
