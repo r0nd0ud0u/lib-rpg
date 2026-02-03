@@ -1,11 +1,11 @@
-use anyhow::{anyhow, bail, Result};
+use anyhow::{Result, anyhow, bail};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
-    buffers::{update_damage_by_buf, update_heal_by_multi, BufTypes, Buffers},
+    buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
     character_mod::fight_information::CharacterFightInfo,
     common::{
         all_target_const::*,
@@ -16,7 +16,7 @@ use crate::{
         reach_const::*,
         stats_const::*,
     },
-    effect::{is_boosted_by_crit, process_decrease_on_turn, EffectOutcome, EffectParam},
+    effect::{EffectOutcome, EffectParam, is_boosted_by_crit, process_decrease_on_turn},
     equipment::Equipment,
     game_state::GameState,
     players_manager::{DodgeInfo, GameAtkEffects},
@@ -464,10 +464,10 @@ impl Character {
         if full_amount > 0 && is_target_ally(target) {
             // Launcher TX
             // To place first
-            if let Some(buf_multi) = self.all_buffers.get(BufTypes::MultiValue as usize) {
-                if buf_multi.value > 0 {
-                    real_amount = update_heal_by_multi(full_amount, buf_multi.value);
-                }
+            if let Some(buf_multi) = self.all_buffers.get(BufTypes::MultiValue as usize)
+                && buf_multi.value > 0
+            {
+                real_amount = update_heal_by_multi(full_amount, buf_multi.value);
             }
             // Launcher TX
             if let Some(buf_hp_tx) = self.all_buffers.get(BufTypes::HealTx as usize) {
@@ -849,15 +849,14 @@ impl Character {
             return;
         }
         // Update aggro
-        if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO) {
-            if let Some(tx_map) = self.tx_rx.get_mut(AmountType::Aggro as usize) {
-                if let Some(aggro) = tx_map.get_mut(&(turn_nb as u64)) {
-                    // update txrx current turn nb
-                    *aggro += local_aggro as i64;
-                    // update stats aggro of character
-                    aggro_stat.current += *aggro as u64;
-                }
-            }
+        if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO)
+            && let Some(tx_map) = self.tx_rx.get_mut(AmountType::Aggro as usize)
+            && let Some(aggro) = tx_map.get_mut(&(turn_nb as u64))
+        {
+            // update txrx current turn nb
+            *aggro += local_aggro as i64;
+            // update stats aggro of character
+            aggro_stat.current += *aggro as u64;
         }
     }
 
