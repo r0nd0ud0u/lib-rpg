@@ -1,11 +1,11 @@
-use anyhow::{anyhow, bail, Result};
+use anyhow::{Result, anyhow, bail};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
-    buffers::{update_damage_by_buf, update_heal_by_multi, BufTypes, Buffers},
+    buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
     character_mod::fight_information::CharacterFightInfo,
     common::{
         all_target_const::*,
@@ -16,7 +16,7 @@ use crate::{
         reach_const::*,
         stats_const::*,
     },
-    effect::{is_boosted_by_crit, process_decrease_on_turn, EffectOutcome, EffectParam},
+    effect::{EffectOutcome, EffectParam, is_boosted_by_crit, process_decrease_on_turn},
     equipment::Equipment,
     game_state::GameState,
     players_manager::{DodgeInfo, GameAtkEffects},
@@ -73,6 +73,7 @@ pub struct Character {
     /// key: attak name, value: AttakType struct
     pub attacks_list: IndexMap<String, AttackType>,
     /// That vector contains all the atks from m_AttakList and is sorted by level.
+    /// TODO not used for the moment, replace by a function ?
     pub attacks_by_lvl: Vec<AttackType>,
     /// Main color theme of the character
     #[serde(rename = "Color")]
@@ -258,8 +259,8 @@ impl Character {
             .stats
             .all_stats
             .get_mut(attribute_name)
-            .expect("Stat not found");
-        stat.current = std::cmp::min(stat.current + value as u64, stat.max);
+            .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
+        stat.current = stat.current.saturating_add(value as u64).min(stat.max);
     }
 
     /// stat.m_RawMaxValue of a stat cannot be equal to 0.
@@ -275,7 +276,7 @@ impl Character {
             .stats
             .all_stats
             .get_mut(attribute_name)
-            .expect("Stat not found");
+            .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
         if stat.max_raw == 0 {
             return;
         }
@@ -464,10 +465,10 @@ impl Character {
         if full_amount > 0 && is_target_ally(target) {
             // Launcher TX
             // To place first
-            if let Some(buf_multi) = self.all_buffers.get(BufTypes::MultiValue as usize) {
-                if buf_multi.value > 0 {
-                    real_amount = update_heal_by_multi(full_amount, buf_multi.value);
-                }
+            if let Some(buf_multi) = self.all_buffers.get(BufTypes::MultiValue as usize)
+                && buf_multi.value > 0
+            {
+                real_amount = update_heal_by_multi(full_amount, buf_multi.value);
             }
             // Launcher TX
             if let Some(buf_hp_tx) = self.all_buffers.get(BufTypes::HealTx as usize) {
@@ -849,15 +850,14 @@ impl Character {
             return;
         }
         // Update aggro
-        if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO) {
-            if let Some(tx_map) = self.tx_rx.get_mut(AmountType::Aggro as usize) {
-                if let Some(aggro) = tx_map.get_mut(&(turn_nb as u64)) {
-                    // update txrx current turn nb
-                    *aggro += local_aggro as i64;
-                    // update stats aggro of character
-                    aggro_stat.current += *aggro as u64;
-                }
-            }
+        if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO)
+            && let Some(tx_map) = self.tx_rx.get_mut(AmountType::Aggro as usize)
+            && let Some(aggro) = tx_map.get_mut(&(turn_nb as u64))
+        {
+            // update txrx current turn nb
+            *aggro += local_aggro as i64;
+            // update stats aggro of character
+            aggro_stat.current += *aggro as u64;
         }
     }
 

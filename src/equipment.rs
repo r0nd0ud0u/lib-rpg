@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 
 use crate::{stats::Stats, utils};
@@ -80,8 +80,7 @@ mod tests {
 
     #[test]
     fn unit_try_new_from_json() {
-        let file_path =
-            "./tests/offlines/equipment/body/right-ring/Anneau de Boromir-4-2024-05-11-12-36-16.json"; // Path to the JSON file
+        let file_path = "./tests/offlines/equipment/body/right-ring/Anneau de Boromir-4-2024-05-11-12-36-16.json"; // Path to the JSON file
         let equipment = Equipment::try_new_from_json(file_path);
         assert!(equipment.is_ok());
         let equipment = equipment.unwrap();

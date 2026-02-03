@@ -16,7 +16,7 @@
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
-            "Stat": "Cout critique",
+            "Stat": "Critical strike",
             "Tours actifs": 2,
             "Type": "Up par valeur",
             "Valeur de l'effet": 0,

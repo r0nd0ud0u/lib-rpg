@@ -1,6 +1,6 @@
 use anyhow::Result;
 use rand::Rng;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use std::{
     fs, io,
     path::{Path, PathBuf},
