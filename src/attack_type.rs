@@ -120,7 +120,10 @@ impl AttackType {
 
     /// Get one random attack name from a list of attacks
     pub fn get_one_random_atk_name(all_atks: Vec<AttackType>) -> Option<String> {
-        let nb = get_random_nb(0, all_atks.len() as i64);
+        if all_atks.is_empty() {
+            return None;
+        }
+        let nb = get_random_nb(0, all_atks.len() as i64 - 1);
         all_atks.get(nb as usize).map(|atk| atk.name.clone())
     }
 }
@@ -130,11 +133,8 @@ mod tests {
     use crate::{
         attack_type::AttackType,
         common::{
-            all_target_const::TARGET_ENNEMY,
-            character_json_key::STANDARD_CLASS,
-            effect_const::EFFECT_VALUE_CHANGE,
-            reach_const::INDIVIDUAL,
-            stats_const::*,
+            all_target_const::TARGET_ENNEMY, character_json_key::STANDARD_CLASS,
+            effect_const::EFFECT_VALUE_CHANGE, reach_const::INDIVIDUAL, stats_const::*,
         },
         testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
     };
