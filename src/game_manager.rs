@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    attack_type::LauncherAtkInfo,
+    attack_type::{AttackType, LauncherAtkInfo},
     character::{AmountType, CharacterType},
     common::{paths_const::*, stats_const::*},
     effect::EffectOutcome,
@@ -181,22 +181,41 @@ impl GameManager {
         self.pm.current_player.kind == CharacterType::Boss
     }
 
-    /**
-     * @brief GameDisplay::LaunchAttak
-     * Atk of the launcher is processed first to enable the potential bufs
-     * then the effets are processed on the other targets(ennemy and allies)
-     */
-    pub fn launch_attack(&mut self, atk_name: &str) -> ResultLaunchAttack {
-        let mut output: Vec<EffectOutcome> = vec![];
-        let all_players = self.pm.get_all_active_names();
-        self.pm.current_player.actions_done_in_round += 1;
+    /// Launch an attack from the current player
+    /// If atk_name is None and it is an auto round (boss), a random atk will be chosen
+    /// Otherwise, if atk_name is None, no atk will be launched
+    pub fn launch_attack(&mut self, atk_name: Option<&str>) -> ResultLaunchAttack {
         // is atk existing?
-        let atk_list = self.pm.current_player.attacks_list.clone();
-        let atk = if let Some(atk) = atk_list.get(atk_name) {
-            atk
-        } else {
+        let Some(atk_name) = atk_name else {
+            if self.is_round_auto() {
+                // auto atk for boss
+                if let Some(auto_atk_name) =
+                    AttackType::get_one_random_atk_name(&self.pm.current_player.attacks_list)
+                {
+                    return self.launch_attack(Some(&auto_atk_name));
+                }
+            }
+            // update action done in round
+            self.pm.current_player.actions_done_in_round += 1;
+            tracing::error!(
+                "launch_attack: atk_name is None for player {}",
+                self.pm.current_player.name
+            );
             return ResultLaunchAttack::default();
         };
+        // output
+        let mut output: Vec<EffectOutcome> = vec![];
+        // update action done in round
+        self.pm.current_player.actions_done_in_round += 1;
+        // get all players
+        let all_players = self.pm.get_all_active_names();
+        // get atk
+        let atk_list = self.pm.current_player.attacks_list.clone();
+        let atk = match atk_list.get(atk_name) {
+            Some(atk) => atk.clone(),
+            None => return ResultLaunchAttack::default(), // unknown atk
+        };
+
         // can be launched
         // process cost
         self.pm.current_player.process_atk_cost(atk_name);
@@ -217,7 +236,7 @@ impl GameManager {
         let all_effects_param = self
             .pm
             .current_player
-            .process_atk(&self.game_state, is_crit, atk);
+            .process_atk(&self.game_state, is_crit, &atk);
         let launcher_stats = self.pm.current_player.stats.clone();
         let name = self.pm.current_player.name.clone();
         let kind = self.pm.current_player.kind.clone();
@@ -550,10 +569,10 @@ mod tests {
             .unwrap()
             .is_current_target = true;
         // test unknown atk
-        let ra = gm.launch_attack("");
+        let ra = gm.launch_attack(None);
         assert_eq!(ResultLaunchAttack::default(), ra);
         // test normal atk
-        let ra = gm.launch_attack(&atk.clone().name);
+        let ra = gm.launch_attack(Some(&atk.clone().name));
         assert_eq!(1, ra.outcomes.len());
         assert_eq!(1, ra.all_dodging.len());
         assert_eq!("Boss1", ra.all_dodging[0].name);
@@ -615,7 +634,7 @@ mod tests {
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         let old_hero_name = gm.pm.current_player.name.clone();
-        gm.launch_attack(&atk.clone().name);
+        gm.launch_attack(Some(&atk.clone().name));
         // not dead boss : end of game
         assert!(!gm.check_end_of_game());
         assert_eq!(
@@ -673,7 +692,7 @@ mod tests {
             .is_current_target = true;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
         let old_hero_name = gm.pm.current_player.name.clone();
-        gm.launch_attack(&atk.clone().name);
+        gm.launch_attack(Some(&atk.clone().name));
         // 1 dead boss : end of game
         // assert!(gm.check_end_of_game());
         // at least coeff critical strike = 2.0 (-40 * 2.0 = -80)
@@ -735,7 +754,7 @@ mod tests {
             .get_mut_active_boss_character("Boss1")
             .unwrap()
             .is_current_target = true;
-        gm.launch_attack(&atk.clone().name);
+        gm.launch_attack(Some(&atk.clone().name));
         // not dead boss : end of game
         assert!(!gm.check_end_of_game());
         // blocking 10% of the damage is received (10% of 40)
@@ -783,7 +802,7 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
-        gm.launch_attack(&atk.clone().name);
+        gm.launch_attack(Some(&atk.clone().name));
         assert!(!gm.check_end_of_game());
         // + 30  of max HP:135 = 40.5
         assert_eq!(
@@ -861,7 +880,7 @@ mod tests {
             .all_stats[PHYSICAL_POWER]
             .max;
         let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
-        gm.launch_attack("Eclat d'espoir");
+        gm.launch_attack(Some("Eclat d'espoir"));
         assert!(!gm.check_end_of_game());
         // "Changement par %"
         // + 30 % of max HP:135 = 40.5
@@ -951,7 +970,7 @@ mod tests {
         assert_eq!(gm.pm.current_player.name, "test".to_owned());
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         // apply effect Magic power - up by % for 2 turns (for turn1 and turn2 and is ending on turn 3)
-        gm.launch_attack("Eclat d'espoir");
+        gm.launch_attack(Some("Eclat d'espoir"));
         // turn 1 round 2 (test2)
         while gm.pm.current_player.name != "test2" {
             gm.new_round();
@@ -1018,7 +1037,7 @@ mod tests {
             .stats
             .all_stats[DODGE]
             .max;
-        let result = gm.launch_attack("up-par-valeur");
+        let result = gm.launch_attack(Some("up-par-valeur"));
         let new_dodge = gm
             .pm
             .get_mut_active_character("test")
@@ -1049,7 +1068,7 @@ mod tests {
             .stats
             .all_stats[BERSERK]
             .current;
-        let result = gm.launch_attack("changement-par-valeur-berseck");
+        let result = gm.launch_attack(Some("changement-par-valeur-berseck"));
         let new_berserk = gm
             .pm
             .get_mut_active_character("test")
@@ -1072,7 +1091,7 @@ mod tests {
             gm.new_round();
         }
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        let result = gm.launch_attack("cooldown");
+        let result = gm.launch_attack(Some("cooldown"));
         assert!(!gm.check_end_of_game());
         assert_eq!(result.outcomes.len(), 1);
         assert_eq!(
@@ -1106,8 +1125,8 @@ mod tests {
         // thrain
         // game is starting, ennemy is not playing
         assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
-        let ra = gm.launch_attack("SimpleAtk");
-        if ra.all_dodging.is_empty() && ra.all_dodging[0].is_dodging {
+        let ra = gm.launch_attack(Some("SimpleAtk"));
+        if !ra.all_dodging.is_empty() && ra.all_dodging[0].is_dodging {
             assert_eq!(
                 old_hp_boss,
                 gm.pm
@@ -1122,7 +1141,6 @@ mod tests {
             if ra.is_crit {
                 crit_coeff = COEFF_CRIT_DMG as u64;
             }
-            // TODO sometimes that test is not passing because of random dodge/crit
             assert!(
                 old_hp_boss - 31 * crit_coeff
                     >= gm
@@ -1138,13 +1156,13 @@ mod tests {
         assert_eq!(2, gm.game_state.current_round);
         // elara
         assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
-        let _ra = gm.launch_attack("SimpleAtk");
+        let _ra = gm.launch_attack(Some("SimpleAtk"));
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(3, gm.game_state.current_round);
-        let _ra = gm.launch_attack("SimpleAtk");
+        let _ra = gm.launch_attack(Some("SimpleAtk"));
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
-        let _ra = gm.launch_attack("SimpleAtk");
+        let _ra = gm.launch_attack(Some("SimpleAtk"));
         assert!(!gm.check_end_of_game());
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(1, gm.game_state.current_turn_nb);
@@ -1152,21 +1170,26 @@ mod tests {
         // check if a boss is auto playing
         assert!(gm.is_round_auto());
         assert_eq!(2, gm.process_nb_bosses_atk_in_a_row());
-        let _ra = gm.launch_attack("SimpleAtk"); // one hero could be dead
-        assert!(!gm.check_end_of_game());
-        assert_eq!(GameStatus::StartRound, gm.game_state.status);
-        assert_eq!(1, gm.game_state.current_turn_nb);
-        assert_eq!(6, gm.game_state.current_round);
-        assert_eq!(1, gm.process_nb_bosses_atk_in_a_row());
-        let _ra = gm.launch_attack("SimpleAtk"); // one hero could be dead
-        assert!(!gm.check_end_of_game());
-        assert_eq!(GameStatus::StartRound, gm.game_state.status);
-        assert_eq!(2, gm.game_state.current_turn_nb);
-        assert_eq!(1, gm.game_state.current_round);
-        assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
+        // None => random atk for boss
+        let _ = gm.launch_attack(None); // one or several hero could be dead
+        if !gm.check_end_of_game() {
+            assert_eq!(GameStatus::StartRound, gm.game_state.status);
+            assert_eq!(1, gm.game_state.current_turn_nb);
+            assert_eq!(6, gm.game_state.current_round);
+            assert_eq!(1, gm.process_nb_bosses_atk_in_a_row());
+            // None => random atk for boss
+            let _ = gm.launch_attack(None); // one or several hero could be dead
+            if !gm.check_end_of_game() {
+                assert_eq!(GameStatus::StartRound, gm.game_state.status);
+                assert_eq!(2, gm.game_state.current_turn_nb);
+                assert_eq!(1, gm.game_state.current_round);
+                assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
+            }
+        }
+
         // ensure there is no dead lock -> game can be ended
         while gm.game_state.status == GameStatus::StartRound {
-            let _ra = gm.launch_attack("SimpleAtk");
+            let _ra = gm.launch_attack(Some("SimpleAtk"));
         }
         assert_eq!(GameStatus::EndOfGame, gm.game_state.status);
 

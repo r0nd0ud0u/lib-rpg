@@ -66,7 +66,7 @@ impl Buffers {
 
 #[cfg(test)]
 mod tests {
-    use crate::buffers::{update_heal_by_multi, Buffers};
+    use crate::buffers::{Buffers, update_heal_by_multi};
 
     use super::update_damage_by_buf;
 

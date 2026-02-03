@@ -25,7 +25,7 @@
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "Cout critique",
+            "Stat": "Critical strike",
             "Tours actifs": 3,
             "Type": "Up par valeur",
             "Valeur de l'effet": 0,
