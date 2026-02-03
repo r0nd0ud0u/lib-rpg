@@ -110,8 +110,11 @@ mod tests {
     use crate::{
         attack_type::AttackType,
         common::{
-            all_target_const::TARGET_ENNEMY, character_json_key::STANDARD_CLASS,
-            effect_const::EFFECT_VALUE_CHANGE, reach_const::INDIVIDUAL, stats_const::*,
+            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+            character_json_key::STANDARD_CLASS,
+            effect_const::EFFECT_VALUE_CHANGE,
+            reach_const::INDIVIDUAL,
+            stats_const::*,
         },
         testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
     };
