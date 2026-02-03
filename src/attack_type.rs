@@ -119,7 +119,7 @@ impl AttackType {
     }
 
     /// Get one random attack name from a list of attacks
-    pub fn get_one_random_atk_name(all_atks: Vec<AttackType>) -> Option<String> {
+    pub fn get_one_random_atk_name(all_atks: &[AttackType]) -> Option<String> {
         if all_atks.is_empty() {
             return None;
         }
@@ -188,13 +188,13 @@ mod tests {
         let atk2 = build_atk_heal1_indiv();
         let all_atks = vec![atk1.clone(), atk2.clone()];
 
-        let random_atk_name = AttackType::get_one_random_atk_name(all_atks.clone());
+        let random_atk_name = AttackType::get_one_random_atk_name(&all_atks);
         assert!(random_atk_name.is_some());
         let atk_name = random_atk_name.unwrap();
         assert!(atk_name == atk1.name || atk_name == atk2.name);
 
         let empty_atks: Vec<AttackType> = vec![];
-        let random_atk_name = AttackType::get_one_random_atk_name(empty_atks);
+        let random_atk_name = AttackType::get_one_random_atk_name(&empty_atks);
         assert!(random_atk_name.is_none());
     }
 }
