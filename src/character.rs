@@ -6,6 +6,7 @@ use std::{collections::HashMap, path::Path, vec};
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
     buffers::{update_damage_by_buf, update_heal_by_multi, BufTypes, Buffers},
+    character_mod::fight_information::CharacterFightInfo,
     common::{
         all_target_const::*,
         attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
@@ -15,7 +16,7 @@ use crate::{
         reach_const::*,
         stats_const::*,
     },
-    effect::{is_boosted_by_crit, is_hot, process_decrease_on_turn, EffectOutcome, EffectParam},
+    effect::{is_boosted_by_crit, process_decrease_on_turn, EffectOutcome, EffectParam},
     equipment::Equipment,
     game_state::GameState,
     players_manager::{DodgeInfo, GameAtkEffects},
@@ -25,81 +26,6 @@ use crate::{
     target::is_target_ally,
     utils::{self, get_random_nb, list_files_in_dir},
 };
-
-/// ExtendedCharacter
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct ExtendedCharacter {
-    /// Fight information: Is the random character targeted by the current attack of other character
-    #[serde(default, rename = "is_random_target")]
-    pub is_random_target: bool,
-    /// Fight information: TODO is_heal_atk_blocked
-    #[serde(default, rename = "is_heal_atk_blocked")]
-    pub is_heal_atk_blocked: bool,
-    /// Fight information: Playing the first round of that tour
-    #[serde(default, rename = "is_first_round")]
-    pub is_first_round: bool,
-}
-
-impl Default for ExtendedCharacter {
-    fn default() -> Self {
-        ExtendedCharacter {
-            is_random_target: false,
-            is_heal_atk_blocked: false,
-            is_first_round: true,
-        }
-    }
-}
-
-/// ExtendedCharacter
-#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct HotsBufs {
-    pub hot_nb: u64,
-    pub dot_nb: u64,
-    pub buf_nb: u64,
-    pub debuf_nb: u64,
-    pub hot_txt: Vec<String>,
-    pub dot_txt: Vec<String>,
-    pub buf_txt: Vec<String>,
-    pub debuf_txt: Vec<String>,
-}
-impl ExtendedCharacter {
-    /// Output: hot, dot, buf, debuf
-    pub fn get_hot_and_buf_nbs_txts(all_effects: &Vec<GameAtkEffects>) -> HotsBufs {
-        let mut hots_bufs = HotsBufs::default();
-        for e in all_effects {
-            if e.all_atk_effects.nb_turns < 2 {
-                continue;
-            }
-            let txt = Self::get_hot_and_buf_texts(&e.all_atk_effects);
-            if is_hot(
-                &e.all_atk_effects.effect_type,
-                &e.all_atk_effects.stats_name,
-                e.all_atk_effects.value,
-            ) {
-                hots_bufs.hot_nb += 1;
-                hots_bufs.hot_txt.push(txt);
-            } else if e.all_atk_effects.stats_name == HP {
-                hots_bufs.dot_nb += 1;
-                hots_bufs.dot_txt.push(txt);
-            } else if e.all_atk_effects.value > 0 {
-                hots_bufs.buf_nb += 1;
-                hots_bufs.buf_txt.push(txt);
-            } else {
-                hots_bufs.debuf_nb += 1;
-                hots_bufs.debuf_txt.push(txt);
-            }
-        }
-        hots_bufs
-    }
-
-    fn get_hot_and_buf_texts(ep: &EffectParam) -> String {
-        if ep.stats_name.is_empty() {
-            format!("{}: {}", ep.effect_type, ep.value)
-        } else {
-            format!("{}-{}: {}", ep.effect_type, ep.stats_name, ep.value)
-        }
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, Hash, PartialEq)]
 pub enum AmountType {
@@ -164,7 +90,7 @@ pub struct Character {
     pub power: Powers,
     /// ExtendedCharacter
     #[serde(rename = "ExtendedCharacter")]
-    pub extended_character: ExtendedCharacter,
+    pub extended_character: CharacterFightInfo,
     /// Fight information: attack can be blocked
     #[serde(rename = "is-blocking-atk")]
     pub is_blocking_atk: bool,
@@ -216,7 +142,7 @@ impl Default for Character {
             all_buffers: vec![],
             is_blocking_atk: false,
             power: Powers::default(),
-            extended_character: ExtendedCharacter::default(),
+            extended_character: CharacterFightInfo::default(),
             actions_done_in_round: 0,
             max_actions_by_round: 0,
             class: Class::Standard,
@@ -1025,7 +951,7 @@ mod tests {
     use super::Character;
     use crate::attack_type::AttackType;
     use crate::buffers::Buffers;
-    use crate::character::{AmountType, ExtendedCharacter, HotsBufs};
+    use crate::character::AmountType;
     use crate::effect::EffectOutcome;
     use crate::testing_all_characters::testing_character;
     use crate::{
@@ -1747,99 +1673,5 @@ mod tests {
         atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
         let result = c1.can_be_launched(&atk_type);
         assert!(result);
-    }
-
-    /////////////
-    /// extented character test
-    ///
-    ///
-    #[test]
-    fn unit_get_hot_and_buf_nbs() {
-        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&vec![]);
-        assert_eq!(result, HotsBufs::default());
-        let mut all_effects: Vec<GameAtkEffects> = vec![];
-        // add a 1-turn-effect
-        all_effects.push(GameAtkEffects {
-            all_atk_effects: build_dmg_effect_individual(),
-            ..Default::default()
-        });
-        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&all_effects);
-        assert_eq!(result, HotsBufs::default());
-        // add a 2-turn-effect HOT
-        all_effects.push(GameAtkEffects {
-            all_atk_effects: build_hot_effect_individual(),
-            ..Default::default()
-        });
-        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&all_effects);
-        assert_eq!(
-            result,
-            HotsBufs {
-                hot_nb: 1,
-                dot_nb: 0,
-                buf_nb: 0,
-                debuf_nb: 0,
-                hot_txt: vec!["Changement par valeur-HP: 30".to_owned()],
-                dot_txt: vec![],
-                buf_txt: vec![],
-                debuf_txt: vec![]
-            }
-        );
-        // add a 3-turn-effect DOT
-        all_effects.push(GameAtkEffects {
-            all_atk_effects: build_dot_effect_individual(),
-            ..Default::default()
-        });
-        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&all_effects);
-        assert_eq!(
-            result,
-            HotsBufs {
-                hot_nb: 1,
-                dot_nb: 1,
-                buf_nb: 0,
-                debuf_nb: 0,
-                hot_txt: vec!["Changement par valeur-HP: 30".to_owned()],
-                dot_txt: vec!["Changement par valeur-HP: -20".to_owned()],
-                buf_txt: vec![],
-                debuf_txt: vec![]
-            }
-        );
-        // add a 3-turn-effect DOT
-        all_effects.push(GameAtkEffects {
-            all_atk_effects: build_buf_effect_individual(),
-            ..Default::default()
-        });
-        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&all_effects);
-        assert_eq!(
-            result,
-            HotsBufs {
-                hot_nb: 1,
-                dot_nb: 1,
-                buf_nb: 1,
-                debuf_nb: 0,
-                hot_txt: vec!["Changement par valeur-HP: 30".to_owned()],
-                dot_txt: vec!["Changement par valeur-HP: -20".to_owned()],
-                buf_txt: vec!["Changement par valeur-Magic armor: 20".to_owned()],
-                debuf_txt: vec![]
-            }
-        );
-        // add a 3-turn-effect DOT
-        all_effects.push(GameAtkEffects {
-            all_atk_effects: build_debuf_effect_individual(),
-            ..Default::default()
-        });
-        let result = ExtendedCharacter::get_hot_and_buf_nbs_txts(&all_effects);
-        assert_eq!(
-            result,
-            HotsBufs {
-                hot_nb: 1,
-                dot_nb: 1,
-                buf_nb: 1,
-                debuf_nb: 1,
-                hot_txt: vec!["Changement par valeur-HP: 30".to_owned()],
-                dot_txt: vec!["Changement par valeur-HP: -20".to_owned()],
-                buf_txt: vec!["Changement par valeur-Magic armor: 20".to_owned()],
-                debuf_txt: vec!["Changement par valeur-Magic armor: -20".to_owned()]
-            }
-        );
     }
 }
