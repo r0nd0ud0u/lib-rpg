@@ -260,7 +260,7 @@ impl Character {
             .all_stats
             .get_mut(attribute_name)
             .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
-        stat.current = std::cmp::min(stat.current + value as u64, stat.max);
+        stat.current = stat.current.saturating_add(value as u64).min(stat.max);
     }
 
     /// stat.m_RawMaxValue of a stat cannot be equal to 0.
