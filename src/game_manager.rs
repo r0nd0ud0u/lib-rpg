@@ -463,7 +463,7 @@ mod tests {
         // offline_root by default but no file
         let gm = GameManager::try_new("", false).unwrap();
         assert!(gm.pm.active_heroes.is_empty());
-        assert!(gm.pm.active_bosses.is_empty());
+        assert_eq!(gm.pm.active_bosses.len(), 2);
         assert_eq!(gm.pm.all_heroes.len(), 4);
         assert_eq!(gm.pm.all_bosses.len(), 2);
 
@@ -480,7 +480,7 @@ mod tests {
         // offline_root by default but no file
         let gm = GameManager::try_new("", false).unwrap();
         assert!(gm.pm.active_heroes.is_empty());
-        assert!(gm.pm.active_bosses.is_empty());
+        assert_eq!(gm.pm.active_bosses.len(), 2);
         assert_eq!(gm.pm.all_heroes.len(), 4);
         assert_eq!(gm.pm.all_bosses.len(), 2);
     }

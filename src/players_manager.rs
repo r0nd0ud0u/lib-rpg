@@ -52,8 +52,9 @@ pub struct PlayerManager {
 
 impl PlayerManager {
     /// Try to create a new PlayerManager by loading all the characters
-    /// and by initializing the active characters with all the loaded characters
+    /// and by initializing the active heroes with all the loaded heroes
     /// if `default_active_characters` is true.
+    /// Bosses are always active by default.
     pub fn try_new<P: AsRef<Path>>(
         path: P,
         default_active_characters: bool,
@@ -66,10 +67,12 @@ impl PlayerManager {
             current_player: Character::default(),
         };
         pl.load_all_characters(path)?;
+        // By default, all the heroes are active
         if default_active_characters {
             pl.active_heroes = pl.all_heroes.clone();
-            pl.active_bosses = pl.all_bosses.clone();
         }
+        // All the bosses are active
+        pl.active_bosses = pl.all_bosses.clone();
         Ok(pl)
     }
 
@@ -636,7 +639,7 @@ mod tests {
 
         let pl = PlayerManager::try_new("tests/offlines", false).unwrap();
         assert!(pl.active_heroes.is_empty());
-        assert!(pl.active_bosses.is_empty());
+        assert_eq!(2, pl.all_heroes.len());
     }
 
     #[test]
