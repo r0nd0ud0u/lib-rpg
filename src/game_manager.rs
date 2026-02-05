@@ -60,12 +60,16 @@ pub struct GameManager {
 }
 
 impl GameManager {
-    pub fn try_new<P: AsRef<Path>>(path: P) -> Result<GameManager> {
+    /// Create a new game manager with the given path for the offline files and the default active characters
+    pub fn try_new<P: AsRef<Path>>(
+        path: P,
+        is_default_active_characters: bool,
+    ) -> Result<GameManager> {
         let mut new_path = path.as_ref();
         if new_path.as_os_str().is_empty() {
             new_path = &OFFLINE_ROOT;
         }
-        let pm = PlayerManager::try_new(new_path)?;
+        let pm = PlayerManager::try_new(new_path, is_default_active_characters)?;
         Ok(GameManager {
             game_state: GameState::new(),
             pm,
@@ -100,7 +104,7 @@ impl GameManager {
     /// - Process the order of the players to play
     /// - Increment the turn number
     /// - Reset the round number
-    /// 
+    ///
     /// Return a boolean to know if the new turn has been started and the logs of the new round if it is the case
     pub fn start_new_turn(&mut self) -> (bool, Vec<String>) {
         // For each turn now
@@ -448,21 +452,42 @@ mod tests {
 
     #[test]
     fn unit_try_new() {
-        assert!(GameManager::try_new("unknown").is_err());
+        assert!(GameManager::try_new("unknown", true).is_err());
 
-        let gm = GameManager::try_new("./tests/offlines").unwrap();
+        let gm = GameManager::try_new("./tests/offlines", true).unwrap();
         assert_eq!(gm.pm.all_heroes.len(), 2);
+        assert_eq!(gm.pm.active_heroes.len(), 2);
+        assert_eq!(gm.pm.all_bosses.len(), 2);
+        assert_eq!(gm.pm.active_bosses.len(), 2);
 
-        assert!(GameManager::try_new("unknown").is_err());
+        // offline_root by default but no file
+        let gm = GameManager::try_new("", false).unwrap();
+        assert!(gm.pm.active_heroes.is_empty());
+        assert!(gm.pm.active_bosses.is_empty());
+        assert_eq!(gm.pm.all_heroes.len(), 4);
+        assert_eq!(gm.pm.all_bosses.len(), 2);
+
+        // offline_root by default with unknown file
+        assert!(GameManager::try_new("unknown", true).is_err());
 
         // offline_root by default
-        let gm = GameManager::try_new("").unwrap();
+        let gm = GameManager::try_new("", true).unwrap();
         assert_eq!(gm.pm.all_heroes.len(), 4);
+        assert_eq!(gm.pm.active_heroes.len(), 4);
+        assert_eq!(gm.pm.all_bosses.len(), 2);
+        assert_eq!(gm.pm.active_bosses.len(), 2);
+
+        // offline_root by default but no file
+        let gm = GameManager::try_new("", false).unwrap();
+        assert!(gm.pm.active_heroes.is_empty());
+        assert!(gm.pm.active_bosses.is_empty());
+        assert_eq!(gm.pm.all_heroes.len(), 4);
+        assert_eq!(gm.pm.all_bosses.len(), 2);
     }
 
     #[test]
     fn unit_process_order_to_play() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         let old_speed = gm
             .pm
             .get_mut_active_hero_character("test")
@@ -516,7 +541,7 @@ mod tests {
 
     #[test]
     fn unit_add_sup_atk_turn() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         let hero = gm.pm.active_heroes.first_mut().unwrap();
         hero.stats.all_stats.get_mut(SPEED).unwrap().current = 300;
         let boss = gm.pm.active_bosses.first_mut().unwrap();
@@ -530,7 +555,7 @@ mod tests {
 
     #[test]
     fn unit_new_round() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
         let result = gm.start_new_turn();
         assert!(result.0);
@@ -557,7 +582,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case1() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
         gm.start_new_turn();
 
@@ -623,7 +648,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case2() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
         gm.start_new_turn();
 
@@ -681,7 +706,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case3() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
         gm.start_new_turn();
 
@@ -741,7 +766,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case4() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
         gm.start_new_turn();
 
@@ -803,7 +828,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case5() {
         // Zone = Tous les heroes
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
         gm.start_new_turn();
 
@@ -850,7 +875,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case_eclat_despoir() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.pm = PlayerManager::testing_pm();
         gm.init_new_game();
         // turn 1 round 1 (test)
@@ -980,7 +1005,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_end_of_effect() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
@@ -1041,7 +1066,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_up_par_valeur() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
@@ -1072,7 +1097,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_changement_par_value_berserk() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
@@ -1103,7 +1128,7 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case_cooldown() {
-        let mut gm = GameManager::try_new("./tests/offlines").unwrap();
+        let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.pm = PlayerManager::testing_pm();
         gm.init_new_game();
         // turn 1 round 1 (test)
@@ -1128,7 +1153,7 @@ mod tests {
 
     #[test]
     fn unit_integ_dxrpg() {
-        let mut gm = GameManager::try_new("offlines").unwrap();
+        let mut gm = GameManager::try_new("offlines", true).unwrap();
         gm.init_new_game();
         gm.create_game_dirs().unwrap();
         let old_hp_boss = gm

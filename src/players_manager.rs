@@ -51,7 +51,13 @@ pub struct PlayerManager {
 }
 
 impl PlayerManager {
-    pub fn try_new<P: AsRef<Path>>(path: P) -> Result<PlayerManager> {
+    /// Try to create a new PlayerManager by loading all the characters
+    /// and by initializing the active characters with all the loaded characters
+    /// if `default_active_characters` is true.
+    pub fn try_new<P: AsRef<Path>>(
+        path: P,
+        default_active_characters: bool,
+    ) -> Result<PlayerManager> {
         let mut pl = PlayerManager {
             all_heroes: Vec::new(),
             all_bosses: Vec::new(),
@@ -60,13 +66,15 @@ impl PlayerManager {
             current_player: Character::default(),
         };
         pl.load_all_characters(path)?;
-        pl.active_heroes = pl.all_heroes.clone();
-        pl.active_bosses = pl.all_bosses.clone();
+        if default_active_characters {
+            pl.active_heroes = pl.all_heroes.clone();
+            pl.active_bosses = pl.all_bosses.clone();
+        }
         Ok(pl)
     }
 
     pub fn testing_pm() -> PlayerManager {
-        let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
+        let mut pl = PlayerManager::try_new("tests/offlines", true).unwrap();
         pl.current_player = pl.active_heroes[0].clone();
         pl
     }
@@ -621,15 +629,19 @@ mod tests {
 
     #[test]
     fn unit_try_new() {
-        let pl = PlayerManager::try_new("tests/offlines").unwrap();
-        assert_eq!(2, pl.all_heroes.len());
+        let pl = PlayerManager::try_new("tests/offlines", true).unwrap();
+        assert_eq!(2, pl.active_heroes.len());
 
-        assert!(PlayerManager::try_new("").is_err());
+        assert!(PlayerManager::try_new("", false).is_err());
+
+        let pl = PlayerManager::try_new("tests/offlines", false).unwrap();
+        assert!(pl.active_heroes.is_empty());
+        assert!(pl.active_bosses.is_empty());
     }
 
     #[test]
     fn unit_increment_counter_effect() {
-        let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
+        let mut pl = PlayerManager::try_new("tests/offlines", true).unwrap();
         pl.active_heroes[0].all_effects.push(GameAtkEffects {
             all_atk_effects: build_cooldown_effect(),
             ..Default::default()
@@ -648,14 +660,14 @@ mod tests {
 
     #[test]
     fn unit_reset_is_first_round() {
-        let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
+        let mut pl = PlayerManager::try_new("tests/offlines", true).unwrap();
         pl.reset_is_first_round();
         assert!(pl.all_heroes[0].extended_character.is_first_round);
     }
 
     #[test]
     fn unit_apply_regen_stats() {
-        let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
+        let mut pl = PlayerManager::try_new("tests/offlines", true).unwrap();
         let old_hp = pl.all_heroes[0].stats.all_stats[HP].current;
         let hp_regen = pl.all_heroes[0].stats.all_stats[HP_REGEN].current;
         let old_mana = pl.all_heroes[0].stats.all_stats[MANA].current;
@@ -722,7 +734,7 @@ mod tests {
 
     #[test]
     fn unit_get_mut_active_character() {
-        let mut pl = PlayerManager::try_new("tests/offlines").unwrap();
+        let mut pl = PlayerManager::try_new("tests/offlines", true).unwrap();
         assert!(pl.get_mut_active_character("test").is_some());
         assert!(pl.get_mut_active_character("Boss1").is_some());
         assert!(pl.get_mut_active_character("unknown").is_none());
@@ -730,7 +742,7 @@ mod tests {
 
     #[test]
     fn unit_get_active_character() {
-        let pl = PlayerManager::try_new("tests/offlines").unwrap();
+        let pl = PlayerManager::try_new("tests/offlines", true).unwrap();
         assert!(pl.get_active_character("test").is_some());
         assert!(pl.get_active_character("Boss1").is_some());
         assert!(pl.get_active_character("unknown").is_none());
