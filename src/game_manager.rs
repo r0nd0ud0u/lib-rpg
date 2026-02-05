@@ -27,14 +27,23 @@ pub struct ResultLaunchAttack {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GamePaths {
+    /// Root path for the game, where all the different files will be stored
     pub root: PathBuf,
+    /// Path where the characters of the game are stored
     pub characters: PathBuf,
+    /// Path where the equipments of the game are stored
     pub equipments: PathBuf,
+    /// Path where the loot of the game are stored
     pub loot: PathBuf,
+    /// Path where the ongoing effects of the game are stored
     pub ongoing_effects: PathBuf,
+    /// Path where the game state of the game is stored
     pub game_state: PathBuf,
+    /// Path where the stats in game of the game are stored
     pub stats_in_game: PathBuf,
+    /// Path where the different games are stored
     pub games_dir: PathBuf,
+    /// Path where the current game is stored
     pub current_game_dir: PathBuf,
 }
 
@@ -42,6 +51,7 @@ pub struct GamePaths {
 /// That object should be called to access to all the different functionalities.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GameManager {
+    /// Game state of the current game
     pub game_state: GameState,
     /// Player manager
     pub pm: PlayerManager,
