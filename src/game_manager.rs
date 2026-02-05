@@ -76,9 +76,15 @@ impl GameManager {
             },
         })
     }
-    pub fn start_new_game(&mut self) {
+
+    /// Init the game state and build the different paths for the game
+    pub fn init_new_game(&mut self) {
+        // Init the game state
         self.game_state.init();
+        // Build the different paths for the game
         self.build_game_paths();
+        // Start a new turn
+        let _ = self.start_new_turn();
     }
 
     pub fn load_game<P: AsRef<Path>>(&mut self, game_path_dir: P) -> Result<()> {
@@ -90,6 +96,12 @@ impl GameManager {
         Ok(())
     }
 
+    /// Process the start of a new turn:
+    /// - Process the order of the players to play
+    /// - Increment the turn number
+    /// - Reset the round number
+    /// 
+    /// Return a boolean to know if the new turn has been started and the logs of the new round if it is the case
     pub fn start_new_turn(&mut self) -> (bool, Vec<String>) {
         // For each turn now
         // Process the order of the players
@@ -519,7 +531,7 @@ mod tests {
     #[test]
     fn unit_new_round() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_new_game();
+        gm.init_new_game();
         let result = gm.start_new_turn();
         assert!(result.0);
         assert_eq!(gm.game_state.current_round, 1);
@@ -546,7 +558,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case1() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_new_game();
+        gm.init_new_game();
         gm.start_new_turn();
 
         // # case 1 dmg on individual ennemy
@@ -612,7 +624,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case2() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_new_game();
+        gm.init_new_game();
         gm.start_new_turn();
 
         // # case 2 dmg on individual ennemy
@@ -670,7 +682,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case3() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_new_game();
+        gm.init_new_game();
         gm.start_new_turn();
 
         // # case 3 dmg on individual ennemy
@@ -730,7 +742,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case4() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_new_game();
+        gm.init_new_game();
         gm.start_new_turn();
 
         // # case 4 dmg on individual ennemy
@@ -792,7 +804,7 @@ mod tests {
     fn unit_launch_attack_case5() {
         // Zone = Tous les heroes
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_new_game();
+        gm.init_new_game();
         gm.start_new_turn();
 
         // # case 5 up and change on zone ally
@@ -840,7 +852,7 @@ mod tests {
     fn unit_launch_attack_case_eclat_despoir() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.pm = PlayerManager::testing_pm();
-        gm.start_new_game();
+        gm.init_new_game();
         // turn 1 round 1 (test)
         gm.start_new_turn();
         while gm.pm.current_player.name != "test" {
@@ -969,10 +981,9 @@ mod tests {
     #[test]
     fn unit_launch_attack_end_of_effect() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_new_game();
+        gm.init_new_game();
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
-        gm.start_new_turn();
         assert_eq!(gm.game_state.order_to_play.len(), 6);
         while gm.pm.current_player.name != "test" {
             gm.new_round();
@@ -1031,7 +1042,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_up_par_valeur() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_new_game();
+        gm.init_new_game();
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_new_turn();
@@ -1062,7 +1073,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_changement_par_value_berserk() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
-        gm.start_new_game();
+        gm.init_new_game();
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_new_turn();
@@ -1094,7 +1105,7 @@ mod tests {
     fn unit_launch_attack_case_cooldown() {
         let mut gm = GameManager::try_new("./tests/offlines").unwrap();
         gm.pm = PlayerManager::testing_pm();
-        gm.start_new_game();
+        gm.init_new_game();
         // turn 1 round 1 (test)
         gm.start_new_turn();
         while gm.pm.current_player.name != "test" {
@@ -1118,9 +1129,8 @@ mod tests {
     #[test]
     fn unit_integ_dxrpg() {
         let mut gm = GameManager::try_new("offlines").unwrap();
-        gm.start_new_game();
+        gm.init_new_game();
         gm.create_game_dirs().unwrap();
-        gm.start_new_turn();
         let old_hp_boss = gm
             .pm
             .get_active_boss_character("Angmar")
