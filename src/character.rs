@@ -857,7 +857,7 @@ impl Character {
             // update txrx current turn nb
             *aggro += local_aggro as i64;
             // update stats aggro of character
-            aggro_stat.current += *aggro as u64;
+            aggro_stat.current = aggro_stat.current.saturating_add(*aggro as u64);
         }
     }
 
