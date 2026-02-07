@@ -87,6 +87,10 @@ impl GameManager {
         self.game_state.init();
         // Build the different paths for the game
         self.build_game_paths();
+    }
+
+    /// Start the game by starting a new turn
+    pub fn start_game(&mut self) {
         // Start a new turn
         let _ = self.start_new_turn();
     }
@@ -584,7 +588,7 @@ mod tests {
     fn unit_launch_attack_case1() {
         let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
-        gm.start_new_turn();
+        gm.start_game();
 
         // # case 1 dmg on individual ennemy
         // No dodging of boss
@@ -650,7 +654,7 @@ mod tests {
     fn unit_launch_attack_case2() {
         let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
-        gm.start_new_turn();
+        gm.start_game();
 
         // # case 2 dmg on individual ennemy
         // dodging of boss
@@ -708,7 +712,7 @@ mod tests {
     fn unit_launch_attack_case3() {
         let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
-        gm.start_new_turn();
+        gm.start_game();
 
         // # case 3 dmg on individual ennemy
         // No dodging of boss
@@ -768,7 +772,7 @@ mod tests {
     fn unit_launch_attack_case4() {
         let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
-        gm.start_new_turn();
+        gm.start_game();
 
         // # case 4 dmg on individual ennemy
         // No dodging of boss
@@ -830,7 +834,7 @@ mod tests {
         // Zone = Tous les heroes
         let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
-        gm.start_new_turn();
+        gm.start_game();
 
         // # case 5 up and change on zone ally
         // ally 1 speed > ally 2 speed
@@ -879,7 +883,7 @@ mod tests {
         gm.pm = PlayerManager::testing_pm();
         gm.init_new_game();
         // turn 1 round 1 (test)
-        gm.start_new_turn();
+        gm.start_game();
         while gm.pm.current_player.name != "test" {
             gm.new_round();
         }
@@ -1008,6 +1012,7 @@ mod tests {
         let mut gm = GameManager::try_new("./tests/offlines", true).unwrap();
         gm.init_new_game();
         gm.create_game_dirs().unwrap();
+        gm.start_game();
         // turn 1 round 1 (test)
         assert_eq!(gm.game_state.order_to_play.len(), 6);
         while gm.pm.current_player.name != "test" {
@@ -1070,7 +1075,7 @@ mod tests {
         gm.init_new_game();
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
-        gm.start_new_turn();
+        gm.start_game();
         while gm.pm.current_player.name != "test" {
             gm.new_round();
         }
@@ -1101,7 +1106,7 @@ mod tests {
         gm.init_new_game();
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
-        gm.start_new_turn();
+        gm.start_game();
         while gm.pm.current_player.name != "test" {
             gm.new_round();
         }
@@ -1132,7 +1137,7 @@ mod tests {
         gm.pm = PlayerManager::testing_pm();
         gm.init_new_game();
         // turn 1 round 1 (test)
-        gm.start_new_turn();
+        gm.start_game();
         while gm.pm.current_player.name != "test" {
             gm.new_round();
         }
@@ -1156,6 +1161,7 @@ mod tests {
         let mut gm = GameManager::try_new("offlines", true).unwrap();
         gm.init_new_game();
         gm.create_game_dirs().unwrap();
+        gm.start_game();
         let old_hp_boss = gm
             .pm
             .get_active_boss_character("Angmar")
