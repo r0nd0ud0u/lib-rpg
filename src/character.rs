@@ -780,7 +780,13 @@ impl Character {
                     ""
                 }
             );
-            return EffectOutcome::default();
+            return EffectOutcome {
+                full_atk_amount_tx: full_amount,
+                real_hp_amount_tx: full_amount,
+                new_effect_param,
+                target_name: self.name.clone(),
+                ..Default::default()
+            };
         }
         if ep.stats_name != HP && ep.effect_type == EFFECT_VALUE_CHANGE {
             self.set_current_stats(&ep.stats_name, full_amount);
@@ -1562,6 +1568,14 @@ mod tests {
         assert_eq!(eo.real_hp_amount_tx, -40);
         assert_eq!(eo.new_effect_param.value, -40);
         assert_eq!(old_hp - 40, boss1.stats.all_stats[HP].current);
+
+        ep = build_buf_effect_individual_speed_regen();
+        let launcher_stats = c.stats.clone();
+        let eo = c.apply_effect_outcome(&ep, &launcher_stats, false, 0);
+        assert_eq!(eo.full_atk_amount_tx, 60);
+        assert_eq!(eo.real_hp_amount_tx, 60);
+        assert_eq!(eo.new_effect_param.stats_name, SPEED_REGEN);
+        assert_eq!(eo.new_effect_param.value, 10);
     }
 
     #[test]
