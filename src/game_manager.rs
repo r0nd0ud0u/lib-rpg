@@ -290,7 +290,6 @@ impl GameManager {
             stats: launcher_stats,
             atk_type: atk.clone(),
         };
-        let mut launched_atk_log = Vec::new();
         for ep in &all_effects_param {
             for target in &all_players {
                 let mut o: Option<EffectOutcome> = None;
@@ -351,7 +350,7 @@ impl GameManager {
             outcomes: output,
             all_dodging,
             is_boss_atk: self.is_boss_atk(),
-            logs_new_round: vec![],
+            logs_new_round: Vec::new(),
         };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
@@ -372,8 +371,6 @@ impl GameManager {
         }
 
         self.game_state.last_result_atk = result_attack.clone();
-        // add basic log
-        result_attack.logs_new_round.append(&mut launched_atk_log);
         result_attack
     }
 
