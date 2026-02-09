@@ -704,7 +704,10 @@ impl Character {
                 self.name,
                 ep.stats_name
             );
-            return EffectOutcome::default();
+            return EffectOutcome {
+                new_effect_param: ep.clone(),
+                ..Default::default()
+            };
         }
         let mut full_amount;
         let mut new_effect_param = ep.clone();
