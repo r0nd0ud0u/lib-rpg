@@ -310,8 +310,8 @@ impl GameManager {
                         &launcher_info,
                     );
                     launched_atk_log.push(format!(
-                        "effect outcome for self target {}: {:?}",
-                        target, o
+                        "effect outcome for self target {}",
+                        target
                     ));
                 } else if let Some(c) = self.pm.get_mut_active_character(target) {
                     (o, all_di) = c.is_receiving_atk(
@@ -320,11 +320,11 @@ impl GameManager {
                         is_crit,
                         &launcher_info,
                     );
-                    launched_atk_log.push(format!("effect outcome for target {}: {:?}", target, o));
+                    launched_atk_log.push(format!("effect outcome for target {}", target));
                 } else {
                     launched_atk_log.push(format!(
-                        "effect outcome for unknown target {}: {:?}",
-                        target, o
+                        "effect outcome for unknown target {}",
+                        target
                     ));
                 }
                 if let Some(mut di) = all_di {

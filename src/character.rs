@@ -927,7 +927,7 @@ impl Character {
             });
         } else {
             eo = Some(EffectOutcome {
-                log: format!("self.name:{} current_turn:{}, kind:{:?}, launcher_info.name:{}", self.name, current_turn, self.kind, launcher_info.name),
+                log: format!("self.name:{} current_turn:{}, kind:{:?}, launcher_info.name:{}, effect.target: {:?}, launcher_kind: {:?}, effect.type: {:?}", self.name, current_turn, self.kind, launcher_info.name, ep.target, launcher_info.kind, ep.effect_type),
                 ..Default::default()
             });
         }
