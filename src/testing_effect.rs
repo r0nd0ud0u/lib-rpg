@@ -183,3 +183,18 @@ pub fn build_buf_effect_individual() -> EffectParam {
         ..Default::default()
     }
 }
+
+#[cfg(not(tarpaulin_include))]
+pub fn build_buf_effect_individual_speed_regen() -> EffectParam {
+    EffectParam {
+        effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned(),
+        nb_turns: 3,
+        sub_value_effect: 0,
+        target: TARGET_HIMSELF.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        stats_name: SPEED_REGEN.to_owned(),
+        value: 10,
+        number_of_applies: 6,
+        ..Default::default()
+    }
+}
