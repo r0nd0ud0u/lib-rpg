@@ -222,13 +222,18 @@ impl GameManager {
                 if let Some(auto_atk_name) =
                     AttackType::get_one_random_atk_name(&self.pm.current_player.attacks_list)
                 {
+                    tracing::info!(
+                        "Auto attack for boss {}: {}",
+                        self.pm.current_player.name,
+                        auto_atk_name
+                    );
                     return self.launch_attack(Some(&auto_atk_name));
                 }
             }
             // update action done in round
             self.pm.current_player.actions_done_in_round += 1;
             tracing::error!(
-                "launch_attack: atk_name is None for player {}",
+                "Error: no attack name provided for player {}",
                 self.pm.current_player.name
             );
             return ResultLaunchAttack::default();
@@ -243,7 +248,15 @@ impl GameManager {
         let atk_list = self.pm.current_player.attacks_list.clone();
         let atk = match atk_list.get(atk_name) {
             Some(atk) => atk.clone(),
-            None => return ResultLaunchAttack::default(), // unknown atk
+            None => {
+                // unknown atk
+                tracing::error!(
+                    "Error: attack {} not found for player {}",
+                    atk_name,
+                    self.pm.current_player.name
+                );
+                return ResultLaunchAttack::default();
+            }
         };
 
         // can be launched
@@ -288,6 +301,7 @@ impl GameManager {
                         is_crit,
                         &launcher_info,
                     );
+                    tracing::trace!("Effect outcome for self target {}: {:?}", target, o);
                 } else if let Some(c) = self.pm.get_mut_active_character(target) {
                     (o, all_di) = c.is_receiving_atk(
                         ep,
@@ -295,6 +309,9 @@ impl GameManager {
                         is_crit,
                         &launcher_info,
                     );
+                    tracing::trace!("Effect outcome for target {}: {:?}", target, o);
+                } else {
+                    tracing::trace!("Effect outcome for unknown target {}", target);
                 }
                 if let Some(mut di) = all_di {
                     all_dodging.append(&mut di);
@@ -354,7 +371,6 @@ impl GameManager {
         }
 
         self.game_state.last_result_atk = result_attack.clone();
-
         result_attack
     }
 
