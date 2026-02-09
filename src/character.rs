@@ -698,7 +698,7 @@ impl Character {
         current_turn: usize, // to process aggro
     ) -> EffectOutcome {
         if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
-            tracing::trace!(
+            tracing::info!(
                 "Effect {} cannot be applied on {} because the stat {} does not exist.",
                 ep.effect_type,
                 self.name,
@@ -742,7 +742,7 @@ impl Character {
         }
         // Return now if the full amount is 0
         if full_amount == 0 {
-            tracing::trace!(
+            tracing::info!(
                 "Effect {} has no impact on {} because the full amount is 0.",
                 ep.effect_type,
                 self.name
@@ -768,7 +768,7 @@ impl Character {
                 ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
                 true,
             );
-            tracing::trace!(
+            tracing::info!(
                 "Effect {} applied on {} for stat {} by {}{}.",
                 ep.effect_type,
                 self.name,
@@ -780,7 +780,13 @@ impl Character {
                     ""
                 }
             );
-            return EffectOutcome::default();
+            return EffectOutcome {
+                full_atk_amount_tx: full_amount,
+                real_hp_amount_tx: full_amount,
+                new_effect_param,
+                target_name: self.name.clone(),
+                ..Default::default()
+            };
         }
         if ep.stats_name != HP && ep.effect_type == EFFECT_VALUE_CHANGE {
             self.set_current_stats(&ep.stats_name, full_amount);
@@ -888,7 +894,7 @@ impl Character {
         let mut eo: Option<EffectOutcome> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
         if self.is_dead() == Some(true) {
-            tracing::trace!("is_receiving_atk: {} is already dead.", self.name);
+            tracing::info!("is_receiving_atk: {} is already dead.", self.name);
             return (None, None);
         }
         // check if the effect is applied on the target
@@ -906,7 +912,7 @@ impl Character {
                 launching_turn: current_turn,
             });
         } else {
-            tracing::trace!(
+            tracing::info!(
                 "is_receiving_atk: effect is not applied on {}. self.name:{} current_turn:{}, kind:{:?}, launcher_info.name:{}, effect.target: {:?}, launcher_kind: {:?}, effect.type: {:?}",
                 self.name,
                 self.name,
@@ -1562,6 +1568,14 @@ mod tests {
         assert_eq!(eo.real_hp_amount_tx, -40);
         assert_eq!(eo.new_effect_param.value, -40);
         assert_eq!(old_hp - 40, boss1.stats.all_stats[HP].current);
+
+        ep = build_buf_effect_individual_speed_regen();
+        let launcher_stats = c.stats.clone();
+        let eo = c.apply_effect_outcome(&ep, &launcher_stats, false, 0);
+        assert_eq!(eo.full_atk_amount_tx, 60);
+        assert_eq!(eo.real_hp_amount_tx, 60);
+        assert_eq!(eo.new_effect_param.stats_name, SPEED_REGEN);
+        assert_eq!(eo.new_effect_param.value, 10);
     }
 
     #[test]
