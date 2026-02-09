@@ -353,7 +353,7 @@ impl GameManager {
             outcomes: output,
             all_dodging,
             is_boss_atk: self.is_boss_atk(),
-            logs_new_round: vec!["end of attack".to_owned()],
+            logs_new_round: vec![],
         };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
@@ -374,7 +374,13 @@ impl GameManager {
         }
 
         self.game_state.last_result_atk = result_attack.clone();
-
+        // add basic log
+        result_attack.logs_new_round.push(format!(
+            "{} launched attack {}{}",
+            self.pm.current_player.name,
+            atk.name,
+            if is_crit { " (critical strike)" } else { "" }
+        ));
         result_attack
     }
 
