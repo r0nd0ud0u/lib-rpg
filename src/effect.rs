@@ -53,7 +53,6 @@ pub struct EffectOutcome {
     pub is_critical: bool,
     /// Updated effect param after apply on the target
     pub new_effect_param: EffectParam,
-    pub log: String,
 }
 
 pub fn is_effet_hot_or_dot(effect_name: &str) -> bool {

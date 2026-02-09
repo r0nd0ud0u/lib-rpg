@@ -236,14 +236,7 @@ impl GameManager {
                 "Error: no attack name provided for player {}",
                 self.pm.current_player.name
             );
-            tracing::error!("launch_attack: is_round_auto: {}", self.is_round_auto());
-            return ResultLaunchAttack {
-                logs_new_round: vec![format!(
-                    "Error: no attack name provided for player {}",
-                    self.pm.current_player.name
-                )],
-                ..Default::default()
-            };
+            return ResultLaunchAttack::default();
         };
         // output
         let mut output: Vec<EffectOutcome> = vec![];
@@ -256,14 +249,14 @@ impl GameManager {
         let atk = match atk_list.get(atk_name) {
             Some(atk) => atk.clone(),
             None => {
-                return ResultLaunchAttack {
-                    logs_new_round: vec![format!(
-                        "Error: attack {} not found for player {}",
-                        atk_name, self.pm.current_player.name
-                    )],
-                    ..Default::default()
-                };
-            } // unknown atk
+                // unknown atk
+                tracing::error!(
+                    "Error: attack {} not found for player {}",
+                    atk_name,
+                    self.pm.current_player.name
+                );
+                return ResultLaunchAttack::default();
+            }
         };
 
         // can be launched
@@ -309,10 +302,7 @@ impl GameManager {
                         is_crit,
                         &launcher_info,
                     );
-                    launched_atk_log.push(format!(
-                        "effect outcome for self target {}",
-                        target
-                    ));
+                    tracing::trace!("Effect outcome for self target {}: {:?}", target, o);
                 } else if let Some(c) = self.pm.get_mut_active_character(target) {
                     (o, all_di) = c.is_receiving_atk(
                         ep,
@@ -320,12 +310,9 @@ impl GameManager {
                         is_crit,
                         &launcher_info,
                     );
-                    launched_atk_log.push(format!("effect outcome for target {}", target));
+                    tracing::trace!("Effect outcome for target {}: {:?}", target, o);
                 } else {
-                    launched_atk_log.push(format!(
-                        "effect outcome for unknown target {}",
-                        target
-                    ));
+                    tracing::trace!("Effect outcome for unknown target {}", target);
                 }
                 if let Some(mut di) = all_di {
                     all_dodging.append(&mut di);
