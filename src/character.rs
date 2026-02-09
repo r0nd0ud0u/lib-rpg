@@ -927,7 +927,7 @@ impl Character {
             });
         } else {
             eo = Some(EffectOutcome {
-                log: format!("Effect {:#?} is not applied on {}, launcher-stats: {:#?}, current-turn: {}.", ep, self.name, launcher_info.stats, current_turn),
+                log: format!("Effect {:#?} is not applied on {},, current-turn: {}.", ep, self.name, current_turn),
                 ..Default::default()
             });
         }
