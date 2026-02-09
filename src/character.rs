@@ -698,6 +698,12 @@ impl Character {
         current_turn: usize, // to process aggro
     ) -> EffectOutcome {
         if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
+            tracing::trace!(
+                "Effect {} cannot be applied on {} because the stat {} does not exist.",
+                ep.effect_type,
+                self.name,
+                ep.stats_name
+            );
             return EffectOutcome {
                 new_effect_param: ep.clone(),
                 ..Default::default()
@@ -736,6 +742,11 @@ impl Character {
         }
         // Return now if the full amount is 0
         if full_amount == 0 {
+            tracing::trace!(
+                "Effect {} has no impact on {} because the full amount is 0.",
+                ep.effect_type,
+                self.name
+            );
             return EffectOutcome::default();
         }
 
@@ -757,13 +768,19 @@ impl Character {
                 ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
                 true,
             );
-            return EffectOutcome {
-                full_atk_amount_tx: full_amount,
-                real_hp_amount_tx: full_amount,
-                new_effect_param,
-                target_name: self.name.clone(),
-                ..Default::default()
-            };
+            tracing::trace!(
+                "Effect {} applied on {} for stat {} by {}{}.",
+                ep.effect_type,
+                self.name,
+                ep.stats_name,
+                full_amount,
+                if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
+                    "%"
+                } else {
+                    ""
+                }
+            );
+            return EffectOutcome::default();
         }
         if ep.stats_name != HP && ep.effect_type == EFFECT_VALUE_CHANGE {
             self.set_current_stats(&ep.stats_name, full_amount);
@@ -871,6 +888,7 @@ impl Character {
         let mut eo: Option<EffectOutcome> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
         if self.is_dead() == Some(true) {
+            tracing::trace!("is_receiving_atk: {} is already dead.", self.name);
             return (None, None);
         }
         // check if the effect is applied on the target
@@ -887,6 +905,18 @@ impl Character {
                 target: "".to_owned(),
                 launching_turn: current_turn,
             });
+        } else {
+            tracing::trace!(
+                "is_receiving_atk: effect is not applied on {}. self.name:{} current_turn:{}, kind:{:?}, launcher_info.name:{}, effect.target: {:?}, launcher_kind: {:?}, effect.type: {:?}",
+                self.name,
+                self.name,
+                current_turn,
+                self.kind,
+                launcher_info.name,
+                ep.target,
+                launcher_info.kind,
+                ep.effect_type
+            );
         }
         // assess the dodging
         if self.is_dodging(&ep.target) && self.kind != launcher_info.kind && self.is_current_target
