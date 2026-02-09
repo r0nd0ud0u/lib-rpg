@@ -925,6 +925,11 @@ impl Character {
                 target: "".to_owned(),
                 launching_turn: current_turn,
             });
+        } else {
+            eo = Some(EffectOutcome {
+                log: format!("Effect {} from {} is not applied on {}.", ep.effect_type, launcher_info.name, self.name),
+                ..Default::default()
+            });
         }
         // assess the dodging
         if self.is_dodging(&ep.target) && self.kind != launcher_info.kind && self.is_current_target
