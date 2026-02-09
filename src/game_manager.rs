@@ -297,11 +297,16 @@ impl GameManager {
             stats: launcher_stats,
             atk_type: atk.clone(),
         };
+        let mut launched_atk_log = Vec::new();
         for ep in &all_effects_param {
             for target in &all_players {
                 let mut o: Option<EffectOutcome> = None;
                 let mut all_di: Option<Vec<DodgeInfo>> = None;
                 if name == *target {
+                    launched_atk_log.push(format!(
+                        "Player {} is launching attack {} on themselves",
+                        self.pm.current_player.name, atk.name
+                    ));
                     (o, all_di) = self.pm.current_player.is_receiving_atk(
                         ep,
                         self.game_state.current_turn_nb,
@@ -315,6 +320,9 @@ impl GameManager {
                         is_crit,
                         &launcher_info,
                     );
+                    launched_atk_log.push("1 ".to_string())
+                } else {
+                    launched_atk_log.push("2 ".to_string())
                 }
                 if let Some(mut di) = all_di {
                     all_dodging.append(&mut di);
@@ -375,12 +383,7 @@ impl GameManager {
 
         self.game_state.last_result_atk = result_attack.clone();
         // add basic log
-        result_attack.logs_new_round.push(format!(
-            "{} launched attack {}{}",
-            self.pm.current_player.name,
-            atk.name,
-            if is_crit { " (critical strike)" } else { "" }
-        ));
+        result_attack.logs_new_round.append(&mut launched_atk_log);
         result_attack
     }
 
