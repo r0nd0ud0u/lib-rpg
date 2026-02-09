@@ -249,12 +249,10 @@ impl GameManager {
         let atk = match atk_list.get(atk_name) {
             Some(atk) => atk.clone(),
             None => {
-                tracing::error!(
-                    "launch_attack: atk_name {} not found for player {}",
-                    atk_name,
-                    self.pm.current_player.name
-                );
-                return ResultLaunchAttack::default();
+                return ResultLaunchAttack{
+                    logs_new_round: vec![format!("Error: attack {} not found for player {}", atk_name, self.pm.current_player.name)],
+                    ..Default::default()
+                };
             } // unknown atk
         };
 
@@ -345,7 +343,7 @@ impl GameManager {
             outcomes: output,
             all_dodging,
             is_boss_atk: self.is_boss_atk(),
-            logs_new_round: Vec::new(),
+            logs_new_round: vec!["end of attack".to_owned()],
         };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
