@@ -233,10 +233,17 @@ impl GameManager {
             // update action done in round
             self.pm.current_player.actions_done_in_round += 1;
             tracing::error!(
-                "launch_attack: atk_name is None for player {}",
+                "Error: no attack name provided for player {}",
                 self.pm.current_player.name
             );
-            return ResultLaunchAttack::default();
+            tracing::error!("launch_attack: is_round_auto: {}", self.is_round_auto());
+            return ResultLaunchAttack {
+                logs_new_round: vec![format!(
+                    "Error: no attack name provided for player {}",
+                    self.pm.current_player.name
+                )],
+                ..Default::default()
+            };
         };
         // output
         let mut output: Vec<EffectOutcome> = vec![];
@@ -249,8 +256,11 @@ impl GameManager {
         let atk = match atk_list.get(atk_name) {
             Some(atk) => atk.clone(),
             None => {
-                return ResultLaunchAttack{
-                    logs_new_round: vec![format!("Error: attack {} not found for player {}", atk_name, self.pm.current_player.name)],
+                return ResultLaunchAttack {
+                    logs_new_round: vec![format!(
+                        "Error: attack {} not found for player {}",
+                        atk_name, self.pm.current_player.name
+                    )],
                     ..Default::default()
                 };
             } // unknown atk
