@@ -303,16 +303,16 @@ impl GameManager {
                 let mut o: Option<EffectOutcome> = None;
                 let mut all_di: Option<Vec<DodgeInfo>> = None;
                 if name == *target {
-                    launched_atk_log.push(format!(
-                        "Player {} is launching attack {} on themselves",
-                        self.pm.current_player.name, atk.name
-                    ));
                     (o, all_di) = self.pm.current_player.is_receiving_atk(
                         ep,
                         self.game_state.current_turn_nb,
                         is_crit,
                         &launcher_info,
                     );
+                    launched_atk_log.push(format!(
+                        "effect outcome for self target {}: {:?}",
+                        target, o
+                    ));
                 } else if let Some(c) = self.pm.get_mut_active_character(target) {
                     (o, all_di) = c.is_receiving_atk(
                         ep,
@@ -320,9 +320,12 @@ impl GameManager {
                         is_crit,
                         &launcher_info,
                     );
-                    launched_atk_log.push("1 ".to_string())
+                    launched_atk_log.push(format!("effect outcome for target {}: {:?}", target, o));
                 } else {
-                    launched_atk_log.push("2 ".to_string())
+                    launched_atk_log.push(format!(
+                        "effect outcome for unknown target {}: {:?}",
+                        target, o
+                    ));
                 }
                 if let Some(mut di) = all_di {
                     all_dodging.append(&mut di);

@@ -700,6 +700,10 @@ impl Character {
         if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
             return EffectOutcome {
                 new_effect_param: ep.clone(),
+                log: format!(
+                    "Effect {} cannot be applied on {}.",
+                    ep.effect_type, self.name
+                ),
                 ..Default::default()
             };
         }
@@ -736,7 +740,10 @@ impl Character {
         }
         // Return now if the full amount is 0
         if full_amount == 0 {
-            return EffectOutcome::default();
+            return EffectOutcome {
+                log: format!("Effect {} has no impact on {}.", ep.effect_type, self.name),
+                ..Default::default()
+            };
         }
 
         // apply buf/debuf to full_amount in case of damages/heal
@@ -762,6 +769,18 @@ impl Character {
                 real_hp_amount_tx: full_amount,
                 new_effect_param,
                 target_name: self.name.clone(),
+                log: format!(
+                    "Effect {} applied on {} for stat {} by {}{}.",
+                    ep.effect_type,
+                    self.name,
+                    ep.stats_name,
+                    full_amount,
+                    if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
+                        "%"
+                    } else {
+                        ""
+                    }
+                ),
                 ..Default::default()
             };
         }
@@ -794,6 +813,19 @@ impl Character {
             real_hp_amount_tx: real_hp_amount,
             new_effect_param,
             target_name: self.name.clone(),
+            log: format!(
+                "Effect {} applied on {} for stat {} by {}{} (real HP amount: {}).",
+                ep.effect_type,
+                self.name,
+                ep.stats_name,
+                full_amount,
+                if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
+                    "%"
+                } else {
+                    ""
+                },
+                real_hp_amount
+            ),
             ..Default::default()
         };
         self.stats_in_game.update_by_effectoutcome(&eo);
@@ -871,7 +903,13 @@ impl Character {
         let mut eo: Option<EffectOutcome> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
         if self.is_dead() == Some(true) {
-            return (None, None);
+            return (
+                Some(EffectOutcome {
+                    log: format!("{} is already dead.", self.name),
+                    ..Default::default()
+                }),
+                None,
+            );
         }
         // check if the effect is applied on the target
         if self.is_targeted(ep, &launcher_info.name, &launcher_info.kind) {
