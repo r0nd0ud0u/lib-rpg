@@ -222,6 +222,11 @@ impl GameManager {
                 if let Some(auto_atk_name) =
                     AttackType::get_one_random_atk_name(&self.pm.current_player.attacks_list)
                 {
+                    tracing::info!(
+                        "Auto attack for boss {}: {}",
+                        self.pm.current_player.name,
+                        auto_atk_name
+                    );
                     return self.launch_attack(Some(&auto_atk_name));
                 }
             }
@@ -243,7 +248,14 @@ impl GameManager {
         let atk_list = self.pm.current_player.attacks_list.clone();
         let atk = match atk_list.get(atk_name) {
             Some(atk) => atk.clone(),
-            None => return ResultLaunchAttack::default(), // unknown atk
+            None => {
+                tracing::error!(
+                    "launch_attack: atk_name {} not found for player {}",
+                    atk_name,
+                    self.pm.current_player.name
+                );
+                return ResultLaunchAttack::default();
+            } // unknown atk
         };
 
         // can be launched
