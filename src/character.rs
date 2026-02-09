@@ -698,7 +698,7 @@ impl Character {
         current_turn: usize, // to process aggro
     ) -> EffectOutcome {
         if ep.stats_name.is_empty() || !self.stats.all_stats.contains_key(&ep.stats_name) {
-            tracing::trace!(
+            tracing::info!(
                 "Effect {} cannot be applied on {} because the stat {} does not exist.",
                 ep.effect_type,
                 self.name,
@@ -742,7 +742,7 @@ impl Character {
         }
         // Return now if the full amount is 0
         if full_amount == 0 {
-            tracing::trace!(
+            tracing::info!(
                 "Effect {} has no impact on {} because the full amount is 0.",
                 ep.effect_type,
                 self.name
@@ -768,7 +768,7 @@ impl Character {
                 ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
                 true,
             );
-            tracing::trace!(
+            tracing::info!(
                 "Effect {} applied on {} for stat {} by {}{}.",
                 ep.effect_type,
                 self.name,
@@ -888,7 +888,7 @@ impl Character {
         let mut eo: Option<EffectOutcome> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
         if self.is_dead() == Some(true) {
-            tracing::trace!("is_receiving_atk: {} is already dead.", self.name);
+            tracing::info!("is_receiving_atk: {} is already dead.", self.name);
             return (None, None);
         }
         // check if the effect is applied on the target
@@ -906,7 +906,7 @@ impl Character {
                 launching_turn: current_turn,
             });
         } else {
-            tracing::trace!(
+            tracing::info!(
                 "is_receiving_atk: effect is not applied on {}. self.name:{} current_turn:{}, kind:{:?}, launcher_info.name:{}, effect.target: {:?}, launcher_kind: {:?}, effect.type: {:?}",
                 self.name,
                 self.name,
