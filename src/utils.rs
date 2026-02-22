@@ -23,7 +23,7 @@ pub fn build_effect_name(raw_effect: &str, stats_name: &str) -> String {
 
 pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
     // Normalize the path to ensure consistent behavior across platforms
-    let normalized: PathBuf = path.as_ref().components().collect();
+    let normalized = normalize_cross_platform(path);
 
     let mut files = Vec::new();
 
@@ -37,9 +37,18 @@ pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
     Ok(files)
 }
 
+pub fn normalize_cross_platform<P: AsRef<Path>>(path: P) -> PathBuf {
+    let fixed = path.as_ref().to_string_lossy().to_string();
+
+    #[cfg(not(windows))]
+    let fixed = fixed.replace('\\', "/");
+
+    PathBuf::from(fixed)
+}
+
 pub fn list_dirs_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
     // Normalize the path to ensure consistent behavior across platforms
-    let normalized: PathBuf = path.as_ref().components().collect();
+    let normalized = normalize_cross_platform(path);
 
     let mut files = Vec::new();
 
