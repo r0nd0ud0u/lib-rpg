@@ -22,9 +22,12 @@ pub fn build_effect_name(raw_effect: &str, stats_name: &str) -> String {
 }
 
 pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
+    // Normalize the path to ensure consistent behavior across platforms
+    let normalized: PathBuf = path.as_ref().components().collect();
+
     let mut files = Vec::new();
 
-    for entry in fs::read_dir(path)? {
+    for entry in fs::read_dir(&normalized)? {
         let entry = entry?;
         if entry.path().is_file() {
             files.push(entry.path());
@@ -35,9 +38,12 @@ pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
 }
 
 pub fn list_dirs_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
+    // Normalize the path to ensure consistent behavior across platforms
+    let normalized: PathBuf = path.as_ref().components().collect();
+
     let mut files = Vec::new();
 
-    for entry in fs::read_dir(path)? {
+    for entry in fs::read_dir(normalized)? {
         let entry = entry?;
         if entry.path().is_dir() {
             files.push(entry.path());
@@ -81,7 +87,7 @@ pub fn get_random_nb(min: i64, max: i64) -> i64 {
 mod tests {
     use std::path::Path;
 
-    use crate::utils::build_effect_name;
+    use crate::utils::{build_effect_name, list_dirs_in_dir};
 
     use super::list_files_in_dir;
 
@@ -103,9 +109,20 @@ mod tests {
 
     #[test]
     fn unit_list_files_in_dir() {
-        let all_files = list_files_in_dir(Path::new("./tests/offlines/characters"));
+        let all_files = list_files_in_dir(Path::new(".\\tests\\offlines/characters"));
         let list = all_files.unwrap();
         assert!(list.len() > 1);
+    }
+
+    #[test]
+    fn unit_list_dirs_in_dir() {
+        let all_dirs = list_dirs_in_dir(Path::new(".\\tests\\offlines"));
+        let list = all_dirs.unwrap();
+        assert!(list.len() > 0);
+
+        let all_dirs = list_dirs_in_dir(Path::new(".\\tests\\offlines"));
+        let list = all_dirs.unwrap();
+        assert!(list.len() > 0);
     }
 
     #[test]
