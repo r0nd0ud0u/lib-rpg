@@ -30,7 +30,7 @@ pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
     for entry in fs::read_dir(&normalized)? {
         let entry = entry?;
         if entry.path().is_file() {
-            files.push(entry.path());
+            files.push(normalize_cross_platform(entry.path()));
         }
     }
 
@@ -39,7 +39,7 @@ pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
 
 pub fn normalize_cross_platform<P: AsRef<Path>>(path: P) -> PathBuf {
     let fixed = path.as_ref().to_string_lossy().to_string();
-    let fixed = fixed.replace('\"', "/");
+    let fixed = fixed.replace("\\", "/");
     let fixed = fixed.replace("//", "/");
 
     PathBuf::from(fixed)
@@ -54,7 +54,7 @@ pub fn list_dirs_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
     for entry in fs::read_dir(normalized)? {
         let entry = entry?;
         if entry.path().is_dir() {
-            files.push(entry.path());
+            files.push(normalize_cross_platform(entry.path()));
         }
     }
 
@@ -93,7 +93,7 @@ pub fn get_random_nb(min: i64, max: i64) -> i64 {
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
     use crate::utils::{build_effect_name, list_dirs_in_dir};
 
@@ -124,9 +124,10 @@ mod tests {
 
     #[test]
     fn unit_list_dirs_in_dir() {
-        let all_dirs = list_dirs_in_dir(Path::new("./tests/offlines"));
+        let all_dirs = list_dirs_in_dir(PathBuf::from(".\\tests\\offlines"));
         let list = all_dirs.unwrap();
         assert!(list.len() > 0);
+        assert_eq!(list[0].file_name().unwrap().to_str().unwrap(), "attack");
 
         let all_dirs = list_dirs_in_dir(Path::new("./tests/offlines"));
         let list = all_dirs.unwrap();
