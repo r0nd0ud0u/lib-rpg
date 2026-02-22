@@ -39,7 +39,8 @@ pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
 
 pub fn normalize_cross_platform<P: AsRef<Path>>(path: P) -> PathBuf {
     let fixed = path.as_ref().to_string_lossy().to_string();
-    let fixed = fixed.replace('\\', "/");
+    let fixed = fixed.replace('\"', "/");
+    let fixed = fixed.replace("//", "/");
 
     PathBuf::from(fixed)
 }
@@ -92,7 +93,7 @@ pub fn get_random_nb(min: i64, max: i64) -> i64 {
 
 #[cfg(test)]
 mod tests {
-    use std::path::{Path, PathBuf};
+    use std::path::Path;
 
     use crate::utils::{build_effect_name, list_dirs_in_dir};
 
