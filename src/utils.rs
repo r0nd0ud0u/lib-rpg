@@ -109,18 +109,18 @@ mod tests {
 
     #[test]
     fn unit_list_files_in_dir() {
-        let all_files = list_files_in_dir(Path::new(".\\tests\\offlines/characters"));
+        let all_files = list_files_in_dir(Path::new("./tests/offlines/characters"));
         let list = all_files.unwrap();
         assert!(list.len() > 1);
     }
 
     #[test]
     fn unit_list_dirs_in_dir() {
-        let all_dirs = list_dirs_in_dir(Path::new(".\\tests\\offlines"));
+        let all_dirs = list_dirs_in_dir(Path::new("./tests/offlines"));
         let list = all_dirs.unwrap();
         assert!(list.len() > 0);
 
-        let all_dirs = list_dirs_in_dir(Path::new(".\\tests\\offlines"));
+        let all_dirs = list_dirs_in_dir(Path::new("./tests/offlines"));
         let list = all_dirs.unwrap();
         assert!(list.len() > 0);
     }
