@@ -23,30 +23,41 @@ pub fn build_effect_name(raw_effect: &str, stats_name: &str) -> String {
 
 pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
     // Normalize the path to ensure consistent behavior across platforms
-    let normalized: PathBuf = path.as_ref().components().collect();
+    let normalized = normalize_cross_platform(path);
 
     let mut files = Vec::new();
 
     for entry in fs::read_dir(&normalized)? {
         let entry = entry?;
         if entry.path().is_file() {
-            files.push(entry.path());
+            files.push(normalize_cross_platform(entry.path()));
         }
     }
 
     Ok(files)
 }
 
+pub fn normalize_cross_platform<P: AsRef<Path>>(path: P) -> PathBuf {
+    let s = path.as_ref().to_string_lossy().to_string();
+    #[cfg(windows)]
+    let fixed = s.replace('/', std::path::MAIN_SEPARATOR.to_string().as_str());
+
+    #[cfg(not(windows))]
+    let fixed = s.replace('\\', std::path::MAIN_SEPARATOR.to_string().as_str());
+
+    PathBuf::from(fixed)
+}
+
 pub fn list_dirs_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
     // Normalize the path to ensure consistent behavior across platforms
-    let normalized: PathBuf = path.as_ref().components().collect();
+    let normalized = normalize_cross_platform(path);
 
     let mut files = Vec::new();
 
     for entry in fs::read_dir(normalized)? {
         let entry = entry?;
         if entry.path().is_dir() {
-            files.push(entry.path());
+            files.push(normalize_cross_platform(entry.path()));
         }
     }
 
@@ -85,7 +96,7 @@ pub fn get_random_nb(min: i64, max: i64) -> i64 {
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
     use crate::utils::{build_effect_name, list_dirs_in_dir};
 
@@ -116,13 +127,33 @@ mod tests {
 
     #[test]
     fn unit_list_dirs_in_dir() {
-        let all_dirs = list_dirs_in_dir(Path::new("./tests/offlines"));
+        let all_dirs = list_dirs_in_dir(PathBuf::from(".\\tests\\offlines"));
         let list = all_dirs.unwrap();
         assert!(list.len() > 0);
 
         let all_dirs = list_dirs_in_dir(Path::new("./tests/offlines"));
         let list = all_dirs.unwrap();
         assert!(list.len() > 0);
+    }
+
+    #[test]
+    fn unit_normalize_cross_platform() {
+        let path = Path::new("some/path/to/file");
+        let normalized = super::normalize_cross_platform(path);
+        #[cfg(windows)]
+        assert_eq!(normalized.to_str().unwrap(), "some\\path\\to\\file");
+        #[cfg(not(windows))]
+        assert_eq!(normalized.to_str().unwrap(), "some/path/to/file");
+        // saved_data\\Admin\\output/game
+        let path = Path::new("saved_data\\Admin\\output/game");
+        let normalized = super::normalize_cross_platform(path);
+        #[cfg(windows)]
+        assert_eq!(
+            normalized.to_str().unwrap(),
+            "saved_data\\Admin\\output\\game"
+        );
+        #[cfg(not(windows))]
+        assert_eq!(normalized.to_str().unwrap(), "saved_data/Admin/output/game");
     }
 
     #[test]
