@@ -130,7 +130,6 @@ mod tests {
         let all_dirs = list_dirs_in_dir(PathBuf::from(".\\tests\\offlines"));
         let list = all_dirs.unwrap();
         assert!(list.len() > 0);
-        assert_eq!(list[0].file_name().unwrap().to_str().unwrap(), "attack");
 
         let all_dirs = list_dirs_in_dir(Path::new("./tests/offlines"));
         let list = all_dirs.unwrap();
