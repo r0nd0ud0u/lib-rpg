@@ -144,6 +144,16 @@ mod tests {
         assert_eq!(normalized.to_str().unwrap(), "some\\path\\to\\file");
         #[cfg(not(windows))]
         assert_eq!(normalized.to_str().unwrap(), "some/path/to/file");
+        // saved_data\\Admin\\output/game
+        let path = Path::new("saved_data\\Admin\\output/game");
+        let normalized = super::normalize_cross_platform(path);
+        #[cfg(windows)]
+        assert_eq!(
+            normalized.to_str().unwrap(),
+            "saved_data\\Admin\\output\\game"
+        );
+        #[cfg(not(windows))]
+        assert_eq!(normalized.to_str().unwrap(), "saved_data/Admin/output/game");
     }
 
     #[test]
