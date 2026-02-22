@@ -13,7 +13,7 @@ panic = "abort"
 opt-level = 0
 
 [dependencies]
-anyhow = "1.0.102"
+anyhow = "1.0.101"
 chrono = "0.4.42"
 indexmap = { version = "2.13.0", features = ["serde"] }
 lazy_static = "1.5.0"
