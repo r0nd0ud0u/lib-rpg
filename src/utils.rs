@@ -38,9 +38,12 @@ pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
 }
 
 pub fn normalize_cross_platform<P: AsRef<Path>>(path: P) -> PathBuf {
-    let fixed = path.as_ref().to_string_lossy().to_string();
-    let fixed = fixed.replace("\\", "/");
-    let fixed = fixed.replace("//", "/");
+    let s = path.as_ref().to_string_lossy().to_string();
+    #[cfg(windows)]
+    let fixed = s.replace('/', std::path::MAIN_SEPARATOR.to_string().as_str());
+
+    #[cfg(not(windows))]
+    let fixed = s.replace('\\', std::path::MAIN_SEPARATOR.to_string().as_str());
 
     PathBuf::from(fixed)
 }
@@ -136,10 +139,10 @@ mod tests {
 
     #[test]
     fn unit_normalize_cross_platform() {
-        let path = Path::new("some\\path\\to\\file");
+        let path = Path::new("some/path/to/file");
         let normalized = super::normalize_cross_platform(path);
         #[cfg(windows)]
-        assert_eq!(normalized.to_str().unwrap(), "some/path/to/file");
+        assert_eq!(normalized.to_str().unwrap(), "some\\path\\to\\file");
         #[cfg(not(windows))]
         assert_eq!(normalized.to_str().unwrap(), "some/path/to/file");
     }
