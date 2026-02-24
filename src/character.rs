@@ -197,6 +197,7 @@ impl Character {
             }
             // read atk only if it is new game
             if !load_from_saved_game {
+                // attack loading
                 let attack_path_dir = root_path.as_ref().join(*OFFLINE_ATTACKS).join(&value.name);
                 match list_files_in_dir(&attack_path_dir) {
                     Ok(list) => list.iter().for_each(|attack_path| {
@@ -204,11 +205,38 @@ impl Character {
                             Ok(atk) => {
                                 value.attacks_list.insert(atk.name.clone(), atk);
                             }
-                            Err(e) => println!("{:?} cannot be decoded: {}", attack_path, e),
+                            Err(e) => tracing::error!("{:?} cannot be decoded: {}", attack_path, e),
                         }
                     }),
                     Err(e) => bail!("Files cannot be listed in {:#?}: {}", attack_path_dir, e),
                 };
+                // equipment loading
+                let equipment_character_path = root_path
+                    .as_ref()
+                    .join(*OFFLINE_EQUIPMENT)
+                    .join("characters")
+                    .join(&value.name);
+                //
+                let Ok(decoded_equipment) =
+                    Equipment::decode_characters_equipment(equipment_character_path)
+                else {
+                    tracing::error!("Equipment for character {} cannot be decoded", value.name);
+                    return Ok(value);
+                };
+
+                // Load somewhere in the player manager all the weapons at once in one hashmap
+
+                /* match list_files_in_dir(&equipment_character_path) {
+                    Ok(list) => list.iter().for_each(|equipment_path| {
+                        match Equipment::try_new_from_json(equipment_path) {
+                            Ok(equip) => {
+                                value.equipment_on.insert(equip.name.clone(), equip);
+                            }
+                            Err(e) => tracing::error!("{:?} cannot be decoded: {}", equipment_path, e),
+                        }
+                    }),
+                    Err(e) => bail!("Files cannot be listed in {:#?}: {}", equipment_character_path, e),
+                }; */
             }
 
             Ok(value)

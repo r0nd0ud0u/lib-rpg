@@ -95,6 +95,7 @@ impl GameManager {
         let _ = self.start_new_turn();
     }
 
+    /// TODO remove: Unused!
     pub fn load_game<P: AsRef<Path>>(&mut self, game_path_dir: P) -> Result<()> {
         self.build_game_paths();
         self.game_state =

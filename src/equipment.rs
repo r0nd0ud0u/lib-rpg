@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{collections::HashMap, path::Path};
 
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
@@ -25,7 +25,7 @@ pub struct Equipment {
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(default)]
-pub struct EquipmentOnCharacter {
+pub struct EquipmentOnCharacterJson {
     #[serde(rename = "Head")]
     pub head: String,
     #[serde(rename = "Chest")]
@@ -52,8 +52,28 @@ pub struct EquipmentOnCharacter {
     pub tattoes: Vec<String>,
     #[serde(rename = "Gloves")]
     pub gloves: String,
+    // TODO is it useful ?
     #[serde(rename = "Name")]
     pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum EquipmentOnCharacter {
+    Head(String),
+    Chest(String),
+    Shoes(String),
+    LeftRing(String),
+    RightRing(String),
+    LeftWeapon(String),
+    RightWeapon(String),
+    Amulet(String),
+    Belt(String),
+    Cape(String),
+    Pants(String),
+    Tattoes(Vec<String>),
+    Gloves(String),
+    // TODO is it useful ?
+    Name(String),
 }
 
 impl Equipment {
@@ -66,9 +86,54 @@ impl Equipment {
         }
     }
 
-    pub fn decode_characters_equipment<P: AsRef<Path>>(path: P) -> Result<EquipmentOnCharacter> {
-        utils::read_from_json::<_, EquipmentOnCharacter>(&path)
-            .map_err(|_| anyhow!("Unknown file: {:?}", path.as_ref()))
+    pub fn decode_characters_equipment<P: AsRef<Path>>(
+        path: P,
+    ) -> Result<HashMap<String, EquipmentOnCharacter>> {
+        let e = utils::read_from_json::<_, EquipmentOnCharacterJson>(&path)
+            .map_err(|_| anyhow!("Unknown file: {:?}", path.as_ref()));
+        let mut equipment_on_character = HashMap::new();
+        if let Ok(e) = e {
+            equipment_on_character.insert("Head".to_string(), EquipmentOnCharacter::Head(e.head));
+            equipment_on_character
+                .insert("Chest".to_string(), EquipmentOnCharacter::Chest(e.chest));
+            equipment_on_character
+                .insert("Shoes".to_string(), EquipmentOnCharacter::Shoes(e.shoes));
+            equipment_on_character.insert(
+                "Left Ring".to_string(),
+                EquipmentOnCharacter::LeftRing(e.left_ring),
+            );
+            equipment_on_character.insert(
+                "Right Ring".to_string(),
+                EquipmentOnCharacter::RightRing(e.right_ring),
+            );
+            equipment_on_character.insert(
+                "Left Weapon".to_string(),
+                EquipmentOnCharacter::LeftWeapon(e.left_weapon),
+            );
+            equipment_on_character.insert(
+                "Right Weapon".to_string(),
+                EquipmentOnCharacter::RightWeapon(e.right_weapon),
+            );
+            equipment_on_character
+                .insert("Amulet".to_string(), EquipmentOnCharacter::Amulet(e.amulet));
+            equipment_on_character.insert("Belt".to_string(), EquipmentOnCharacter::Belt(e.belt));
+            equipment_on_character.insert("Cape".to_string(), EquipmentOnCharacter::Cape(e.cape));
+            equipment_on_character
+                .insert("Pants".to_string(), EquipmentOnCharacter::Pants(e.pants));
+            equipment_on_character.insert(
+                "Tattoes".to_string(),
+                EquipmentOnCharacter::Tattoes(e.tattoes),
+            );
+            equipment_on_character
+                .insert("Gloves".to_string(), EquipmentOnCharacter::Gloves(e.gloves));
+            equipment_on_character.insert("Name".to_string(), EquipmentOnCharacter::Name(e.name));
+        } else {
+            tracing::error!(
+                "Equipment for character cannot be decoded: {:?}",
+                path.as_ref()
+            );
+        }
+        Ok(equipment_on_character)
     }
 }
 
@@ -110,19 +175,62 @@ mod tests {
         let decoded_equipment = Equipment::decode_characters_equipment(file_path);
         assert!(decoded_equipment.is_ok());
         let decoded_equipment = decoded_equipment.unwrap();
-        assert_eq!(decoded_equipment.head, "head");
-        assert_eq!(decoded_equipment.chest, "chest");
-        assert_eq!(decoded_equipment.shoes, "shoes");
-        assert_eq!(decoded_equipment.left_ring, "left_ring");
-        assert_eq!(decoded_equipment.right_ring, "right_ring");
-        assert_eq!(decoded_equipment.left_weapon, "left_weapon");
-        assert_eq!(decoded_equipment.right_weapon, "right_weapon");
-        assert_eq!(decoded_equipment.amulet, "amulet");
-        assert_eq!(decoded_equipment.belt, "belt");
-        assert_eq!(decoded_equipment.cape, "cape");
-        assert_eq!(decoded_equipment.pants, "pants");
-        assert_eq!(decoded_equipment.tattoes, vec!["tattoo1", "tattoo2"]);
-        assert_eq!(decoded_equipment.gloves, "gloves");
-        assert_eq!(decoded_equipment.name, "name");
+        assert_eq!(decoded_equipment.len(), 14);
+        assert_eq!(
+            decoded_equipment.get("Head").unwrap(),
+            &EquipmentOnCharacter::Head("head".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Chest").unwrap(),
+            &EquipmentOnCharacter::Chest("chest".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Shoes").unwrap(),
+            &EquipmentOnCharacter::Shoes("shoes".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Left Ring").unwrap(),
+            &EquipmentOnCharacter::LeftRing("left_ring".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Right Ring").unwrap(),
+            &EquipmentOnCharacter::RightRing("right_ring".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Left Weapon").unwrap(),
+            &EquipmentOnCharacter::LeftWeapon("left_weapon".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Right Weapon").unwrap(),
+            &EquipmentOnCharacter::RightWeapon("right_weapon".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Amulet").unwrap(),
+            &EquipmentOnCharacter::Amulet("amulet".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Belt").unwrap(),
+            &EquipmentOnCharacter::Belt("belt".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Cape").unwrap(),
+            &EquipmentOnCharacter::Cape("cape".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Pants").unwrap(),
+            &EquipmentOnCharacter::Pants("pants".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Tattoes").unwrap(),
+            &EquipmentOnCharacter::Tattoes(vec!["tattoo1".to_string()])
+        );
+        assert_eq!(
+            decoded_equipment.get("Gloves").unwrap(),
+            &EquipmentOnCharacter::Gloves("gloves".to_string())
+        );
+        assert_eq!(
+            decoded_equipment.get("Name").unwrap(),
+            &EquipmentOnCharacter::Name("name".to_string())
+        );
     }
 }
