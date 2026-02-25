@@ -244,7 +244,7 @@ impl Character {
                                 equipment_table
                                     .get(&k) // still use enum key here
                                     .and_then(|equipments| {
-                                        equipments.iter().find(|e| e.name == name)
+                                        equipments.iter().find(|e| e.unique_name == name)
                                     })
                                     .cloned()
                                     .or_else(|| {

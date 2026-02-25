@@ -1,7 +1,7 @@
 {
     "Categorie": "RightWeapon",
     "Nom": "right_weapon",
-    "Nom unique": "right_weapon-4-2024-05-11-12-36-16",
+    "Nom unique": "right_weapon_unique",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,

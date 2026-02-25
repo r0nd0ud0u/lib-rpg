@@ -193,7 +193,7 @@ mod tests {
         let equipment = equipment.unwrap();
         assert_eq!(equipment.name, "right_ring");
         assert_eq!(equipment.category, EquipmentJsonKey::RightRing);
-        assert_eq!(equipment.unique_name, "right_ring-4-2024-05-11-12-36-16");
+        assert_eq!(equipment.unique_name, "right_ring_unique");
         // stats
         // stats - aggro
         assert_eq!(0, equipment.stats.all_stats[AGGRO].buf_equip_percent);
@@ -217,59 +217,62 @@ mod tests {
         assert_eq!(decoded_equipment.len(), EquipmentJsonKey::iter().count());
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::Head).unwrap(),
-            &EquipmentJsonValue::Single("head".to_string())
+            &EquipmentJsonValue::Single("head_unique".to_string())
         );
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::Chest).unwrap(),
-            &EquipmentJsonValue::Single("chest".to_string())
+            &EquipmentJsonValue::Single("chest_unique".to_string())
         );
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::Shoes).unwrap(),
-            &EquipmentJsonValue::Single("shoes".to_string())
+            &EquipmentJsonValue::Single("shoes_unique".to_string())
         );
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::LeftRing).unwrap(),
-            &EquipmentJsonValue::Single("left_ring".to_string())
+            &EquipmentJsonValue::Single("left_ring_unique".to_string())
         );
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::RightRing).unwrap(),
-            &EquipmentJsonValue::Single("right_ring".to_string())
+            &EquipmentJsonValue::Single("right_ring_unique".to_string())
         );
         assert_eq!(
             decoded_equipment
                 .get(&EquipmentJsonKey::LeftWeapon)
                 .unwrap(),
-            &EquipmentJsonValue::Single("left_weapon".to_string())
+            &EquipmentJsonValue::Single("left_weapon_unique".to_string())
         );
         assert_eq!(
             decoded_equipment
                 .get(&EquipmentJsonKey::RightWeapon)
                 .unwrap(),
-            &EquipmentJsonValue::Single("right_weapon".to_string())
+            &EquipmentJsonValue::Single("right_weapon_unique".to_string())
         );
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::Amulet).unwrap(),
-            &EquipmentJsonValue::Single("amulet".to_string())
+            &EquipmentJsonValue::Single("amulet_unique".to_string())
         );
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::Belt).unwrap(),
-            &EquipmentJsonValue::Single("belt".to_string())
+            &EquipmentJsonValue::Single("belt_unique".to_string())
         );
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::Cape).unwrap(),
-            &EquipmentJsonValue::Single("cape".to_string())
+            &EquipmentJsonValue::Single("cape_unique".to_string())
         );
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::Pants).unwrap(),
-            &EquipmentJsonValue::Single("pants".to_string())
+            &EquipmentJsonValue::Single("pants_unique".to_string())
         );
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::Tattoes).unwrap(),
-            &EquipmentJsonValue::Multiple(vec!["tattoo1".to_string()])
+            &EquipmentJsonValue::Multiple(vec![
+                "tattoo1_unique".to_string(),
+                "tattoo2_unique".to_string()
+            ])
         );
         assert_eq!(
             decoded_equipment.get(&EquipmentJsonKey::Gloves).unwrap(),
-            &EquipmentJsonValue::Single("gloves".to_string())
+            &EquipmentJsonValue::Single("gloves_unique".to_string())
         );
     }
 }

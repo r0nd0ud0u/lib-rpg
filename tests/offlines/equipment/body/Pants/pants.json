@@ -1,7 +1,7 @@
 {
     "Categorie": "Pants",
     "Nom": "pants",
-    "Nom unique": "pants-4-2024-05-11-12-36-16",
+    "Nom unique": "pants_unique",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
