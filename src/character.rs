@@ -17,7 +17,7 @@ use crate::{
         stats_const::*,
     },
     effect::{EffectOutcome, EffectParam, is_boosted_by_crit, process_decrease_on_turn},
-    equipment::Equipment,
+    equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
     game_state::GameState,
     players_manager::{DodgeInfo, GameAtkEffects},
     powers::Powers,
@@ -69,7 +69,7 @@ pub struct Character {
     /// Experience to acquire to upgrade to next level
     pub next_exp_level: u64,
     /// key: body, value: equipmentName
-    pub equipment_on: HashMap<String, Equipment>,
+    pub equipment_on: HashMap<String, Vec<Equipment>>,
     /// key: attak name, value: AttakType struct
     pub attacks_list: IndexMap<String, AttackType>,
     /// That vector contains all the atks from m_AttakList and is sorted by level.
@@ -181,8 +181,10 @@ impl Character {
         path: P1,
         root_path: P2,
         load_from_saved_game: bool,
+        equipment_table: &HashMap<EquipmentJsonKey, Vec<Equipment>>,
     ) -> Result<Character> {
         if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
+            println!("Character {} decoded from JSON", value.name);
             // init stats
             value.stats.init();
             // init tx rx table
@@ -215,28 +217,50 @@ impl Character {
                     .as_ref()
                     .join(*OFFLINE_EQUIPMENT)
                     .join("characters")
-                    .join(&value.name);
-                //
+                    .join(&value.name)
+                    .with_extension("json");
                 let Ok(decoded_equipment) =
                     Equipment::decode_characters_equipment(equipment_character_path)
                 else {
                     tracing::error!("Equipment for character {} cannot be decoded", value.name);
                     return Ok(value);
                 };
+                value.equipment_on = decoded_equipment
+                    .into_iter()
+                    .map(|(k, v)| {
+                        // Convert enum key to string for HashMap<String, Vec<Equipment>>
+                        let key_string = k.to_string(); // <- requires Display impl on EquipmentJsonKey
 
-                // Load somewhere in the player manager all the weapons at once in one hashmap
+                        // Turn EquipmentJsonValue into Vec<String>
+                        let equipment_names: Vec<String> = match v {
+                            EquipmentJsonValue::Single(name) => vec![name],
+                            EquipmentJsonValue::Multiple(names) => names,
+                        };
 
-                /* match list_files_in_dir(&equipment_character_path) {
-                    Ok(list) => list.iter().for_each(|equipment_path| {
-                        match Equipment::try_new_from_json(equipment_path) {
-                            Ok(equip) => {
-                                value.equipment_on.insert(equip.name.clone(), equip);
-                            }
-                            Err(e) => tracing::error!("{:?} cannot be decoded: {}", equipment_path, e),
-                        }
-                    }),
-                    Err(e) => bail!("Files cannot be listed in {:#?}: {}", equipment_character_path, e),
-                }; */
+                        // Lookup the Equipment structs
+                        let equipment_structs: Vec<Equipment> = equipment_names
+                            .into_iter()
+                            .filter_map(|name| {
+                                equipment_table
+                                    .get(&k) // still use enum key here
+                                    .and_then(|equipments| {
+                                        equipments.iter().find(|e| e.name == name)
+                                    })
+                                    .cloned()
+                                    .or_else(|| {
+                                        tracing::error!(
+                                            "Equipment {} cannot be found for character {}",
+                                            name,
+                                            value.name
+                                        );
+                                        None
+                                    })
+                            })
+                            .collect();
+
+                        (key_string, equipment_structs)
+                    })
+                    .collect::<HashMap<String, Vec<Equipment>>>();
             }
 
             Ok(value)
@@ -1012,12 +1036,16 @@ impl Character {
 mod tests {
     use std::collections::HashMap;
 
+    use strum::IntoEnumIterator;
+
     use super::Character;
     use crate::attack_type::AttackType;
     use crate::buffers::Buffers;
     use crate::character::AmountType;
     use crate::effect::EffectOutcome;
-    use crate::testing_all_characters::testing_character;
+    use crate::equipment::EquipmentJsonKey;
+    use crate::players_manager::PlayerManager;
+    use crate::testing_all_characters::{testing_character, testing_equipment};
     use crate::{
         buffers::BufTypes,
         character::{CharacterType, Class},
@@ -1031,7 +1059,10 @@ mod tests {
     fn unit_try_new_from_json() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false);
+        let mut pl = PlayerManager::default();
+        pl.load_all_equipments(root_path).unwrap();
+        assert_eq!(EquipmentJsonKey::iter().count(), pl.equipment_table.len());
+        let c = Character::try_new_from_json(file_path, root_path, false, &pl.equipment_table);
         assert!(c.is_ok());
         let c = c.unwrap();
         // name
@@ -1143,10 +1174,15 @@ mod tests {
         assert_eq!(0, c.actions_done_in_round);
         // atk
         assert_eq!(16, c.attacks_list.len());
+        // equipment
+        assert_eq!(13, c.equipment_on.len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
         let root_path = "./tests/offlines";
-        assert!(Character::try_new_from_json(file_path, root_path, false).is_err());
+        assert!(
+            Character::try_new_from_json(file_path, root_path, false, &testing_equipment())
+                .is_err()
+        );
     }
 
     #[test]
@@ -1204,7 +1240,7 @@ mod tests {
     fn unit_set_stats_on_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false);
+        let c = Character::try_new_from_json(file_path, root_path, false, &testing_equipment());
         assert!(c.is_ok());
         let mut c = c.unwrap();
         c.set_stats_on_effect(HP, -10, false, true);
@@ -1238,7 +1274,7 @@ mod tests {
     fn unit_remove_malus_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false);
+        let c = Character::try_new_from_json(file_path, root_path, false, &testing_equipment());
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
@@ -1305,7 +1341,7 @@ mod tests {
     fn unit_update_buf() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false);
+        let c = Character::try_new_from_json(file_path, root_path, false, &testing_equipment());
         assert!(c.is_ok());
         let mut c = c.unwrap();
         c.update_buf(BufTypes::DamageTx, 10, false, HP);
@@ -1321,7 +1357,7 @@ mod tests {
     fn unit_process_one_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false);
+        let c = Character::try_new_from_json(file_path, root_path, false, &testing_equipment());
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let mut ep = EffectParam {
@@ -1436,7 +1472,7 @@ mod tests {
     fn unit_assess_effect_param() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false);
+        let c = Character::try_new_from_json(file_path, root_path, false, &testing_equipment());
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
@@ -1457,17 +1493,26 @@ mod tests {
     #[test]
     fn unit_is_targeted() {
         let root_path = "./tests/offlines";
-        let c1 =
-            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
-                .unwrap();
-        let mut c2 =
-            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
-                .unwrap();
+        let c1 = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            root_path,
+            false,
+            &testing_equipment(),
+        )
+        .unwrap();
+        let mut c2 = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            root_path,
+            false,
+            &testing_equipment(),
+        )
+        .unwrap();
         c2.name = "other".to_string();
         let mut boss1 = Character::try_new_from_json(
             "./tests/offlines/characters/test_boss.json",
             root_path,
             false,
+            &testing_equipment(),
         )
         .unwrap();
         // effect on himself
@@ -1549,12 +1594,20 @@ mod tests {
     #[test]
     fn unit_apply_effect_outcome() {
         let root_path = "./tests/offlines";
-        let mut c =
-            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
-                .unwrap();
-        let mut c2 =
-            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
-                .unwrap();
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            root_path,
+            false,
+            &testing_equipment(),
+        )
+        .unwrap();
+        let mut c2 = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            root_path,
+            false,
+            &testing_equipment(),
+        )
+        .unwrap();
         let mut ep = build_cooldown_effect();
         let launcher_stats = c.stats.clone();
         // target is himself
@@ -1587,6 +1640,7 @@ mod tests {
             "./tests/offlines/characters/test_boss.json",
             root_path,
             false,
+            &testing_equipment(),
         )
         .unwrap();
         ep = build_dmg_effect_individual();
@@ -1609,9 +1663,13 @@ mod tests {
     #[test]
     fn unit_process_real_amount() {
         let root_path = "./tests/offlines";
-        let mut c =
-            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
-                .unwrap();
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            root_path,
+            false,
+            &testing_equipment(),
+        )
+        .unwrap();
         let old_hp = c.stats.all_stats[HP].current;
         let result = c.update_hp_process_real_amount(
             &build_dmg_effect_individual(),
@@ -1624,9 +1682,13 @@ mod tests {
     #[test]
     fn unit_proces_aggro() {
         let root_path = "./tests/offlines";
-        let mut c =
-            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
-                .unwrap();
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            root_path,
+            false,
+            &testing_equipment(),
+        )
+        .unwrap();
         c.init_aggro_on_turn(0);
         c.process_aggro(0, 0, 0);
         assert_eq!(0, c.tx_rx[AmountType::Aggro as usize][&0]);
@@ -1638,9 +1700,13 @@ mod tests {
     #[test]
     fn unit_reset_all_effects_on_player() {
         let root_path = "./tests/offlines";
-        let mut c =
-            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
-                .unwrap();
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            root_path,
+            false,
+            &testing_equipment(),
+        )
+        .unwrap();
         let hp_without_malus = c.stats.all_stats[HP].max as i64;
         c.all_effects.push(GameAtkEffects {
             all_atk_effects: build_effect_max_stats(),
@@ -1661,9 +1727,13 @@ mod tests {
     #[test]
     fn unit_reset_all_buffers() {
         let root_path = "./tests/offlines";
-        let mut c =
-            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
-                .unwrap();
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            root_path,
+            false,
+            &testing_equipment(),
+        )
+        .unwrap();
         let mut b = Buffers::default();
         b.set_buffers(30, true);
         c.all_buffers.push(b);
@@ -1676,9 +1746,13 @@ mod tests {
     fn unit_can_be_launched() {
         let mut atk_type = self::AttackType::default();
         let root_path = "./tests/offlines";
-        let mut c1 =
-            Character::try_new_from_json("./tests/offlines/characters/test.json", root_path, false)
-                .unwrap();
+        let mut c1 = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            root_path,
+            false,
+            &testing_equipment(),
+        )
+        .unwrap();
         // nominal case
         atk_type.level = 1;
         atk_type.mana_cost = 0;

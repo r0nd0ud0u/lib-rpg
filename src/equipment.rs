@@ -1,9 +1,10 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, fmt, path::Path};
 
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 
 use crate::{stats::Stats, utils};
+use strum_macros::EnumIter;
 
 /// Define the parameters of an equipment.
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -11,7 +12,7 @@ use crate::{stats::Stats, utils};
 pub struct Equipment {
     /// Name of the equipment
     #[serde(rename = "Categorie")]
-    pub category: String,
+    pub category: EquipmentJsonKey,
     /// Type of the equipment
     #[serde(rename = "Nom")]
     pub name: String,
@@ -32,13 +33,13 @@ pub struct EquipmentOnCharacterJson {
     pub chest: String,
     #[serde(rename = "Shoes")]
     pub shoes: String,
-    #[serde(rename = "Left Ring")]
+    #[serde(rename = "LeftRing")]
     pub left_ring: String,
-    #[serde(rename = "Right Ring")]
+    #[serde(rename = "RightRing")]
     pub right_ring: String,
-    #[serde(rename = "Left Weapon")]
+    #[serde(rename = "LeftWeapon")]
     pub left_weapon: String,
-    #[serde(rename = "Right Weapon")]
+    #[serde(rename = "RightWeapon")]
     pub right_weapon: String,
     #[serde(rename = "Amulet")]
     pub amulet: String,
@@ -58,22 +59,49 @@ pub struct EquipmentOnCharacterJson {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub enum EquipmentOnCharacter {
-    Head(String),
-    Chest(String),
-    Shoes(String),
-    LeftRing(String),
-    RightRing(String),
-    LeftWeapon(String),
-    RightWeapon(String),
-    Amulet(String),
-    Belt(String),
-    Cape(String),
-    Pants(String),
-    Tattoes(Vec<String>),
-    Gloves(String),
-    // TODO is it useful ?
-    Name(String),
+pub enum EquipmentJsonValue {
+    Single(String),
+    Multiple(Vec<String>),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash, Default, EnumIter)]
+#[serde(rename_all = "PascalCase")]
+pub enum EquipmentJsonKey {
+    #[default]
+    Head,
+    Chest,
+    Shoes,
+    LeftRing,
+    RightRing,
+    LeftWeapon,
+    RightWeapon,
+    Amulet,
+    Belt,
+    Cape,
+    Pants,
+    Tattoes,
+    Gloves,
+}
+
+impl fmt::Display for EquipmentJsonKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            EquipmentJsonKey::Head => "Head",
+            EquipmentJsonKey::Chest => "Chest",
+            EquipmentJsonKey::Shoes => "Shoes",
+            EquipmentJsonKey::LeftRing => "LeftRing",
+            EquipmentJsonKey::RightRing => "RightRing",
+            EquipmentJsonKey::LeftWeapon => "LeftWeapon",
+            EquipmentJsonKey::RightWeapon => "RightWeapon",
+            EquipmentJsonKey::Amulet => "Amulet",
+            EquipmentJsonKey::Belt => "Belt",
+            EquipmentJsonKey::Cape => "Cape",
+            EquipmentJsonKey::Pants => "Pants",
+            EquipmentJsonKey::Tattoes => "Tattoes",
+            EquipmentJsonKey::Gloves => "Gloves",
+        };
+        write!(f, "{}", s)
+    }
 }
 
 impl Equipment {
@@ -82,51 +110,63 @@ impl Equipment {
             value.stats.init();
             Ok(value)
         } else {
-            Err(anyhow!("Unknown file: {:?}", path.as_ref()))
+            // output the true error for debugging
+            let error = utils::read_from_json::<_, Equipment>(&path).err();
+            Err(anyhow!(
+                "Error reading equipment from JSON: {:?}, error: {:?}",
+                path.as_ref(),
+                error
+            ))
         }
     }
 
     pub fn decode_characters_equipment<P: AsRef<Path>>(
         path: P,
-    ) -> Result<HashMap<String, EquipmentOnCharacter>> {
+    ) -> Result<HashMap<EquipmentJsonKey, EquipmentJsonValue>> {
         let e = utils::read_from_json::<_, EquipmentOnCharacterJson>(&path)
             .map_err(|_| anyhow!("Unknown file: {:?}", path.as_ref()));
         let mut equipment_on_character = HashMap::new();
         if let Ok(e) = e {
-            equipment_on_character.insert("Head".to_string(), EquipmentOnCharacter::Head(e.head));
             equipment_on_character
-                .insert("Chest".to_string(), EquipmentOnCharacter::Chest(e.chest));
+                .insert(EquipmentJsonKey::Head, EquipmentJsonValue::Single(e.head));
             equipment_on_character
-                .insert("Shoes".to_string(), EquipmentOnCharacter::Shoes(e.shoes));
+                .insert(EquipmentJsonKey::Chest, EquipmentJsonValue::Single(e.chest));
+            equipment_on_character
+                .insert(EquipmentJsonKey::Shoes, EquipmentJsonValue::Single(e.shoes));
             equipment_on_character.insert(
-                "Left Ring".to_string(),
-                EquipmentOnCharacter::LeftRing(e.left_ring),
+                EquipmentJsonKey::LeftRing,
+                EquipmentJsonValue::Single(e.left_ring),
             );
             equipment_on_character.insert(
-                "Right Ring".to_string(),
-                EquipmentOnCharacter::RightRing(e.right_ring),
+                EquipmentJsonKey::RightRing,
+                EquipmentJsonValue::Single(e.right_ring),
             );
             equipment_on_character.insert(
-                "Left Weapon".to_string(),
-                EquipmentOnCharacter::LeftWeapon(e.left_weapon),
+                EquipmentJsonKey::LeftWeapon,
+                EquipmentJsonValue::Single(e.left_weapon),
             );
             equipment_on_character.insert(
-                "Right Weapon".to_string(),
-                EquipmentOnCharacter::RightWeapon(e.right_weapon),
+                EquipmentJsonKey::RightWeapon,
+                EquipmentJsonValue::Single(e.right_weapon),
             );
-            equipment_on_character
-                .insert("Amulet".to_string(), EquipmentOnCharacter::Amulet(e.amulet));
-            equipment_on_character.insert("Belt".to_string(), EquipmentOnCharacter::Belt(e.belt));
-            equipment_on_character.insert("Cape".to_string(), EquipmentOnCharacter::Cape(e.cape));
-            equipment_on_character
-                .insert("Pants".to_string(), EquipmentOnCharacter::Pants(e.pants));
             equipment_on_character.insert(
-                "Tattoes".to_string(),
-                EquipmentOnCharacter::Tattoes(e.tattoes),
+                EquipmentJsonKey::Amulet,
+                EquipmentJsonValue::Single(e.amulet),
             );
             equipment_on_character
-                .insert("Gloves".to_string(), EquipmentOnCharacter::Gloves(e.gloves));
-            equipment_on_character.insert("Name".to_string(), EquipmentOnCharacter::Name(e.name));
+                .insert(EquipmentJsonKey::Belt, EquipmentJsonValue::Single(e.belt));
+            equipment_on_character
+                .insert(EquipmentJsonKey::Cape, EquipmentJsonValue::Single(e.cape));
+            equipment_on_character
+                .insert(EquipmentJsonKey::Pants, EquipmentJsonValue::Single(e.pants));
+            equipment_on_character.insert(
+                EquipmentJsonKey::Tattoes,
+                EquipmentJsonValue::Multiple(e.tattoes),
+            );
+            equipment_on_character.insert(
+                EquipmentJsonKey::Gloves,
+                EquipmentJsonValue::Single(e.gloves),
+            );
         } else {
             tracing::error!(
                 "Equipment for character cannot be decoded: {:?}",
@@ -139,22 +179,21 @@ impl Equipment {
 
 #[cfg(test)]
 mod tests {
+    use strum::IntoEnumIterator;
+
     use crate::common::stats_const::*;
 
     use super::*;
 
     #[test]
     fn unit_try_new_from_json() {
-        let file_path = "./tests/offlines/equipment/body/right-ring/Anneau de Boromir-4-2024-05-11-12-36-16.json"; // Path to the JSON file
+        let file_path = "./tests/offlines/equipment/body/RightRing/right_ring.json"; // Path to the JSON file
         let equipment = Equipment::try_new_from_json(file_path);
         assert!(equipment.is_ok());
         let equipment = equipment.unwrap();
-        assert_eq!(equipment.name, "Anneau de Boromir");
-        assert_eq!(equipment.category, "Right Ring");
-        assert_eq!(
-            equipment.unique_name,
-            "Anneau de Boromir-4-2024-05-11-12-36-16"
-        );
+        assert_eq!(equipment.name, "right_ring");
+        assert_eq!(equipment.category, EquipmentJsonKey::RightRing);
+        assert_eq!(equipment.unique_name, "right_ring-4-2024-05-11-12-36-16");
         // stats
         // stats - aggro
         assert_eq!(0, equipment.stats.all_stats[AGGRO].buf_equip_percent);
@@ -171,66 +210,66 @@ mod tests {
 
     #[test]
     fn unit_decode_characters_equipment() {
-        let file_path = "./tests/offlines/equipment/characters/Test.json"; // Path to the JSON file
+        let file_path = "./tests/offlines/equipment/characters/test.json"; // Path to the JSON file
         let decoded_equipment = Equipment::decode_characters_equipment(file_path);
         assert!(decoded_equipment.is_ok());
         let decoded_equipment = decoded_equipment.unwrap();
-        assert_eq!(decoded_equipment.len(), 14);
+        assert_eq!(decoded_equipment.len(), EquipmentJsonKey::iter().count());
         assert_eq!(
-            decoded_equipment.get("Head").unwrap(),
-            &EquipmentOnCharacter::Head("head".to_string())
+            decoded_equipment.get(&EquipmentJsonKey::Head).unwrap(),
+            &EquipmentJsonValue::Single("head".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Chest").unwrap(),
-            &EquipmentOnCharacter::Chest("chest".to_string())
+            decoded_equipment.get(&EquipmentJsonKey::Chest).unwrap(),
+            &EquipmentJsonValue::Single("chest".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Shoes").unwrap(),
-            &EquipmentOnCharacter::Shoes("shoes".to_string())
+            decoded_equipment.get(&EquipmentJsonKey::Shoes).unwrap(),
+            &EquipmentJsonValue::Single("shoes".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Left Ring").unwrap(),
-            &EquipmentOnCharacter::LeftRing("left_ring".to_string())
+            decoded_equipment.get(&EquipmentJsonKey::LeftRing).unwrap(),
+            &EquipmentJsonValue::Single("left_ring".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Right Ring").unwrap(),
-            &EquipmentOnCharacter::RightRing("right_ring".to_string())
+            decoded_equipment.get(&EquipmentJsonKey::RightRing).unwrap(),
+            &EquipmentJsonValue::Single("right_ring".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Left Weapon").unwrap(),
-            &EquipmentOnCharacter::LeftWeapon("left_weapon".to_string())
+            decoded_equipment
+                .get(&EquipmentJsonKey::LeftWeapon)
+                .unwrap(),
+            &EquipmentJsonValue::Single("left_weapon".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Right Weapon").unwrap(),
-            &EquipmentOnCharacter::RightWeapon("right_weapon".to_string())
+            decoded_equipment
+                .get(&EquipmentJsonKey::RightWeapon)
+                .unwrap(),
+            &EquipmentJsonValue::Single("right_weapon".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Amulet").unwrap(),
-            &EquipmentOnCharacter::Amulet("amulet".to_string())
+            decoded_equipment.get(&EquipmentJsonKey::Amulet).unwrap(),
+            &EquipmentJsonValue::Single("amulet".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Belt").unwrap(),
-            &EquipmentOnCharacter::Belt("belt".to_string())
+            decoded_equipment.get(&EquipmentJsonKey::Belt).unwrap(),
+            &EquipmentJsonValue::Single("belt".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Cape").unwrap(),
-            &EquipmentOnCharacter::Cape("cape".to_string())
+            decoded_equipment.get(&EquipmentJsonKey::Cape).unwrap(),
+            &EquipmentJsonValue::Single("cape".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Pants").unwrap(),
-            &EquipmentOnCharacter::Pants("pants".to_string())
+            decoded_equipment.get(&EquipmentJsonKey::Pants).unwrap(),
+            &EquipmentJsonValue::Single("pants".to_string())
         );
         assert_eq!(
-            decoded_equipment.get("Tattoes").unwrap(),
-            &EquipmentOnCharacter::Tattoes(vec!["tattoo1".to_string()])
+            decoded_equipment.get(&EquipmentJsonKey::Tattoes).unwrap(),
+            &EquipmentJsonValue::Multiple(vec!["tattoo1".to_string()])
         );
         assert_eq!(
-            decoded_equipment.get("Gloves").unwrap(),
-            &EquipmentOnCharacter::Gloves("gloves".to_string())
-        );
-        assert_eq!(
-            decoded_equipment.get("Name").unwrap(),
-            &EquipmentOnCharacter::Name("name".to_string())
+            decoded_equipment.get(&EquipmentJsonKey::Gloves).unwrap(),
+            &EquipmentJsonValue::Single("gloves".to_string())
         );
     }
 }

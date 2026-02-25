@@ -1,8 +1,8 @@
 {
-    "Right Ring": "right_ring",
-    "Left Ring": "left_ring",
-    "Right Weapon": "right_weapon",
-    "Left Weapon": "left_weapon",
+    "RightRing": "right_ring",
+    "LeftRing": "left_ring",
+    "RightWeapon": "right_weapon",
+    "LeftWeapon": "left_weapon",
     "Gloves": "gloves",
     "Shoes": "shoes",
     "Amulet": "amulet",

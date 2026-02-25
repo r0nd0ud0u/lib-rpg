@@ -1,7 +1,8 @@
-use std::path::Path;
+use std::{collections::HashMap, path::Path};
 
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
+use strum::IntoEnumIterator;
 
 use crate::{
     attack_type::AttackType,
@@ -9,11 +10,12 @@ use crate::{
     common::{
         all_target_const::{TARGET_ALL_HEROES, TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF},
         character_const::*,
-        paths_const::OFFLINE_CHARACTERS,
+        paths_const::{OFFLINE_CHARACTERS, OFFLINE_LOOT_EQUIPMENT},
         reach_const::{INDIVIDUAL, ZONE},
         stats_const::*,
     },
     effect::{EffectParam, is_effet_hot_or_dot},
+    equipment::{Equipment, EquipmentJsonKey},
     game_state::GameState,
     utils::list_files_in_dir,
 };
@@ -47,7 +49,10 @@ pub struct PlayerManager {
     pub active_heroes: Vec<Character>,
     /// List of all selected bosses by computer
     pub active_bosses: Vec<Character>,
+    /// Shadow current player used to update the active character in the list of active characters
     pub current_player: Character,
+    /// Equipment table mapping character names to their equipped items
+    pub equipment_table: HashMap<EquipmentJsonKey, Vec<Equipment>>,
 }
 
 impl PlayerManager {
@@ -55,6 +60,7 @@ impl PlayerManager {
     /// and by initializing the active heroes with all the loaded heroes
     /// if `default_active_characters` is true.
     /// Bosses are always active by default.
+    /// `path` is the root path of the offline directory containing characters and equipments directories.
     pub fn try_new<P: AsRef<Path>>(
         path: P,
         default_active_characters: bool,
@@ -65,20 +71,24 @@ impl PlayerManager {
             active_heroes: Vec::new(),
             active_bosses: Vec::new(),
             current_player: Character::default(),
+            equipment_table: HashMap::new(),
         };
-        pl.load_all_characters(path)?;
+        pl.load_all_characters(&path)?;
         // By default, all the heroes are active
         if default_active_characters {
             pl.active_heroes = pl.all_heroes.clone();
         }
         // All the bosses are active
         pl.active_bosses = pl.all_bosses.clone();
+        // load all the equipments
+        pl.load_all_equipments(&path)?;
         Ok(pl)
     }
 
     pub fn testing_pm() -> PlayerManager {
         let mut pl = PlayerManager::try_new("tests/offlines", true).unwrap();
         pl.current_player = pl.active_heroes[0].clone();
+        pl.load_all_equipments("./tests/offlines").unwrap();
         pl
     }
 
@@ -91,7 +101,12 @@ impl PlayerManager {
         let character_dir_path = path.as_ref().join(*OFFLINE_CHARACTERS);
         match list_files_in_dir(&character_dir_path) {
             Ok(list) => list.iter().for_each(|character_path| {
-                match Character::try_new_from_json(character_path, path.as_ref(), false) {
+                match Character::try_new_from_json(
+                    character_path,
+                    path.as_ref(),
+                    false,
+                    &self.equipment_table,
+                ) {
                     Ok(c) => {
                         if c.kind == CharacterType::Hero {
                             self.all_heroes.push(c);
@@ -121,7 +136,12 @@ impl PlayerManager {
         let character_dir_path = root_path.as_ref().join(*OFFLINE_CHARACTERS);
         match list_files_in_dir(&character_dir_path) {
             Ok(list) => list.iter().for_each(|character_path| {
-                match Character::try_new_from_json(character_path, root_path.as_ref(), true) {
+                match Character::try_new_from_json(
+                    character_path,
+                    root_path.as_ref(),
+                    true,
+                    &self.equipment_table,
+                ) {
                     Ok(c) => {
                         if c.kind == CharacterType::Hero {
                             self.active_heroes.push(c);
@@ -134,6 +154,34 @@ impl PlayerManager {
             }),
             Err(e) => bail!("Files cannot be listed in {:#?}: {}", character_dir_path, e),
         };
+        Ok(())
+    }
+
+    pub fn load_all_equipments<P: AsRef<Path>>(&mut self, root_path: P) -> Result<()> {
+        if root_path.as_ref().as_os_str().is_empty() {
+            bail!("no root path")
+        }
+        let equipment_dir_path = root_path.as_ref().join(*OFFLINE_LOOT_EQUIPMENT);
+        // for each part of the equipment, load all the equipments and insert them in the equipment table
+        for part in EquipmentJsonKey::iter() {
+            let part_dir_path = equipment_dir_path.join(part.to_string());
+            match list_files_in_dir(&part_dir_path) {
+                Ok(list) => {
+                    list.iter().for_each(|equipment_path| {
+                        match Equipment::try_new_from_json(equipment_path) {
+                            Ok(e) => {
+                                self.equipment_table
+                                    .entry(part.clone())
+                                    .or_default()
+                                    .push(e);
+                            }
+                            Err(e) => println!("{:?} cannot be decoded: {}", equipment_path, e),
+                        }
+                    })
+                }
+                Err(e) => println!("Files cannot be listed in {:#?}: {}", part_dir_path, e),
+            };
+        }
         Ok(())
     }
 
@@ -624,11 +672,12 @@ fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &
 #[cfg(test)]
 mod tests {
     use crate::{
-        common::stats_const::*, game_state::GameState, players_manager::GameAtkEffects,
-        testing_effect::*,
+        common::stats_const::*, equipment::EquipmentJsonKey, game_state::GameState,
+        players_manager::GameAtkEffects, testing_effect::*,
     };
 
     use super::PlayerManager;
+    use strum::IntoEnumIterator;
 
     #[test]
     fn unit_try_new() {
@@ -640,6 +689,8 @@ mod tests {
         let pl = PlayerManager::try_new("tests/offlines", false).unwrap();
         assert!(pl.active_heroes.is_empty());
         assert_eq!(2, pl.all_heroes.len());
+        // equipments
+        assert_eq!(EquipmentJsonKey::iter().count(), pl.equipment_table.len());
     }
 
     #[test]
@@ -1170,5 +1221,12 @@ mod tests {
                 .expect("no hero")
                 .is_potential_target
         );
+    }
+
+    #[test]
+    fn unit_load_all_equipments() {
+        let mut pl = PlayerManager::default();
+        pl.load_all_equipments("./tests/offlines").unwrap();
+        assert_eq!(EquipmentJsonKey::iter().count(), pl.equipment_table.len());
     }
 }
