@@ -184,7 +184,6 @@ impl Character {
         equipment_table: &HashMap<EquipmentJsonKey, Vec<Equipment>>,
     ) -> Result<Character> {
         if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
-            println!("Character {} decoded from JSON", value.name);
             // init stats
             value.stats.init();
             // init tx rx table
