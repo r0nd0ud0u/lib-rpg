@@ -73,6 +73,10 @@ impl PlayerManager {
             current_player: Character::default(),
             equipment_table: HashMap::new(),
         };
+        // load all the equipments
+        // must be loaded before loading the characters
+        pl.load_all_equipments(&path)?;
+        // load all the characters
         pl.load_all_characters(&path)?;
         // By default, all the heroes are active
         if default_active_characters {
@@ -80,8 +84,6 @@ impl PlayerManager {
         }
         // All the bosses are active
         pl.active_bosses = pl.all_bosses.clone();
-        // load all the equipments
-        pl.load_all_equipments(&path)?;
         Ok(pl)
     }
 
