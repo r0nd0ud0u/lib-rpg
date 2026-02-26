@@ -187,7 +187,7 @@ mod tests {
 
     #[test]
     fn unit_try_new_from_json() {
-        let file_path = "./tests/offlines/equipment/body/RightRing/right_ring.json"; // Path to the JSON file
+        let file_path = "./tests/offlines/equipment/body/RightRing/right_ring_unique.json"; // Path to the JSON file
         let equipment = Equipment::try_new_from_json(file_path);
         assert!(equipment.is_ok());
         let equipment = equipment.unwrap();
