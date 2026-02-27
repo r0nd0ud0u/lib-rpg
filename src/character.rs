@@ -247,11 +247,13 @@ impl Character {
                                     })
                                     .cloned()
                                     .or_else(|| {
-                                        tracing::error!(
-                                            "Equipment {} cannot be found for character {}",
-                                            name,
-                                            value.name
-                                        );
+                                        if !value.name.is_empty() {
+                                            tracing::error!(
+                                                "Equipment {} cannot be found for character {}",
+                                                name,
+                                                value.name
+                                            );
+                                        }
                                         None
                                     })
                             })
