@@ -247,7 +247,7 @@ impl Character {
                                     })
                                     .cloned()
                                     .or_else(|| {
-                                        if !value.name.is_empty() {
+                                        if !name.is_empty() {
                                             tracing::error!(
                                                 "Equipment {} cannot be found for character {}",
                                                 name,
