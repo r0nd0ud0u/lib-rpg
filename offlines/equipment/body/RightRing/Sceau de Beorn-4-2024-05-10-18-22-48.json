@@ -1,0 +1,80 @@
+{
+    "Categorie": "RightRing",
+    "Nom": "Sceau de Beorn",
+    "Nom unique": "Sceau de Beorn-4-2024-05-10-18-22-48",
+    "Stats": {
+        "Aggro": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Aggro rate": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Berseck": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Berseck rate": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Critical strike": {
+            "equip_percent": 0,
+            "equip_value": 5
+        },
+        "Dodge": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "HP": {
+            "equip_percent": 15,
+            "equip_value": 0
+        },
+        "HP regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Magical armor": {
+            "equip_percent": 0,
+            "equip_value": 100
+        },
+        "Magical power": {
+            "equip_percent": 0,
+            "equip_value": 160
+        },
+        "Mana": {
+            "equip_percent": 15,
+            "equip_value": 0
+        },
+        "Mana regeneration": {
+            "equip_percent": 0,
+            "equip_value": 5
+        },
+        "Physical armor": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Physical power": {
+            "equip_percent": 0,
+            "equip_value": 80
+        },
+        "Speed": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Speed regeneration": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Vigor": {
+            "equip_percent": 0,
+            "equip_value": 0
+        },
+        "Vigor regeneration": {
+            "equip_percent": 0,
+            "equip_value": 5
+        }
+    }
+}
+
