@@ -65,14 +65,17 @@ pub fn list_dirs_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
 }
 
 pub fn read_from_json<P: AsRef<Path>, T: DeserializeOwned>(path: P) -> Result<T> {
-    let content = fs::read_to_string(path)?;
+    // Normalize the path to ensure consistent behavior across platforms
+    let normalized = normalize_cross_platform(path);
+    let content = fs::read_to_string(&normalized)?;
     let value: T = serde_json::from_str(&content)?;
     Ok(value)
 }
 
 pub(crate) fn write_to_json<P: AsRef<Path>, T: Serialize>(value: &T, path: P) -> Result<()> {
+    let normalized = normalize_cross_platform(path);
     let data = serde_json::to_string_pretty(value)?;
-    fs::write(path, data)?;
+    fs::write(normalized, data)?;
     Ok(())
 }
 

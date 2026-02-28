@@ -1,18 +1,18 @@
 {
-    "Right Ring": "Sceau de Beorn-4-2024-05-10-18-22-48",
-    "Left Ring": "Bague des Gardiens de la Citadelle-4-2024-05-10-16-26-33",
-    "Right Weapon": "Marteau des Ouvriers Nains-4-2024-05-10-18-22-48",
-    "Left Weapon": "Masse de la Tour de Barad-dûr-4-2024-05-11-12-36-16",
+    "RightRing": "",
+    "LeftRing": "",
+    "RightWeapon": "Marteau des Ouvriers Nains-4-2024-05-10-18-22-48",
+    "LeftWeapon": "Masse de la Tour de Barad-dûr-4-2024-05-11-12-36-16",
     "Gloves": "Bracelet de la Maison de Fëanor-8-2024-05-12-00-00-10",
     "Categorie": "",
-    "Shoes": "Shoes des Dunedain-9-2024-05-12-00-22-43",
+    "Shoes": "",
     "Amulet": "Pendentif des Chevaliers de Dol Amroth-7-2024-05-12-00-22-43",
     "Name": "",
     "Pants": "Grèves de Radagast le Brun-10-2024-05-12-00-19-55",
-    "Tatouage 1": "Kikor-1",
-    "Tatouage 2": "Kikor-2",
-    "Tatouage 3": "Kikor-3",
-    "Head": "Casque des Chevaliers de Dol Amroth-7-2024-05-10-16-26-33",
-    "Chest": "Tunique des Chevaliers de Dol Amroth-3.1.5-2024-05-11-02-14-30"
+    "Tattoes": ["Kikor-1", "Kikor-2", "Kikor-3"],
+    "Head": "",
+    "Chest": "Tunique des Chevaliers de Dol Amroth-3.1.5-2024-05-11-02-14-30",
+    "Belt": "belt_unique",
+	"Cape": "cape_unique"
 }
 
