@@ -791,7 +791,7 @@ mod tests {
     fn unit_get_mut_active_character() {
         let mut pl = PlayerManager::try_new("tests/offlines", true).unwrap();
         assert!(pl.get_mut_active_character("test").is_some());
-        assert!(pl.get_mut_active_character("Boss1").is_some());
+        assert!(pl.get_mut_active_character("test_boss1").is_some());
         assert!(pl.get_mut_active_character("unknown").is_none());
     }
 
@@ -799,7 +799,7 @@ mod tests {
     fn unit_get_active_character() {
         let pl = PlayerManager::try_new("tests/offlines", true).unwrap();
         assert!(pl.get_active_character("test").is_some());
-        assert!(pl.get_active_character("Boss1").is_some());
+        assert!(pl.get_active_character("test_boss1").is_some());
         assert!(pl.get_active_character("unknown").is_none());
     }
 
@@ -902,38 +902,38 @@ mod tests {
     fn unit_set_one_target() {
         let mut pl = PlayerManager::testing_pm();
         // simpleAtk is indiv launched by a boss
-        pl.set_one_target("Boss1", "SimpleAtk", "test");
+        pl.set_one_target("test_boss1", "SimpleAtk", "test");
         assert!(
             pl.get_mut_active_hero_character("test")
                 .unwrap()
                 .is_current_target
         );
         assert!(
-            !pl.get_mut_active_boss_character("Boss1")
+            !pl.get_mut_active_boss_character("test_boss1")
                 .unwrap()
                 .is_current_target
         );
         // indiv launched a hero
-        pl.set_one_target("test", "SimpleAtk", "Boss1");
+        pl.set_one_target("test", "SimpleAtk", "test_boss1");
         assert!(
             !pl.get_mut_active_hero_character("test")
                 .unwrap()
                 .is_current_target
         );
         assert!(
-            pl.get_mut_active_boss_character("Boss1")
+            pl.get_mut_active_boss_character("test_boss1")
                 .unwrap()
                 .is_current_target
         );
         // whatever launched with ZONE no reset is done
-        pl.set_one_target("test", "simple-atk-zone", "Boss1");
+        pl.set_one_target("test", "simple-atk-zone", "test_boss1");
         assert!(
             !pl.get_mut_active_hero_character("test")
                 .unwrap()
                 .is_current_target
         );
         assert!(
-            pl.get_mut_active_boss_character("Boss1")
+            pl.get_mut_active_boss_character("test_boss1")
                 .unwrap()
                 .is_current_target
         );
@@ -952,8 +952,8 @@ mod tests {
         // atk to ennemy - effect dmg indiv
         let test_ally_name = "test";
         let test2_ally_name = "test2";
-        let boss_name = "Boss1";
-        let _boss2_name = "Boss2";
+        let boss_name = "test_boss1";
+        let _boss2_name = "test_boss2";
         pl.get_active_character(test_ally_name).expect("no hero");
         pl.set_targeted_characters(test_ally_name, "SimpleAtk");
         assert_eq!(2, pl.active_bosses.len());

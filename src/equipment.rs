@@ -168,10 +168,10 @@ impl Equipment {
                 EquipmentJsonValue::Single(e.gloves),
             );
         } else {
-            tracing::error!(
+            return Err(anyhow!(
                 "Equipment for character cannot be decoded: {:?}",
                 path.as_ref()
-            );
+            ));
         }
         Ok(equipment_on_character)
     }

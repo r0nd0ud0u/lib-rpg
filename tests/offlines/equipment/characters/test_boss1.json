@@ -1,0 +1,17 @@
+{
+    "RightRing": "right_ring_unique",
+    "LeftRing": "left_ring_unique",
+    "RightWeapon": "right_weapon_unique",
+    "LeftWeapon": "left_weapon_unique",
+    "Gloves": "gloves_unique",
+    "Shoes": "shoes_unique",
+    "Amulet": "amulet_unique",
+    "Pants": "pants_unique",
+    "Head": "head_unique",
+    "Chest": "chest_unique",
+	"Name": "name_unique",
+	"Belt": "belt_unique",
+	"Cape": "cape_unique",
+	"Tattoes": ["tattoo1_unique", "tattoo2_unique"]
+}
+

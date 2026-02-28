@@ -219,10 +219,12 @@ impl Character {
                     .join(&value.name)
                     .with_extension("json");
                 let Ok(decoded_equipment) =
-                    Equipment::decode_characters_equipment(equipment_character_path)
+                    Equipment::decode_characters_equipment(&equipment_character_path)
                 else {
-                    tracing::error!("Equipment for character {} cannot be decoded", value.name);
-                    return Ok(value);
+                    bail!(
+                        "Equipment for character cannot be decoded: {:?}",
+                        equipment_character_path.display()
+                    );
                 };
                 value.equipment_on = decoded_equipment
                     .into_iter()
@@ -1064,6 +1066,7 @@ mod tests {
         pl.load_all_equipments(root_path).unwrap();
         assert_eq!(EquipmentJsonKey::iter().count(), pl.equipment_table.len());
         let c = Character::try_new_from_json(file_path, root_path, false, &pl.equipment_table);
+        println!("{:#?}", c);
         assert!(c.is_ok());
         let c = c.unwrap();
         // name
@@ -1510,7 +1513,7 @@ mod tests {
         .unwrap();
         c2.name = "other".to_string();
         let mut boss1 = Character::try_new_from_json(
-            "./tests/offlines/characters/test_boss.json",
+            "./tests/offlines/characters/test_boss1.json",
             root_path,
             false,
             &testing_equipment(),
@@ -1638,7 +1641,7 @@ mod tests {
 
         // target is ennemy
         let mut boss1 = Character::try_new_from_json(
-            "./tests/offlines/characters/test_boss.json",
+            "./tests/offlines/characters/test_boss1.json",
             root_path,
             false,
             &testing_equipment(),
