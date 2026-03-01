@@ -3,6 +3,7 @@ pub mod buffers;
 pub mod character;
 pub mod character_mod;
 pub mod common;
+pub mod data_manager;
 pub mod effect;
 pub mod equipment;
 pub mod game_manager;

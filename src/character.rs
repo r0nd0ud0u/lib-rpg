@@ -1047,8 +1047,7 @@ mod tests {
     use crate::character::AmountType;
     use crate::effect::EffectOutcome;
     use crate::equipment::EquipmentJsonKey;
-    use crate::players_manager::PlayerManager;
-    use crate::testing_all_characters::{testing_character, testing_equipment};
+    use crate::testing_all_characters::{testing_all_equipment, testing_character};
     use crate::{
         buffers::BufTypes,
         character::{CharacterType, Class},
@@ -1062,10 +1061,9 @@ mod tests {
     fn unit_try_new_from_json() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let mut pl = PlayerManager::default();
-        pl.load_all_equipments(root_path).unwrap();
-        assert_eq!(EquipmentJsonKey::iter().count(), pl.equipment_table.len());
-        let c = Character::try_new_from_json(file_path, root_path, false, &pl.equipment_table);
+        let equipment = testing_all_equipment();
+        assert_eq!(EquipmentJsonKey::iter().count(), equipment.len());
+        let c = Character::try_new_from_json(file_path, root_path, false, &equipment);
         println!("{:#?}", c);
         assert!(c.is_ok());
         let c = c.unwrap();
@@ -1184,7 +1182,7 @@ mod tests {
         let file_path = "./tests/offlines/characters/wrong.json";
         let root_path = "./tests/offlines";
         assert!(
-            Character::try_new_from_json(file_path, root_path, false, &testing_equipment())
+            Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment())
                 .is_err()
         );
     }
@@ -1244,7 +1242,7 @@ mod tests {
     fn unit_set_stats_on_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false, &testing_equipment());
+        let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
         assert!(c.is_ok());
         let mut c = c.unwrap();
         c.set_stats_on_effect(HP, -10, false, true);
@@ -1278,7 +1276,7 @@ mod tests {
     fn unit_remove_malus_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false, &testing_equipment());
+        let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
@@ -1345,7 +1343,7 @@ mod tests {
     fn unit_update_buf() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false, &testing_equipment());
+        let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
         assert!(c.is_ok());
         let mut c = c.unwrap();
         c.update_buf(BufTypes::DamageTx, 10, false, HP);
@@ -1361,7 +1359,7 @@ mod tests {
     fn unit_process_one_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false, &testing_equipment());
+        let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let mut ep = EffectParam {
@@ -1476,7 +1474,7 @@ mod tests {
     fn unit_assess_effect_param() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false, &testing_equipment());
+        let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
@@ -1501,14 +1499,14 @@ mod tests {
             "./tests/offlines/characters/test.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         let mut c2 = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         c2.name = "other".to_string();
@@ -1516,7 +1514,7 @@ mod tests {
             "./tests/offlines/characters/test_boss1.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         // effect on himself
@@ -1602,14 +1600,14 @@ mod tests {
             "./tests/offlines/characters/test.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         let mut c2 = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         let mut ep = build_cooldown_effect();
@@ -1644,7 +1642,7 @@ mod tests {
             "./tests/offlines/characters/test_boss1.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         ep = build_dmg_effect_individual();
@@ -1671,7 +1669,7 @@ mod tests {
             "./tests/offlines/characters/test.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         let old_hp = c.stats.all_stats[HP].current;
@@ -1690,7 +1688,7 @@ mod tests {
             "./tests/offlines/characters/test.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         c.init_aggro_on_turn(0);
@@ -1708,7 +1706,7 @@ mod tests {
             "./tests/offlines/characters/test.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         let hp_without_malus = c.stats.all_stats[HP].max as i64;
@@ -1735,7 +1733,7 @@ mod tests {
             "./tests/offlines/characters/test.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         let mut b = Buffers::default();
@@ -1754,7 +1752,7 @@ mod tests {
             "./tests/offlines/characters/test.json",
             root_path,
             false,
-            &testing_equipment(),
+            &testing_all_equipment(),
         )
         .unwrap();
         // nominal case
