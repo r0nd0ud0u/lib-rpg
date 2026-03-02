@@ -84,6 +84,11 @@ pub fn get_current_time_as_string() -> String {
     now.format("%Y-%m-%d-%H-%M-%S").to_string()
 }
 
+pub fn format_string_with_timestamp(base: &str) -> String {
+    let timestamp = get_current_time_as_string();
+    format!("{}-{}", base, timestamp)
+}
+
 pub fn calc_ratio(val1: i64, val2: i64) -> f64 {
     if val2 > 0 {
         val1 as f64 / val2 as f64
