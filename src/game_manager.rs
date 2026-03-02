@@ -360,8 +360,10 @@ impl GameManager {
             all_dodging,
             is_boss_atk: self.is_boss_atk(),
             logs_new_round: Vec::new(),
-            logs_atk: self.build_logs_atk(result_attack.clone()),
+            logs_atk: Vec::new(),
         };
+        // TODO should be method self of ResultLaunchAttack
+        result_attack.logs_atk = self.build_logs_atk(result_attack.clone());
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
         } else {
@@ -691,6 +693,7 @@ mod tests {
         assert_eq!(1, ra.all_dodging.len());
         assert_eq!("test_boss1", ra.all_dodging[0].name);
         assert!(!ra.all_dodging[0].is_dodging);
+        assert!(ra.logs_atk.len() > 0);
         // not dead boss : end of game
         assert!(!gm.check_end_of_game());
         assert_eq!(
@@ -1271,7 +1274,7 @@ mod tests {
         assert_eq!(2, gm.game_state.current_round);
         // elara
         assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
-        let _ra = gm.launch_attack(Some("SimpleAtk"));
+        let ra = gm.launch_attack(Some("SimpleAtk"));
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(3, gm.game_state.current_round);
         let _ra = gm.launch_attack(Some("SimpleAtk"));
