@@ -86,7 +86,7 @@ pub fn get_current_time_as_string() -> String {
 
 pub fn format_string_with_timestamp(base: &str) -> String {
     let timestamp = get_current_time_as_string();
-    format!("{}-{}", base, timestamp)
+    format!("[{}]-[{}]", timestamp, base)
 }
 
 pub fn calc_ratio(val1: i64, val2: i64) -> f64 {
