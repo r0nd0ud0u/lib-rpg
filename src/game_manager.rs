@@ -780,6 +780,9 @@ mod tests {
         let mut gm = testing_all_characters::testing_game_manager();
         gm.init_new_game();
         gm.start_game();
+        while gm.pm.current_player.name != "test" {
+            gm.new_round();
+        }
 
         // # case 3 dmg on individual ennemy
         // No dodging of boss
@@ -1275,7 +1278,7 @@ mod tests {
         assert_eq!(2, gm.game_state.current_round);
         // elara
         assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
-        let ra = gm.launch_attack(Some("SimpleAtk"));
+        let _ra = gm.launch_attack(Some("SimpleAtk"));
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(3, gm.game_state.current_round);
         let _ra = gm.launch_attack(Some("SimpleAtk"));
