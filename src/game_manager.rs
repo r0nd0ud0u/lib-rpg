@@ -360,7 +360,7 @@ impl GameManager {
             all_dodging,
             is_boss_atk: self.is_boss_atk(),
             logs_new_round: Vec::new(),
-            logs_atk: Vec::new(),
+            logs_atk: self.build_logs_atk(result_attack.clone()),
         };
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
