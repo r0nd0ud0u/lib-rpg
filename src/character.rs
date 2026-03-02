@@ -264,11 +264,36 @@ impl Character {
                         (key_string, equipment_structs)
                     })
                     .collect::<HashMap<String, Vec<Equipment>>>();
+                // apply equipment on stats
+                value.apply_equipment_on_stats();
             }
 
             Ok(value)
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
+        }
+    }
+
+    pub fn apply_equipment_on_stats(&mut self) {
+        for (_body_part, equipments) in &self.equipment_on {
+            for equipment in equipments {
+                for (stat_name, stat_effect) in &equipment.stats.all_stats {
+                    if stat_effect.buf_equip_percent == 0 && stat_effect.buf_equip_value == 0 {
+                        continue;
+                    }
+
+                    let attr = self.stats.get_mut_value(stat_name);
+                    attr.buf_equip_value += stat_effect.buf_equip_value;
+                    attr.buf_equip_percent += stat_effect.buf_equip_percent;
+
+                    let ratio = utils::calc_ratio(attr.current as i64, attr.max as i64);
+                    attr.max = attr.max_raw
+                        + attr.buf_equip_value as u64
+                        + attr.max_raw * attr.buf_equip_percent as u64 / 100;
+
+                    attr.current = (attr.max as f64 * ratio).round() as u64;
+                }
+            }
         }
     }
 
@@ -1118,8 +1143,8 @@ mod tests {
         assert_eq!(100, c.stats.all_stats[BERSERK].current);
         assert_eq!(200, c.stats.all_stats[BERSERK].max);
         // stats - berseck_rate
-        assert_eq!(1, c.stats.all_stats[BERSECK_RATE].current);
-        assert_eq!(1, c.stats.all_stats[BERSECK_RATE].max);
+        assert_eq!(5, c.stats.all_stats[BERSECK_RATE].current); // +4 right ring
+        assert_eq!(5, c.stats.all_stats[BERSECK_RATE].max);
         // stats - critical_strike
         assert_eq!(10, c.stats.all_stats[CRITICAL_STRIKE].current);
         assert_eq!(10, c.stats.all_stats[CRITICAL_STRIKE].max);
@@ -1156,8 +1181,8 @@ mod tests {
         assert_eq!(212, c.stats.all_stats[SPEED].current);
         assert_eq!(212, c.stats.all_stats[SPEED].max);
         // stats - speed_regeneration
-        assert_eq!(12, c.stats.all_stats[SPEED_REGEN].current);
-        assert_eq!(12, c.stats.all_stats[SPEED_REGEN].max);
+        assert_eq!(13, c.stats.all_stats[SPEED_REGEN].current);
+        assert_eq!(13, c.stats.all_stats[SPEED_REGEN].max); // + 10% by amulet
         // stats - vigor
         assert_eq!(200, c.stats.all_stats[VIGOR].current);
         assert_eq!(200, c.stats.all_stats[VIGOR].max);
@@ -1742,6 +1767,19 @@ mod tests {
         c.reset_all_buffers();
         assert_eq!(c.all_buffers[0].value, 0);
         assert!(!c.all_buffers[0].is_percent);
+    }
+
+    #[test]
+    fn unit_apply_equipment_on_stats() {
+        let root_path = "./tests/offlines";
+        let c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            root_path,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        assert_eq!(12 + 10 * 12 / 100, c.stats.all_stats[SPEED_REGEN].current);
     }
 
     #[test]

@@ -7,7 +7,7 @@ use std::{
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
     character::{AmountType, CharacterType},
-    common::{paths_const::*, stats_const::*},
+    common::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
     effect::EffectOutcome,
     equipment::{Equipment, EquipmentJsonKey},
     game_state::{GameState, GameStatus},
@@ -25,6 +25,13 @@ pub struct ResultLaunchAttack {
     pub all_dodging: Vec<DodgeInfo>,
     pub is_boss_atk: bool,
     pub logs_new_round: Vec<String>,
+    pub logs_atk: Vec<LogAtk>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LogAtk {
+    pub log: String,
+    pub color: String,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -353,7 +360,10 @@ impl GameManager {
             all_dodging,
             is_boss_atk: self.is_boss_atk(),
             logs_new_round: Vec::new(),
+            logs_atk: Vec::new(),
         };
+        // TODO should be method self of ResultLaunchAttack
+        result_attack.logs_atk = self.build_logs_atk(result_attack.clone());
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
         } else {
@@ -374,6 +384,80 @@ impl GameManager {
 
         self.game_state.last_result_atk = result_attack.clone();
         result_attack
+    }
+
+    pub fn build_logs_atk(&self, result_attack: ResultLaunchAttack) -> Vec<LogAtk> {
+        let mut logs: Vec<LogAtk> = vec![];
+        if !result_attack.outcomes.is_empty() {
+            logs.push(LogAtk {
+                log: utils::format_string_with_timestamp("Last attack"),
+                color: "".to_string(),
+            });
+            if result_attack.is_crit {
+                logs.push(LogAtk {
+                    log: "Critical strike!".to_string(),
+                    color: "red".to_string(),
+                });
+            }
+            for d in result_attack.all_dodging {
+                if d.is_dodging {
+                    logs.push(LogAtk {
+                        log: format!("{} is dodging", d.name),
+                        color: "blue".to_string(),
+                    });
+                } else if d.is_blocking {
+                    logs.push(LogAtk {
+                        log: format!("{} is blocking", d.name),
+                        color: "green".to_string(),
+                    });
+                }
+            }
+
+            for eo in result_attack.outcomes {
+                let mut colortext = "green";
+                if eo.new_effect_param.stats_name == HP && eo.real_hp_amount_tx < 0
+                    || eo.full_atk_amount_tx < 0
+                {
+                    colortext = "red";
+                }
+                if eo.new_effect_param.effect_type == EFFECT_NB_COOL_DOWN {
+                    logs.push(LogAtk {
+                        color: colortext.to_string(),
+                        log: format!(
+                            "{} is applying {} on {} for {} turns",
+                            eo.target_name,
+                            eo.new_effect_param.effect_type,
+                            eo.new_effect_param.stats_name,
+                            eo.new_effect_param.nb_turns
+                        ),
+                    });
+                } else if eo.new_effect_param.stats_name == HP {
+                    logs.push(LogAtk {
+                        color: colortext.to_string(),
+                        log: format!(
+                            "{} is applying {} on {} for {} HP",
+                            eo.target_name,
+                            eo.new_effect_param.effect_type,
+                            eo.new_effect_param.stats_name,
+                            eo.full_atk_amount_tx
+                        ),
+                    });
+                } else {
+                    logs.push(LogAtk {
+                        color: colortext.to_string(),
+                        log: format!(
+                            "{} is applying {} on {} for {} {}",
+                            eo.target_name,
+                            eo.new_effect_param.effect_type,
+                            eo.new_effect_param.stats_name,
+                            eo.full_atk_amount_tx,
+                            eo.new_effect_param.stats_name
+                        ),
+                    });
+                }
+            }
+        }
+        logs
     }
 
     pub fn save_game_manager(&self) -> Result<()> {
@@ -610,6 +694,7 @@ mod tests {
         assert_eq!(1, ra.all_dodging.len());
         assert_eq!("test_boss1", ra.all_dodging[0].name);
         assert!(!ra.all_dodging[0].is_dodging);
+        assert!(ra.logs_atk.len() > 0);
         // not dead boss : end of game
         assert!(!gm.check_end_of_game());
         assert_eq!(
@@ -695,6 +780,9 @@ mod tests {
         let mut gm = testing_all_characters::testing_game_manager();
         gm.init_new_game();
         gm.start_game();
+        while gm.pm.current_player.name != "test" {
+            gm.new_round();
+        }
 
         // # case 3 dmg on individual ennemy
         // No dodging of boss
