@@ -390,29 +390,29 @@ impl GameManager {
         let mut logs: Vec<LogAtk> = vec![];
         if !result_attack.outcomes.is_empty() {
             logs.push(LogAtk {
-                log: utils::format_string_with_timestamp("Last attack\n"),
+                log: utils::format_string_with_timestamp("Last attack"),
                 color: "".to_string(),
             });
             if result_attack.is_crit {
                 logs.push(LogAtk {
-                    log: "Critical strike!\n".to_string(),
+                    log: "Critical strike!".to_string(),
                     color: "red".to_string(),
                 });
             }
             for d in result_attack.all_dodging {
                 if d.is_dodging {
                     logs.push(LogAtk {
-                        log: format!("{} is dodging\n", d.name),
+                        log: format!("{} is dodging", d.name),
                         color: "blue".to_string(),
                     });
                 } else if d.is_blocking {
                     logs.push(LogAtk {
-                        log: format!("{} is blocking\n", d.name),
+                        log: format!("{} is blocking", d.name),
                         color: "green".to_string(),
                     });
                 }
             }
-            
+
             for eo in result_attack.outcomes {
                 let mut colortext = "green";
                 if eo.new_effect_param.stats_name == HP && eo.real_hp_amount_tx < 0
@@ -424,7 +424,7 @@ impl GameManager {
                     logs.push(LogAtk {
                         color: colortext.to_string(),
                         log: format!(
-                            "{} is applying {} on {} for {} turns\n",
+                            "{} is applying {} on {} for {} turns",
                             eo.target_name,
                             eo.new_effect_param.effect_type,
                             eo.new_effect_param.stats_name,
@@ -435,7 +435,7 @@ impl GameManager {
                     logs.push(LogAtk {
                         color: colortext.to_string(),
                         log: format!(
-                            "{} is applying {} on {} for {} HP\n",
+                            "{} is applying {} on {} for {} HP",
                             eo.target_name,
                             eo.new_effect_param.effect_type,
                             eo.new_effect_param.stats_name,
@@ -446,7 +446,7 @@ impl GameManager {
                     logs.push(LogAtk {
                         color: colortext.to_string(),
                         log: format!(
-                            "{} is applying {} on {} for {} {}\n",
+                            "{} is applying {} on {} for {} {}",
                             eo.target_name,
                             eo.new_effect_param.effect_type,
                             eo.new_effect_param.stats_name,
