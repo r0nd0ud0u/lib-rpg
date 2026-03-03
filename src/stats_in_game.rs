@@ -42,7 +42,7 @@ impl StatsInGame {
 mod tests {
     use super::*;
     #[test]
-    fn test_update_by_effectoutcome() {
+    fn unit_update_by_effectoutcome() {
         let mut stats = StatsInGame::default();
         let eo = EffectOutcome {
             atk: "Fireball".to_string(),
