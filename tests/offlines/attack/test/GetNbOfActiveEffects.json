@@ -12,7 +12,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 35
         },
@@ -21,7 +21,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 35
         },
@@ -30,7 +30,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "Up par valeur",
+            "Type": "up-max-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 35
         },
@@ -39,7 +39,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 35
         },
@@ -48,7 +48,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": -35
         },
@@ -57,7 +57,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": -35
         },
@@ -66,7 +66,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "Up par valeur",
+            "Type": "up-max-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": -35
         },
@@ -75,16 +75,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "Up par %",
-            "Valeur de l'effet": 0,
-            "Value": -35
-        },
-		{
-            "Cible": "Allié",
-            "Portée": "Individuel",
-            "Stat": "HP",
-            "Tours actifs": 1,
-            "Type": "Changement par valeur",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": -35
         },
@@ -93,7 +84,16 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
+            "Valeur de l'effet": 0,
+            "Value": -35
+        },
+		{
+            "Cible": "Allié",
+            "Portée": "Individuel",
+            "Stat": "HP",
+            "Tours actifs": 1,
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 35
         },
@@ -102,7 +102,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": -35
         },
@@ -111,7 +111,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 35
         }

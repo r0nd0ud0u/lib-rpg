@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 1,
-            "Type": "Decroissement pendant le tour",
+            "Type": "decreasing-rate-on-turn",
             "Valeur de l'effet": 3,
             "Value": 0
         },
@@ -18,7 +18,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par %",
+            "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 30
         },
@@ -27,7 +27,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par %",
+            "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": -15
         },
@@ -36,7 +36,7 @@
             "Portée": "Individuel",
             "Stat": "Magic power",
             "Tours actifs": 3,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 25
         },
@@ -45,7 +45,7 @@
             "Portée": "Individuel",
             "Stat": "Physical power",
             "Tours actifs": 3,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 25
         },
@@ -54,7 +54,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 6,
-            "Type": "Tours de recharge",
+            "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
             "Value": 0
         }

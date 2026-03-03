@@ -9,7 +9,7 @@
             "Portée": "Zone",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "Changement par %",
+            "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": -20
         },
@@ -18,7 +18,7 @@
             "Portée": "Zone",
             "Stat": "Vigueur",
             "Tours actifs": 1,
-            "Type": "Changement par %",
+            "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": -20
         },
@@ -27,7 +27,7 @@
             "Portée": "Zone",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "Changement par %",
+            "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": -20
         }
