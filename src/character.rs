@@ -751,7 +751,7 @@ impl Character {
     ) -> bool {
         let is_ally = self.kind == *launcher_kind;
         if effect.target == TARGET_HIMSELF && launcher_name != self.name {
-            tracing::info!(
+            tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is himself.",
                 effect.effect_type,
                 self.name
@@ -759,7 +759,7 @@ impl Character {
             return false;
         }
         if effect.target == TARGET_ONLY_ALLY && launcher_name == self.name {
-            tracing::info!(
+            tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is only ally but launcher is himself.",
                 effect.effect_type,
                 self.name
@@ -767,7 +767,7 @@ impl Character {
             return false;
         }
         if !is_ally && is_target_ally(&effect.target) {
-            tracing::info!(
+            tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ally but launcher is ennemy.",
                 effect.effect_type,
                 self.name
@@ -775,7 +775,7 @@ impl Character {
             return false;
         }
         if is_ally && effect.target == TARGET_ENNEMY {
-            tracing::info!(
+            tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ennemy but launcher is ally.",
                 effect.effect_type,
                 self.name
@@ -784,7 +784,7 @@ impl Character {
         }
         // is targeted ?
         if effect.target == TARGET_ALLY && effect.reach == INDIVIDUAL && !self.is_current_target {
-            tracing::info!(
+            tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ally but not current target.",
                 effect.effect_type,
                 self.name
@@ -792,7 +792,7 @@ impl Character {
             return false;
         }
         if effect.target == TARGET_ENNEMY && effect.reach == INDIVIDUAL && !self.is_current_target {
-            tracing::info!(
+            tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ennemy but not current target.",
                 effect.effect_type,
                 self.name
@@ -800,7 +800,7 @@ impl Character {
             return false;
         }
         if effect.target == TARGET_ALLY && effect.reach == ZONE && launcher_name == self.name {
-            tracing::info!(
+            tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ally but launcher is himself.",
                 effect.effect_type,
                 self.name
@@ -809,7 +809,7 @@ impl Character {
         }
         if self.is_dodging(&effect.target) && self.kind != *launcher_kind && self.is_current_target
         {
-            tracing::info!(
+            tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is dodging.",
                 effect.effect_type,
                 self.name

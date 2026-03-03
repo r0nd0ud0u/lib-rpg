@@ -386,20 +386,9 @@ impl GameManager {
     }
 
     pub fn build_logs_atk(&self, result_attack: ResultLaunchAttack) -> Vec<LogAtk> {
-        tracing::info!("Building logs for attack: {:?}", result_attack);
         let mut logs: Vec<LogAtk> = vec![];
-        if !result_attack.outcomes.is_empty() {
-            logs.push(LogAtk {
-                log: utils::format_string_with_timestamp("Last attack"),
-                color: "".to_string(),
-            });
-            if result_attack.is_crit {
-                logs.push(LogAtk {
-                    log: "Critical strike!".to_string(),
-                    color: "red".to_string(),
-                });
-            }
-            for d in result_attack.all_dodging {
+        // dodging and blocking info
+        for d in result_attack.all_dodging {
                 tracing::info!("Dodge info for {}: {:?}", d.name, d);
                 if d.is_dodging {
                     logs.push(LogAtk {
@@ -412,6 +401,18 @@ impl GameManager {
                         color: "green".to_string(),
                     });
                 }
+            }
+        // logs for the atk
+        if !result_attack.outcomes.is_empty() {
+            logs.push(LogAtk {
+                log: utils::format_string_with_timestamp("Last attack"),
+                color: "".to_string(),
+            });
+            if result_attack.is_crit {
+                logs.push(LogAtk {
+                    log: "Critical strike!".to_string(),
+                    color: "red".to_string(),
+                });
             }
 
             for eo in result_attack.outcomes {
