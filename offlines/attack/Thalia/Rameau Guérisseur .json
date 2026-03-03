@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 4,
-            "Type": "Decroissement pendant le tour",
+            "Type": "decreasing-rate-on-turn",
             "Valeur de l'effet": 3,
             "Value": 32
         },
@@ -18,7 +18,7 @@
             "Portée": "Individuel",
             "Stat": "Magic power",
             "Tours actifs": 4,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 10
         },

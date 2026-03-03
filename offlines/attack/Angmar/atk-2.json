@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": -75
         },

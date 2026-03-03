@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": -55
         },
@@ -18,7 +18,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par %",
+            "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": -30
         },
@@ -27,7 +27,7 @@
             "Portée": "Individuel",
             "Stat": "Dodge",
             "Tours actifs": 2,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": -10
         },
@@ -36,7 +36,7 @@
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 45
         },
@@ -45,7 +45,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 5,
-            "Type": "Tours de recharge",
+            "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
             "Value": 0
         }

@@ -9,7 +9,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 5,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 25
         },
@@ -18,7 +18,7 @@
             "Portée": "Zone",
             "Stat": "Regeneration Mana",
             "Tours actifs": 5,
-            "Type": "Up par valeur",
+            "Type": "up-max-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 2
         },
@@ -27,7 +27,7 @@
             "Portée": "Zone",
             "Stat": "Dodge",
             "Tours actifs": 5,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": -5
         },
@@ -36,7 +36,7 @@
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 5,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 10
         }

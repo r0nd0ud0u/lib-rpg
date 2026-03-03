@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+#[cfg(not(test))]
 use crate::target::TargetInfo;
 
 #[cfg(not(tarpaulin_include))]

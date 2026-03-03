@@ -1005,7 +1005,7 @@ mod tests {
         let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack(Some("Eclat d'espoir"));
         assert!(!gm.check_end_of_game());
-        // "Changement par %"
+        // "up-current-stat-by-percentage"
         // + 30 % of max HP:135 = 40.5
         assert_eq!(
             old_hp_test2 + 40,
@@ -1036,7 +1036,7 @@ mod tests {
                 .current
         );
         // "Magic power"
-        // "Up par %" 15
+        // "up-max-stat-by-percentage" 15
         // +15%, mag power max = 20
         assert_eq!(
             old_mag_pow_test2 + 3,
@@ -1057,7 +1057,7 @@ mod tests {
                 .max
         );
         // "Physical power"
-        // "Up par %" 15
+        // "up-max-stat-by-percentage" 15
         // +15%, phy power max = 10
         assert_eq!(
             old_phy_pow_test2 + 1,

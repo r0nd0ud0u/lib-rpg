@@ -18,7 +18,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 130
         },
@@ -27,7 +27,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 5,
-            "Type": "Tours de recharge",
+            "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
             "Value": 0
         }

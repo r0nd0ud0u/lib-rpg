@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 5,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 20
         },
@@ -18,7 +18,7 @@
             "Portée": "Individuel",
             "Stat": "Speed regeneration",
             "Tours actifs": 5,
-            "Type": "Up par valeur",
+            "Type": "up-max-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": 10
         },
@@ -27,7 +27,7 @@
             "Portée": "Individuel",
             "Stat": "Magic power",
             "Tours actifs": 5,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 10
         }

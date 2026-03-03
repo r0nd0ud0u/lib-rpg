@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par %",
+            "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 100
         },
@@ -18,7 +18,7 @@
             "Portée": "Individuel",
             "Stat": "Regeneration Mana",
             "Tours actifs": 4,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 500
         },
@@ -27,7 +27,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 8,
-            "Type": "Tours de recharge",
+            "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
             "Value": 0
         }

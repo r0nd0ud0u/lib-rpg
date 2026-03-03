@@ -27,7 +27,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par %",
+            "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 100
         },
@@ -36,7 +36,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 10,
-            "Type": "Tours de recharge",
+            "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
             "Value": 0
         },
