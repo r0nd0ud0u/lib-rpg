@@ -16,7 +16,7 @@
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
-            "Stat": "Regen vitesse",
+            "Stat": "Speed regeneration",
             "Tours actifs": 6,
             "Type": "Changement par valeur",
             "Valeur de l'effet": 0,

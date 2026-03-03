@@ -19,6 +19,7 @@ pub fn build_atk_damage_indiv() -> AttackType {
 }
 
 #[cfg(not(tarpaulin_include))]
+#[cfg(not(test))]
 pub fn build_atk_damage_zone() -> AttackType {
     use crate::testing_effect::build_dmg_effect_zone;
 
@@ -33,6 +34,7 @@ pub fn build_atk_damage_zone() -> AttackType {
 }
 
 #[cfg(not(tarpaulin_include))]
+#[cfg(not(test))]
 pub fn build_atk_berseck_damage1() -> AttackType {
     AttackType {
         name: "atk1".to_owned(),

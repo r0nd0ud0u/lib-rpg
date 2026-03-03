@@ -3,6 +3,7 @@
 use crate::target::TargetInfo;
 
 #[cfg(not(tarpaulin_include))]
+#[cfg(not(test))]
 pub fn build_target_boss_indiv() -> TargetInfo {
     TargetInfo {
         name: "test_boss1".to_owned(),
@@ -13,6 +14,7 @@ pub fn build_target_boss_indiv() -> TargetInfo {
 }
 
 #[cfg(not(tarpaulin_include))]
+#[cfg(not(test))]
 pub fn build_target_angmar_indiv() -> TargetInfo {
     TargetInfo {
         name: "Angmar".to_owned(),

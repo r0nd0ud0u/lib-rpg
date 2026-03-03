@@ -275,7 +275,7 @@ impl Character {
     }
 
     pub fn apply_equipment_on_stats(&mut self) {
-        for (_body_part, equipments) in &self.equipment_on {
+        for equipments in self.equipment_on.values() {
             for equipment in equipments {
                 for (stat_name, stat_effect) in &equipment.stats.all_stats {
                     if stat_effect.buf_equip_percent == 0 && stat_effect.buf_equip_value == 0 {
@@ -648,14 +648,27 @@ impl Character {
     pub fn process_atk_cost(&mut self, atk_name: &str) {
         if let Some(atk) = self.attacks_list.get(atk_name) {
             if let Some(mana) = self.stats.all_stats.get_mut(MANA) {
-                mana.current = std::cmp::max(0, mana.current - atk.mana_cost * mana.max / 100);
+                mana.current = std::cmp::max(
+                    0,
+                    mana.current
+                        .saturating_sub(atk.mana_cost.saturating_mul(mana.max) / 100),
+                );
             }
             if let Some(vigor) = self.stats.all_stats.get_mut(VIGOR) {
-                vigor.current = std::cmp::max(0, vigor.current - atk.vigor_cost * vigor.max / 100);
+                vigor.current = std::cmp::max(
+                    0,
+                    vigor
+                        .current
+                        .saturating_sub(atk.vigor_cost.saturating_mul(vigor.max) / 100),
+                );
             }
             if let Some(berseck) = self.stats.all_stats.get_mut(BERSERK) {
-                berseck.current =
-                    std::cmp::max(0, berseck.current - atk.berseck_cost * berseck.max / 100);
+                berseck.current = std::cmp::max(
+                    0,
+                    berseck
+                        .current
+                        .saturating_sub(atk.berseck_cost.saturating_mul(berseck.max) / 100),
+                );
             }
         }
     }
