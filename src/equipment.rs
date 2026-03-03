@@ -210,6 +210,11 @@ mod tests {
 
     #[test]
     fn unit_decode_characters_equipment() {
+        // decoding KO
+        let file_path = "./hehe.json"; // Path to the JSON file
+        let decoded_equipment = Equipment::decode_characters_equipment(file_path);
+        assert!(decoded_equipment.is_err());
+        // decoding OK
         let file_path = "./tests/offlines/equipment/characters/test.json"; // Path to the JSON file
         let decoded_equipment = Equipment::decode_characters_equipment(file_path);
         assert!(decoded_equipment.is_ok());

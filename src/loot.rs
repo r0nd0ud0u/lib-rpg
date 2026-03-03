@@ -4,6 +4,7 @@ pub struct Loot {
     pub deleteme: String,
 }
 
+#[cfg(not(test))]
 impl Default for Loot {
     fn default() -> Self {
         Loot {
