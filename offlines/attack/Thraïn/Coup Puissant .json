@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": -80
         },
@@ -18,7 +18,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 4,
-            "Type": "Tours de recharge",
+            "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
             "Value": 0
         },
@@ -27,7 +27,7 @@
             "Portée": "Individuel",
             "Stat": "Physical armor",
             "Tours actifs": 3,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": -25
         },
@@ -36,7 +36,7 @@
             "Portée": "Individuel",
             "Stat": "Speed regeneration",
             "Tours actifs": 3,
-            "Type": "Up par valeur",
+            "Type": "up-max-stat-by-value",
             "Valeur de l'effet": 0,
             "Value": -15
         }

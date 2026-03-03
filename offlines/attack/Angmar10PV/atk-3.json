@@ -9,7 +9,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 1,
             "Value": -60
         },
@@ -18,7 +18,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 5,
-            "Type": "Changement par valeur",
+            "Type": "up-current-stat-by-value",
             "Valeur de l'effet": 4,
             "Value": -15
         }

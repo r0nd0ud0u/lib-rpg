@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 2,
-            "Type": "Tours de recharge",
+            "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
             "Value": 0
         }

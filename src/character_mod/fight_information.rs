@@ -115,7 +115,12 @@ mod tests {
                 dot_nb: 0,
                 buf_nb: 0,
                 debuf_nb: 0,
-                hot_txt: vec!["Changement par valeur-HP: 30".to_owned()],
+                hot_txt: vec![format!(
+                    "{}-{}: {}",
+                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
+                    crate::common::stats_const::HP,
+                    30
+                )],
                 dot_txt: vec![],
                 buf_txt: vec![],
                 debuf_txt: vec![]
@@ -134,8 +139,18 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 0,
                 debuf_nb: 0,
-                hot_txt: vec!["Changement par valeur-HP: 30".to_owned()],
-                dot_txt: vec!["Changement par valeur-HP: -20".to_owned()],
+                hot_txt: vec![format!(
+                    "{}-{}: {}",
+                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
+                    crate::common::stats_const::HP,
+                    30
+                )],
+                dot_txt: vec![format!(
+                    "{}-{}: {}",
+                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
+                    crate::common::stats_const::HP,
+                    -20
+                )],
                 buf_txt: vec![],
                 debuf_txt: vec![]
             }
@@ -153,9 +168,24 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 1,
                 debuf_nb: 0,
-                hot_txt: vec!["Changement par valeur-HP: 30".to_owned()],
-                dot_txt: vec!["Changement par valeur-HP: -20".to_owned()],
-                buf_txt: vec!["Changement par valeur-Magic armor: 20".to_owned()],
+                hot_txt: vec![format!(
+                    "{}-{}: {}",
+                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
+                    crate::common::stats_const::HP,
+                    30
+                )],
+                dot_txt: vec![format!(
+                    "{}-{}: {}",
+                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
+                    crate::common::stats_const::HP,
+                    -20
+                )],
+                buf_txt: vec![format!(
+                    "{}-{}: {}",
+                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
+                    crate::common::stats_const::MAGICAL_ARMOR,
+                    20
+                )],
                 debuf_txt: vec![]
             }
         );
@@ -172,10 +202,30 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 1,
                 debuf_nb: 1,
-                hot_txt: vec!["Changement par valeur-HP: 30".to_owned()],
-                dot_txt: vec!["Changement par valeur-HP: -20".to_owned()],
-                buf_txt: vec!["Changement par valeur-Magic armor: 20".to_owned()],
-                debuf_txt: vec!["Changement par valeur-Magic armor: -20".to_owned()]
+                hot_txt: vec![format!(
+                    "{}-{}: {}",
+                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
+                    crate::common::stats_const::HP,
+                    30
+                )],
+                dot_txt: vec![format!(
+                    "{}-{}: {}",
+                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
+                    crate::common::stats_const::HP,
+                    -20
+                )],
+                buf_txt: vec![format!(
+                    "{}-{}: {}",
+                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
+                    crate::common::stats_const::MAGICAL_ARMOR,
+                    20
+                )],
+                debuf_txt: vec![format!(
+                    "{}-{}: {}",
+                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
+                    crate::common::stats_const::MAGICAL_ARMOR,
+                    -20
+                )]
             }
         );
     }

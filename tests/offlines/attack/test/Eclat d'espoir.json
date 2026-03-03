@@ -9,7 +9,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Changement par %",
+            "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 30
         },
@@ -18,7 +18,7 @@
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 2,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 15
         },
@@ -27,7 +27,7 @@
             "Portée": "Zone",
             "Stat": "Physical power",
             "Tours actifs": 2,
-            "Type": "Up par %",
+            "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
             "Value": 15
         }
