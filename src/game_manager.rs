@@ -389,7 +389,7 @@ impl GameManager {
         let mut logs: Vec<LogAtk> = vec![];
         // dodging and blocking info
         for d in result_attack.all_dodging {
-            tracing::info!("Dodge info for {}: {:?}", d.name, d);
+            tracing::debug!("Dodge info for {}: {:?}", d.name, d);
             if d.is_dodging {
                 logs.push(LogAtk {
                     log: format!("{} is dodging", d.name),
