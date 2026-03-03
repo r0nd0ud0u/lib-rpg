@@ -389,19 +389,19 @@ impl GameManager {
         let mut logs: Vec<LogAtk> = vec![];
         // dodging and blocking info
         for d in result_attack.all_dodging {
-                tracing::info!("Dodge info for {}: {:?}", d.name, d);
-                if d.is_dodging {
-                    logs.push(LogAtk {
-                        log: format!("{} is dodging", d.name),
-                        color: "blue".to_string(),
-                    });
-                } else if d.is_blocking {
-                    logs.push(LogAtk {
-                        log: format!("{} is blocking", d.name),
-                        color: "green".to_string(),
-                    });
-                }
+            tracing::info!("Dodge info for {}: {:?}", d.name, d);
+            if d.is_dodging {
+                logs.push(LogAtk {
+                    log: format!("{} is dodging", d.name),
+                    color: "blue".to_string(),
+                });
+            } else if d.is_blocking {
+                logs.push(LogAtk {
+                    log: format!("{} is blocking", d.name),
+                    color: "green".to_string(),
+                });
             }
+        }
         // logs for the atk
         if !result_attack.outcomes.is_empty() {
             logs.push(LogAtk {
