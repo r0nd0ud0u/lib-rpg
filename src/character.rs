@@ -1061,6 +1061,7 @@ impl Character {
         // assess the dodging
         if self.is_dodging(&ep.target) && self.kind != launcher_info.kind && self.is_current_target
         {
+            tracing::info!("{:?}", self.dodge_info);
             di.push(self.dodge_info.clone());
         }
 

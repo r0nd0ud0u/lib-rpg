@@ -345,8 +345,7 @@ impl GameManager {
 
         // check who died
         self.pm.process_died_players();
-        // if boss -> loot
-        // handle end of game if all bosses are dead
+        // TODO if boss died -> loot
 
         // update active character for cost atk and buf received.
         self.pm
@@ -400,6 +399,7 @@ impl GameManager {
                 });
             }
             for d in result_attack.all_dodging {
+                tracing::info!("Dodge info for {}: {:?}", d.name, d);
                 if d.is_dodging {
                     logs.push(LogAtk {
                         log: format!("{} is dodging", d.name),
