@@ -345,8 +345,7 @@ impl GameManager {
 
         // check who died
         self.pm.process_died_players();
-        // if boss -> loot
-        // handle end of game if all bosses are dead
+        // TODO if boss died -> loot
 
         // update active character for cost atk and buf received.
         self.pm
@@ -388,6 +387,22 @@ impl GameManager {
 
     pub fn build_logs_atk(&self, result_attack: ResultLaunchAttack) -> Vec<LogAtk> {
         let mut logs: Vec<LogAtk> = vec![];
+        // dodging and blocking info
+        for d in result_attack.all_dodging {
+            tracing::debug!("Dodge info for {}: {:?}", d.name, d);
+            if d.is_dodging {
+                logs.push(LogAtk {
+                    log: format!("{} is dodging", d.name),
+                    color: "blue".to_string(),
+                });
+            } else if d.is_blocking {
+                logs.push(LogAtk {
+                    log: format!("{} is blocking", d.name),
+                    color: "green".to_string(),
+                });
+            }
+        }
+        // logs for the atk
         if !result_attack.outcomes.is_empty() {
             logs.push(LogAtk {
                 log: utils::format_string_with_timestamp("Last attack"),
@@ -398,19 +413,6 @@ impl GameManager {
                     log: "Critical strike!".to_string(),
                     color: "red".to_string(),
                 });
-            }
-            for d in result_attack.all_dodging {
-                if d.is_dodging {
-                    logs.push(LogAtk {
-                        log: format!("{} is dodging", d.name),
-                        color: "blue".to_string(),
-                    });
-                } else if d.is_blocking {
-                    logs.push(LogAtk {
-                        log: format!("{} is blocking", d.name),
-                        color: "green".to_string(),
-                    });
-                }
             }
 
             for eo in result_attack.outcomes {

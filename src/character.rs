@@ -751,28 +751,69 @@ impl Character {
     ) -> bool {
         let is_ally = self.kind == *launcher_kind;
         if effect.target == TARGET_HIMSELF && launcher_name != self.name {
+            tracing::debug!(
+                "Effect {} cannot be applied on {} because the target is himself.",
+                effect.effect_type,
+                self.name
+            );
             return false;
         }
         if effect.target == TARGET_ONLY_ALLY && launcher_name == self.name {
+            tracing::debug!(
+                "Effect {} cannot be applied on {} because the target is only ally but launcher is himself.",
+                effect.effect_type,
+                self.name
+            );
             return false;
         }
         if !is_ally && is_target_ally(&effect.target) {
+            tracing::debug!(
+                "Effect {} cannot be applied on {} because the target is ally but launcher is ennemy.",
+                effect.effect_type,
+                self.name
+            );
             return false;
         }
         if is_ally && effect.target == TARGET_ENNEMY {
+            tracing::debug!(
+                "Effect {} cannot be applied on {} because the target is ennemy but launcher is ally.",
+                effect.effect_type,
+                self.name
+            );
             return false;
         }
         // is targeted ?
         if effect.target == TARGET_ALLY && effect.reach == INDIVIDUAL && !self.is_current_target {
+            tracing::debug!(
+                "Effect {} cannot be applied on {} because the target is ally but not current target.",
+                effect.effect_type,
+                self.name
+            );
             return false;
         }
         if effect.target == TARGET_ENNEMY && effect.reach == INDIVIDUAL && !self.is_current_target {
+            tracing::debug!(
+                "Effect {} cannot be applied on {} because the target is ennemy but not current target.",
+                effect.effect_type,
+                self.name
+            );
             return false;
         }
         if effect.target == TARGET_ALLY && effect.reach == ZONE && launcher_name == self.name {
+            tracing::debug!(
+                "Effect {} cannot be applied on {} because the target is ally but launcher is himself.",
+                effect.effect_type,
+                self.name
+            );
             return false;
         }
-        if self.is_dodging(&effect.target) {
+        if self.is_dodging(&effect.target) && self.kind != *launcher_kind && self.is_current_target
+        {
+            tracing::debug!(
+                "Effect {} cannot be applied on {} because the target is dodging.",
+                effect.effect_type,
+                self.name
+            );
             return false;
         }
         // TODO reach random
@@ -1006,20 +1047,21 @@ impl Character {
             });
         } else {
             tracing::info!(
-                "is_receiving_atk: effect is not applied on {}. self.name:{} current_turn:{}, kind:{:?}, launcher_info.name:{}, effect.target: {:?}, launcher_kind: {:?}, effect.type: {:?}",
-                self.name,
+                "is_receiving_atk: effect is not applied on:{} current_turn:{}, kind:{:?}, launcher_info.name:{}, effect.target: {:?}, launcher_kind: {:?}, effect.type: {:?}, effect.stats_name: {}.",
                 self.name,
                 current_turn,
                 self.kind,
                 launcher_info.name,
                 ep.target,
                 launcher_info.kind,
-                ep.effect_type
+                ep.effect_type,
+                ep.stats_name
             );
         }
         // assess the dodging
         if self.is_dodging(&ep.target) && self.kind != launcher_info.kind && self.is_current_target
         {
+            tracing::info!("{:?}", self.dodge_info);
             di.push(self.dodge_info.clone());
         }
 
