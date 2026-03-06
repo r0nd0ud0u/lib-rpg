@@ -22,7 +22,7 @@ pub struct EffectParam {
     pub sub_value_effect: i64,
     /// TODO target of the effect, ally or ennemy
     #[serde(rename = "Cible")]
-    pub target: String,
+    pub target_id_name: String,
     /// TODO, reach of the effect, zone or individual
     #[serde(rename = "Portée")]
     pub reach: String,
@@ -48,7 +48,7 @@ pub struct EffectParam {
 pub struct EffectOutcome {
     pub full_atk_amount_tx: i64,
     pub real_hp_amount_tx: i64,
-    pub target_name: String,
+    pub target_id_name: String,
     pub atk: String,
     pub is_critical: bool,
     /// Updated effect param after apply on the target

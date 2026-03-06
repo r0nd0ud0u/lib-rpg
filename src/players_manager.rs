@@ -65,6 +65,22 @@ impl PlayerManager {
         }
     }
 
+    /// Get the number of active heroes with the given name
+    pub fn get_nb_of_active_heroes_by_name(&self, db_full_name: &str) -> usize {
+        self.active_heroes
+            .iter()
+            .filter(|c| c.db_full_name == db_full_name)
+            .count()
+    }
+
+    /// Get the number of active bosses with the given name
+    pub fn get_nb_of_active_bosses_by_name(&self, db_full_name: &str) -> usize {
+        self.active_bosses
+            .iter()
+            .filter(|c| c.db_full_name == db_full_name)
+            .count()
+    }
+
     /// Characters are inserted in Hero or Boss lists.
     pub fn load_active_characters_from_saved_game<P: AsRef<Path>>(
         &mut self,
@@ -197,69 +213,69 @@ impl PlayerManager {
         }
     }
 
-    pub fn get_all_active_names(&self) -> Vec<String> {
+    pub fn get_all_active_id_names(&self) -> Vec<String> {
         let mut output = vec![];
         for h in &self.active_heroes {
-            output.push(h.name.clone());
+            output.push(h.id_name.clone());
         }
         for b in &self.active_bosses {
-            output.push(b.name.clone());
+            output.push(b.id_name.clone());
         }
         output
     }
 
-    pub fn get_mut_active_character(&mut self, name: &str) -> Option<&mut Character> {
-        if let Some(hero) = self.active_heroes.iter_mut().find(|c| c.name == name) {
+    pub fn get_mut_active_character(&mut self, id_name: &str) -> Option<&mut Character> {
+        if let Some(hero) = self.active_heroes.iter_mut().find(|c| c.id_name == id_name) {
             return Some(hero);
         }
-        if let Some(boss) = self.active_bosses.iter_mut().find(|c| c.name == name) {
+        if let Some(boss) = self.active_bosses.iter_mut().find(|c| c.id_name == id_name) {
             return Some(boss);
         }
         None
     }
 
-    pub fn get_active_character(&self, name: &str) -> Option<&Character> {
-        if let Some(hero) = self.get_active_hero_character(name) {
+    pub fn get_active_character(&self, id_name: &str) -> Option<&Character> {
+        if let Some(hero) = self.get_active_hero_character(id_name) {
             return Some(hero);
         }
-        if let Some(boss) = self.get_active_boss_character(name) {
+        if let Some(boss) = self.get_active_boss_character(id_name) {
             return Some(boss);
         }
         None
     }
 
-    pub fn modify_active_character(&mut self, name: &str) {
+    pub fn modify_active_character(&mut self, id_name: &str) {
         let pl = self.current_player.clone();
-        if let Some(hero) = self.get_mut_active_hero_character(name) {
+        if let Some(hero) = self.get_mut_active_hero_character(id_name) {
             *hero = pl; // Modify the value inside self.active_heroes
-        } else if let Some(boss) = self.get_mut_active_boss_character(name) {
+        } else if let Some(boss) = self.get_mut_active_boss_character(id_name) {
             *boss = pl;
         }
     }
 
-    pub fn get_mut_active_hero_character(&mut self, name: &str) -> Option<&mut Character> {
-        self.active_heroes.iter_mut().find(|c| c.name == name)
+    pub fn get_mut_active_hero_character(&mut self, id_name: &str) -> Option<&mut Character> {
+        self.active_heroes.iter_mut().find(|c| c.id_name == id_name)
     }
 
-    pub fn get_mut_active_boss_character(&mut self, name: &str) -> Option<&mut Character> {
-        self.active_bosses.iter_mut().find(|c| c.name == name)
+    pub fn get_mut_active_boss_character(&mut self, id_name: &str) -> Option<&mut Character> {
+        self.active_bosses.iter_mut().find(|c| c.id_name == id_name)
     }
 
-    pub fn get_active_hero_character(&self, name: &str) -> Option<&Character> {
-        self.active_heroes.iter().find(|c| c.name == name)
+    pub fn get_active_hero_character(&self, id_name: &str) -> Option<&Character> {
+        self.active_heroes.iter().find(|c| c.id_name == id_name)
     }
 
-    pub fn get_active_boss_character(&self, name: &str) -> Option<&Character> {
-        self.active_bosses.iter().find(|c| c.name == name)
+    pub fn get_active_boss_character(&self, id_name: &str) -> Option<&Character> {
+        self.active_bosses.iter().find(|c| c.id_name == id_name)
     }
 
     pub fn update_current_player(
         &mut self,
         game_state: &GameState,
-        name: &str,
+        id_name: &str,
     ) -> Result<Vec<String>> {
         let mut logs = Vec::new();
-        match self.get_mut_active_character(name) {
+        match self.get_mut_active_character(id_name) {
             Some(c) => {
                 self.current_player = c.clone();
 
@@ -290,11 +306,11 @@ impl PlayerManager {
                 }
 
                 // update the active character
-                self.modify_active_character(name);
+                self.modify_active_character(id_name);
                 Ok(logs)
             }
             None => {
-                bail!("Character '{}' not found", name)
+                bail!("Character '{}' not found", id_name)
             }
         }
     }
@@ -374,7 +390,7 @@ impl PlayerManager {
                     speed_pl1.max = speed_pl1.max.saturating_sub(SPEED_THRESHOLD);
                     speed_pl1.max_raw = speed_pl1.max_raw.saturating_sub(SPEED_THRESHOLD);
                     speed_pl1.current_raw = speed_pl1.current_raw.saturating_sub(SPEED_THRESHOLD);
-                    output.push(pl1.name.clone());
+                    output.push(pl1.id_name.clone());
                     break;
                 }
             }
@@ -427,8 +443,8 @@ impl PlayerManager {
         }
     }
 
-    pub fn set_one_target(&mut self, launcher_name: &str, atk_name: &str, target_name: &str) {
-        if let Some(h) = self.get_mut_active_character(launcher_name) {
+    pub fn set_one_target(&mut self, launcher_id_name: &str, atk_name: &str, target_id_name: &str) {
+        if let Some(h) = self.get_mut_active_character(launcher_id_name) {
             let Some(atk) = h.attacks_list.iter().find(|a| a.0 == atk_name) else {
                 return;
             };
@@ -436,17 +452,17 @@ impl PlayerManager {
                 return;
             }
             self.reset_targeted_character();
-            if let Some(target) = self.get_mut_active_character(target_name) {
+            if let Some(target) = self.get_mut_active_character(target_id_name) {
                 target.is_current_target = true;
             }
         }
     }
 
-    pub fn set_targeted_characters(&mut self, launcher_name: &str, atk_name: &str) {
+    pub fn set_targeted_characters(&mut self, launcher_id_name: &str, atk_name: &str) {
         self.reset_targeted_character();
         self.reset_potential_targeted_character();
 
-        if let Some(launcher) = self.get_mut_active_character(launcher_name) {
+        if let Some(launcher) = self.get_mut_active_character(launcher_id_name) {
             let Some(atk) = launcher
                 .attacks_list
                 .iter()
@@ -492,14 +508,14 @@ impl PlayerManager {
                     if let Some(item) = self
                         .active_heroes
                         .iter_mut()
-                        .find(|x| x.name != launcher_name)
+                        .find(|x| x.id_name != launcher_id_name)
                     {
                         item.is_current_target = true;
                         item.is_potential_target = true
                     }
                     self.active_heroes
                         .iter_mut()
-                        .filter(|x| x.name != launcher_name)
+                        .filter(|x| x.id_name != launcher_id_name)
                         .for_each(|c| c.is_potential_target = true);
                 }
             }
@@ -513,13 +529,13 @@ impl PlayerManager {
                     }
                     self.active_bosses
                         .iter_mut()
-                        .filter(|x| x.name != launcher_name)
+                        .filter(|x| x.id_name != launcher_id_name)
                         .for_each(|c| c.is_potential_target = true);
                 } else {
                     if let Some(item) = self
                         .active_bosses
                         .iter_mut()
-                        .find(|x| x.name != launcher_name)
+                        .find(|x| x.id_name != launcher_id_name)
                     {
                         item.is_current_target = true;
                     }
@@ -533,7 +549,7 @@ impl PlayerManager {
                 if is_hero_ally {
                     self.active_heroes
                         .iter_mut()
-                        .filter(|x| x.name != launcher_name)
+                        .filter(|x| x.id_name != launcher_id_name)
                         .for_each(|c| {
                             c.is_current_target = true;
                         });
@@ -689,34 +705,34 @@ mod tests {
     #[test]
     fn unit_get_mut_active_character() {
         let mut pl = testing_all_characters::testing_pm();
-        assert!(pl.get_mut_active_character("test").is_some());
-        assert!(pl.get_mut_active_character("test_boss1").is_some());
+        assert!(pl.get_mut_active_character("test_#1").is_some());
+        assert!(pl.get_mut_active_character("test_boss1_#1").is_some());
         assert!(pl.get_mut_active_character("unknown").is_none());
     }
 
     #[test]
     fn unit_get_active_character() {
         let pl = testing_all_characters::testing_pm();
-        assert!(pl.get_active_character("test").is_some());
-        assert!(pl.get_active_character("test_boss1").is_some());
+        assert!(pl.get_active_character("test_#1").is_some());
+        assert!(pl.get_active_character("test_boss1_#1").is_some());
         assert!(pl.get_active_character("unknown").is_none());
     }
 
     #[test]
     fn unit_update_current_player() {
         let mut pl = testing_all_characters::testing_pm();
-        pl.get_mut_active_hero_character("test")
+        pl.get_mut_active_hero_character("test_#1")
             .unwrap()
             .extended_character
             .is_first_round = false;
-        pl.get_mut_active_hero_character("test")
+        pl.get_mut_active_hero_character("test_#1")
             .unwrap()
             .actions_done_in_round = 100;
         let gs = GameState::default();
-        pl.update_current_player(&gs, "test").unwrap();
+        pl.update_current_player(&gs, "test_#1").unwrap();
         assert_eq!(
             0,
-            pl.get_mut_active_hero_character("test")
+            pl.get_mut_active_hero_character("test_#1")
                 .unwrap()
                 .actions_done_in_round
         );
@@ -801,44 +817,44 @@ mod tests {
     fn unit_set_one_target() {
         let mut pl = testing_all_characters::testing_pm();
         // simpleAtk is indiv launched by a boss
-        pl.set_one_target("test_boss1", "SimpleAtk", "test");
+        pl.set_one_target("test_boss1_#1", "SimpleAtk", "test_#1");
         assert!(
-            pl.get_mut_active_hero_character("test")
+            pl.get_mut_active_hero_character("test_#1")
                 .unwrap()
                 .is_current_target
         );
         assert!(
-            !pl.get_mut_active_boss_character("test_boss1")
+            !pl.get_mut_active_boss_character("test_boss1_#1")
                 .unwrap()
                 .is_current_target
         );
         // indiv launched a hero
-        pl.set_one_target("test", "SimpleAtk", "test_boss1");
+        pl.set_one_target("test_#1", "SimpleAtk", "test_boss1_#1");
         assert!(
-            !pl.get_mut_active_hero_character("test")
+            !pl.get_mut_active_hero_character("test_#1")
                 .unwrap()
                 .is_current_target
         );
         assert!(
-            pl.get_mut_active_boss_character("test_boss1")
+            pl.get_mut_active_boss_character("test_boss1_#1")
                 .unwrap()
                 .is_current_target
         );
         // whatever launched with ZONE no reset is done
-        pl.set_one_target("test", "simple-atk-zone", "test_boss1");
+        pl.set_one_target("test_#1", "simple-atk-zone", "test_boss1_#1");
         assert!(
-            !pl.get_mut_active_hero_character("test")
+            !pl.get_mut_active_hero_character("test_#1")
                 .unwrap()
                 .is_current_target
         );
         assert!(
-            pl.get_mut_active_boss_character("test_boss1")
+            pl.get_mut_active_boss_character("test_boss1_#1")
                 .unwrap()
                 .is_current_target
         );
-        pl.set_one_target("test", "Offrande vitale", "test2");
+        pl.set_one_target("test_#1", "Offrande vitale", "test2_#1");
         assert!(
-            pl.get_mut_active_hero_character("test2")
+            pl.get_mut_active_hero_character("test2_#1")
                 .unwrap()
                 .is_current_target
         );
@@ -849,12 +865,11 @@ mod tests {
         let mut pl = testing_pm();
         // hero is attacking
         // atk to ennemy - effect dmg indiv
-        let test_ally_name = "test";
-        let test2_ally_name = "test2";
-        let boss_name = "test_boss1";
-        let _boss2_name = "test_boss2";
-        pl.get_active_character(test_ally_name).expect("no hero");
-        pl.set_targeted_characters(test_ally_name, "SimpleAtk");
+        let test_ally_id_name = "test_#1";
+        let test2_ally_id_name = "test2_#1";
+        let boss_id_name = "test_boss1_#1";
+        pl.get_active_character(test_ally_id_name).expect("no hero");
+        pl.set_targeted_characters(test_ally_id_name, "SimpleAtk");
         assert_eq!(2, pl.active_bosses.len());
         let current_nb = pl
             .active_bosses
@@ -869,155 +884,155 @@ mod tests {
             .count();
         assert_eq!(potential_nb, 2);
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         assert!(
-            !pl.get_active_character(test2_ally_name)
+            !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test2_ally_name)
+            !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         // atk to ennemy - effect dmg zone
-        pl.set_targeted_characters(test_ally_name, "simple-atk-zone");
+        pl.set_targeted_characters(test_ally_id_name, "simple-atk-zone");
         assert!(
-            pl.get_active_character(boss_name)
+            pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_potential_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         assert!(
-            !pl.get_active_character(test2_ally_name)
+            !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test2_ally_name)
+            !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         // atk to ally(himself in this example) - effect heal indiv, test -> test2
-        pl.set_targeted_characters(test_ally_name, "simple-atk-himself");
+        pl.set_targeted_characters(test_ally_id_name, "simple-atk-himself");
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_potential_target,
         );
         assert!(
-            pl.get_active_character(test_ally_name)
+            pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            pl.get_active_character(test_ally_name)
+            pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_potential_target,
         );
         assert!(
-            !pl.get_active_character(test2_ally_name)
+            !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test2_ally_name)
+            !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         // atk to ally(himself in this example) - effect heal indiv, test2 -> test
-        pl.set_targeted_characters(test2_ally_name, "simple-atk-himself");
+        pl.set_targeted_characters(test2_ally_id_name, "simple-atk-himself");
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_potential_target
         );
         assert!(
-            pl.get_active_character(test2_ally_name)
+            pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            pl.get_active_character(test2_ally_name)
+            pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         // atk to ally - effect heal zone
-        pl.set_targeted_characters(test_ally_name, "simple-atk-ally-zone");
+        pl.set_targeted_characters(test_ally_id_name, "simple-atk-ally-zone");
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_potential_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         assert!(
-            pl.get_active_character(test2_ally_name)
+            pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test2_ally_name)
+            !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         // atk to all heroes target
-        pl.set_targeted_characters(test_ally_name, "simple-atk-all-heroes");
+        pl.set_targeted_characters(test_ally_id_name, "simple-atk-all-heroes");
         let current_nb = pl
             .active_heroes
             .iter_mut()
@@ -1033,14 +1048,14 @@ mod tests {
 
         // boss is attacking
         // atk from ennemy - effect dmg indiv
-        pl.set_targeted_characters(boss_name, "SimpleAtk");
+        pl.set_targeted_characters(boss_id_name, "SimpleAtk");
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_potential_target
         );
@@ -1051,75 +1066,89 @@ mod tests {
             .count();
         assert_eq!(nb, 1);
         assert!(
-            pl.get_active_character(test_ally_name)
+            pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_potential_target,
         );
         // atk from ennemy - effect dmg zone
-        pl.set_targeted_characters(boss_name, "simple-atk-zone");
+        pl.set_targeted_characters(boss_id_name, "simple-atk-zone");
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_potential_target
         );
         assert!(
-            pl.get_active_character(test_ally_name)
+            pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         // atk to ally(himself in this example) - effect heal indiv
-        pl.set_targeted_characters(boss_name, "simple-atk-himself");
+        pl.set_targeted_characters(boss_id_name, "simple-atk-himself");
         assert!(
-            pl.get_active_character(boss_name)
+            pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_current_target
         );
         assert!(
-            pl.get_active_character(boss_name)
+            pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_potential_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
         // atk to ally(himself in this example) - effect heal zone  => ZONE is not himself
-        pl.set_targeted_characters(boss_name, "simple-atk-ally-zone");
+        pl.set_targeted_characters(boss_id_name, "simple-atk-ally-zone");
         assert!(
-            pl.get_active_character(boss_name)
+            pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(boss_name)
+            !pl.get_active_character(boss_id_name)
                 .expect("no boss")
                 .is_potential_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_current_target
         );
         assert!(
-            !pl.get_active_character(test_ally_name)
+            !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
                 .is_potential_target
         );
+    }
+
+    #[test]
+    fn unit_get_nb_of_active_heroes_by_name() {
+        let pl = testing_all_characters::testing_pm();
+        assert_eq!(1, pl.get_nb_of_active_heroes_by_name("test"));
+        assert_eq!(0, pl.get_nb_of_active_heroes_by_name("unknown"));
+    }
+
+    #[test]
+    fn unit_get_nb_of_active_bosses_by_name() {
+        let pl = testing_all_characters::testing_pm();
+        assert_eq!(1, pl.get_nb_of_active_bosses_by_name("test_boss1"));
+        assert_eq!(0, pl.get_nb_of_active_bosses_by_name("unknown"));
     }
 }

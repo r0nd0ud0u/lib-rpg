@@ -107,6 +107,7 @@
     },
     "Level": 1,
     "Name": "Azrak Ombresang",
+    "IdName": "Azrak_Ombresang_#1",
     "Photo": "azrak-ombresang",
     "Powers": {
         "is_crit_heal_after_crit": false,

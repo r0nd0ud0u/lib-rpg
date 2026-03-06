@@ -95,6 +95,7 @@
     },
     "Level": 1,
     "Name": "test_boss2",
+    "IdName": "test_boss2_#1",
     "Photo": "phototest",
     "Powers": {
         "is_crit_heal_after_crit": false,

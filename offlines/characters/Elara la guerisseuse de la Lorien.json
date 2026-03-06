@@ -107,6 +107,7 @@
     },
     "Level": 1,
     "Name": "Elara la guerisseuse de la Lorien",
+    "IdName": "Elara_la_guerisseuse_de_la_Lorien_#1",
     "Photo": "Elara",
     "Powers": {
         "is_crit_heal_after_crit": true,
