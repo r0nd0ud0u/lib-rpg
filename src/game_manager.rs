@@ -133,6 +133,7 @@ impl GameManager {
         self.new_round()
     }
 
+    /// Process the order of the players to play by sorting them by speed and adding the supplementary atk turns for the heroes and the bosses
     pub fn process_order_to_play(&mut self) {
         // to be improved with stats
         // one player can play several times as well in different order
@@ -146,11 +147,9 @@ impl GameManager {
         let mut dead_heroes = Vec::new();
         for hero in &self.pm.active_heroes {
             if !hero.is_dead().unwrap_or(false) {
-                self.game_state
-                    .order_to_play
-                    .push(hero.db_full_name.clone());
+                self.game_state.order_to_play.push(hero.id_name.clone());
             } else {
-                dead_heroes.push(hero.db_full_name.clone());
+                dead_heroes.push(hero.id_name.clone());
             }
         }
         // add dead heroes
@@ -164,9 +163,7 @@ impl GameManager {
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
         for boss in &self.pm.active_bosses {
             if !boss.is_dead().unwrap_or(false) {
-                self.game_state
-                    .order_to_play
-                    .push(boss.db_full_name.clone());
+                self.game_state.order_to_play.push(boss.id_name.clone());
             }
         }
         // supplementary atks to be added
@@ -237,7 +234,7 @@ impl GameManager {
                 {
                     tracing::info!(
                         "Auto attack for boss {}: {}",
-                        self.pm.current_player.db_full_name,
+                        self.pm.current_player.id_name,
                         auto_atk_name
                     );
                     return self.launch_attack(Some(&auto_atk_name));
@@ -247,7 +244,7 @@ impl GameManager {
             self.pm.current_player.actions_done_in_round += 1;
             tracing::error!(
                 "Error: no attack name provided for player {}",
-                self.pm.current_player.db_full_name
+                self.pm.current_player.id_name
             );
             return ResultLaunchAttack::default();
         };
@@ -256,7 +253,7 @@ impl GameManager {
         // update action done in round
         self.pm.current_player.actions_done_in_round += 1;
         // get all players
-        let all_players = self.pm.get_all_active_names();
+        let all_players = self.pm.get_all_active_id_names();
         // get atk
         let atk_list = self.pm.current_player.attacks_list.clone();
         let atk = match atk_list.get(atk_name) {
@@ -266,7 +263,7 @@ impl GameManager {
                 tracing::error!(
                     "Error: attack {} not found for player {}",
                     atk_name,
-                    self.pm.current_player.db_full_name
+                    self.pm.current_player.id_name
                 );
                 return ResultLaunchAttack::default();
             }
@@ -294,37 +291,37 @@ impl GameManager {
             .current_player
             .process_atk(&self.game_state, is_crit, &atk);
         let launcher_stats = self.pm.current_player.stats.clone();
-        let name = self.pm.current_player.db_full_name.clone();
+        let id_name = self.pm.current_player.id_name.clone();
         let kind = self.pm.current_player.kind.clone();
         let mut all_dodging = vec![];
         let launcher_info = LauncherAtkInfo {
-            name: name.clone(),
+            id_name: id_name.clone(),
             kind,
             stats: launcher_stats,
             atk_type: atk.clone(),
         };
         for ep in &all_effects_param {
-            for target in &all_players {
+            for target_id_name in &all_players {
                 let mut o: Option<EffectOutcome> = None;
                 let mut all_di: Option<Vec<DodgeInfo>> = None;
-                if name == *target {
+                if id_name == *target_id_name {
                     (o, all_di) = self.pm.current_player.is_receiving_atk(
                         ep,
                         self.game_state.current_turn_nb,
                         is_crit,
                         &launcher_info,
                     );
-                    tracing::trace!("Effect outcome for self target {}: {:?}", target, o);
-                } else if let Some(c) = self.pm.get_mut_active_character(target) {
+                    tracing::trace!("Effect outcome for self target {}: {:?}", target_id_name, o);
+                } else if let Some(c) = self.pm.get_mut_active_character(target_id_name) {
                     (o, all_di) = c.is_receiving_atk(
                         ep,
                         self.game_state.current_turn_nb,
                         is_crit,
                         &launcher_info,
                     );
-                    tracing::trace!("Effect outcome for target {}: {:?}", target, o);
+                    tracing::trace!("Effect outcome for target {}: {:?}", target_id_name, o);
                 } else {
-                    tracing::trace!("Effect outcome for unknown target {}", target);
+                    tracing::trace!("Effect outcome for unknown target {}", target_id_name);
                 }
                 if let Some(mut di) = all_di {
                     all_dodging.append(&mut di);
@@ -353,11 +350,11 @@ impl GameManager {
 
         // update active character for cost atk and buf received.
         self.pm
-            .modify_active_character(&self.pm.current_player.db_full_name.clone());
+            .modify_active_character(&self.pm.current_player.id_name.clone());
 
         // process end of attack
         let mut result_attack = ResultLaunchAttack {
-            launcher_name: self.pm.current_player.db_full_name.clone(),
+            launcher_name: self.pm.current_player.id_name.clone(),
             is_crit,
             outcomes: output,
             all_dodging,
@@ -431,7 +428,7 @@ impl GameManager {
                         color: colortext.to_string(),
                         log: format!(
                             "{} is applying {} on {} for {} turns",
-                            eo.target_name,
+                            eo.target_id_name,
                             eo.new_effect_param.effect_type,
                             eo.new_effect_param.stats_name,
                             eo.new_effect_param.nb_turns
@@ -442,7 +439,7 @@ impl GameManager {
                         color: colortext.to_string(),
                         log: format!(
                             "{} is applying {} on {} for {} HP",
-                            eo.target_name,
+                            eo.target_id_name,
                             eo.new_effect_param.effect_type,
                             eo.new_effect_param.stats_name,
                             eo.full_atk_amount_tx
@@ -453,7 +450,7 @@ impl GameManager {
                         color: colortext.to_string(),
                         log: format!(
                             "{} is applying {} on {} for {} {}",
-                            eo.target_name,
+                            eo.target_id_name,
                             eo.new_effect_param.effect_type,
                             eo.new_effect_param.stats_name,
                             eo.full_atk_amount_tx,
@@ -567,7 +564,7 @@ mod tests {
         let mut gm = testing_game_manager();
         let old_speed = gm
             .pm
-            .get_mut_active_hero_character("test")
+            .get_mut_active_hero_character("test_#1")
             .cloned()
             .unwrap()
             .stats
@@ -576,20 +573,20 @@ mod tests {
         gm.process_order_to_play();
         let new_speed = gm
             .pm
-            .get_mut_active_hero_character("test")
+            .get_mut_active_hero_character("test_#1")
             .cloned()
             .unwrap()
             .stats
             .all_stats[SPEED]
             .clone();
         assert_eq!(gm.game_state.order_to_play.len(), 6);
-        assert_eq!(gm.game_state.order_to_play[0], "test");
-        assert_eq!(gm.game_state.order_to_play[1], "test2");
-        assert_eq!(gm.game_state.order_to_play[2], "test_boss1");
-        assert_eq!(gm.game_state.order_to_play[3], "test_boss2");
+        assert_eq!(gm.game_state.order_to_play[0], "test_#1");
+        assert_eq!(gm.game_state.order_to_play[1], "test2_#1");
+        assert_eq!(gm.game_state.order_to_play[2], "test_boss1_#1");
+        assert_eq!(gm.game_state.order_to_play[3], "test_boss2_#1");
         // supplementary atk
-        assert_eq!(gm.game_state.order_to_play[4], "test");
-        assert_eq!(gm.game_state.order_to_play[5], "test2");
+        assert_eq!(gm.game_state.order_to_play[4], "test_#1");
+        assert_eq!(gm.game_state.order_to_play[5], "test2_#1");
         assert_eq!(old_speed.current - SPEED_THRESHOLD, new_speed.current);
         assert_eq!(old_speed.max - SPEED_THRESHOLD, new_speed.max);
         assert_eq!(old_speed.max_raw - SPEED_THRESHOLD, new_speed.max_raw);
@@ -601,19 +598,19 @@ mod tests {
         gm.pm.active_heroes[0].stats.all_stats[HP].current = 0;
         gm.process_order_to_play();
         assert_eq!(gm.game_state.order_to_play.len(), 5);
-        assert_eq!(gm.game_state.order_to_play[0], "test2");
-        assert_eq!(gm.game_state.order_to_play[1], "test");
-        assert_eq!(gm.game_state.order_to_play[2], "test_boss1");
-        assert_eq!(gm.game_state.order_to_play[3], "test_boss2");
-        assert_eq!(gm.game_state.order_to_play[4], "test2");
+        assert_eq!(gm.game_state.order_to_play[0], "test2_#1");
+        assert_eq!(gm.game_state.order_to_play[1], "test_#1");
+        assert_eq!(gm.game_state.order_to_play[2], "test_boss1_#1");
+        assert_eq!(gm.game_state.order_to_play[3], "test_boss2_#1");
+        assert_eq!(gm.game_state.order_to_play[4], "test2_#1");
         // boss is dead
         gm.pm.active_bosses[0].stats.all_stats[HP].current = 0;
         gm.process_order_to_play();
         assert_eq!(gm.game_state.order_to_play.len(), 4);
-        assert_eq!(gm.game_state.order_to_play[0], "test2");
-        assert_eq!(gm.game_state.order_to_play[1], "test");
-        assert_eq!(gm.game_state.order_to_play[2], "test_boss2");
-        assert_eq!(gm.game_state.order_to_play[3], "test2");
+        assert_eq!(gm.game_state.order_to_play[0], "test2_#1");
+        assert_eq!(gm.game_state.order_to_play[1], "test_#1");
+        assert_eq!(gm.game_state.order_to_play[2], "test_boss2_#1");
+        assert_eq!(gm.game_state.order_to_play[3], "test2_#1");
     }
 
     #[test]
@@ -673,7 +670,7 @@ mod tests {
             .attacks_list
             .insert(atk.name.clone(), atk.clone());
         gm.pm
-            .get_mut_active_boss_character("test_boss1")
+            .get_mut_active_boss_character("test_boss1_#1")
             .unwrap()
             .stats
             .all_stats[DODGE]
@@ -681,15 +678,15 @@ mod tests {
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_boss = gm
             .pm
-            .get_active_boss_character("test_boss1")
+            .get_active_boss_character("test_boss1_#1")
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_name = gm.pm.current_player.db_full_name.clone();
+        let old_hero_id_name = gm.pm.current_player.id_name.clone();
         gm.pm
-            .get_mut_active_boss_character("test_boss1")
+            .get_mut_active_boss_character("test_boss1_#1")
             .unwrap()
             .is_current_target = true;
         // test unknown atk
@@ -699,7 +696,7 @@ mod tests {
         let ra = gm.launch_attack(Some(&atk.clone().name));
         assert_eq!(1, ra.outcomes.len());
         assert_eq!(1, ra.all_dodging.len());
-        assert_eq!("test_boss1", ra.all_dodging[0].name);
+        assert_eq!("test_boss1_#1", ra.all_dodging[0].name);
         assert!(!ra.all_dodging[0].is_dodging);
         assert!(ra.logs_atk.len() > 0);
         // not dead boss : end of game
@@ -707,7 +704,7 @@ mod tests {
         assert_eq!(
             old_hp_boss - 40,
             gm.pm
-                .get_active_boss_character("test_boss1")
+                .get_active_boss_character("test_boss1_#1")
                 .unwrap()
                 .stats
                 .all_stats[HP]
@@ -716,7 +713,7 @@ mod tests {
         assert_eq!(
             old_mana_hero - 20,
             gm.pm
-                .get_active_hero_character(&old_hero_name)
+                .get_active_hero_character(&old_hero_id_name)
                 .unwrap()
                 .stats
                 .all_stats[MANA]
@@ -740,32 +737,32 @@ mod tests {
             .attacks_list
             .insert(atk.name.clone(), atk.clone());
         gm.pm
-            .get_mut_active_boss_character("test_boss1")
+            .get_mut_active_boss_character("test_boss1_#1")
             .unwrap()
             .stats
             .all_stats[DODGE]
             .current = 100;
         gm.pm
-            .get_mut_active_boss_character("test_boss1")
+            .get_mut_active_boss_character("test_boss1_#1")
             .unwrap()
             .is_current_target = true;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_boss = gm
             .pm
-            .get_active_boss_character("test_boss1")
+            .get_active_boss_character("test_boss1_#1")
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_name = gm.pm.current_player.db_full_name.clone();
+        let old_hero_id_name = gm.pm.current_player.id_name.clone();
         gm.launch_attack(Some(&atk.clone().name));
         // not dead boss : end of game
         assert!(!gm.check_end_of_game());
         assert_eq!(
             old_hp_boss,
             gm.pm
-                .get_active_boss_character("test_boss1")
+                .get_active_boss_character("test_boss1_#1")
                 .unwrap()
                 .stats
                 .all_stats[HP]
@@ -774,7 +771,7 @@ mod tests {
         assert_eq!(
             old_mana_hero - 20,
             gm.pm
-                .get_active_hero_character(&old_hero_name)
+                .get_active_hero_character(&old_hero_id_name)
                 .unwrap()
                 .stats
                 .all_stats[MANA]
@@ -787,7 +784,7 @@ mod tests {
         let mut gm = testing_all_characters::testing_game_manager();
         gm.init_new_game();
         gm.start_game();
-        while gm.pm.current_player.db_full_name != "test" {
+        while gm.pm.current_player.id_name != "test_#1" {
             gm.new_round();
         }
 
@@ -801,7 +798,7 @@ mod tests {
             .attacks_list
             .insert(atk.name.clone(), atk.clone());
         gm.pm
-            .get_mut_active_boss_character("test_boss1")
+            .get_mut_active_boss_character("test_boss1_#1")
             .unwrap()
             .stats
             .all_stats[DODGE]
@@ -809,17 +806,17 @@ mod tests {
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 100;
         let old_hp_boss = gm
             .pm
-            .get_active_boss_character("test_boss1")
+            .get_active_boss_character("test_boss1_#1")
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
         gm.pm
-            .get_mut_active_boss_character("test_boss1")
+            .get_mut_active_boss_character("test_boss1_#1")
             .unwrap()
             .is_current_target = true;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_name = gm.pm.current_player.db_full_name.clone();
+        let old_hero_id_name = gm.pm.current_player.id_name.clone();
         gm.launch_attack(Some(&atk.clone().name));
         // 1 dead boss : end of game
         // assert!(gm.check_end_of_game());
@@ -828,7 +825,7 @@ mod tests {
             old_hp_boss - 80
                 >= gm
                     .pm
-                    .get_active_boss_character("test_boss1")
+                    .get_active_boss_character("test_boss1_#1")
                     .unwrap()
                     .stats
                     .all_stats[HP]
@@ -837,7 +834,7 @@ mod tests {
         assert_eq!(
             old_mana_hero - 20,
             gm.pm
-                .get_active_hero_character(&old_hero_name)
+                .get_active_hero_character(&old_hero_id_name)
                 .unwrap()
                 .stats
                 .all_stats[MANA]
@@ -862,27 +859,27 @@ mod tests {
             .attacks_list
             .insert(atk.name.clone(), atk.clone());
         gm.pm
-            .get_mut_active_boss_character("test_boss1")
+            .get_mut_active_boss_character("test_boss1_#1")
             .unwrap()
             .stats
             .all_stats[DODGE]
             .current = 100;
         gm.pm
-            .get_mut_active_boss_character("test_boss1")
+            .get_mut_active_boss_character("test_boss1_#1")
             .unwrap()
             .class = Class::Tank;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_boss = gm
             .pm
-            .get_active_boss_character("test_boss1")
+            .get_active_boss_character("test_boss1_#1")
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_name = gm.pm.current_player.db_full_name.clone();
+        let old_hero_id_name = gm.pm.current_player.id_name.clone();
         gm.pm
-            .get_mut_active_boss_character("test_boss1")
+            .get_mut_active_boss_character("test_boss1_#1")
             .unwrap()
             .is_current_target = true;
         gm.launch_attack(Some(&atk.clone().name));
@@ -892,7 +889,7 @@ mod tests {
         assert_eq!(
             old_hp_boss - 4,
             gm.pm
-                .get_active_boss_character("test_boss1")
+                .get_active_boss_character("test_boss1_#1")
                 .unwrap()
                 .stats
                 .all_stats[HP]
@@ -901,7 +898,7 @@ mod tests {
         assert_eq!(
             old_mana_hero - 20,
             gm.pm
-                .get_active_hero_character(&old_hero_name)
+                .get_active_hero_character(&old_hero_id_name)
                 .unwrap()
                 .stats
                 .all_stats[MANA]
@@ -927,7 +924,7 @@ mod tests {
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_test2 = gm
             .pm
-            .get_active_hero_character("test2")
+            .get_active_hero_character("test2_#1")
             .unwrap()
             .stats
             .all_stats[HP]
@@ -939,7 +936,7 @@ mod tests {
         assert_eq!(
             old_hp_test2 + 40,
             gm.pm
-                .get_active_hero_character("test2")
+                .get_active_hero_character("test2_#1")
                 .unwrap()
                 .stats
                 .all_stats[HP]
@@ -949,7 +946,7 @@ mod tests {
         assert_eq!(
             old_mana_launcher - 20,
             gm.pm
-                .get_active_hero_character("test")
+                .get_active_hero_character("test_#1")
                 .unwrap()
                 .stats
                 .all_stats[MANA]
@@ -963,48 +960,48 @@ mod tests {
         gm.init_new_game();
         // turn 1 round 1 (test)
         gm.start_game();
-        while gm.pm.current_player.db_full_name != "test" {
+        while gm.pm.current_player.id_name != "test_#1" {
             gm.new_round();
         }
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_test = gm
             .pm
-            .get_active_hero_character("test")
+            .get_active_hero_character("test_#1")
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
         let old_mag_pow_test = gm
             .pm
-            .get_active_hero_character("test")
+            .get_active_hero_character("test_#1")
             .unwrap()
             .stats
             .all_stats[MAGICAL_POWER]
             .max;
         let old_phy_pow_test = gm
             .pm
-            .get_active_hero_character("test")
+            .get_active_hero_character("test_#1")
             .unwrap()
             .stats
             .all_stats[PHYSICAL_POWER]
             .max;
         let old_hp_test2 = gm
             .pm
-            .get_active_hero_character("test2")
+            .get_active_hero_character("test2_#1")
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
         let old_mag_pow_test2 = gm
             .pm
-            .get_active_hero_character("test2")
+            .get_active_hero_character("test2_#1")
             .unwrap()
             .stats
             .all_stats[MAGICAL_POWER]
             .max;
         let old_phy_pow_test2 = gm
             .pm
-            .get_active_hero_character("test2")
+            .get_active_hero_character("test2_#1")
             .unwrap()
             .stats
             .all_stats[PHYSICAL_POWER]
@@ -1017,7 +1014,7 @@ mod tests {
         assert_eq!(
             old_hp_test2 + 40,
             gm.pm
-                .get_active_hero_character("test2")
+                .get_active_hero_character("test2_#1")
                 .unwrap()
                 .stats
                 .all_stats[HP]
@@ -1026,7 +1023,7 @@ mod tests {
         assert_eq!(
             old_hp_test + 40,
             gm.pm
-                .get_active_hero_character("test")
+                .get_active_hero_character("test_#1")
                 .unwrap()
                 .stats
                 .all_stats[HP]
@@ -1036,7 +1033,7 @@ mod tests {
         assert_eq!(
             old_mana_launcher - 36,
             gm.pm
-                .get_active_hero_character("test")
+                .get_active_hero_character("test_#1")
                 .unwrap()
                 .stats
                 .all_stats[MANA]
@@ -1048,7 +1045,7 @@ mod tests {
         assert_eq!(
             old_mag_pow_test2 + 3,
             gm.pm
-                .get_active_hero_character("test2")
+                .get_active_hero_character("test2_#1")
                 .unwrap()
                 .stats
                 .all_stats[MAGICAL_POWER]
@@ -1057,7 +1054,7 @@ mod tests {
         assert_eq!(
             old_mag_pow_test + 3,
             gm.pm
-                .get_active_hero_character("test")
+                .get_active_hero_character("test_#1")
                 .unwrap()
                 .stats
                 .all_stats[MAGICAL_POWER]
@@ -1069,7 +1066,7 @@ mod tests {
         assert_eq!(
             old_phy_pow_test2 + 1,
             gm.pm
-                .get_active_hero_character("test2")
+                .get_active_hero_character("test2_#1")
                 .unwrap()
                 .stats
                 .all_stats[PHYSICAL_POWER]
@@ -1078,7 +1075,7 @@ mod tests {
         assert_eq!(
             old_phy_pow_test + 1,
             gm.pm
-                .get_active_hero_character("test")
+                .get_active_hero_character("test_#1")
                 .unwrap()
                 .stats
                 .all_stats[PHYSICAL_POWER]
@@ -1094,56 +1091,56 @@ mod tests {
         gm.start_game();
         // turn 1 round 1 (test)
         assert_eq!(gm.game_state.order_to_play.len(), 6);
-        while gm.pm.current_player.db_full_name != "test" {
+        while gm.pm.current_player.id_name != "test_#1" {
             gm.new_round();
         }
-        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         // apply effect Magic power - up by % for 2 turns (for turn1 and turn2 and is ending on turn 3)
         gm.launch_attack(Some("Eclat d'espoir"));
         // turn 1 round 2 (test2)
-        while gm.pm.current_player.db_full_name != "test2" {
+        while gm.pm.current_player.id_name != "test2_#1" {
             gm.new_round();
         }
-        assert_eq!(gm.pm.current_player.db_full_name, "test2".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // turn 1 round 3 (boss1)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.db_full_name, "test_boss1".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
         // turn 1 round 4 (boss2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.db_full_name, "test_boss2".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_boss2_#1".to_owned());
         // turn 1 round 5 (test)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
         // turn 1 round 6 (test2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.db_full_name, "test2".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // turn 2 round 1
         gm.start_new_turn();
-        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
         // turn 2 round 2 (test2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.db_full_name, "test2".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // 2 effects received from eclat d espoir (counter turn 1/2, 1 on 2 )
         assert_eq!(gm.pm.current_player.all_effects.len(), 2);
         // turn 2 round 3 (boss1)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.db_full_name, "test_boss1".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
         // turn 2 round 4 (boss2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.db_full_name, "test_boss2".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_boss2_#1".to_owned());
         // turn 2 round 5 (test)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
         // turn 2 round 6 (test2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.db_full_name, "test2".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // turn 3 round 1 test
         gm.start_new_turn();
-        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
         // turn 3 round 2 (test2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.db_full_name, "test2".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // effects ended after 2 turns
         assert!(gm.pm.current_player.all_effects.is_empty());
     }
@@ -1155,14 +1152,14 @@ mod tests {
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_game();
-        while gm.pm.current_player.db_full_name != "test" {
+        while gm.pm.current_player.id_name != "test_#1" {
             gm.new_round();
         }
-        assert_eq!(gm.pm.current_player.db_full_name, "test");
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_dodge = gm
             .pm
-            .get_mut_active_character("test")
+            .get_mut_active_character("test_#1")
             .unwrap()
             .stats
             .all_stats[DODGE]
@@ -1170,7 +1167,7 @@ mod tests {
         let result = gm.launch_attack(Some("up-par-valeur"));
         let new_dodge = gm
             .pm
-            .get_mut_active_character("test")
+            .get_mut_active_character("test_#1")
             .unwrap()
             .stats
             .all_stats[DODGE]
@@ -1186,14 +1183,14 @@ mod tests {
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_game();
-        while gm.pm.current_player.db_full_name != "test" {
+        while gm.pm.current_player.id_name != "test_#1" {
             gm.new_round();
         }
-        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_berserk = gm
             .pm
-            .get_mut_active_character("test")
+            .get_mut_active_character("test_#1")
             .unwrap()
             .stats
             .all_stats[BERSERK]
@@ -1201,7 +1198,7 @@ mod tests {
         let result = gm.launch_attack(Some("changement-par-valeur-berseck"));
         let new_berserk = gm
             .pm
-            .get_mut_active_character("test")
+            .get_mut_active_character("test_#1")
             .unwrap()
             .stats
             .all_stats[BERSERK]
@@ -1216,7 +1213,7 @@ mod tests {
         gm.init_new_game();
         // turn 1 round 1 (test)
         gm.start_game();
-        while gm.pm.current_player.db_full_name != "test" {
+        while gm.pm.current_player.id_name != "test_#1" {
             gm.new_round();
         }
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
@@ -1242,13 +1239,13 @@ mod tests {
         gm.start_game();
         let old_hp_boss = gm
             .pm
-            .get_active_boss_character("Angmar")
+            .get_active_boss_character("Angmar_#1")
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
         gm.pm
-            .get_mut_active_boss_character("Angmar")
+            .get_mut_active_boss_character("Angmar_#1")
             .unwrap()
             .is_current_target = true;
         // thrain
@@ -1259,7 +1256,7 @@ mod tests {
             assert_eq!(
                 old_hp_boss,
                 gm.pm
-                    .get_active_boss_character("Angmar")
+                    .get_active_boss_character("Angmar_#1")
                     .unwrap()
                     .stats
                     .all_stats[HP]
@@ -1274,7 +1271,7 @@ mod tests {
                 old_hp_boss - 31 * crit_coeff
                     >= gm
                         .pm
-                        .get_active_boss_character("Angmar")
+                        .get_active_boss_character("Angmar_#1")
                         .unwrap()
                         .stats
                         .all_stats[HP]

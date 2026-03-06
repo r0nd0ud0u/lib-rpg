@@ -25,7 +25,7 @@ pub struct AtksInfo {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LauncherAtkInfo {
-    pub name: String,
+    pub id_name: String,
     pub kind: CharacterType,
     pub stats: Stats,
     pub atk_type: AttackType,
@@ -168,7 +168,7 @@ mod tests {
         assert_eq!(atk_type.all_effects.len(), 1);
         assert_eq!(atk_type.all_effects[0].stats_name, HP);
         assert_eq!(atk_type.all_effects[0].value, -35);
-        assert_eq!(atk_type.all_effects[0].target, TARGET_ENNEMY);
+        assert_eq!(atk_type.all_effects[0].target_id_name, TARGET_ENNEMY);
         assert_eq!(atk_type.all_effects[0].reach, INDIVIDUAL);
         assert_eq!(atk_type.all_effects[0].effect_type, EFFECT_VALUE_CHANGE);
         assert_eq!(atk_type.all_effects[0].sub_value_effect, 0);

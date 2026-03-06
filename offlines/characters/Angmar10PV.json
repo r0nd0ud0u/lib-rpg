@@ -107,6 +107,7 @@
     },
     "Level": 2147483647,
     "Name": "Angmar10PV",
+    "IdName": "Angmar10PV_#1",
     "Photo": "Angmar",
     "Powers": {
         "is_crit_heal_after_crit": false,
