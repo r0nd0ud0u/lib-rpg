@@ -22,12 +22,12 @@ impl StatsInGame {
             // Update damage for this target (insert if missing)
             *atk_info
                 .all_damages_by_target
-                .entry(eo.target_name.clone())
+                .entry(eo.target_id_name.clone())
                 .or_default() += eo.real_hp_amount_tx;
         } else {
             // First time this attack appears
             let mut damages = IndexMap::new();
-            damages.insert(eo.target_name.clone(), eo.real_hp_amount_tx);
+            damages.insert(eo.target_id_name.clone(), eo.real_hp_amount_tx);
 
             self.all_atk_info.push(AtksInfo {
                 atk_name: eo.atk.clone(),
@@ -46,7 +46,7 @@ mod tests {
         let mut stats = StatsInGame::default();
         let eo = EffectOutcome {
             atk: "Fireball".to_string(),
-            target_name: "Goblin".to_string(),
+            target_id_name: "Goblin".to_string(),
             real_hp_amount_tx: -30,
             ..Default::default()
         };
