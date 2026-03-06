@@ -103,7 +103,7 @@ impl GameManager {
         let _ = self.start_new_turn();
     }
 
-    /// TODO remove: Unused!
+    /// TODO use the one from dxrpg
     pub fn load_game<P: AsRef<Path>>(&mut self, game_path_dir: P) -> Result<()> {
         self.build_game_paths();
         self.game_state =
@@ -146,9 +146,9 @@ impl GameManager {
         let mut dead_heroes = Vec::new();
         for hero in &self.pm.active_heroes {
             if !hero.is_dead().unwrap_or(false) {
-                self.game_state.order_to_play.push(hero.name.clone());
+                self.game_state.order_to_play.push(hero.db_full_name.clone());
             } else {
-                dead_heroes.push(hero.name.clone());
+                dead_heroes.push(hero.db_full_name.clone());
             }
         }
         // add dead heroes
@@ -162,7 +162,7 @@ impl GameManager {
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
         for boss in &self.pm.active_bosses {
             if !boss.is_dead().unwrap_or(false) {
-                self.game_state.order_to_play.push(boss.name.clone());
+                self.game_state.order_to_play.push(boss.db_full_name.clone());
             }
         }
         // supplementary atks to be added
@@ -233,7 +233,7 @@ impl GameManager {
                 {
                     tracing::info!(
                         "Auto attack for boss {}: {}",
-                        self.pm.current_player.name,
+                        self.pm.current_player.db_full_name,
                         auto_atk_name
                     );
                     return self.launch_attack(Some(&auto_atk_name));
@@ -243,7 +243,7 @@ impl GameManager {
             self.pm.current_player.actions_done_in_round += 1;
             tracing::error!(
                 "Error: no attack name provided for player {}",
-                self.pm.current_player.name
+                self.pm.current_player.db_full_name
             );
             return ResultLaunchAttack::default();
         };
@@ -262,7 +262,7 @@ impl GameManager {
                 tracing::error!(
                     "Error: attack {} not found for player {}",
                     atk_name,
-                    self.pm.current_player.name
+                    self.pm.current_player.db_full_name
                 );
                 return ResultLaunchAttack::default();
             }
@@ -290,7 +290,7 @@ impl GameManager {
             .current_player
             .process_atk(&self.game_state, is_crit, &atk);
         let launcher_stats = self.pm.current_player.stats.clone();
-        let name = self.pm.current_player.name.clone();
+        let name = self.pm.current_player.db_full_name.clone();
         let kind = self.pm.current_player.kind.clone();
         let mut all_dodging = vec![];
         let launcher_info = LauncherAtkInfo {
@@ -349,11 +349,11 @@ impl GameManager {
 
         // update active character for cost atk and buf received.
         self.pm
-            .modify_active_character(&self.pm.current_player.name.clone());
+            .modify_active_character(&self.pm.current_player.db_full_name.clone());
 
         // process end of attack
         let mut result_attack = ResultLaunchAttack {
-            launcher_name: self.pm.current_player.name.clone(),
+            launcher_name: self.pm.current_player.db_full_name.clone(),
             is_crit,
             outcomes: output,
             all_dodging,
@@ -462,6 +462,7 @@ impl GameManager {
         logs
     }
 
+    /// TODO use that one in dxrpg
     pub fn save_game_manager(&self) -> Result<()> {
         // write_to_json
         utils::write_to_json(
@@ -682,7 +683,7 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_name = gm.pm.current_player.name.clone();
+        let old_hero_name = gm.pm.current_player.db_full_name.clone();
         gm.pm
             .get_mut_active_boss_character("test_boss1")
             .unwrap()
@@ -753,7 +754,7 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_name = gm.pm.current_player.name.clone();
+        let old_hero_name = gm.pm.current_player.db_full_name.clone();
         gm.launch_attack(Some(&atk.clone().name));
         // not dead boss : end of game
         assert!(!gm.check_end_of_game());
@@ -782,7 +783,7 @@ mod tests {
         let mut gm = testing_all_characters::testing_game_manager();
         gm.init_new_game();
         gm.start_game();
-        while gm.pm.current_player.name != "test" {
+        while gm.pm.current_player.db_full_name != "test" {
             gm.new_round();
         }
 
@@ -814,7 +815,7 @@ mod tests {
             .unwrap()
             .is_current_target = true;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_name = gm.pm.current_player.name.clone();
+        let old_hero_name = gm.pm.current_player.db_full_name.clone();
         gm.launch_attack(Some(&atk.clone().name));
         // 1 dead boss : end of game
         // assert!(gm.check_end_of_game());
@@ -875,7 +876,7 @@ mod tests {
             .all_stats[HP]
             .current;
         let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_name = gm.pm.current_player.name.clone();
+        let old_hero_name = gm.pm.current_player.db_full_name.clone();
         gm.pm
             .get_mut_active_boss_character("test_boss1")
             .unwrap()
@@ -958,7 +959,7 @@ mod tests {
         gm.init_new_game();
         // turn 1 round 1 (test)
         gm.start_game();
-        while gm.pm.current_player.name != "test" {
+        while gm.pm.current_player.db_full_name != "test" {
             gm.new_round();
         }
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
@@ -1089,56 +1090,56 @@ mod tests {
         gm.start_game();
         // turn 1 round 1 (test)
         assert_eq!(gm.game_state.order_to_play.len(), 6);
-        while gm.pm.current_player.name != "test" {
+        while gm.pm.current_player.db_full_name != "test" {
             gm.new_round();
         }
-        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         // apply effect Magic power - up by % for 2 turns (for turn1 and turn2 and is ending on turn 3)
         gm.launch_attack(Some("Eclat d'espoir"));
         // turn 1 round 2 (test2)
-        while gm.pm.current_player.name != "test2" {
+        while gm.pm.current_player.db_full_name != "test2" {
             gm.new_round();
         }
-        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test2".to_owned());
         // turn 1 round 3 (boss1)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.name, "test_boss1".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test_boss1".to_owned());
         // turn 1 round 4 (boss2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.name, "test_boss2".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test_boss2".to_owned());
         // turn 1 round 5 (test)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
         // turn 1 round 6 (test2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test2".to_owned());
         // turn 2 round 1
         gm.start_new_turn();
-        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
         // turn 2 round 2 (test2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test2".to_owned());
         // 2 effects received from eclat d espoir (counter turn 1/2, 1 on 2 )
         assert_eq!(gm.pm.current_player.all_effects.len(), 2);
         // turn 2 round 3 (boss1)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.name, "test_boss1".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test_boss1".to_owned());
         // turn 2 round 4 (boss2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.name, "test_boss2".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test_boss2".to_owned());
         // turn 2 round 5 (test)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
         // turn 2 round 6 (test2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test2".to_owned());
         // turn 3 round 1 test
         gm.start_new_turn();
-        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
         // turn 3 round 2 (test2)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.name, "test2".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test2".to_owned());
         // effects ended after 2 turns
         assert!(gm.pm.current_player.all_effects.is_empty());
     }
@@ -1150,10 +1151,10 @@ mod tests {
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_game();
-        while gm.pm.current_player.name != "test" {
+        while gm.pm.current_player.db_full_name != "test" {
             gm.new_round();
         }
-        assert_eq!(gm.pm.current_player.name, "test");
+        assert_eq!(gm.pm.current_player.db_full_name, "test");
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_dodge = gm
             .pm
@@ -1181,10 +1182,10 @@ mod tests {
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_game();
-        while gm.pm.current_player.name != "test" {
+        while gm.pm.current_player.db_full_name != "test" {
             gm.new_round();
         }
-        assert_eq!(gm.pm.current_player.name, "test".to_owned());
+        assert_eq!(gm.pm.current_player.db_full_name, "test".to_owned());
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_berserk = gm
             .pm
@@ -1211,7 +1212,7 @@ mod tests {
         gm.init_new_game();
         // turn 1 round 1 (test)
         gm.start_game();
-        while gm.pm.current_player.name != "test" {
+        while gm.pm.current_player.db_full_name != "test" {
             gm.new_round();
         }
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;

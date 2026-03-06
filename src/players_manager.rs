@@ -200,19 +200,19 @@ impl PlayerManager {
     pub fn get_all_active_names(&self) -> Vec<String> {
         let mut output = vec![];
         for h in &self.active_heroes {
-            output.push(h.name.clone());
+            output.push(h.db_full_name.clone());
         }
         for b in &self.active_bosses {
-            output.push(b.name.clone());
+            output.push(b.db_full_name.clone());
         }
         output
     }
 
     pub fn get_mut_active_character(&mut self, name: &str) -> Option<&mut Character> {
-        if let Some(hero) = self.active_heroes.iter_mut().find(|c| c.name == name) {
+        if let Some(hero) = self.active_heroes.iter_mut().find(|c| c.db_full_name == name) {
             return Some(hero);
         }
-        if let Some(boss) = self.active_bosses.iter_mut().find(|c| c.name == name) {
+        if let Some(boss) = self.active_bosses.iter_mut().find(|c| c.db_full_name == name) {
             return Some(boss);
         }
         None
@@ -238,19 +238,19 @@ impl PlayerManager {
     }
 
     pub fn get_mut_active_hero_character(&mut self, name: &str) -> Option<&mut Character> {
-        self.active_heroes.iter_mut().find(|c| c.name == name)
+        self.active_heroes.iter_mut().find(|c| c.db_full_name == name)
     }
 
     pub fn get_mut_active_boss_character(&mut self, name: &str) -> Option<&mut Character> {
-        self.active_bosses.iter_mut().find(|c| c.name == name)
+        self.active_bosses.iter_mut().find(|c| c.db_full_name == name)
     }
 
     pub fn get_active_hero_character(&self, name: &str) -> Option<&Character> {
-        self.active_heroes.iter().find(|c| c.name == name)
+        self.active_heroes.iter().find(|c| c.db_full_name == name)
     }
 
     pub fn get_active_boss_character(&self, name: &str) -> Option<&Character> {
-        self.active_bosses.iter().find(|c| c.name == name)
+        self.active_bosses.iter().find(|c| c.db_full_name == name)
     }
 
     pub fn update_current_player(
@@ -374,7 +374,7 @@ impl PlayerManager {
                     speed_pl1.max = speed_pl1.max.saturating_sub(SPEED_THRESHOLD);
                     speed_pl1.max_raw = speed_pl1.max_raw.saturating_sub(SPEED_THRESHOLD);
                     speed_pl1.current_raw = speed_pl1.current_raw.saturating_sub(SPEED_THRESHOLD);
-                    output.push(pl1.name.clone());
+                    output.push(pl1.db_full_name.clone());
                     break;
                 }
             }
@@ -492,14 +492,14 @@ impl PlayerManager {
                     if let Some(item) = self
                         .active_heroes
                         .iter_mut()
-                        .find(|x| x.name != launcher_name)
+                        .find(|x| x.db_full_name != launcher_name)
                     {
                         item.is_current_target = true;
                         item.is_potential_target = true
                     }
                     self.active_heroes
                         .iter_mut()
-                        .filter(|x| x.name != launcher_name)
+                        .filter(|x| x.db_full_name != launcher_name)
                         .for_each(|c| c.is_potential_target = true);
                 }
             }
@@ -513,13 +513,13 @@ impl PlayerManager {
                     }
                     self.active_bosses
                         .iter_mut()
-                        .filter(|x| x.name != launcher_name)
+                        .filter(|x| x.db_full_name != launcher_name)
                         .for_each(|c| c.is_potential_target = true);
                 } else {
                     if let Some(item) = self
                         .active_bosses
                         .iter_mut()
-                        .find(|x| x.name != launcher_name)
+                        .find(|x| x.db_full_name != launcher_name)
                     {
                         item.is_current_target = true;
                     }
@@ -533,7 +533,7 @@ impl PlayerManager {
                 if is_hero_ally {
                     self.active_heroes
                         .iter_mut()
-                        .filter(|x| x.name != launcher_name)
+                        .filter(|x| x.db_full_name != launcher_name)
                         .for_each(|c| {
                             c.is_current_target = true;
                         });
