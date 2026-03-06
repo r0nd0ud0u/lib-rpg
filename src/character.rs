@@ -49,8 +49,8 @@ pub struct Character {
     #[serde(rename = "Short name")]
     pub short_name: String,
     /// In case there is a need to identify several characters with same name during a game
-    #[serde(rename = "SuffixIdName")]
-    pub suffix_id_name: String,
+    #[serde(rename = "IdName")]
+    pub id_name: String,
     /// Name of the photo of the character without extension
     #[serde(rename = "Photo")]
     pub photo_name: String,
@@ -132,7 +132,7 @@ impl Default for Character {
         Character {
             db_full_name: String::from("default"),
             short_name: String::from("default"),
-            suffix_id_name: String::from("_#1"),
+            id_name: String::from("_#1"),
             photo_name: String::from("default"),
             stats: Stats::default(),
             kind: CharacterType::Hero,
