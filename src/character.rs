@@ -203,7 +203,10 @@ impl Character {
             // read atk only if it is new game
             if !load_from_saved_game {
                 // attack loading
-                let attack_path_dir = root_path.as_ref().join(*OFFLINE_ATTACKS).join(&value.db_full_name);
+                let attack_path_dir = root_path
+                    .as_ref()
+                    .join(*OFFLINE_ATTACKS)
+                    .join(&value.db_full_name);
                 match list_files_in_dir(&attack_path_dir) {
                     Ok(list) => list.iter().for_each(|attack_path| {
                         match AttackType::try_new_from_json(attack_path) {
@@ -802,7 +805,10 @@ impl Character {
             );
             return false;
         }
-        if effect.target == TARGET_ALLY && effect.reach == ZONE && launcher_name == self.db_full_name {
+        if effect.target == TARGET_ALLY
+            && effect.reach == ZONE
+            && launcher_name == self.db_full_name
+        {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ally but launcher is himself.",
                 effect.effect_type,

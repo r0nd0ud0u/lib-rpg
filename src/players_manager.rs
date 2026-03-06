@@ -65,6 +65,13 @@ impl PlayerManager {
         }
     }
 
+    pub fn get_nb_of_active_heroes_by_name(&self, name: &str) -> usize {
+        self.active_heroes
+            .iter()
+            .filter(|c| c.db_full_name == name)
+            .count()
+    }
+
     /// Characters are inserted in Hero or Boss lists.
     pub fn load_active_characters_from_saved_game<P: AsRef<Path>>(
         &mut self,
@@ -209,10 +216,18 @@ impl PlayerManager {
     }
 
     pub fn get_mut_active_character(&mut self, name: &str) -> Option<&mut Character> {
-        if let Some(hero) = self.active_heroes.iter_mut().find(|c| c.db_full_name == name) {
+        if let Some(hero) = self
+            .active_heroes
+            .iter_mut()
+            .find(|c| c.db_full_name == name)
+        {
             return Some(hero);
         }
-        if let Some(boss) = self.active_bosses.iter_mut().find(|c| c.db_full_name == name) {
+        if let Some(boss) = self
+            .active_bosses
+            .iter_mut()
+            .find(|c| c.db_full_name == name)
+        {
             return Some(boss);
         }
         None
@@ -238,11 +253,15 @@ impl PlayerManager {
     }
 
     pub fn get_mut_active_hero_character(&mut self, name: &str) -> Option<&mut Character> {
-        self.active_heroes.iter_mut().find(|c| c.db_full_name == name)
+        self.active_heroes
+            .iter_mut()
+            .find(|c| c.db_full_name == name)
     }
 
     pub fn get_mut_active_boss_character(&mut self, name: &str) -> Option<&mut Character> {
-        self.active_bosses.iter_mut().find(|c| c.db_full_name == name)
+        self.active_bosses
+            .iter_mut()
+            .find(|c| c.db_full_name == name)
     }
 
     pub fn get_active_hero_character(&self, name: &str) -> Option<&Character> {
@@ -1121,5 +1140,12 @@ mod tests {
                 .expect("no hero")
                 .is_potential_target
         );
+    }
+
+    #[test]
+    fn unit_get_nb_of_active_heroes_by_name() {
+        let pl = testing_all_characters::testing_pm();
+        assert_eq!(1, pl.get_nb_of_active_heroes_by_name("test"));
+        assert_eq!(0, pl.get_nb_of_active_heroes_by_name("unknown"));
     }
 }

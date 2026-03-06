@@ -146,7 +146,9 @@ impl GameManager {
         let mut dead_heroes = Vec::new();
         for hero in &self.pm.active_heroes {
             if !hero.is_dead().unwrap_or(false) {
-                self.game_state.order_to_play.push(hero.db_full_name.clone());
+                self.game_state
+                    .order_to_play
+                    .push(hero.db_full_name.clone());
             } else {
                 dead_heroes.push(hero.db_full_name.clone());
             }
@@ -162,7 +164,9 @@ impl GameManager {
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
         for boss in &self.pm.active_bosses {
             if !boss.is_dead().unwrap_or(false) {
-                self.game_state.order_to_play.push(boss.db_full_name.clone());
+                self.game_state
+                    .order_to_play
+                    .push(boss.db_full_name.clone());
             }
         }
         // supplementary atks to be added
