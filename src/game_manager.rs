@@ -1304,6 +1304,7 @@ mod tests {
         assert_eq!(GameStatus::EndOfGame, gm.game_state.status);
 
         // check save game
+        // not use in dx-rpg
         let _ = gm.save_game_manager();
         let path = gm.game_paths.current_game_dir.clone();
         let big_list = utils::list_dirs_in_dir(path);
