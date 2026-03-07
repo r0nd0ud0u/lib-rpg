@@ -6,4 +6,6 @@
 
 # output games
 /offlines/games/*
+/offlines/Game_*
 /output/*
+

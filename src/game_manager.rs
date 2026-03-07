@@ -56,6 +56,25 @@ pub struct GamePaths {
     pub current_game_dir: PathBuf,
 }
 
+impl GamePaths {
+    pub fn new<P: AsRef<Path>>(root_path: P, game_name: &str) -> GamePaths {
+        let cur_game_path = root_path.as_ref().join(game_name);
+
+        GamePaths {
+            root: root_path.as_ref().to_path_buf(),
+            games_dir: GAMES_DIR.to_path_buf(),
+            current_game_dir: cur_game_path.clone(),
+            characters: cur_game_path.join(OFFLINE_CHARACTERS.to_path_buf()),
+
+            equipments: cur_game_path.join(OFFLINE_EQUIPMENT.to_path_buf()),
+            game_state: cur_game_path.join(OFFLINE_GAMESTATE.to_path_buf()),
+            loot: cur_game_path.join(OFFLINE_LOOT_EQUIPMENT.to_path_buf()),
+            ongoing_effects: cur_game_path.join(OFFLINE_EFFECTS.to_path_buf()),
+            stats_in_game: cur_game_path.join(GAME_STATE_STATS_IN_GAME.to_path_buf()),
+        }
+    }
+}
+
 /// The entry of the library.
 /// That object should be called to access to all the different functionalities.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -74,27 +93,20 @@ impl GameManager {
         path: P,
         equipment_table: HashMap<EquipmentJsonKey, Vec<Equipment>>,
     ) -> GameManager {
+        // if path is empty, use the default one
         let mut new_path = path.as_ref();
         if new_path.as_os_str().is_empty() {
             new_path = &OFFLINE_ROOT;
         }
-        GameManager {
-            game_state: GameState::new(),
-            pm: PlayerManager::new(equipment_table),
-            game_paths: GamePaths {
-                root: new_path.to_path_buf(),
-                games_dir: GAMES_DIR.to_path_buf(),
-                ..Default::default()
-            },
-        }
-    }
+        // create game state
+        let game_state = GameState::new();
+        let game_name = game_state.game_name.clone();
 
-    /// Init the game state and build the different paths for the game
-    pub fn init_new_game(&mut self) {
-        // Init the game state
-        self.game_state.init();
-        // Build the different paths for the game
-        self.build_game_paths();
+        GameManager {
+            game_state,
+            pm: PlayerManager::new(equipment_table),
+            game_paths: GamePaths::new(new_path, &game_name),
+        }
     }
 
     /// Start the game by starting a new turn
@@ -105,7 +117,6 @@ impl GameManager {
 
     /// TODO use the one from dxrpg
     pub fn load_game<P: AsRef<Path>>(&mut self, game_path_dir: P) -> Result<()> {
-        self.build_game_paths();
         self.game_state =
             utils::read_from_json(game_path_dir.as_ref().join(OFFLINE_GAMESTATE.to_path_buf()))?;
         self.pm
@@ -489,20 +500,6 @@ impl GameManager {
         Ok(())
     }
 
-    pub fn build_game_paths(&mut self) {
-        let cur_game_path = self
-            .game_paths
-            .games_dir
-            .join(self.game_state.game_name.clone());
-        self.game_paths.current_game_dir = cur_game_path.clone();
-        self.game_paths.characters = cur_game_path.join(OFFLINE_CHARACTERS.to_path_buf());
-        self.game_paths.equipments = cur_game_path.join(OFFLINE_EQUIPMENT.to_path_buf());
-        self.game_paths.game_state = cur_game_path.join(OFFLINE_GAMESTATE.to_path_buf());
-        self.game_paths.loot = cur_game_path.join(OFFLINE_LOOT_EQUIPMENT.to_path_buf());
-        self.game_paths.ongoing_effects = cur_game_path.join(OFFLINE_EFFECTS.to_path_buf());
-        self.game_paths.stats_in_game = cur_game_path.join(GAME_STATE_STATS_IN_GAME.to_path_buf());
-    }
-
     /// Check if it is the turn to a boss to play
     /// HMI function
     pub fn is_round_auto(&self) -> bool {
@@ -549,7 +546,6 @@ mod tests {
     use crate::character::Class;
     use crate::common::attak_const::COEFF_CRIT_DMG;
     use crate::common::effect_const::EFFECT_NB_COOL_DOWN;
-    use crate::common::paths_const;
     use crate::game_manager::ResultLaunchAttack;
     use crate::game_state::GameStatus;
     use crate::testing_all_characters::{self, testing_game_manager};
@@ -630,7 +626,6 @@ mod tests {
     #[test]
     fn unit_new_round() {
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         let result = gm.start_new_turn();
         assert!(result.0);
         assert_eq!(gm.game_state.current_round, 1);
@@ -657,7 +652,6 @@ mod tests {
     #[test]
     fn unit_launch_attack_case1() {
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         gm.start_game();
 
         // # case 1 dmg on individual ennemy
@@ -724,7 +718,6 @@ mod tests {
     #[test]
     fn unit_launch_attack_case2() {
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         gm.start_game();
 
         // # case 2 dmg on individual ennemy
@@ -782,7 +775,6 @@ mod tests {
     #[test]
     fn unit_launch_attack_case3() {
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         gm.start_game();
         while gm.pm.current_player.id_name != "test_#1" {
             gm.new_round();
@@ -845,7 +837,6 @@ mod tests {
     #[test]
     fn unit_launch_attack_case4() {
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         gm.start_game();
 
         // # case 4 dmg on individual ennemy
@@ -910,7 +901,6 @@ mod tests {
     fn unit_launch_attack_case5() {
         // Zone = Tous les heroes
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         gm.start_game();
 
         // # case 5 up and change on zone ally
@@ -957,7 +947,6 @@ mod tests {
     #[test]
     fn unit_launch_attack_case_eclat_despoir() {
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         // turn 1 round 1 (test)
         gm.start_game();
         while gm.pm.current_player.id_name != "test_#1" {
@@ -1086,7 +1075,6 @@ mod tests {
     #[test]
     fn unit_launch_attack_end_of_effect() {
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         gm.create_game_dirs().unwrap();
         gm.start_game();
         // turn 1 round 1 (test)
@@ -1148,7 +1136,6 @@ mod tests {
     #[test]
     fn unit_launch_attack_up_par_valeur() {
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_game();
@@ -1179,7 +1166,6 @@ mod tests {
     #[test]
     fn unit_launch_attack_changement_par_value_berserk() {
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         gm.create_game_dirs().unwrap();
         // turn 1 round 1 (test)
         gm.start_game();
@@ -1210,7 +1196,6 @@ mod tests {
     #[test]
     fn unit_launch_attack_case_cooldown() {
         let mut gm = testing_all_characters::testing_game_manager();
-        gm.init_new_game();
         // turn 1 round 1 (test)
         gm.start_game();
         while gm.pm.current_player.id_name != "test_#1" {
@@ -1234,7 +1219,6 @@ mod tests {
     #[test]
     fn unit_integ_dxrpg() {
         let mut gm = testing_all_characters::dxrpg_game_manager();
-        gm.init_new_game();
         gm.create_game_dirs().unwrap();
         gm.start_game();
         let old_hp_boss = gm
@@ -1320,12 +1304,13 @@ mod tests {
         assert_eq!(GameStatus::EndOfGame, gm.game_state.status);
 
         // check save game
-        let path = paths_const::GAMES_DIR.to_path_buf();
+        // not use in dx-rpg
+        let _ = gm.save_game_manager();
+        let path = gm.game_paths.current_game_dir.clone();
         let big_list = utils::list_dirs_in_dir(path);
         let one_save = big_list.unwrap()[0].clone();
         let result = gm.load_game("");
         assert!(result.is_err());
         let _ = gm.load_game(one_save);
-        let _ = gm.save_game_manager();
     }
 }

@@ -42,7 +42,10 @@ pub struct GameState {
 
 impl GameState {
     pub fn new() -> Self {
+        // create name of exercise
+        let time_str = crate::utils::get_current_time_as_string();
         GameState {
+            game_name: format!("Game_{}", time_str),
             died_ennemies: HashMap::new(),
             order_to_play: Vec::new(),
             status: GameStatus::StartGame,
@@ -50,11 +53,6 @@ impl GameState {
         }
     }
 
-    pub fn init(&mut self) {
-        // create name of exercise
-        let time_str = crate::utils::get_current_time_as_string();
-        self.game_name = format!("Game_{}", time_str);
-    }
     pub fn start_new_turn(&mut self) {
         // Increment turn number
         self.current_turn_nb += 1;
@@ -69,13 +67,15 @@ impl GameState {
 
 #[cfg(test)]
 mod tests {
-    use crate::game_state::GameState;
+    use crate::game_state::{GameState, GameStatus};
 
     #[test]
-    fn unit_start_game() {
-        let mut gs = GameState::default();
-        gs.init();
-        assert!(!gs.game_name.is_empty());
+    fn unit_new() {
+        let gs = GameState::new();
+        assert!(gs.game_name.starts_with("Game_"));
+        assert_eq!(gs.current_turn_nb, 0);
+        assert_eq!(gs.current_round, 0);
+        assert_eq!(gs.status, GameStatus::StartGame);
     }
 
     #[test]

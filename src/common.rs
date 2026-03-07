@@ -105,6 +105,7 @@ pub mod paths_const {
         pub static ref OFFLINE_ATTACKS: &'static Path = Path::new("attack");
         /// Path for directory where all the JSON character files are stored.
         pub static ref OFFLINE_ROOT: PathBuf = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/offlines"));
+        pub static ref TEST_OFFLINE_ROOT: &'static Path = Path::new("./tests/offlines");
         /// save/load games
         pub static ref GAMES_DIR: &'static Path = Path::new("output/games");
         pub static ref OFFLINE_EQUIPMENT: &'static Path = Path::new("equipment");
@@ -113,6 +114,11 @@ pub mod paths_const {
         pub static ref OFFLINE_GAMESTATE: &'static Path = Path::new("game_state");
         pub static ref GAME_STATE_STATS_IN_GAME: &'static Path = Path::new("/stats_in_game_{}.csv");
     }
+}
+
+pub mod core_game_data_const {
+    pub const SAVED_CORE_GAME_DATA: &str = "core_game_data.json";
+    pub const SAVED_CORE_GAME_DATA_REPLAY: &str = "core_game_data_replay.json";
 }
 
 pub mod attak_const {

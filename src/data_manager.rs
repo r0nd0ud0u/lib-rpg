@@ -18,6 +18,8 @@ pub struct DataManager {
     pub all_bosses: Vec<Character>,
     /// Equipment table mapping character names to their equipped items
     pub equipment_table: HashMap<EquipmentJsonKey, Vec<Equipment>>,
+    /// Root path for offline files
+    pub offline_root: std::path::PathBuf,
 }
 
 impl DataManager {
@@ -25,20 +27,24 @@ impl DataManager {
     pub fn try_new<P: AsRef<Path>>(path: P) -> Result<DataManager> {
         let mut dm = DataManager::default();
 
-        let mut new_path = path.as_ref();
-        if new_path.as_os_str().is_empty() {
-            new_path = &OFFLINE_ROOT;
+        // set offline root path
+        let mut path_ref = path.as_ref();
+        if path_ref.as_os_str().is_empty() {
+            path_ref = &OFFLINE_ROOT;
         }
+        dm.offline_root = path_ref.to_path_buf();
+
         // load all the equipments
         // must be loaded before loading the characters
-        dm.load_all_equipments(new_path)?;
+        dm.load_all_equipments(path_ref)?;
         // load all the characters
-        dm.load_all_characters(new_path)?;
+        dm.load_all_characters(path_ref)?;
 
         Ok(DataManager {
             all_heroes: dm.all_heroes,
             all_bosses: dm.all_bosses,
             equipment_table: dm.equipment_table,
+            offline_root: dm.offline_root,
         })
     }
 
@@ -108,7 +114,8 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use crate::{
-        data_manager::DataManager, equipment::EquipmentJsonKey, testing_all_characters::testing_dm,
+        common::paths_const::TEST_OFFLINE_ROOT, data_manager::DataManager,
+        equipment::EquipmentJsonKey, testing_all_characters::testing_dm,
     };
 
     #[test]
@@ -140,14 +147,14 @@ mod tests {
     #[test]
     fn unit_load_all_equipments() {
         let mut dm = DataManager::default();
-        dm.load_all_equipments("./tests/offlines").unwrap();
+        dm.load_all_equipments(*TEST_OFFLINE_ROOT).unwrap();
         assert_eq!(EquipmentJsonKey::iter().count(), dm.equipment_table.len());
     }
 
     #[test]
     fn unit_load_all_characters() {
         let mut dm = DataManager::default();
-        dm.load_all_characters("tests/offlines").unwrap();
+        dm.load_all_characters(*TEST_OFFLINE_ROOT).unwrap();
         assert_eq!(2, dm.all_heroes.len());
     }
 
