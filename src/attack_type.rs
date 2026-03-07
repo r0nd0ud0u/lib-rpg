@@ -73,6 +73,9 @@ pub struct AttackType {
     /// TODO is that used ?
     #[serde(rename = "Durée")]
     pub turns_duration: i64,
+    /// Whether the attack can be launched or not
+    #[serde(rename = "CanBeLaunched")]
+    pub can_be_launched: bool,
 }
 
 impl Default for AttackType {
@@ -90,6 +93,7 @@ impl Default for AttackType {
             form: "".to_owned(),
             aggro: 0,
             turns_duration: 0,
+            can_be_launched: true,
         }
     }
 }

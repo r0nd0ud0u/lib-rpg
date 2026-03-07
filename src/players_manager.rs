@@ -300,6 +300,11 @@ impl PlayerManager {
                         });
                     // TODO apply passive power
 
+                    // atk assessment to be launched
+                    self.current_player
+                        .extended_character
+                        .apply_launchable_atks(self.process_launchable_atks());
+
                     // apply hot and dot
                     let (mut process_logs, hot_or_dot) = self.process_hot_and_dot(game_state);
                     self.apply_hot_or_dot(game_state, hot_or_dot);
@@ -475,6 +480,64 @@ impl PlayerManager {
                 .count()
     }
 
+    pub fn whatif_set_targeted_characters(&self, launcher_id_name: &str, atk_name: &str) -> u64 {
+        if let Some(launcher) = self.get_active_character(launcher_id_name) {
+            let Some(atk) = launcher
+                .attacks_list
+                .iter()
+                .find(|a| a.0 == atk_name)
+                .map(|a| a.1.clone())
+            else {
+                return 0;
+            };
+
+            let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
+            let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
+            let is_boss_ennemy =
+                launcher.kind == CharacterType::Boss && atk.target == TARGET_ENNEMY;
+            let is_hero_ennemy =
+                launcher.kind == CharacterType::Hero && atk.target == TARGET_ENNEMY;
+
+            // self - atk
+            if atk.target == TARGET_HIMSELF {
+                return 1;
+            }
+            // all heroes - atk
+            if atk.target == TARGET_ALL_HEROES {
+                let mut nb = 0;
+                self.active_heroes.iter().for_each(|c| {
+                    if c.is_dead() == Some(false) {
+                        nb += 1;
+                    }
+                });
+                return nb;
+            }
+            // atk on heroes
+            if is_boss_ennemy || is_hero_ally {
+                return Self::whatif_targets_for_collection(
+                    &self.active_heroes,
+                    launcher_id_name,
+                    &atk,
+                    is_hero_ally,
+                    is_boss_ennemy,
+                );
+            }
+
+            // atk on ennemies
+            if is_boss_ally || is_hero_ennemy {
+                return Self::whatif_targets_for_collection(
+                    &self.active_bosses,
+                    launcher_id_name,
+                    &atk,
+                    is_boss_ally,
+                    is_hero_ennemy,
+                );
+            }
+        }
+
+        0
+    }
+
     pub fn set_targeted_characters(&mut self, launcher_id_name: &str, atk_name: &str) {
         self.reset_targeted_character();
         self.reset_potential_targeted_character();
@@ -514,7 +577,7 @@ impl PlayerManager {
             }
             // atk on heroes
             if is_boss_ennemy || is_hero_ally {
-                set_targets_for_collection(
+                Self::set_targets_for_collection(
                     &mut self.active_heroes,
                     launcher_id_name,
                     &atk,
@@ -525,7 +588,7 @@ impl PlayerManager {
 
             // atk on ennemies
             if is_boss_ally || is_hero_ennemy {
-                set_targets_for_collection(
+                Self::set_targets_for_collection(
                     &mut self.active_bosses,
                     launcher_id_name,
                     &atk,
@@ -553,33 +616,76 @@ impl PlayerManager {
             .iter_mut()
             .for_each(|c| c.is_potential_target = false);
     }
-}
 
-/// Helper function to set targets for a given collection of characters
-/// Extracted to avoid code duplication between heroes and bosses targeting
-fn set_targets_for_collection(
-    characters: &mut [Character],
-    launcher_id_name: &str,
-    atk: &AttackType,
-    is_ally_condition: bool,
-    is_ennemy_condition: bool,
-) {
-    let mut has_at_least_one_target = false;
-    characters
-        .iter_mut()
-        .filter(|c| {
-            c.is_dead() == Some(false)
-                && ((is_ally_condition && c.id_name != launcher_id_name) || is_ennemy_condition)
-        })
-        .for_each(|c| {
-            if !has_at_least_one_target && atk.reach == INDIVIDUAL || atk.reach == ZONE {
-                c.is_current_target = true;
-                c.is_potential_target = true;
-                has_at_least_one_target = true;
-            } else {
-                c.is_potential_target = true;
+    pub fn process_launchable_atks(&self) -> Vec<String> {
+        // assess potential target
+        let mut launchable_attacks = Vec::new();
+
+        for atk in self.current_player.attacks_list.values() {
+            let can_be_launched = self.current_player.can_be_launched(atk);
+            let whatif_nb =
+                self.whatif_set_targeted_characters(&self.current_player.id_name, &atk.name);
+            if can_be_launched && whatif_nb > 0 {
+                launchable_attacks.push(atk.name.clone());
             }
-        });
+        }
+        launchable_attacks
+    }
+
+    /// Helper function to set targets for a given collection of characters
+    /// Extracted to avoid code duplication between heroes and bosses targeting
+    fn set_targets_for_collection(
+        characters: &mut [Character],
+        launcher_id_name: &str,
+        atk: &AttackType,
+        is_ally_condition: bool,
+        is_ennemy_condition: bool,
+    ) {
+        let mut has_at_least_one_target = false;
+        characters
+            .iter_mut()
+            .filter(|c| {
+                c.is_dead() == Some(false)
+                    && ((is_ally_condition && c.id_name != launcher_id_name) || is_ennemy_condition)
+            })
+            .for_each(|c| {
+                if !has_at_least_one_target && atk.reach == INDIVIDUAL || atk.reach == ZONE {
+                    c.is_current_target = true;
+                    c.is_potential_target = true;
+                    has_at_least_one_target = true;
+                } else {
+                    c.is_potential_target = true;
+                }
+            });
+    }
+
+    /// Helper function to set targets for a given collection of characters
+    /// Extracted to avoid code duplication between heroes and bosses targeting
+    fn whatif_targets_for_collection(
+        characters: &[Character],
+        launcher_id_name: &str,
+        atk: &AttackType,
+        is_ally_condition: bool,
+        is_ennemy_condition: bool,
+    ) -> u64 {
+        let mut has_at_least_one_target = false;
+        let mut nb = 0;
+        characters
+            .iter()
+            .filter(|c| {
+                c.is_dead() == Some(false)
+                    && ((is_ally_condition && c.id_name != launcher_id_name) || is_ennemy_condition)
+            })
+            .for_each(|_c| {
+                if !has_at_least_one_target && atk.reach == INDIVIDUAL || atk.reach == ZONE {
+                    nb += 1;
+                    has_at_least_one_target = true;
+                } else {
+                    nb += 1;
+                }
+            });
+        nb
+    }
 }
 
 fn process_hot_or_dot(local_log: &mut Vec<LogData>, hot_and_dot: &mut i64, gae: &GameAtkEffects) {
@@ -1210,5 +1316,48 @@ mod tests {
         assert_eq!(1, pl.get_current_target_nb());
         pl.active_bosses[0].is_potential_target = true;
         assert_eq!(2, pl.get_current_target_nb());
+    }
+
+    #[test]
+    fn unit_whatif_set_targeted_characters() {
+        let pl = testing_all_characters::testing_pm();
+        // hero is attacking
+        // atk to ennemy - effect dmg indiv
+        let test_ally_id_name = "test_#1";
+        pl.get_active_character(test_ally_id_name).expect("no hero");
+        let potential_target_nb = pl.whatif_set_targeted_characters(test_ally_id_name, "SimpleAtk");
+        assert_eq!(2, potential_target_nb);
+        // atk to ennemy - effect dmg zone
+        let potential_target_nb =
+            pl.whatif_set_targeted_characters(test_ally_id_name, "simple-atk-zone");
+        assert_eq!(2, potential_target_nb);
+        // atk to ally(himself in this example) - effect heal indiv, test -> test2
+        let potential_target_nb =
+            pl.whatif_set_targeted_characters(test_ally_id_name, "simple-atk-himself");
+        assert_eq!(1, potential_target_nb);
+    }
+
+    #[test]
+    fn unit_process_launchable_atks() {
+        let mut pl = testing_all_characters::testing_pm();
+        // no problem of level
+        pl.current_player.level = 100;
+        // no problem of is_heal_atk_blocked
+        pl.current_player.extended_character.is_heal_atk_blocked = false;
+        let launchable_atks = pl.process_launchable_atks();
+        // print launcgable atks for debug
+        //println!("Launchable attacks: {:?}", launchable_atks);
+        assert_eq!(pl.current_player.attacks_list.len(), launchable_atks.len());
+
+        // case level under
+        pl.current_player.level = 1;
+        let launchable_atks = pl.process_launchable_atks();
+        assert_eq!(12, launchable_atks.len()); // 12 on 16 are level 1
+
+        // case is_heal_atk_blocked
+        pl.current_player.extended_character.is_heal_atk_blocked = true;
+        pl.current_player.level = 100;
+        let launchable_atks = pl.process_launchable_atks();
+        assert_eq!(10, launchable_atks.len()); // 6 attacks are HP and linked to is_heal_atk_blocked condition
     }
 }
