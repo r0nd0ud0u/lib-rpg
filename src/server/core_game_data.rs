@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::path::Path;
 
 use crate::data_manager::DataManager;
 use crate::game_manager::GameManager;
@@ -24,8 +25,8 @@ pub struct CoreGameData {
 }
 
 impl CoreGameData {
-    pub fn new(dm: &DataManager) -> CoreGameData {
-        let mut gm = GameManager::new("offlines", dm.equipment_table.clone());
+    pub fn new<P: AsRef<Path>>(dm: &DataManager, path: P, server_name: &str) -> CoreGameData {
+        let mut gm = GameManager::new(path, dm.equipment_table.clone());
         // set bosses
         dm.all_bosses.iter().for_each(|boss| {
             let mut boss_to_push = boss.clone();
@@ -42,7 +43,7 @@ impl CoreGameData {
 
         CoreGameData {
             game_manager: gm,
-            server_name: "Default".to_owned(),
+            server_name: server_name.to_string(),
             game_phase: GamePhase::Default,
             players_nb: 0,
             heroes_chosen: HashMap::new(),
@@ -51,9 +52,33 @@ impl CoreGameData {
     }
 }
 
-pub fn init(name: &str, core_game_data: &mut CoreGameData) {
-    core_game_data.game_manager.init_new_game();
-    // name of the server
-    // TODO set server name based on user name + random string
-    core_game_data.server_name = name.to_string();
+#[cfg(test)]
+mod tests {
+    use crate::common::paths_const::TEST_OFFLINE_ROOT;
+    use crate::data_manager::DataManager;
+    use crate::server::core_game_data::CoreGameData;
+
+    #[test]
+    fn unit_core_game_data_new() {
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let core_game_data = CoreGameData::new(&dm, *TEST_OFFLINE_ROOT, "Default");
+
+        assert_eq!(
+            core_game_data.game_manager.pm.active_bosses.len(),
+            dm.all_bosses.len()
+        );
+        // check that the id_name of the boss is correctly set
+        for boss in &core_game_data.game_manager.pm.active_bosses {
+            assert!(boss.id_name.starts_with(&boss.db_full_name));
+            assert!(boss.id_name.ends_with("_#1"));
+        }
+        assert_eq!(core_game_data.server_name, "Default");
+        assert_eq!(
+            core_game_data.game_phase,
+            crate::server::server_manager::GamePhase::Default
+        );
+        assert_eq!(core_game_data.players_nb, 0);
+        assert!(core_game_data.heroes_chosen.is_empty());
+        assert!(core_game_data.logs.is_empty());
+    }
 }

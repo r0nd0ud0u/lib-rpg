@@ -105,6 +105,7 @@ pub mod paths_const {
         pub static ref OFFLINE_ATTACKS: &'static Path = Path::new("attack");
         /// Path for directory where all the JSON character files are stored.
         pub static ref OFFLINE_ROOT: PathBuf = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/offlines"));
+        pub static ref TEST_OFFLINE_ROOT: &'static Path = Path::new("./tests/offlines");
         /// save/load games
         pub static ref GAMES_DIR: &'static Path = Path::new("output/games");
         pub static ref OFFLINE_EQUIPMENT: &'static Path = Path::new("equipment");

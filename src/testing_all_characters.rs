@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 use crate::character::Character;
+use crate::common::paths_const::TEST_OFFLINE_ROOT;
 use crate::data_manager::DataManager;
 use crate::equipment::{Equipment, EquipmentJsonKey};
 use crate::game_manager::GameManager;
@@ -10,7 +11,7 @@ use crate::players_manager::PlayerManager;
 use crate::testing_atk::build_atk_damage_indiv;
 
 pub fn testing_dm() -> DataManager {
-    DataManager::try_new("./tests/offlines").unwrap()
+    DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap()
 }
 
 pub fn testing_all_equipment() -> HashMap<EquipmentJsonKey, Vec<Equipment>> {
@@ -30,7 +31,7 @@ pub fn testing_pm() -> PlayerManager {
 pub fn testing_game_manager() -> crate::game_manager::GameManager {
     let dm = testing_dm();
     // init gm
-    let mut gm = GameManager::new("./tests/offlines", dm.equipment_table.clone());
+    let mut gm = GameManager::new(*TEST_OFFLINE_ROOT, dm.equipment_table.clone());
     // All the bosses are active
     gm.pm = testing_pm();
     gm
