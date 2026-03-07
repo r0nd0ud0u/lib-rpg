@@ -202,17 +202,18 @@ impl GameManager {
         self.game_state.new_round();
         // Still round to play
         if self.game_state.current_round > self.game_state.order_to_play.len() {
-            return (false, Vec::new());
+            return (false, vec!["End of turn has been reached".to_string()]);
         }
         let Ok(logs) = self.pm.update_current_player(
             &self.game_state,
             &self.game_state.order_to_play[self.game_state.current_round - 1],
         ) else {
-            return (false, Vec::new());
+            // return the error of update_current_player
+            return (false, vec!["Error while updating current player".to_string()]);
         };
 
         if self.pm.current_player.is_dead() == Some(true) {
-            self.new_round();
+            return self.new_round();
         }
 
         self.pm.reset_targeted_character();
@@ -221,7 +222,6 @@ impl GameManager {
         // TODO who has the most aggro ?
 
         // TODO update game status
-        // TODO channels for logss
 
         // reinit each round
 
