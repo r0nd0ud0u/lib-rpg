@@ -462,6 +462,19 @@ impl PlayerManager {
         }
     }
 
+    /// Get the number of current potential targets (used for UI)
+    pub fn get_current_target_nb(&self) -> usize {
+        self.active_heroes
+            .iter()
+            .filter(|c| c.is_potential_target)
+            .count()
+            + self
+                .active_bosses
+                .iter()
+                .filter(|c| c.is_potential_target)
+                .count()
+    }
+
     pub fn set_targeted_characters(&mut self, launcher_id_name: &str, atk_name: &str) {
         self.reset_targeted_character();
         self.reset_potential_targeted_character();
@@ -1187,5 +1200,15 @@ mod tests {
         let pl = testing_all_characters::testing_pm();
         assert_eq!(1, pl.get_nb_of_active_bosses_by_name("test_boss1"));
         assert_eq!(0, pl.get_nb_of_active_bosses_by_name("unknown"));
+    }
+
+    #[test]
+    fn unit_get_current_target_nb() {
+        let mut pl = testing_all_characters::testing_pm();
+        assert_eq!(0, pl.get_current_target_nb());
+        pl.active_heroes[0].is_potential_target = true;
+        assert_eq!(1, pl.get_current_target_nb());
+        pl.active_bosses[0].is_potential_target = true;
+        assert_eq!(2, pl.get_current_target_nb());
     }
 }
