@@ -1,7 +1,6 @@
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
-use std::path::Path;
 
 use crate::data_manager::DataManager;
 use crate::game_manager::GameManager;
@@ -25,8 +24,8 @@ pub struct CoreGameData {
 }
 
 impl CoreGameData {
-    pub fn new<P: AsRef<Path>>(dm: &DataManager, path: P, server_name: &str) -> CoreGameData {
-        let mut gm = GameManager::new(path, dm.equipment_table.clone());
+    pub fn new(dm: &DataManager, server_name: &str) -> CoreGameData {
+        let mut gm = GameManager::new(&dm.offline_root, dm.equipment_table.clone());
         // set bosses
         dm.all_bosses.iter().for_each(|boss| {
             let mut boss_to_push = boss.clone();
@@ -61,7 +60,7 @@ mod tests {
     #[test]
     fn unit_core_game_data_new() {
         let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
-        let core_game_data = CoreGameData::new(&dm, *TEST_OFFLINE_ROOT, "Default");
+        let core_game_data = CoreGameData::new(&dm, "Default");
 
         assert_eq!(
             core_game_data.game_manager.pm.active_bosses.len(),
