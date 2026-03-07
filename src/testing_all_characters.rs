@@ -40,8 +40,12 @@ pub fn testing_game_manager() -> crate::game_manager::GameManager {
 #[cfg(not(tarpaulin_include))]
 pub fn testing_character() -> Character {
     let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-    let root_path = "./tests/offlines";
-    let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
+    let c = Character::try_new_from_json(
+        file_path,
+        *TEST_OFFLINE_ROOT,
+        false,
+        &testing_all_equipment(),
+    );
     let mut c = c.unwrap();
     let atk = build_atk_damage_indiv();
     c.attacks_list.insert(atk.name.clone(), atk);

@@ -1145,6 +1145,7 @@ mod tests {
     use crate::attack_type::AttackType;
     use crate::buffers::Buffers;
     use crate::character::AmountType;
+    use crate::common::paths_const::TEST_OFFLINE_ROOT;
     use crate::effect::EffectOutcome;
     use crate::equipment::EquipmentJsonKey;
     use crate::testing_all_characters::{testing_all_equipment, testing_character};
@@ -1160,10 +1161,9 @@ mod tests {
     #[test]
     fn unit_try_new_from_json() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests/offlines";
         let equipment = testing_all_equipment();
         assert_eq!(EquipmentJsonKey::iter().count(), equipment.len());
-        let c = Character::try_new_from_json(file_path, root_path, false, &equipment);
+        let c = Character::try_new_from_json(file_path, *TEST_OFFLINE_ROOT, false, &equipment);
         println!("{:#?}", c);
         assert!(c.is_ok());
         let c = c.unwrap();
@@ -1281,10 +1281,14 @@ mod tests {
         assert_eq!(13, c.equipment_on.len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
-        let root_path = "./tests/offlines";
         assert!(
-            Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment())
-                .is_err()
+            Character::try_new_from_json(
+                file_path,
+                *TEST_OFFLINE_ROOT,
+                false,
+                &testing_all_equipment()
+            )
+            .is_err()
         );
     }
 
@@ -1342,8 +1346,12 @@ mod tests {
     #[test]
     fn unit_set_stats_on_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
+        let c = Character::try_new_from_json(
+            file_path,
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        );
         assert!(c.is_ok());
         let mut c = c.unwrap();
         c.set_stats_on_effect(HP, -10, false, true);
@@ -1376,8 +1384,12 @@ mod tests {
     #[test]
     fn unit_remove_malus_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
+        let c = Character::try_new_from_json(
+            file_path,
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        );
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
@@ -1443,8 +1455,12 @@ mod tests {
     #[test]
     fn unit_update_buf() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
+        let c = Character::try_new_from_json(
+            file_path,
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        );
         assert!(c.is_ok());
         let mut c = c.unwrap();
         c.update_buf(BufTypes::DamageTx, 10, false, HP);
@@ -1459,8 +1475,12 @@ mod tests {
     #[test]
     fn unit_process_one_effect() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
+        let c = Character::try_new_from_json(
+            file_path,
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        );
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let mut ep = EffectParam {
@@ -1574,8 +1594,12 @@ mod tests {
     #[test]
     fn unit_assess_effect_param() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let root_path = "./tests/offlines";
-        let c = Character::try_new_from_json(file_path, root_path, false, &testing_all_equipment());
+        let c = Character::try_new_from_json(
+            file_path,
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        );
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
@@ -1595,17 +1619,16 @@ mod tests {
 
     #[test]
     fn unit_is_targeted() {
-        let root_path = "./tests/offlines";
         let c1 = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
         .unwrap();
         let mut c2 = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
@@ -1614,7 +1637,7 @@ mod tests {
         c2.id_name = "other_#1".to_string();
         let mut boss1 = Character::try_new_from_json(
             "./tests/offlines/characters/test_boss1.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
@@ -1697,17 +1720,16 @@ mod tests {
 
     #[test]
     fn unit_apply_effect_outcome() {
-        let root_path = "./tests/offlines";
         let mut c = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
         .unwrap();
         let mut c2 = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
@@ -1742,7 +1764,7 @@ mod tests {
         // target is ennemy
         let mut boss1 = Character::try_new_from_json(
             "./tests/offlines/characters/test_boss1.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
@@ -1766,10 +1788,9 @@ mod tests {
 
     #[test]
     fn unit_process_real_amount() {
-        let root_path = "./tests/offlines";
         let mut c = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
@@ -1785,10 +1806,9 @@ mod tests {
 
     #[test]
     fn unit_proces_aggro() {
-        let root_path = "./tests/offlines";
         let mut c = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
@@ -1803,10 +1823,9 @@ mod tests {
 
     #[test]
     fn unit_reset_all_effects_on_player() {
-        let root_path = "./tests/offlines";
         let mut c = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
@@ -1830,10 +1849,9 @@ mod tests {
 
     #[test]
     fn unit_reset_all_buffers() {
-        let root_path = "./tests/offlines";
         let mut c = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
@@ -1848,10 +1866,9 @@ mod tests {
 
     #[test]
     fn unit_apply_equipment_on_stats() {
-        let root_path = "./tests/offlines";
         let c = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )
@@ -1862,10 +1879,9 @@ mod tests {
     #[test]
     fn unit_can_be_launched() {
         let mut atk_type = self::AttackType::default();
-        let root_path = "./tests/offlines";
         let mut c1 = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
-            root_path,
+            *TEST_OFFLINE_ROOT,
             false,
             &testing_all_equipment(),
         )

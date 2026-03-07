@@ -114,7 +114,8 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use crate::{
-        data_manager::DataManager, equipment::EquipmentJsonKey, testing_all_characters::testing_dm,
+        common::paths_const::TEST_OFFLINE_ROOT, data_manager::DataManager,
+        equipment::EquipmentJsonKey, testing_all_characters::testing_dm,
     };
 
     #[test]
@@ -146,14 +147,14 @@ mod tests {
     #[test]
     fn unit_load_all_equipments() {
         let mut dm = DataManager::default();
-        dm.load_all_equipments("./tests/offlines").unwrap();
+        dm.load_all_equipments(*TEST_OFFLINE_ROOT).unwrap();
         assert_eq!(EquipmentJsonKey::iter().count(), dm.equipment_table.len());
     }
 
     #[test]
     fn unit_load_all_characters() {
         let mut dm = DataManager::default();
-        dm.load_all_characters("tests/offlines").unwrap();
+        dm.load_all_characters(*TEST_OFFLINE_ROOT).unwrap();
         assert_eq!(2, dm.all_heroes.len());
     }
 
