@@ -546,7 +546,6 @@ mod tests {
     use crate::character::Class;
     use crate::common::attak_const::COEFF_CRIT_DMG;
     use crate::common::effect_const::EFFECT_NB_COOL_DOWN;
-    use crate::common::paths_const;
     use crate::game_manager::ResultLaunchAttack;
     use crate::game_state::GameStatus;
     use crate::testing_all_characters::{self, testing_game_manager};
@@ -1305,12 +1304,12 @@ mod tests {
         assert_eq!(GameStatus::EndOfGame, gm.game_state.status);
 
         // check save game
-        let path = paths_const::GAMES_DIR.to_path_buf();
+        let _ = gm.save_game_manager();
+        let path = gm.game_paths.current_game_dir.clone();
         let big_list = utils::list_dirs_in_dir(path);
         let one_save = big_list.unwrap()[0].clone();
         let result = gm.load_game("");
         assert!(result.is_err());
         let _ = gm.load_game(one_save);
-        let _ = gm.save_game_manager();
     }
 }
