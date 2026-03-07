@@ -115,6 +115,11 @@ pub mod paths_const {
     }
 }
 
+pub mod core_game_data_const {
+    pub const SAVED_CORE_GAME_DATA: &str = "core_game_data.json";
+    pub const SAVED_CORE_GAME_DATA_REPLAY: &str = "core_game_data_replay.json";
+}
+
 pub mod attak_const {
     pub const COEFF_CRIT_DMG: f64 = 2.0;
     pub const COEFF_CRIT_STATS: f64 = 1.5;
