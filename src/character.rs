@@ -1089,13 +1089,9 @@ impl Character {
         (eo, all_dodging)
     }
 
-    /////////////////////////////////////////
-    /// \brief Character::CanBeLaunched
     /// The attak can be launched if the character has enough mana, vigor and
-    /// berseck.
-    /// If the atk can be launched, true is returned and the optional<QString> is
-    /// set to nullopt Otherwise the boolean is false and a reason must be set.
-    ///
+    /// berseck and if the atk is not under a cooldown.
+    /// If the atk can be launched, true is returned, otherwise false is returned.
     pub fn can_be_launched(&self, atk_type: &AttackType) -> bool {
         // needed level too high
         if self.level < atk_type.level {

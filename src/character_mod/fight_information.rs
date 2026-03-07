@@ -16,6 +16,8 @@ pub struct CharacterFightInfo {
     /// Fight information: Playing the first round of that tour
     #[serde(default, rename = "is_first_round")]
     pub is_first_round: bool,
+    #[serde(default, rename = "launchable_atks")]
+    pub launchable_atks: Vec<String>,
 }
 
 impl Default for CharacterFightInfo {
@@ -24,7 +26,14 @@ impl Default for CharacterFightInfo {
             is_random_target: false,
             is_heal_atk_blocked: false,
             is_first_round: true,
+            launchable_atks: Vec::new(),
         }
+    }
+}
+
+impl CharacterFightInfo {
+    pub fn apply_launchable_atks(&mut self, launchable_atks: Vec<String>) {
+        self.launchable_atks = launchable_atks;
     }
 }
 
