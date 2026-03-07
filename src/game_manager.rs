@@ -24,12 +24,12 @@ pub struct ResultLaunchAttack {
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
     pub is_boss_atk: bool,
-    pub logs_new_round: Vec<String>,
-    pub logs_atk: Vec<LogAtk>,
+    pub logs_new_round: Vec<LogData>,
+    pub logs_atk: Vec<LogData>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct LogAtk {
+pub struct LogData {
     pub log: String,
     pub color: String,
 }
@@ -85,6 +85,8 @@ pub struct GameManager {
     pub pm: PlayerManager,
     /// Paths of the current game
     pub game_paths: GamePaths,
+    /// logs of the game, to display in the log sheet
+    pub logs: Vec<LogData>,
 }
 
 impl GameManager {
@@ -106,6 +108,7 @@ impl GameManager {
             game_state,
             pm: PlayerManager::new(equipment_table),
             game_paths: GamePaths::new(new_path, &game_name),
+            logs: Vec::new(),
         }
     }
 
@@ -130,7 +133,7 @@ impl GameManager {
     /// - Reset the round number
     ///
     /// Return a boolean to know if the new turn has been started and the logs of the new round if it is the case
-    pub fn start_new_turn(&mut self) -> (bool, Vec<String>) {
+    pub fn start_new_turn(&mut self) -> (bool, Vec<LogData>) {
         // For each turn now
         // Process the order of the players
         self.process_order_to_play();
@@ -198,18 +201,30 @@ impl GameManager {
         all_bosses_dead || all_heroes_dead
     }
 
-    pub fn new_round(&mut self) -> (bool, Vec<String>) {
+    pub fn new_round(&mut self) -> (bool, Vec<LogData>) {
         self.game_state.new_round();
         // Still round to play
         if self.game_state.current_round > self.game_state.order_to_play.len() {
-            return (false, vec!["End of turn has been reached".to_string()]);
+            return (
+                false,
+                vec![LogData {
+                    log: "End of turn has been reached".to_string(),
+                    ..Default::default()
+                }],
+            );
         }
         let Ok(logs) = self.pm.update_current_player(
             &self.game_state,
             &self.game_state.order_to_play[self.game_state.current_round - 1],
         ) else {
             // return the error of update_current_player
-            return (false, vec!["Error while updating current player".to_string()]);
+            return (
+                false,
+                vec![LogData {
+                    log: "Error while updating current player".to_string(),
+                    ..Default::default()
+                }],
+            );
         };
 
         if self.pm.current_player.is_dead() == Some(true) {
@@ -373,8 +388,8 @@ impl GameManager {
             logs_new_round: Vec::new(),
             logs_atk: Vec::new(),
         };
+
         // TODO should be method self of ResultLaunchAttack
-        result_attack.logs_atk = self.build_logs_atk(result_attack.clone());
         if self.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
         } else {
@@ -393,22 +408,29 @@ impl GameManager {
             }
         }
 
+        // update logs
+        result_attack.logs_atk = self.build_logs_atk(result_attack.clone());
+        self.logs.extend(result_attack.logs_new_round.clone());
+        self.logs.extend(result_attack.logs_atk.clone());
+
+        // update game state with the result of the attack
         self.game_state.last_result_atk = result_attack.clone();
+
         result_attack
     }
 
-    pub fn build_logs_atk(&self, result_attack: ResultLaunchAttack) -> Vec<LogAtk> {
-        let mut logs: Vec<LogAtk> = vec![];
+    pub fn build_logs_atk(&self, result_attack: ResultLaunchAttack) -> Vec<LogData> {
+        let mut logs: Vec<LogData> = vec![];
         // dodging and blocking info
         for d in result_attack.all_dodging {
             tracing::debug!("Dodge info for {}: {:?}", d.name, d);
             if d.is_dodging {
-                logs.push(LogAtk {
+                logs.push(LogData {
                     log: format!("{} is dodging", d.name),
                     color: "blue".to_string(),
                 });
             } else if d.is_blocking {
-                logs.push(LogAtk {
+                logs.push(LogData {
                     log: format!("{} is blocking", d.name),
                     color: "green".to_string(),
                 });
@@ -416,12 +438,12 @@ impl GameManager {
         }
         // logs for the atk
         if !result_attack.outcomes.is_empty() {
-            logs.push(LogAtk {
+            logs.push(LogData {
                 log: utils::format_string_with_timestamp("Last attack"),
                 color: "".to_string(),
             });
             if result_attack.is_crit {
-                logs.push(LogAtk {
+                logs.push(LogData {
                     log: "Critical strike!".to_string(),
                     color: "red".to_string(),
                 });
@@ -435,7 +457,7 @@ impl GameManager {
                     colortext = "red";
                 }
                 if eo.new_effect_param.effect_type == EFFECT_NB_COOL_DOWN {
-                    logs.push(LogAtk {
+                    logs.push(LogData {
                         color: colortext.to_string(),
                         log: format!(
                             "{} is applying {} on {} for {} turns",
@@ -446,7 +468,7 @@ impl GameManager {
                         ),
                     });
                 } else if eo.new_effect_param.stats_name == HP {
-                    logs.push(LogAtk {
+                    logs.push(LogData {
                         color: colortext.to_string(),
                         log: format!(
                             "{} is applying {} on {} for {} HP",
@@ -457,7 +479,7 @@ impl GameManager {
                         ),
                     });
                 } else {
-                    logs.push(LogAtk {
+                    logs.push(LogData {
                         color: colortext.to_string(),
                         log: format!(
                             "{} is applying {} on {} for {} {}",

@@ -15,6 +15,7 @@ use crate::{
     },
     effect::{EffectParam, is_effet_hot_or_dot},
     equipment::{Equipment, EquipmentJsonKey},
+    game_manager::LogData,
     game_state::GameState,
     utils::list_files_in_dir,
 };
@@ -273,7 +274,7 @@ impl PlayerManager {
         &mut self,
         game_state: &GameState,
         id_name: &str,
-    ) -> Result<Vec<String>> {
+    ) -> Result<Vec<LogData>> {
         let mut logs = Vec::new();
         match self.get_mut_active_character(id_name) {
             Some(c) => {
@@ -292,7 +293,10 @@ impl PlayerManager {
                         .remove_terminated_effect_on_player()
                         .iter()
                         .map(|e| {
-                            logs.push(format!("{} on {}", e.effect_type, e.stats_name));
+                            logs.push(LogData {
+                                log: format!("{} on {}", e.effect_type, e.stats_name),
+                                ..Default::default()
+                            });
                         });
                     // TODO apply passive power
 
@@ -338,7 +342,7 @@ impl PlayerManager {
         }
     }
 
-    pub fn process_hot_and_dot(&mut self, game_state: &GameState) -> (Vec<String>, i64) {
+    pub fn process_hot_and_dot(&mut self, game_state: &GameState) -> (Vec<LogData>, i64) {
         let mut logs = Vec::new();
         let mut hot_and_dot = 0;
         // First process all the effects whatever their order
@@ -565,17 +569,20 @@ fn set_targets_for_collection(
         });
 }
 
-fn process_hot_or_dot(local_log: &mut Vec<String>, hot_and_dot: &mut i64, gae: &GameAtkEffects) {
+fn process_hot_or_dot(local_log: &mut Vec<LogData>, hot_and_dot: &mut i64, gae: &GameAtkEffects) {
     *hot_and_dot += gae.all_atk_effects.value;
     let effect_type = if gae.all_atk_effects.value > 0 {
         "HOT->"
     } else {
         "DOT->"
     };
-    local_log.push(format!(
-        "{} valeur: {}, atk: {}",
-        effect_type, gae.all_atk_effects.value, gae.atk.name
-    ));
+    local_log.push(LogData {
+        log: format!(
+            "{} valeur: {}, atk: {}",
+            effect_type, gae.all_atk_effects.value, gae.atk.name
+        ),
+        ..Default::default()
+    });
 }
 
 #[cfg(test)]

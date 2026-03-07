@@ -4,7 +4,6 @@ use std::collections::HashMap;
 
 use crate::data_manager::DataManager;
 use crate::game_manager::GameManager;
-use crate::game_manager::LogAtk;
 use crate::server::server_manager::GamePhase;
 
 /// Game core state, stored on the server and sent to clients
@@ -19,8 +18,6 @@ pub struct CoreGameData {
     pub players_nb: i64,
     /// reload info: key: username, value: character-name
     pub heroes_chosen: HashMap<String, String>,
-    /// logs of the game, to display in the log sheet
-    pub logs: Vec<LogAtk>,
 }
 
 impl CoreGameData {
@@ -46,7 +43,6 @@ impl CoreGameData {
             game_phase: GamePhase::Default,
             players_nb: 0,
             heroes_chosen: HashMap::new(),
-            logs: Vec::new(),
         }
     }
 }
@@ -78,6 +74,6 @@ mod tests {
         );
         assert_eq!(core_game_data.players_nb, 0);
         assert!(core_game_data.heroes_chosen.is_empty());
-        assert!(core_game_data.logs.is_empty());
+        assert!(core_game_data.game_manager.logs.is_empty());
     }
 }
