@@ -515,6 +515,9 @@ impl GameManager {
         false
     }
 
+    /// Process the number of bosses that are attacking in a row in the current round, to know if it is the case to add a log for the new round with the info of the boss attack
+    /// boss should not be dead to be counted
+    /// used by dx-rpg
     pub fn process_nb_bosses_atk_in_a_row(&self) -> i64 {
         let mut count = 0;
 
@@ -526,7 +529,7 @@ impl GameManager {
                 let name = &self.game_state.order_to_play[i];
 
                 if let Some(c) = self.pm.get_active_character(name) {
-                    if c.kind == CharacterType::Boss {
+                    if c.kind == CharacterType::Boss && c.is_dead() != Some(true) {
                         count += 1;
                     } else {
                         break; // Stop counting when a non-Boss is found
@@ -1312,5 +1315,7 @@ mod tests {
         let result = gm.load_game("");
         assert!(result.is_err());
         let _ = gm.load_game(one_save);
+
+        // TODO case heroes are killing both bosses
     }
 }
