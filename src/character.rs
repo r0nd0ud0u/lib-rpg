@@ -611,6 +611,7 @@ impl Character {
         let target_armor = target_stats.get_armor_stat(is_magic);
         let launcher_pow = launcher_stats.get_power_stat(is_magic);
 
+        // dmg is negative towards ennemy (atk outcome, is positive while healing >< dmg)
         let damage = atk_value - launcher_pow / nb_of_turns;
         let protection = 1000.0 / (1000.0 + target_armor as f64);
 
@@ -935,7 +936,7 @@ impl Character {
                 full_atk_amount_tx: full_amount,
                 real_hp_amount_tx: full_amount,
                 new_effect_param,
-                target_id_name: self.id_name.clone(),
+                target_kind: self.id_name.clone(),
                 ..Default::default()
             };
         }
@@ -968,7 +969,7 @@ impl Character {
             full_atk_amount_tx: full_amount,
             real_hp_amount_tx: real_hp_amount,
             new_effect_param,
-            target_id_name: self.id_name.clone(),
+            target_kind: self.id_name.clone(),
             ..Default::default()
         };
         self.stats_in_game.update_by_effectoutcome(&eo);
@@ -1537,11 +1538,11 @@ mod tests {
     #[test]
     fn unit_process_atk_cost() {
         let mut c = testing_character();
-        let old_mana = c.stats.all_stats[MANA].current;
-        c.process_atk_cost("atk1"); // 10% mana cost
-        assert_eq!(old_mana - 20, c.stats.all_stats[MANA].current);
-        c.process_atk_cost("atk1"); // 10% mana cost again!
-        assert_eq!(old_mana - 40, c.stats.all_stats[MANA].current);
+        let old_vigor = c.stats.all_stats[VIGOR].current;
+        c.process_atk_cost("atk1"); // 10% vigor cost
+        assert_eq!(old_vigor - 20, c.stats.all_stats[VIGOR].current);
+        c.process_atk_cost("atk1"); // 10% vigor cost again!
+        assert_eq!(old_vigor - 40, c.stats.all_stats[VIGOR].current);
     }
 
     #[test]

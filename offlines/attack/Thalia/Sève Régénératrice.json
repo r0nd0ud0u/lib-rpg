@@ -11,16 +11,18 @@
             "Tours actifs": 1,
             "Type": "Reinit",
             "Valeur de l'effet": 3,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 120
+            "Value": 120,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

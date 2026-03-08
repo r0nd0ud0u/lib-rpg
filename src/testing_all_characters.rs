@@ -37,6 +37,16 @@ pub fn testing_game_manager() -> crate::game_manager::GameManager {
     gm
 }
 
+pub fn testing_test_ally1_vs_test_boss1() -> (crate::game_manager::GameManager, String, String) {
+    let mut gm = testing_game_manager();
+    gm.start_game();
+    let hero_launcher_id_name = "test_#1".to_string();
+    while gm.pm.current_player.id_name != hero_launcher_id_name {
+        gm.new_round();
+    }
+    (gm, hero_launcher_id_name, "test_boss1_#1".to_string())
+}
+
 #[cfg(not(tarpaulin_include))]
 pub fn testing_character() -> Character {
     let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file

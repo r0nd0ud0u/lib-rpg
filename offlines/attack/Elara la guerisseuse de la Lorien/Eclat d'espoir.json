@@ -11,7 +11,8 @@
             "Tours actifs": 1,
             "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 30
+            "Value": 30,
+            "IsMagicEffect": true
         },
         {
             "Cible": "All allies",
@@ -20,7 +21,8 @@
             "Tours actifs": 2,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 15
+            "Value": 15,
+            "IsMagicEffect": true
         },
         {
             "Cible": "All allies",
@@ -29,7 +31,8 @@
             "Tours actifs": 2,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 15
+            "Value": 15,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

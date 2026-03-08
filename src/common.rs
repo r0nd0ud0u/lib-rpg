@@ -66,7 +66,7 @@ pub mod effect_const {
     /// Effect to improve max value of a stat by percent (current value is updated by ratio)
     pub const EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE: &str = "up-max-stat-by-percentage";
     /// Effect to improve max value of a stat by value (current value is updated by ratio)
-    pub const EFFECT_IMPROVE_MAX_STAT_BY_VALUE: &str = "up-max-stat-by-value";
+    pub const EFFECT_IMPROVE_MAX_STAT_BY_VALUE: &str = "change-max-stat-by-value";
     pub const EFFECT_BLOCK_HEAL_ATK: &str = "Bloque attaque de soin";
     pub const EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT: &str = "Up/down degats en %";
     pub const EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT: &str = "Up/down degats RX en %";
@@ -74,7 +74,7 @@ pub mod effect_const {
     pub const EFFECT_CHANGE_HEAL_TX_BY_PERCENT: &str = "Up/down heal TX en %";
 
     /// Effect to improve current value of a stat by value
-    pub const EFFECT_VALUE_CHANGE: &str = "up-current-stat-by-value";
+    pub const EFFECT_VALUE_CHANGE: &str = "change-current-stat-by-value";
     /// Effect to improve current value of a stat by percent
     pub const EFFECT_PERCENT_CHANGE: &str = "up-current-stat-by-percentage";
     /// Assess the amount of applies for a stat

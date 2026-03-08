@@ -9,18 +9,20 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -150
+            "Value": -150,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Ennemie",
             "Portée": "Zone",
             "Stat": "Speed regeneration",
             "Tours actifs": 2,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -12
+            "Value": -12,
+            "IsMagicEffect": true
         },
         {
             "Cible": "",
@@ -29,7 +31,8 @@
             "Tours actifs": 0,
             "Type": "",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

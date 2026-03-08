@@ -1,6 +1,6 @@
 {
     "Cible": "Ennemie",
-    "Coût de mana": 0,
+    "Coût de mana": 1,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
@@ -9,9 +9,10 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 6,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 3,
-            "Value": -150
+            "Value": -150,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Ennemie",
@@ -20,7 +21,8 @@
             "Tours actifs": 1,
             "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 1,
-            "Value": -25
+            "Value": -25,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Ennemie",
@@ -29,7 +31,8 @@
             "Tours actifs": 1,
             "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 1,
-            "Value": -25
+            "Value": -25,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",
