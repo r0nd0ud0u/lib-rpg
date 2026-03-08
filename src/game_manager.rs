@@ -747,9 +747,7 @@ mod tests {
         let ra = gm.launch_attack(Some("SimpleAtk"));
 
         assert_eq!(1, ra.outcomes.len());
-        assert_eq!(1, ra.all_dodging.len());
-        assert_eq!(target_id_name, ra.all_dodging[0].name);
-        assert!(!ra.all_dodging[0].is_dodging);
+        assert!(ra.all_dodging.is_empty());
         assert!(ra.logs_atk.len() > 0);
         // not dead boss : end of game
         assert!(!gm.check_end_of_game());

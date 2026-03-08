@@ -680,8 +680,8 @@ impl Character {
         }
     }
 
-    pub fn is_dodging(&self, target: &str) -> bool {
-        self.dodge_info.is_dodging && target == TARGET_ENNEMY
+    pub fn is_dodging(&self, target_kind: &str) -> bool {
+        self.dodge_info.is_dodging && target_kind == TARGET_ENNEMY
     }
 
     pub fn process_dodging(&mut self, atk_level: u64) {
@@ -757,7 +757,7 @@ impl Character {
         launcher_kind: &CharacterType,
     ) -> bool {
         let is_ally = self.kind == *launcher_kind;
-        if effect.target_id_name == TARGET_HIMSELF && launcher_id_name != self.id_name {
+        if effect.target_kind == TARGET_HIMSELF && launcher_id_name != self.id_name {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is himself.",
                 effect.effect_type,
@@ -765,7 +765,7 @@ impl Character {
             );
             return false;
         }
-        if effect.target_id_name == TARGET_ONLY_ALLY && launcher_id_name == self.id_name {
+        if effect.target_kind == TARGET_ONLY_ALLY && launcher_id_name == self.id_name {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is only ally but launcher is himself.",
                 effect.effect_type,
@@ -773,7 +773,7 @@ impl Character {
             );
             return false;
         }
-        if !is_ally && is_target_ally(&effect.target_id_name) {
+        if !is_ally && is_target_ally(&effect.target_kind) {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ally but launcher is ennemy.",
                 effect.effect_type,
@@ -781,7 +781,7 @@ impl Character {
             );
             return false;
         }
-        if is_ally && effect.target_id_name == TARGET_ENNEMY {
+        if is_ally && effect.target_kind == TARGET_ENNEMY {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ennemy but launcher is ally.",
                 effect.effect_type,
@@ -790,7 +790,7 @@ impl Character {
             return false;
         }
         // is targeted ?
-        if effect.target_id_name == TARGET_ALLY
+        if effect.target_kind == TARGET_ALLY
             && effect.reach == INDIVIDUAL
             && !self.is_current_target
         {
@@ -801,7 +801,7 @@ impl Character {
             );
             return false;
         }
-        if effect.target_id_name == TARGET_ENNEMY
+        if effect.target_kind == TARGET_ENNEMY
             && effect.reach == INDIVIDUAL
             && !self.is_current_target
         {
@@ -812,7 +812,7 @@ impl Character {
             );
             return false;
         }
-        if effect.target_id_name == TARGET_ALLY
+        if effect.target_kind == TARGET_ALLY
             && effect.reach == ZONE
             && launcher_id_name == self.id_name
         {
@@ -823,7 +823,7 @@ impl Character {
             );
             return false;
         }
-        if self.is_dodging(&effect.target_id_name)
+        if self.is_dodging(&effect.target_kind)
             && self.kind != *launcher_kind
             && self.is_current_target
         {
@@ -904,7 +904,7 @@ impl Character {
 
         // apply buf/debuf to full_amount in case of damages/heal
         if ep.stats_name == HP {
-            full_amount = self.apply_buf_debuf(full_amount, &ep.target_id_name, is_crit);
+            full_amount = self.apply_buf_debuf(full_amount, &ep.target_kind, is_crit);
             new_effect_param.value = full_amount;
         }
 
@@ -944,8 +944,7 @@ impl Character {
             self.set_current_stats(&ep.stats_name, full_amount);
         }
         // blocking the atk
-        if self.dodge_info.is_blocking && ep.stats_name == HP && ep.target_id_name == TARGET_ENNEMY
-        {
+        if self.is_blocking(ep) {
             full_amount = 10 * full_amount / 100;
         }
         // Calculation of the real amount of the value of the effect and update the energy stats
@@ -974,6 +973,10 @@ impl Character {
         };
         self.stats_in_game.update_by_effectoutcome(&eo);
         eo
+    }
+
+    fn is_blocking(&mut self, ep: &EffectParam) -> bool {
+        self.dodge_info.is_blocking && ep.stats_name == HP && ep.target_kind == TARGET_ENNEMY
     }
 
     pub fn process_atk(
@@ -1055,7 +1058,9 @@ impl Character {
             // TODO check if the effect is not already applied
             eo = Some(self.apply_effect_outcome(ep, &launcher_info.stats, is_crit, current_turn));
             // assess the blocking
-            di.push(self.dodge_info.clone());
+            if self.is_blocking(ep) {
+                di.push(self.dodge_info.clone());
+            }
             // update all effects
             self.all_effects.push(GameAtkEffects {
                 all_atk_effects: ep.clone(),
@@ -1071,14 +1076,14 @@ impl Character {
                 current_turn,
                 self.kind,
                 launcher_info.id_name,
-                ep.target_id_name,
+                ep.target_kind,
                 launcher_info.kind,
                 ep.effect_type,
                 ep.stats_name
             );
         }
         // assess the dodging
-        if self.is_dodging(&ep.target_id_name)
+        if self.is_dodging(&ep.target_kind)
             && self.kind != launcher_info.kind
             && self.is_current_target
         {
@@ -1112,9 +1117,9 @@ impl Character {
             }
 
             if atk_effect.stats_name == HP
-                && (atk_effect.target_id_name == TARGET_ALLY
-                    || atk_effect.target_id_name == TARGET_ONLY_ALLY
-                    || atk_effect.target_id_name == TARGET_ALL_ALLIES)
+                && (atk_effect.target_kind == TARGET_ALLY
+                    || atk_effect.target_kind == TARGET_ONLY_ALLY
+                    || atk_effect.target_kind == TARGET_ALL_ALLIES)
                 && self.extended_character.is_heal_atk_blocked
             {
                 return false;
@@ -1483,7 +1488,7 @@ mod tests {
         let mut ep = EffectParam {
             effect_type: EFFECT_NB_COOL_DOWN.to_string(),
             nb_turns: 10,
-            target_id_name: c.id_name.clone(),
+            target_kind: c.id_name.clone(),
             ..Default::default()
         };
         let atk = Default::default();
@@ -1492,7 +1497,7 @@ mod tests {
         let (output_ep, result) = c.process_one_effect(&ep, false, &atk, &game_state, false);
         assert_eq!(EFFECT_NB_COOL_DOWN, output_ep.effect_type);
         assert_eq!(10, output_ep.nb_turns);
-        assert_eq!(c.id_name, output_ep.target_id_name);
+        assert_eq!(c.id_name, output_ep.target_kind);
         assert_eq!(0, output_ep.value);
         assert_eq!(0, output_ep.sub_value_effect);
         assert_eq!("Cooldown actif sur  de 10 tours.", result);
@@ -1504,7 +1509,7 @@ mod tests {
         let (output_ep, result) = c.process_one_effect(&ep, false, &atk, &game_state, true);
         assert_eq!(EFFECT_IMPROVE_MAX_STAT_BY_VALUE, output_ep.effect_type);
         assert_eq!(10, output_ep.nb_turns);
-        assert_eq!(c.id_name, output_ep.target_id_name);
+        assert_eq!(c.id_name, output_ep.target_kind);
         assert_eq!(15, output_ep.value);
         assert_eq!(0, output_ep.sub_value_effect);
         assert_eq!("Max stat of HP is up by value:15", result);
@@ -1519,7 +1524,7 @@ mod tests {
         // focus on effect_type
         assert_eq!(EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE, output_ep.effect_type);
         assert_eq!(10, output_ep.nb_turns);
-        assert_eq!(c.id_name, output_ep.target_id_name);
+        assert_eq!(c.id_name, output_ep.target_kind);
         // focus on value
         assert_eq!(10, output_ep.value);
         assert_eq!(10, output_ep.sub_value_effect);
@@ -1602,7 +1607,7 @@ mod tests {
         let ep = EffectParam {
             effect_type: EFFECT_NB_COOL_DOWN.to_string(),
             nb_turns: 10,
-            target_id_name: c.id_name.clone(),
+            target_kind: c.id_name.clone(),
             ..Default::default()
         };
         let atk = Default::default();
@@ -1611,7 +1616,7 @@ mod tests {
         let ep = c.assess_effect_param(&ep, false, &atk, &game_state, false);
         assert_eq!(EFFECT_NB_COOL_DOWN, ep.effect_type);
         assert_eq!(10, ep.nb_turns);
-        assert_eq!(c.id_name, ep.target_id_name);
+        assert_eq!(c.id_name, ep.target_kind);
     }
 
     #[test]
@@ -1756,7 +1761,7 @@ mod tests {
         assert_eq!(eo.new_effect_param.nb_turns, 2);
         assert_eq!(eo.new_effect_param.number_of_applies, 1);
         assert!(!eo.new_effect_param.is_magic_atk);
-        assert_eq!(eo.new_effect_param.target_id_name, TARGET_ALLY);
+        assert_eq!(eo.new_effect_param.target_kind, TARGET_ALLY);
 
         // target is ennemy
         let mut boss1 = Character::try_new_from_json(

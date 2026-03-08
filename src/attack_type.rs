@@ -170,7 +170,7 @@ mod tests {
         assert_eq!(atk_type.all_effects.len(), 1);
         assert_eq!(atk_type.all_effects[0].stats_name, HP);
         assert_eq!(atk_type.all_effects[0].value, -35);
-        assert_eq!(atk_type.all_effects[0].target_id_name, TARGET_ENNEMY);
+        assert_eq!(atk_type.all_effects[0].target_kind, TARGET_ENNEMY);
         assert_eq!(atk_type.all_effects[0].reach, INDIVIDUAL);
         assert_eq!(atk_type.all_effects[0].effect_type, EFFECT_VALUE_CHANGE);
         assert_eq!(atk_type.all_effects[0].sub_value_effect, 0);
