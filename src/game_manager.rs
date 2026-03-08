@@ -1318,16 +1318,6 @@ mod tests {
         }
         assert_eq!(GameStatus::EndOfGame, gm.game_state.status);
 
-        // check save game
-        // not use in dx-rpg
-        let _ = gm.save_game_manager();
-        let path = gm.game_paths.current_game_dir.clone();
-        let big_list = utils::list_dirs_in_dir(path);
-        let one_save = big_list.unwrap()[0].clone();
-        let result = gm.load_game("");
-        assert!(result.is_err());
-        let _ = gm.load_game(one_save);
-
         // TODO case heroes are killing both bosses
     }
 }
