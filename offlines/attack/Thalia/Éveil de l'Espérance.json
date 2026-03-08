@@ -12,9 +12,10 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 100
+            "Value": 100,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
@@ -23,7 +24,8 @@
             "Tours actifs": 1,
             "Type": "Supprime effet néfaste",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
@@ -32,7 +34,8 @@
             "Tours actifs": 1,
             "Type": "Reinit",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
 		{
             "Cible": "Soi-même",
@@ -41,7 +44,8 @@
             "Tours actifs": 5,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 1000,
-            "Value": 10
+            "Value": 10,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

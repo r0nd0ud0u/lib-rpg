@@ -9,9 +9,10 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -400
+            "Value": -400,
+            "IsMagicEffect": false
         },
         {
             "Cible": "All allies",
@@ -20,7 +21,8 @@
             "Tours actifs": 3,
             "Type": "Up/down degats en %",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
@@ -29,7 +31,8 @@
             "Tours actifs": 10,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": false
         },
         {
             "Cible": "All allies",
@@ -38,7 +41,8 @@
             "Tours actifs": 3,
             "Type": "Up/down heal TX en %",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "IsMagicEffect": false
         }
     ],
     "Forme": "Standard",

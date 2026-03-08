@@ -9,9 +9,10 @@
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 15
+            "Value": 15,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
@@ -20,7 +21,8 @@
             "Tours actifs": 2,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 150
+            "Value": 150,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
@@ -29,7 +31,8 @@
             "Tours actifs": 2,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 150
+            "Value": 150,
+            "IsMagicEffect": false
         }
     ],
     "Forme": "Standard",

@@ -19,12 +19,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResultLaunchAttack {
-    pub launcher_name: String,
+    pub launcher_id_name: String,
     pub outcomes: Vec<EffectOutcome>,
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
     pub is_boss_atk: bool,
-    pub logs_new_round: Vec<LogData>,
+    pub logs_end_of_round: Vec<LogData>,
     pub logs_atk: Vec<LogData>,
 }
 
@@ -255,9 +255,9 @@ impl GameManager {
         let Some(atk_name) = atk_name else {
             if self.is_round_auto() {
                 // auto atk for boss
-                if let Some(auto_atk_name) =
-                    AttackType::get_one_random_atk_name(&self.pm.current_player.attacks_list)
-                {
+                if let Some(auto_atk_name) = AttackType::get_one_random_atk_name(
+                    &self.pm.current_player.extended_character.launchable_atks,
+                ) {
                     tracing::info!(
                         "Auto attack for boss {}: {}",
                         self.pm.current_player.id_name,
@@ -266,13 +266,8 @@ impl GameManager {
                     return self.launch_attack(Some(&auto_atk_name));
                 }
             }
-            // update action done in round
-            self.pm.current_player.actions_done_in_round += 1;
-            tracing::error!(
-                "Error: no attack name provided for player {}",
-                self.pm.current_player.id_name
-            );
-            return ResultLaunchAttack::default();
+
+            return self.process_no_atk_launched();
         };
         // output
         let mut output: Vec<EffectOutcome> = vec![];
@@ -291,7 +286,7 @@ impl GameManager {
                     atk_name,
                     self.pm.current_player.id_name
                 );
-                return ResultLaunchAttack::default();
+                return self.process_no_atk_launched();
             }
         };
 
@@ -380,38 +375,17 @@ impl GameManager {
 
         // process end of attack
         let mut result_attack = ResultLaunchAttack {
-            launcher_name: self.pm.current_player.id_name.clone(),
+            launcher_id_name: self.pm.current_player.id_name.clone(),
             is_crit,
-            outcomes: output,
-            all_dodging,
+            outcomes: output.clone(),
+            all_dodging: all_dodging.clone(),
             is_boss_atk: self.is_boss_atk(),
-            logs_new_round: Vec::new(),
-            logs_atk: Vec::new(),
+            logs_end_of_round: Vec::new(),
+            logs_atk: self.build_logs_atk(&all_dodging, &output, is_crit),
         };
 
-        // TODO should be method self of ResultLaunchAttack
-        if self.check_end_of_game() {
-            self.game_state.status = GameStatus::EndOfGame;
-        } else {
-            let (is_new_round, logs) = self.new_round();
-            if is_new_round {
-                self.game_state.status = GameStatus::StartRound;
-                result_attack.logs_new_round = logs;
-            } else {
-                let (is_new_turn, logs) = self.start_new_turn();
-                if is_new_turn {
-                    result_attack.logs_new_round = logs;
-                    self.game_state.status = GameStatus::StartRound;
-                } else {
-                    self.game_state.status = GameStatus::EndOfGame;
-                }
-            }
-        }
-
-        // update logs
-        result_attack.logs_atk = self.build_logs_atk(result_attack.clone());
-        self.logs.extend(result_attack.logs_new_round.clone());
-        self.logs.extend(result_attack.logs_atk.clone());
+        // eval next step of the game
+        result_attack.logs_end_of_round = self.eval_end_of_round(result_attack.logs_atk.clone());
 
         // update game state with the result of the attack
         self.game_state.last_result_atk = result_attack.clone();
@@ -419,10 +393,63 @@ impl GameManager {
         result_attack
     }
 
-    pub fn build_logs_atk(&self, result_attack: ResultLaunchAttack) -> Vec<LogData> {
+    fn process_no_atk_launched(&mut self) -> ResultLaunchAttack {
+        // no atk launched
+        // update action done in round
+        self.pm.current_player.actions_done_in_round += 1;
+        let logs_atk = vec![LogData {
+            log: "No attack launched".to_string(),
+            color: "red".to_string(),
+        }];
+        // eval next step of the game
+        let logs_end_of_round = self.eval_end_of_round(logs_atk.clone());
+        ResultLaunchAttack {
+            launcher_id_name: self.pm.current_player.id_name.clone(),
+            is_boss_atk: self.is_boss_atk(),
+            logs_end_of_round,
+            logs_atk,
+            ..Default::default()
+        }
+    }
+
+    /// Evaluate the end of the round by checking if the game is finished,
+    ///  if a new round should start or if a new turn should start,
+    ///  and return the logs to display for the new round if it is the case
+    fn eval_end_of_round(&mut self, logs_atk: Vec<LogData>) -> Vec<LogData> {
+        let mut output_logs = vec![];
+        if self.check_end_of_game() {
+            self.game_state.status = GameStatus::EndOfGame;
+        } else {
+            let (is_new_round, logs) = self.new_round();
+            output_logs.extend(logs);
+            if is_new_round {
+                self.game_state.status = GameStatus::StartRound;
+            } else {
+                let (is_new_turn, logs) = self.start_new_turn();
+                output_logs.extend(logs);
+                if is_new_turn {
+                    self.game_state.status = GameStatus::StartRound;
+                } else {
+                    self.game_state.status = GameStatus::EndOfGame;
+                }
+            }
+        }
+
+        self.logs.extend(output_logs.clone());
+        self.logs.extend(logs_atk.clone());
+
+        output_logs
+    }
+
+    pub fn build_logs_atk(
+        &self,
+        all_dodging: &Vec<DodgeInfo>,
+        effects_outcomes: &Vec<EffectOutcome>,
+        is_crit: bool,
+    ) -> Vec<LogData> {
         let mut logs: Vec<LogData> = vec![];
         // dodging and blocking info
-        for d in result_attack.all_dodging {
+        for d in all_dodging {
             tracing::debug!("Dodge info for {}: {:?}", d.name, d);
             if d.is_dodging {
                 logs.push(LogData {
@@ -437,19 +464,19 @@ impl GameManager {
             }
         }
         // logs for the atk
-        if !result_attack.outcomes.is_empty() {
+        if !effects_outcomes.is_empty() {
             logs.push(LogData {
                 log: utils::format_string_with_timestamp("Last attack"),
                 color: "".to_string(),
             });
-            if result_attack.is_crit {
+            if is_crit {
                 logs.push(LogData {
                     log: "Critical strike!".to_string(),
                     color: "red".to_string(),
                 });
             }
 
-            for eo in result_attack.outcomes {
+            for eo in effects_outcomes {
                 let mut colortext = "green";
                 if eo.new_effect_param.stats_name == HP && eo.real_hp_amount_tx < 0
                     || eo.full_atk_amount_tx < 0
@@ -461,7 +488,7 @@ impl GameManager {
                         color: colortext.to_string(),
                         log: format!(
                             "{} is applying {} on {} for {} turns",
-                            eo.target_id_name,
+                            eo.target_kind,
                             eo.new_effect_param.effect_type,
                             eo.new_effect_param.stats_name,
                             eo.new_effect_param.nb_turns
@@ -472,7 +499,7 @@ impl GameManager {
                         color: colortext.to_string(),
                         log: format!(
                             "{} is applying {} on {} for {} HP",
-                            eo.target_id_name,
+                            eo.target_kind,
                             eo.new_effect_param.effect_type,
                             eo.new_effect_param.stats_name,
                             eo.full_atk_amount_tx
@@ -483,7 +510,7 @@ impl GameManager {
                         color: colortext.to_string(),
                         log: format!(
                             "{} is applying {} on {} for {} {}",
-                            eo.target_id_name,
+                            eo.target_kind,
                             eo.new_effect_param.effect_type,
                             eo.new_effect_param.stats_name,
                             eo.full_atk_amount_tx,
@@ -571,9 +598,11 @@ mod tests {
     use crate::character::Class;
     use crate::common::attak_const::COEFF_CRIT_DMG;
     use crate::common::effect_const::EFFECT_NB_COOL_DOWN;
-    use crate::game_manager::ResultLaunchAttack;
+    use crate::game_manager::LogData;
     use crate::game_state::GameStatus;
-    use crate::testing_all_characters::{self, testing_game_manager};
+    use crate::testing_all_characters::{
+        self, testing_game_manager, testing_test_ally1_vs_test_boss1,
+    };
     use crate::utils;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
@@ -675,21 +704,26 @@ mod tests {
     }
 
     #[test]
-    fn unit_launch_attack_case1() {
-        let mut gm = testing_all_characters::testing_game_manager();
-        gm.start_game();
+    fn unit_launch_attack_none_atk_hero() {
+        let (mut gm, _hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
 
-        // # case 1 dmg on individual ennemy
-        // No dodging of boss
-        // no critical of current player
-        // TODO load atk by json
-        let atk = build_atk_damage_indiv();
+        // test unknown atk
+        let ra = gm.launch_attack(None);
+        assert_eq!(
+            ra.logs_atk,
+            vec![LogData {
+                log: "No attack launched".to_string(),
+                color: "red".to_string(),
+            }]
+        );
+    }
+
+    #[test]
+    fn unit_launch_attack_simple_atk_vigor() {
+        let (mut gm, hero_launcher_id_name, target_id_name) = testing_test_ally1_vs_test_boss1();
+
         gm.pm
-            .current_player
-            .attacks_list
-            .insert(atk.name.clone(), atk.clone());
-        gm.pm
-            .get_mut_active_boss_character("test_boss1_#1")
+            .get_mut_active_boss_character(&target_id_name)
             .unwrap()
             .stats
             .all_stats[DODGE]
@@ -697,125 +731,110 @@ mod tests {
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_boss = gm
             .pm
-            .get_active_boss_character("test_boss1_#1")
+            .get_active_boss_character(&target_id_name)
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
-        let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_id_name = gm.pm.current_player.id_name.clone();
+        let old_vigor_hero = gm.pm.current_player.stats.all_stats[VIGOR].current;
+
+        // test normal atk
+        // set target
         gm.pm
-            .get_mut_active_boss_character("test_boss1_#1")
+            .get_mut_active_boss_character(&target_id_name)
             .unwrap()
             .is_current_target = true;
-        // test unknown atk
-        let ra = gm.launch_attack(None);
-        assert_eq!(ResultLaunchAttack::default(), ra);
-        // test normal atk
-        let ra = gm.launch_attack(Some(&atk.clone().name));
+        let ra = gm.launch_attack(Some("SimpleAtk"));
+
         assert_eq!(1, ra.outcomes.len());
         assert_eq!(1, ra.all_dodging.len());
-        assert_eq!("test_boss1_#1", ra.all_dodging[0].name);
+        assert_eq!(target_id_name, ra.all_dodging[0].name);
         assert!(!ra.all_dodging[0].is_dodging);
         assert!(ra.logs_atk.len() > 0);
         // not dead boss : end of game
         assert!(!gm.check_end_of_game());
+        // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
         assert_eq!(
-            old_hp_boss - 40,
+            old_hp_boss - 45,
             gm.pm
-                .get_active_boss_character("test_boss1_#1")
+                .get_active_boss_character(&target_id_name)
                 .unwrap()
                 .stats
                 .all_stats[HP]
                 .current
         );
+        // cost: 9 % of vigor 200 = 18
         assert_eq!(
-            old_mana_hero - 20,
+            old_vigor_hero - 18,
             gm.pm
-                .get_active_hero_character(&old_hero_id_name)
+                .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
                 .stats
-                .all_stats[MANA]
+                .all_stats[VIGOR]
                 .current
-        ); // 10% of 200 (total mana)
+        );
     }
 
     #[test]
-    fn unit_launch_attack_case2() {
-        let mut gm = testing_all_characters::testing_game_manager();
-        gm.start_game();
+    fn unit_launch_attack_simple_atk_vigor_on_dodging_ennemy() {
+        let (mut gm, hero_launcher_id_name, target_id_name) = testing_test_ally1_vs_test_boss1();
 
         // # case 2 dmg on individual ennemy
         // dodging of boss
         // no critical of current player
-        // TODO load atk by json
-        let atk = build_atk_damage_indiv();
+        // atk cost is even processed
         gm.pm
-            .current_player
-            .attacks_list
-            .insert(atk.name.clone(), atk.clone());
-        gm.pm
-            .get_mut_active_boss_character("test_boss1_#1")
+            .get_mut_active_boss_character(&target_id_name)
             .unwrap()
             .stats
             .all_stats[DODGE]
             .current = 100;
         gm.pm
-            .get_mut_active_boss_character("test_boss1_#1")
+            .get_mut_active_boss_character(&target_id_name)
             .unwrap()
             .is_current_target = true;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_boss = gm
             .pm
-            .get_active_boss_character("test_boss1_#1")
+            .get_active_boss_character(&target_id_name)
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
-        let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_id_name = gm.pm.current_player.id_name.clone();
-        gm.launch_attack(Some(&atk.clone().name));
+        let old_vigor_hero = gm.pm.current_player.stats.all_stats[VIGOR].current;
+        gm.launch_attack(Some("SimpleAtk"));
         // not dead boss : end of game
         assert!(!gm.check_end_of_game());
         assert_eq!(
             old_hp_boss,
             gm.pm
-                .get_active_boss_character("test_boss1_#1")
+                .get_active_boss_character(&target_id_name)
                 .unwrap()
                 .stats
                 .all_stats[HP]
                 .current
         );
+        // 9% of 200 (total vigor)
         assert_eq!(
-            old_mana_hero - 20,
+            old_vigor_hero - 18,
             gm.pm
-                .get_active_hero_character(&old_hero_id_name)
+                .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
                 .stats
-                .all_stats[MANA]
+                .all_stats[VIGOR]
                 .current
-        ); // 10% of 200 (total mana)
+        );
     }
 
     #[test]
-    fn unit_launch_attack_case3() {
-        let mut gm = testing_all_characters::testing_game_manager();
-        gm.start_game();
-        while gm.pm.current_player.id_name != "test_#1" {
-            gm.new_round();
-        }
+    fn unit_launch_attack_simple_atk_vigor_critical() {
+        let (mut gm, hero_launcher_id_name, target_id_name) = testing_test_ally1_vs_test_boss1();
 
         // # case 3 dmg on individual ennemy
         // No dodging of boss
         // critical of current player
-        // TODO load atk by json
-        let atk = build_atk_damage_indiv();
         gm.pm
-            .current_player
-            .attacks_list
-            .insert(atk.name.clone(), atk.clone());
-        gm.pm
-            .get_mut_active_boss_character("test_boss1_#1")
+            .get_mut_active_boss_character(&target_id_name)
             .unwrap()
             .stats
             .all_stats[DODGE]
@@ -823,110 +842,103 @@ mod tests {
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 100;
         let old_hp_boss = gm
             .pm
-            .get_active_boss_character("test_boss1_#1")
+            .get_active_boss_character(&target_id_name)
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
         gm.pm
-            .get_mut_active_boss_character("test_boss1_#1")
+            .get_mut_active_boss_character(&target_id_name)
             .unwrap()
             .is_current_target = true;
-        let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_id_name = gm.pm.current_player.id_name.clone();
-        gm.launch_attack(Some(&atk.clone().name));
+        let old_vigor_hero = gm.pm.current_player.stats.all_stats[VIGOR].current;
+        gm.launch_attack(Some("SimpleAtk"));
         // 1 dead boss : end of game
-        // assert!(gm.check_end_of_game());
-        // at least coeff critical strike = 2.0 (-40 * 2.0 = -80)
-        assert!(
-            old_hp_boss - 80
-                >= gm
-                    .pm
-                    .get_active_boss_character("test_boss1_#1")
-                    .unwrap()
-                    .stats
-                    .all_stats[HP]
-                    .current
-        );
+        assert!(!gm.check_end_of_game()); // still one boss
+        // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
+        // at least coeff critical strike = 2.0 (-45 * 2.0 = -90)
         assert_eq!(
-            old_mana_hero - 20,
+            old_hp_boss - 90,
             gm.pm
-                .get_active_hero_character(&old_hero_id_name)
-                .unwrap()
-                .stats
-                .all_stats[MANA]
-                .current
-        ); // 10% of 200 (total mana)
-    }
-
-    #[test]
-    fn unit_launch_attack_case4() {
-        let mut gm = testing_all_characters::testing_game_manager();
-        gm.start_game();
-
-        // # case 4 dmg on individual ennemy
-        // No dodging of boss
-        // Blocking
-        // No critical of current player
-        // TODO load atk by json
-        let atk = build_atk_damage_indiv();
-        gm.pm
-            .current_player
-            .attacks_list
-            .insert(atk.name.clone(), atk.clone());
-        gm.pm
-            .get_mut_active_boss_character("test_boss1_#1")
-            .unwrap()
-            .stats
-            .all_stats[DODGE]
-            .current = 100;
-        gm.pm
-            .get_mut_active_boss_character("test_boss1_#1")
-            .unwrap()
-            .class = Class::Tank;
-        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        let old_hp_boss = gm
-            .pm
-            .get_active_boss_character("test_boss1_#1")
-            .unwrap()
-            .stats
-            .all_stats[HP]
-            .current;
-        let old_mana_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_id_name = gm.pm.current_player.id_name.clone();
-        gm.pm
-            .get_mut_active_boss_character("test_boss1_#1")
-            .unwrap()
-            .is_current_target = true;
-        gm.launch_attack(Some(&atk.clone().name));
-        // not dead boss : end of game
-        assert!(!gm.check_end_of_game());
-        // blocking 10% of the damage is received (10% of 40)
-        assert_eq!(
-            old_hp_boss - 4,
-            gm.pm
-                .get_active_boss_character("test_boss1_#1")
+                .get_active_boss_character(&target_id_name)
                 .unwrap()
                 .stats
                 .all_stats[HP]
                 .current
         );
+        // 9% of 200 (total vigor)
         assert_eq!(
-            old_mana_hero - 20,
+            old_vigor_hero - 18,
             gm.pm
-                .get_active_hero_character(&old_hero_id_name)
+                .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
                 .stats
-                .all_stats[MANA]
+                .all_stats[VIGOR]
                 .current
-        ); // 10% of 200 (total mana)
+        );
     }
 
     #[test]
-    fn unit_launch_attack_case5() {
+    fn unit_launch_attack_simple_atk_on_blocking_boss() {
+        let (mut gm, hero_launcher_id_name, target_id_name) = testing_test_ally1_vs_test_boss1();
+
+        // # case 4 dmg on individual ennemy
+        // No dodging of boss
+        // Blocking
+        // No critical of current player
+        gm.pm
+            .get_mut_active_boss_character(&target_id_name)
+            .unwrap()
+            .stats
+            .all_stats[DODGE]
+            .current = 100;
+        gm.pm
+            .get_mut_active_boss_character(&target_id_name)
+            .unwrap()
+            .class = Class::Tank;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let old_hp_boss = gm
+            .pm
+            .get_active_boss_character(&target_id_name)
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let old_vigor_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        gm.pm
+            .get_mut_active_boss_character(&target_id_name)
+            .unwrap()
+            .is_current_target = true;
+        gm.launch_attack(Some("SimpleAtk"));
+        // not dead boss : end of game
+        assert!(!gm.check_end_of_game());
+        // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
+        // blocking 10% of the damage is received (10% of 45)
+        assert_eq!(
+            old_hp_boss - 4,
+            gm.pm
+                .get_active_boss_character(&target_id_name)
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current
+        );
+        // 9% of 200 (total vigor)
+        assert_eq!(
+            old_vigor_hero - 18,
+            gm.pm
+                .get_active_hero_character(&hero_launcher_id_name)
+                .unwrap()
+                .stats
+                .all_stats[VIGOR]
+                .current
+        );
+    }
+
+    #[test]
+    fn unit_launch_attack_atk_heal1_zone() {
         // Zone = Tous les heroes
-        let mut gm = testing_all_characters::testing_game_manager();
-        gm.start_game();
+        let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
 
         // # case 5 up and change on zone ally
         // ally 1 speed > ally 2 speed
@@ -961,7 +973,7 @@ mod tests {
         assert_eq!(
             old_mana_launcher - 20,
             gm.pm
-                .get_active_hero_character("test_#1")
+                .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
                 .stats
                 .all_stats[MANA]
@@ -971,30 +983,26 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_case_eclat_despoir() {
-        let mut gm = testing_all_characters::testing_game_manager();
-        // turn 1 round 1 (test)
-        gm.start_game();
-        while gm.pm.current_player.id_name != "test_#1" {
-            gm.new_round();
-        }
+        let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
+
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_test = gm
             .pm
-            .get_active_hero_character("test_#1")
+            .get_active_hero_character(&hero_launcher_id_name)
             .unwrap()
             .stats
             .all_stats[HP]
             .current;
         let old_mag_pow_test = gm
             .pm
-            .get_active_hero_character("test_#1")
+            .get_active_hero_character(&hero_launcher_id_name)
             .unwrap()
             .stats
             .all_stats[MAGICAL_POWER]
             .max;
         let old_phy_pow_test = gm
             .pm
-            .get_active_hero_character("test_#1")
+            .get_active_hero_character(&hero_launcher_id_name)
             .unwrap()
             .stats
             .all_stats[PHYSICAL_POWER]
@@ -1037,7 +1045,7 @@ mod tests {
         assert_eq!(
             old_hp_test + 40,
             gm.pm
-                .get_active_hero_character("test_#1")
+                .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
                 .stats
                 .all_stats[HP]
@@ -1047,7 +1055,7 @@ mod tests {
         assert_eq!(
             old_mana_launcher - 36,
             gm.pm
-                .get_active_hero_character("test_#1")
+                .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
                 .stats
                 .all_stats[MANA]
@@ -1068,7 +1076,7 @@ mod tests {
         assert_eq!(
             old_mag_pow_test + 3,
             gm.pm
-                .get_active_hero_character("test_#1")
+                .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
                 .stats
                 .all_stats[MAGICAL_POWER]
@@ -1089,7 +1097,7 @@ mod tests {
         assert_eq!(
             old_phy_pow_test + 1,
             gm.pm
-                .get_active_hero_character("test_#1")
+                .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
                 .stats
                 .all_stats[PHYSICAL_POWER]
@@ -1099,15 +1107,11 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_end_of_effect() {
-        let mut gm = testing_all_characters::testing_game_manager();
-        gm.create_game_dirs().unwrap();
-        gm.start_game();
+        let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
+
         // turn 1 round 1 (test)
         assert_eq!(gm.game_state.order_to_play.len(), 6);
-        while gm.pm.current_player.id_name != "test_#1" {
-            gm.new_round();
-        }
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, hero_launcher_id_name);
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         // apply effect Magic power - up by % for 2 turns (for turn1 and turn2 and is ending on turn 3)
         gm.launch_attack(Some("Eclat d'espoir"));
@@ -1160,18 +1164,13 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_up_par_valeur() {
-        let mut gm = testing_all_characters::testing_game_manager();
-        gm.create_game_dirs().unwrap();
-        // turn 1 round 1 (test)
-        gm.start_game();
-        while gm.pm.current_player.id_name != "test_#1" {
-            gm.new_round();
-        }
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
+        let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
+
+        assert_eq!(gm.pm.current_player.id_name, hero_launcher_id_name);
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_dodge = gm
             .pm
-            .get_mut_active_character("test_#1")
+            .get_mut_active_character(&hero_launcher_id_name)
             .unwrap()
             .stats
             .all_stats[DODGE]
@@ -1179,7 +1178,7 @@ mod tests {
         let result = gm.launch_attack(Some("up-par-valeur"));
         let new_dodge = gm
             .pm
-            .get_mut_active_character("test_#1")
+            .get_mut_active_character(&hero_launcher_id_name)
             .unwrap()
             .stats
             .all_stats[DODGE]
@@ -1190,42 +1189,33 @@ mod tests {
 
     #[test]
     fn unit_launch_attack_changement_par_value_berserk() {
-        let mut gm = testing_all_characters::testing_game_manager();
-        gm.create_game_dirs().unwrap();
-        // turn 1 round 1 (test)
-        gm.start_game();
-        while gm.pm.current_player.id_name != "test_#1" {
-            gm.new_round();
-        }
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
+        let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
+
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_berserk = gm
             .pm
-            .get_mut_active_character("test_#1")
+            .get_mut_active_character(&hero_launcher_id_name)
             .unwrap()
             .stats
             .all_stats[BERSERK]
             .current;
-        let result = gm.launch_attack(Some("changement-par-valeur-berseck"));
+        let result = gm.launch_attack(Some("change-current-stat-by-value-berseck"));
         let new_berserk = gm
             .pm
-            .get_mut_active_character("test_#1")
+            .get_mut_active_character(&hero_launcher_id_name)
             .unwrap()
             .stats
             .all_stats[BERSERK]
             .current;
         assert_eq!(result.outcomes.len(), 1); // target himself
-        assert_eq!(new_berserk, old_berserk + 20);
+        // cost: -5% of 200 = -10, effect value +20 => +10
+        assert_eq!(new_berserk, old_berserk + 10);
     }
 
     #[test]
     fn unit_launch_attack_case_cooldown() {
-        let mut gm = testing_all_characters::testing_game_manager();
-        // turn 1 round 1 (test)
-        gm.start_game();
-        while gm.pm.current_player.id_name != "test_#1" {
-            gm.new_round();
-        }
+        let (mut gm, _hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
+
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let result = gm.launch_attack(Some("cooldown"));
         assert!(!gm.check_end_of_game());

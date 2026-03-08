@@ -9,9 +9,10 @@
             "Portée": "Individuel",
             "Stat": "Speed regeneration",
             "Tours actifs": 3,
-            "Type": "up-max-stat-by-value",
+            "Type": "change-max-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 80
+            "Value": 80,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -20,16 +21,18 @@
             "Tours actifs": 3,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 180
+            "Value": 180,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Critical strike",
             "Tours actifs": 3,
-            "Type": "up-max-stat-by-value",
+            "Type": "change-max-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 50
+            "Value": 50,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

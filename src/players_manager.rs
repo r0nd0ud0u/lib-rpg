@@ -617,7 +617,7 @@ impl PlayerManager {
             .for_each(|c| c.is_potential_target = false);
     }
 
-    pub fn process_launchable_atks(&self) -> Vec<String> {
+    pub fn process_launchable_atks(&self) -> Vec<AttackType> {
         // assess potential target
         let mut launchable_attacks = Vec::new();
 
@@ -626,7 +626,7 @@ impl PlayerManager {
             let whatif_nb =
                 self.whatif_set_targeted_characters(&self.current_player.id_name, &atk.name);
             if can_be_launched && whatif_nb > 0 {
-                launchable_attacks.push(atk.name.clone());
+                launchable_attacks.push(atk.clone());
             }
         }
         launchable_attacks

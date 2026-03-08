@@ -9,27 +9,30 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 5,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "IsMagicEffect": true
         },
         {
             "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Regeneration Mana",
             "Tours actifs": 5,
-            "Type": "up-max-stat-by-value",
+            "Type": "change-max-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 2
+            "Value": 2,
+            "IsMagicEffect": true
         },
         {
             "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Dodge",
             "Tours actifs": 5,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -5
+            "Value": -5,
+            "IsMagicEffect": true
         },
         {
             "Cible": "All allies",
@@ -38,7 +41,8 @@
             "Tours actifs": 5,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 10
+            "Value": 10,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",
