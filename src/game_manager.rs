@@ -453,12 +453,12 @@ impl GameManager {
             if d.is_dodging {
                 logs.push(LogData {
                     log: format!("{} is dodging", d.name),
-                    color: "blue".to_string(),
+                    color: "#1a73e8".to_string(),
                 });
             } else if d.is_blocking {
                 logs.push(LogData {
                     log: format!("{} is blocking", d.name),
-                    color: "green".to_string(),
+                    color: "#10b981".to_string(),
                 });
             }
         }
@@ -471,16 +471,16 @@ impl GameManager {
             if is_crit {
                 logs.push(LogData {
                     log: "Critical strike!".to_string(),
-                    color: "red".to_string(),
+                    color: "#9b1c1c".to_string(),
                 });
             }
 
             for eo in effects_outcomes {
-                let mut colortext = "green";
+                let mut colortext = "#10b981";
                 if eo.new_effect_param.stats_name == HP && eo.real_hp_amount_tx < 0
                     || eo.full_atk_amount_tx < 0
                 {
-                    colortext = "red";
+                    colortext = "#9b1c1c";
                 }
                 if eo.new_effect_param.effect_type == EFFECT_NB_COOL_DOWN {
                     logs.push(LogData {
