@@ -11,7 +11,8 @@
             "Tours actifs": 1,
             "Type": "decreasing-rate-on-turn",
             "Valeur de l'effet": 3,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
@@ -20,7 +21,8 @@
             "Tours actifs": 1,
             "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 30
+            "Value": 30,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -29,7 +31,8 @@
             "Tours actifs": 1,
             "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": -15
+            "Value": -15,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
@@ -38,7 +41,8 @@
             "Tours actifs": 3,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
@@ -47,7 +51,8 @@
             "Tours actifs": 3,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -56,7 +61,8 @@
             "Tours actifs": 6,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

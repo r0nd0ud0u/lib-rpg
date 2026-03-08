@@ -1,4 +1,5 @@
 use crate::{
+    attack_type::AttackType,
     common::stats_const::HP,
     effect::{self, EffectParam},
     players_manager::GameAtkEffects,
@@ -17,7 +18,7 @@ pub struct CharacterFightInfo {
     #[serde(default, rename = "is_first_round")]
     pub is_first_round: bool,
     #[serde(default, rename = "launchable_atks")]
-    pub launchable_atks: Vec<String>,
+    pub launchable_atks: Vec<AttackType>,
 }
 
 impl Default for CharacterFightInfo {
@@ -32,7 +33,7 @@ impl Default for CharacterFightInfo {
 }
 
 impl CharacterFightInfo {
-    pub fn apply_launchable_atks(&mut self, launchable_atks: Vec<String>) {
+    pub fn apply_launchable_atks(&mut self, launchable_atks: Vec<AttackType>) {
         self.launchable_atks = launchable_atks;
     }
 }

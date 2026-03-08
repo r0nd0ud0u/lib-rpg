@@ -12,9 +12,10 @@
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 5
+            "Value": 5,
+            "IsMagicEffect": false
         },
         {
             "Cible": "All allies",
@@ -23,7 +24,8 @@
             "Tours actifs": 2,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "IsMagicEffect": false
         },
         {
             "Cible": "All allies",
@@ -32,7 +34,8 @@
             "Tours actifs": 2,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "IsMagicEffect": false
         },
 		{
             "Cible": "All allies",
@@ -41,7 +44,8 @@
             "Tours actifs": 2,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
@@ -50,7 +54,8 @@
             "Tours actifs": 5,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": false
         }
     ],
     "Forme": "Standard",

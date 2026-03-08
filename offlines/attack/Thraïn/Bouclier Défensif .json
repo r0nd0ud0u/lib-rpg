@@ -9,27 +9,30 @@
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 30
+            "Value": 30,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Dodge",
             "Tours actifs": 2,
-            "Type": "up-max-stat-by-value",
+            "Type": "change-max-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 20
+            "Value": 20,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Aggro",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 40
+            "Value": 40,
+            "IsMagicEffect": false
         }
     ],
     "Forme": "Standard",

@@ -12,27 +12,30 @@
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 10
+            "Value": 10,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Ennemie",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -25
+            "Value": -25,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Aggro",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 10
+            "Value": 10,
+            "IsMagicEffect": false
         }
     ],
     "Forme": "Standard",

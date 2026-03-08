@@ -11,7 +11,8 @@
             "Tours actifs": 1,
             "Type": "Active effet si Dégâts au tour précédent",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -20,16 +21,18 @@
             "Tours actifs": 1,
             "Type": "Buf multi",
             "Valeur de l'effet": 0,
-            "Value": 3
+            "Value": 3,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 3,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -38,16 +41,18 @@
             "Tours actifs": 5,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Ennemie",
             "Portée": "Aleatoire Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -35
+            "Value": -35,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

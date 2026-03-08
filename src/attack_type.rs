@@ -123,14 +123,12 @@ impl AttackType {
     }
 
     /// Get one random attack name from a list of attacks
-    pub fn get_one_random_atk_name(all_atks: &IndexMap<String, AttackType>) -> Option<String> {
-        if all_atks.is_empty() {
+    pub fn get_one_random_atk_name(launchable_atks: &[AttackType]) -> Option<String> {
+        if launchable_atks.is_empty() {
             return None;
         }
-        let nb = get_random_nb(0, all_atks.len() as i64 - 1);
-        all_atks
-            .get_index(nb as usize)
-            .map(|(_, atk)| atk.name.clone())
+        let nb = get_random_nb(0, launchable_atks.len() as i64 - 1);
+        launchable_atks.get(nb as usize).map(|atk| atk.name.clone())
     }
 }
 
@@ -160,8 +158,8 @@ mod tests {
         let atk_type: AttackType = atk_type.unwrap();
         assert_eq!(atk_type.name, "SimpleAtk");
         assert_eq!(atk_type.level, 1);
-        assert_eq!(atk_type.mana_cost, 9);
-        assert_eq!(atk_type.vigor_cost, 0);
+        assert_eq!(atk_type.mana_cost, 0);
+        assert_eq!(atk_type.vigor_cost, 9);
         assert_eq!(atk_type.berseck_cost, 0);
         assert_eq!(atk_type.target, TARGET_ENNEMY);
         assert_eq!(atk_type.reach, INDIVIDUAL);
@@ -198,13 +196,15 @@ mod tests {
         all_atks.insert(atk1.name.clone(), atk1.clone());
         all_atks.insert(atk2.name.clone(), atk2.clone());
 
-        let random_atk_name = AttackType::get_one_random_atk_name(&all_atks);
+        let random_atk_name =
+            AttackType::get_one_random_atk_name(&all_atks.values().cloned().collect::<Vec<_>>());
         assert!(random_atk_name.is_some());
         let atk_name = random_atk_name.unwrap();
         assert!(atk_name == atk1.name || atk_name == atk2.name);
 
         let empty_atks: IndexMap<String, AttackType> = IndexMap::new();
-        let random_atk_name = AttackType::get_one_random_atk_name(&empty_atks);
+        let random_atk_name =
+            AttackType::get_one_random_atk_name(&empty_atks.values().cloned().collect::<Vec<_>>());
         assert!(random_atk_name.is_none());
     }
 }

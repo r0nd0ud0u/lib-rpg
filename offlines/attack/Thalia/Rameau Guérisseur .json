@@ -11,7 +11,8 @@
             "Tours actifs": 4,
             "Type": "decreasing-rate-on-turn",
             "Valeur de l'effet": 3,
-            "Value": 32
+            "Value": 32,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
@@ -20,7 +21,8 @@
             "Tours actifs": 4,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 10
+            "Value": 10,
+            "IsMagicEffect": true
         },
         {
             "Cible": "",
@@ -29,7 +31,8 @@
             "Tours actifs": 0,
             "Type": "",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

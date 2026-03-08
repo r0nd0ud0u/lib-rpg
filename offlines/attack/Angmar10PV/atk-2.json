@@ -11,7 +11,8 @@
             "Tours actifs": 2,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": -75
+            "Value": -75,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Ennemie",
@@ -20,7 +21,8 @@
             "Tours actifs": 3,
             "Type": "Up/down degats en %",
             "Valeur de l'effet": 0,
-            "Value": -300
+            "Value": -300,
+            "IsMagicEffect": true
         },
         {
             "Cible": "",
@@ -29,7 +31,8 @@
             "Tours actifs": 0,
             "Type": "",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

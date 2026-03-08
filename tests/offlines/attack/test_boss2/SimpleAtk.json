@@ -1,9 +1,9 @@
 {
     "Aggro": 0,
     "Cible": "Ennemie",
-    "Coût de mana": 8,
+    "Coût de mana": 0,
     "Coût de rage": 0,
-    "Coût de vigueur": 0,
+    "Coût de vigueur": 8,
     "Durée": 1,
     "Effet": [
         {
@@ -11,9 +11,10 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -35
+            "Value": -35,
+            "IsMagicEffect": false
         }
     ],
     "Forme": "Standard",

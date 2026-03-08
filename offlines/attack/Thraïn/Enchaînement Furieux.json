@@ -11,25 +11,8 @@
             "Tours actifs": 1,
             "Type": "Répète tant que possible",
             "Valeur de l'effet": 0,
-            "Value": -50
-        },
-        {
-            "Cible": "",
-            "Portée": "",
-            "Stat": "",
-            "Tours actifs": 0,
-            "Type": "",
-            "Valeur de l'effet": 0,
-            "Value": 0
-        },
-        {
-            "Cible": "",
-            "Portée": "",
-            "Stat": "",
-            "Tours actifs": 0,
-            "Type": "",
-            "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": -50,
+            "IsMagicEffect": false
         }
     ],
     "Forme": "Standard",

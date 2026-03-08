@@ -9,9 +9,10 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 3,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "IsMagicEffect": true
         },
 	{
             "Cible": "All allies",
@@ -20,7 +21,8 @@
             "Tours actifs": 3,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 10
+            "Value": 10,
+            "IsMagicEffect": true
 		}
     ],
     "Forme": "Standard",

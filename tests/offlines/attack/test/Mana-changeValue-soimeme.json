@@ -1,9 +1,9 @@
 {
     "Aggro": 0,
     "Cible": "Soi-même",
-    "Coût de mana": 0,
+    "Coût de mana": 1,
     "Coût de rage": 0,
-    "Coût de vigueur": 1,
+    "Coût de vigueur": 0,
     "Durée": 1,
     "Dégâts": 0,
     "Effet": [
@@ -12,9 +12,10 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 10
+            "Value": 10,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

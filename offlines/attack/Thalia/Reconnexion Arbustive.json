@@ -11,7 +11,8 @@
             "Tours actifs": 1,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 20
+            "Value": 20,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -20,7 +21,8 @@
             "Tours actifs": 5,
             "Type": "% (stats) en dégâts",
             "Valeur de l'effet": 50,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -29,7 +31,8 @@
             "Tours actifs": 6,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

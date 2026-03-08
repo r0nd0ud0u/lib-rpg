@@ -32,12 +32,14 @@ pub struct EffectParam {
     /// Value of the effect
     #[serde(rename = "Value")]
     pub value: i64,
+    /// TODO from a magical attack ?or is magical effect ?
+    #[serde(rename = "IsMagicEffect")]
+    pub is_magic_atk: bool,
 
     /// Processed
     /// TODO
     pub updated: bool,
-    /// TODO from a magical attack ?or is magical effect ?
-    pub is_magic_atk: bool,
+
     /// Lasting turns
     pub counter_turn: i64,
     /// Number of applies
@@ -48,7 +50,7 @@ pub struct EffectParam {
 pub struct EffectOutcome {
     pub full_atk_amount_tx: i64,
     pub real_hp_amount_tx: i64,
-    pub target_id_name: String,
+    pub target_kind: String,
     pub atk: String,
     pub is_critical: bool,
     /// Updated effect param after apply on the target

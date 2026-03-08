@@ -75,6 +75,7 @@ pub fn build_dmg_effect_individual() -> EffectParam {
         stats_name: HP.to_owned(),
         value: -30,
         number_of_applies: 1,
+        is_magic_atk: false,
         ..Default::default()
     }
 }

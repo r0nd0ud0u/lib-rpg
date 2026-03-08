@@ -9,9 +9,10 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -55
+            "Value": -55,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
@@ -20,25 +21,28 @@
             "Tours actifs": 1,
             "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": -30
+            "Value": -30,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Dodge",
             "Tours actifs": 2,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -10
+            "Value": -10,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 45
+            "Value": 45,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",
@@ -47,7 +51,8 @@
             "Tours actifs": 5,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": false
         }
     ],
     "Forme": "Standard",

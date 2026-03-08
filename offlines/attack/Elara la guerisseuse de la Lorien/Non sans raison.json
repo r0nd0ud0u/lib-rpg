@@ -11,7 +11,8 @@
             "Tours actifs": 3,
             "Type": "Buf par valeur d'autant de PV",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "All allies",
@@ -20,7 +21,8 @@
             "Tours actifs": 3,
             "Type": "Buf par valeur d'autant de PV",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "All allies",
@@ -29,7 +31,8 @@
             "Tours actifs": 1,
             "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 100
+            "Value": 100,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -38,7 +41,8 @@
             "Tours actifs": 10,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -47,7 +51,8 @@
             "Tours actifs": 3,
             "Type": "Bloque attaque de soin",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

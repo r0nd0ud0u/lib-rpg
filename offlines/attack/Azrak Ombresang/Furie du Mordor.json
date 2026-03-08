@@ -14,7 +14,8 @@
             "Tours actifs": 4,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 30
+            "Value": 30,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Seulement les alliés",
@@ -23,7 +24,8 @@
             "Tours actifs": 4,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 15
+            "Value": 15,
+            "IsMagicEffect": false
         },
 		{
             "Cible": "Soi-même",
@@ -32,7 +34,8 @@
             "Tours actifs": 4,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 30
+            "Value": 30,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Seulement les alliés",
@@ -41,7 +44,8 @@
             "Tours actifs": 4,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 15
+            "Value": 15,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Soi-même",

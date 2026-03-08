@@ -9,18 +9,20 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -80
+            "Value": -80,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
             "Stat": "Speed regeneration",
             "Tours actifs": 6,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -10
+            "Value": -10,
+            "IsMagicEffect": true
         },
         {
             "Cible": "",
@@ -29,7 +31,8 @@
             "Tours actifs": 0,
             "Type": "",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

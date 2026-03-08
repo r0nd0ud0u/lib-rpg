@@ -1,7 +1,7 @@
 {
     "Cible": "Soi-même",
     "Coût de mana": 0,
-    "Coût de rage": 0,
+    "Coût de rage": 5,
     "Coût de vigueur": 0,
     "Effet": [
         {
@@ -9,14 +9,15 @@
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 2,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 20
+            "Value": 20,
+            "IsMagicEffect": false
         }
     ],
     "Forme": "Standard",
     "Niveau": 2,
-    "Nom": "changement-par-valeur-berseck",
+    "Nom": "change-current-stat-by-value-berseck",
     "Photo": "Thraïn.png",
     "Portée": "Individuel"
 }

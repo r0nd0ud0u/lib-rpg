@@ -11,7 +11,8 @@
             "Tours actifs": 4,
             "Type": "up-max-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": 10
+            "Value": 10,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -20,7 +21,8 @@
             "Tours actifs": 1,
             "Type": "Boost l'effet par nb HOTS presents en %",
             "Valeur de l'effet": 0,
-            "Value": 20
+            "Value": 20,
+            "IsMagicEffect": true
         },
         {
             "Cible": "All allies",
@@ -29,16 +31,18 @@
             "Tours actifs": 1,
             "Type": "Reinit",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 4,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 80
+            "Value": 80,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
@@ -47,7 +51,8 @@
             "Tours actifs": 1,
             "Type": "Supprime effet néfaste",
             "Valeur de l'effet": 1000,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -56,7 +61,8 @@
             "Tours actifs": 10,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 1000,
-            "Value": 10
+            "Value": 10,
+            "IsMagicEffect": true
         },
         {
             "Cible": "All allies",
@@ -65,7 +71,8 @@
             "Tours actifs": 1,
             "Type": "Boost chaque HOT de .. %",
             "Valeur de l'effet": 0,
-            "Value": 33
+            "Value": 33,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

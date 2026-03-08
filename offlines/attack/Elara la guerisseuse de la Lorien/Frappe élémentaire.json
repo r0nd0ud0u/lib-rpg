@@ -9,9 +9,10 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -70
+            "Value": -70,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -20,7 +21,8 @@
             "Tours actifs": 3,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -29,7 +31,8 @@
             "Tours actifs": 1,
             "Type": "Répète l'attaque(en % de chance) après heal tour prec.",
             "Valeur de l'effet": 1,
-            "Value": 50
+            "Value": 50,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

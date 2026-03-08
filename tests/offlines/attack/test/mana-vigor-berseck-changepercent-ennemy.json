@@ -1,8 +1,8 @@
 {
     "Cible": "All allies",
-    "Coût de mana": 0,
+    "Coût de mana": 1,
     "Coût de rage": 0,
-    "Coût de vigueur": 1,
+    "Coût de vigueur": 0,
     "Effet": [
         {
             "Cible": "All allies",
@@ -11,7 +11,8 @@
             "Tours actifs": 1,
             "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": -20
+            "Value": -20,
+            "IsMagicEffect": true
         },
         {
             "Cible": "All allies",
@@ -20,7 +21,8 @@
             "Tours actifs": 1,
             "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": -20
+            "Value": -20,
+            "IsMagicEffect": true
         },
            {
             "Cible": "All allies",
@@ -29,7 +31,8 @@
             "Tours actifs": 1,
             "Type": "up-current-stat-by-percentage",
             "Valeur de l'effet": 0,
-            "Value": -20
+            "Value": -20,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",

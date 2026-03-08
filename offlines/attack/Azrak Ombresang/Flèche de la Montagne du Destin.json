@@ -9,18 +9,20 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -120
+            "Value": -120,
+            "IsMagicEffect": false
         },
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 4,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -40
+            "Value": -40,
+            "IsMagicEffect": false
         },
 		  {
             "Cible": "Soi-même",
@@ -29,7 +31,8 @@
             "Tours actifs": 4,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": false
         },
 	{
             "Cible": "Soi-même",
@@ -38,16 +41,18 @@
             "Tours actifs": 1,
             "Type": "Up/down degats en %",
             "Valeur de l'effet": 0,
-            "Value": 100
+            "Value": 100,
+            "IsMagicEffect": false
         },
 	    {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Magic power",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 65
+            "Value": 65,
+            "IsMagicEffect": false
         }
     ],
     "Forme": "Standard",

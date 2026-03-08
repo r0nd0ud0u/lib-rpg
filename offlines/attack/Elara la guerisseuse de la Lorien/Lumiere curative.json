@@ -11,16 +11,18 @@
             "Tours actifs": 1,
             "Type": "Dégâts au tour précédent",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Allié",
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-value",
+            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 130
+            "Value": 130,
+            "IsMagicEffect": true
         },
         {
             "Cible": "Soi-même",
@@ -29,7 +31,8 @@
             "Tours actifs": 5,
             "Type": "cooldown-turns-nb",
             "Valeur de l'effet": 0,
-            "Value": 0
+            "Value": 0,
+            "IsMagicEffect": true
         }
     ],
     "Forme": "Standard",
