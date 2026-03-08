@@ -2,7 +2,7 @@
 pub mod all_target_const {
     pub const TARGET_ENNEMY: &str = "Ennemie";
     pub const TARGET_ALLY: &str = "Allié";
-    pub const TARGET_ALL_HEROES: &str = "Tous les heroes";
+    pub const TARGET_ALL_ALLIES: &str = "All allies";
     pub const TARGET_HIMSELF: &str = "Soi-même";
     pub const TARGET_ONLY_ALLY: &str = "Seulement les alliés";
 }

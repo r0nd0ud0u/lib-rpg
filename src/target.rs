@@ -16,7 +16,7 @@ impl TargetInfo {}
 pub fn is_target_ally(target: &str) -> bool {
     let targets: IndexSet<&str> = [
         TARGET_ALLY,
-        TARGET_ALL_HEROES,
+        TARGET_ALL_ALLIES,
         TARGET_HIMSELF,
         TARGET_ONLY_ALLY,
     ]
