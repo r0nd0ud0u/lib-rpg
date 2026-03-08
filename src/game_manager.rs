@@ -37,40 +37,39 @@ pub struct LogData {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GamePaths {
     /// Root path for the game, where all the different files will be stored
-    pub root: PathBuf,
+    pub input_data_root: PathBuf,
     /// Path where the characters of the game are stored
-    pub characters: PathBuf,
+    pub input_data_characters: PathBuf,
     /// Path where the equipments of the game are stored
-    pub equipments: PathBuf,
+    pub input_data_equipments: PathBuf,
     /// Path where the loot of the game are stored
-    pub loot: PathBuf,
+    pub output_loot: PathBuf,
     /// Path where the ongoing effects of the game are stored
-    pub ongoing_effects: PathBuf,
+    pub output_ongoing_effects: PathBuf,
     /// Path where the game state of the game is stored
-    pub game_state: PathBuf,
+    pub output_game_state: PathBuf,
     /// Path where the stats in game of the game are stored
-    pub stats_in_game: PathBuf,
+    pub output_stats_in_game: PathBuf,
     /// Path where the different games are stored
-    pub games_dir: PathBuf,
+    pub output_games_dir: PathBuf,
     /// Path where the current game is stored
-    pub current_game_dir: PathBuf,
+    pub output_current_game_dir: PathBuf,
 }
 
 impl GamePaths {
-    pub fn new<P: AsRef<Path>>(root_path: P, game_name: &str) -> GamePaths {
-        let cur_game_path = root_path.as_ref().join(game_name);
-
+    pub fn new<P: AsRef<Path>>(data_path: P, game_name: &str) -> GamePaths {
+        // join GAMES_DIR with game_name to create the current game dir
+        let output_dir = GAMES_DIR.to_path_buf().join(game_name);
         GamePaths {
-            root: root_path.as_ref().to_path_buf(),
-            games_dir: GAMES_DIR.to_path_buf(),
-            current_game_dir: cur_game_path.clone(),
-            characters: cur_game_path.join(OFFLINE_CHARACTERS.to_path_buf()),
-
-            equipments: cur_game_path.join(OFFLINE_EQUIPMENT.to_path_buf()),
-            game_state: cur_game_path.join(OFFLINE_GAMESTATE.to_path_buf()),
-            loot: cur_game_path.join(OFFLINE_LOOT_EQUIPMENT.to_path_buf()),
-            ongoing_effects: cur_game_path.join(OFFLINE_EFFECTS.to_path_buf()),
-            stats_in_game: cur_game_path.join(GAME_STATE_STATS_IN_GAME.to_path_buf()),
+            input_data_root: data_path.as_ref().to_path_buf(),
+            output_games_dir: GAMES_DIR.to_path_buf(),
+            output_current_game_dir: output_dir.clone(),
+            input_data_characters: data_path.as_ref().join(OFFLINE_CHARACTERS.to_path_buf()),
+            input_data_equipments: data_path.as_ref().join(OFFLINE_EQUIPMENT.to_path_buf()),
+            output_game_state: output_dir.join(OFFLINE_GAMESTATE.to_path_buf()),
+            output_loot: output_dir.join(OFFLINE_LOOT_EQUIPMENT.to_path_buf()),
+            output_ongoing_effects: output_dir.join(OFFLINE_EFFECTS.to_path_buf()),
+            output_stats_in_game: output_dir.join(GAME_STATE_STATS_IN_GAME.to_path_buf()),
         }
     }
 }
@@ -528,22 +527,24 @@ impl GameManager {
         // write_to_json
         utils::write_to_json(
             &self,
-            self.game_paths.current_game_dir.join("game_manager.json"),
+            self.game_paths
+                .output_current_game_dir
+                .join("game_manager.json"),
         )?;
         Ok(())
     }
 
     pub fn create_game_dirs(&self) -> Result<()> {
-        if let Err(e) = fs::create_dir_all(&self.game_paths.root) {
+        if let Err(e) = fs::create_dir_all(&self.game_paths.input_data_root) {
             eprintln!("Failed to create directory: {}", e);
         }
-        if let Err(e) = fs::create_dir_all(&self.game_paths.characters) {
+        if let Err(e) = fs::create_dir_all(&self.game_paths.input_data_characters) {
             eprintln!("Failed to create directory: {}", e);
         }
-        if let Err(e) = fs::create_dir_all(&self.game_paths.game_state) {
+        if let Err(e) = fs::create_dir_all(&self.game_paths.output_game_state) {
             eprintln!("Failed to create directory: {}", e);
         }
-        if let Err(e) = fs::create_dir_all(&self.game_paths.loot) {
+        if let Err(e) = fs::create_dir_all(&self.game_paths.output_loot) {
             eprintln!("Failed to create directory: {}", e);
         }
         Ok(())
@@ -603,7 +604,6 @@ mod tests {
     use crate::testing_all_characters::{
         self, testing_game_manager, testing_test_ally1_vs_test_boss1,
     };
-    use crate::utils;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
         testing_atk::*,
