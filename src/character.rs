@@ -1113,7 +1113,7 @@ impl Character {
             if atk_effect.stats_name == HP
                 && (atk_effect.target_id_name == TARGET_ALLY
                     || atk_effect.target_id_name == TARGET_ONLY_ALLY
-                    || atk_effect.target_id_name == TARGET_ALL_HEROES)
+                    || atk_effect.target_id_name == TARGET_ALL_ALLIES)
                 && self.extended_character.is_heal_atk_blocked
             {
                 return false;

@@ -14,7 +14,7 @@
             "Value": 60
         },
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Regeneration Mana",
             "Tours actifs": 4,
@@ -23,7 +23,7 @@
             "Value": 50
         },
 	{
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 4,
