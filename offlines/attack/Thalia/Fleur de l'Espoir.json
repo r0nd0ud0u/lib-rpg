@@ -5,7 +5,7 @@
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 5,
@@ -14,7 +14,7 @@
             "Value": 25
         },
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Regeneration Mana",
             "Tours actifs": 5,
@@ -23,7 +23,7 @@
             "Value": 2
         },
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Dodge",
             "Tours actifs": 5,
@@ -32,7 +32,7 @@
             "Value": -5
         },
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 5,

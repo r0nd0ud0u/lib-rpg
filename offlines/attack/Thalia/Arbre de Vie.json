@@ -1,6 +1,6 @@
 {
     "Aggro": 0,
-    "Cible": "Tous les heroes",
+    "Cible": "All allies",
     "Coût de mana": 9,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
@@ -8,7 +8,7 @@
     "Dégâts": 0,
     "Effet": [
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 3,
@@ -26,7 +26,7 @@
             "Value": 100
         },
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Physical power",
             "Tours actifs": 3,
@@ -35,7 +35,7 @@
             "Value": 20
         },
 		{
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 3,

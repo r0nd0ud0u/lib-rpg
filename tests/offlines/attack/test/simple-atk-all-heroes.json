@@ -1,13 +1,13 @@
 {
     "Aggro": 0,
-    "Cible": "Tous les heroes",
+    "Cible": "All allies",
     "Coût de mana": 9,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,

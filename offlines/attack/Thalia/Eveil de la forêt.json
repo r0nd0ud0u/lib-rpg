@@ -5,7 +5,7 @@
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 4,
@@ -23,7 +23,7 @@
             "Value": 20
         },
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
@@ -59,7 +59,7 @@
             "Value": 10
         },
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "",
             "Tours actifs": 1,

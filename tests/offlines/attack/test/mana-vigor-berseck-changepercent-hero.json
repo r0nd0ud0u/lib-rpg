@@ -1,11 +1,11 @@
 {
-    "Cible": "Tous les heroes",
+    "Cible": "All allies",
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 1,
     "Effet": [
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Mana",
             "Tours actifs": 1,
@@ -14,7 +14,7 @@
             "Value": -20
         },
         {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Vigueur",
             "Tours actifs": 1,
@@ -23,7 +23,7 @@
             "Value": -20
         },
            {
-            "Cible": "Tous les heroes",
+            "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Berserk",
             "Tours actifs": 1,

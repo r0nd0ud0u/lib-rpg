@@ -7,7 +7,7 @@ use crate::{
     attack_type::AttackType,
     character::{AmountType, Character, CharacterType},
     common::{
-        all_target_const::{TARGET_ALL_HEROES, TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF},
+        all_target_const::{TARGET_ALL_ALLIES, TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF},
         character_const::*,
         paths_const::OFFLINE_CHARACTERS,
         reach_const::{INDIVIDUAL, ZONE},
@@ -503,7 +503,7 @@ impl PlayerManager {
                 return 1;
             }
             // all heroes - atk
-            if atk.target == TARGET_ALL_HEROES {
+            if atk.target == TARGET_ALL_ALLIES {
                 let mut nb = 0;
                 self.active_heroes.iter().for_each(|c| {
                     if c.is_dead() == Some(false) {
@@ -566,7 +566,7 @@ impl PlayerManager {
                 return;
             }
             // all heroes - atk
-            if atk.target == TARGET_ALL_HEROES {
+            if atk.target == TARGET_ALL_ALLIES {
                 self.active_heroes.iter_mut().for_each(|c| {
                     if c.is_dead() == Some(false) {
                         c.is_potential_target = true;
