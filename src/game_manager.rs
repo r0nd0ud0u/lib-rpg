@@ -159,7 +159,7 @@ impl GameManager {
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
         let mut dead_heroes = Vec::new();
         for hero in &self.pm.active_heroes {
-            if !hero.is_dead().unwrap_or(false) {
+            if !hero.stats.is_dead().unwrap_or(false) {
                 self.game_state.order_to_play.push(hero.id_name.clone());
             } else {
                 dead_heroes.push(hero.id_name.clone());
@@ -175,7 +175,7 @@ impl GameManager {
             .active_bosses
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
         for boss in &self.pm.active_bosses {
-            if !boss.is_dead().unwrap_or(false) {
+            if !boss.stats.is_dead().unwrap_or(false) {
                 self.game_state.order_to_play.push(boss.id_name.clone());
             }
         }
@@ -191,12 +191,12 @@ impl GameManager {
             .pm
             .active_heroes
             .iter()
-            .all(|c| c.is_dead() == Some(true));
+            .all(|c| c.stats.is_dead() == Some(true));
         let all_bosses_dead = self
             .pm
             .active_bosses
             .iter()
-            .all(|c| c.is_dead() == Some(true));
+            .all(|c| c.stats.is_dead() == Some(true));
         all_bosses_dead || all_heroes_dead
     }
 
@@ -226,7 +226,7 @@ impl GameManager {
             );
         };
 
-        if self.pm.current_player.is_dead() == Some(true) {
+        if self.pm.current_player.stats.is_dead() == Some(true) {
             return self.new_round();
         }
 
@@ -594,7 +594,7 @@ impl GameManager {
                 let name = &self.game_state.order_to_play[i];
 
                 if let Some(c) = self.pm.get_active_character(name) {
-                    if c.kind == CharacterType::Boss && c.is_dead() != Some(true) {
+                    if c.kind == CharacterType::Boss && c.stats.is_dead() != Some(true) {
                         count += 1;
                     } else {
                         break; // Stop counting when a non-Boss is found

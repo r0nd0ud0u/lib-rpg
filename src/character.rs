@@ -264,19 +264,8 @@ impl Character {
         }
     }
 
-    pub fn is_dead(&self) -> Option<bool> {
-        if self.stats.all_stats.contains_key(HP) {
-            Some(self.stats.all_stats[HP].current == 0)
-        } else {
-            None
-        }
-    }
-
-    /**
-     * @brief Character::InitAggroOnTurn
-     * Set the aggro of m_LastTxRx to 0 on each turn
-     * Assess the amount of aggro of the last 5 turns
-     */
+    /// Set the aggro of m_LastTxRx to 0 on each turn
+    /// Assess the amount of aggro of the last 5 turns
     pub fn init_aggro_on_turn(&mut self, turn_nb: usize) {
         if self.character_rounds_info.tx_rx.len() <= AmountType::Aggro as usize {
             return;
@@ -1067,7 +1056,7 @@ impl Character {
     ) -> (Option<EffectOutcome>, Option<Vec<DodgeInfo>>) {
         let mut eo: Option<EffectOutcome> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
-        if self.is_dead() == Some(true) {
+        if self.stats.is_dead() == Some(true) {
             tracing::info!("is_receiving_atk: {} is already dead.", self.id_name);
             return (None, None);
         }
@@ -1328,10 +1317,10 @@ mod tests {
     fn unit_is_dead() {
         let mut c = Character::default();
         c.stats.init();
-        assert!(c.is_dead().is_some());
-        assert!(c.is_dead().unwrap());
+        assert!(c.stats.is_dead().is_some());
+        assert!(c.stats.is_dead().unwrap());
         c.stats.all_stats.get_mut(HP).unwrap().current = 15;
-        assert!(!c.is_dead().unwrap());
+        assert!(!c.stats.is_dead().unwrap());
     }
 
     #[test]

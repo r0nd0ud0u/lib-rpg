@@ -147,7 +147,7 @@ impl PlayerManager {
             &mut self.active_bosses
         };
         for pl in player_list {
-            if pl.is_dead().unwrap_or(false) {
+            if pl.stats.is_dead().unwrap_or(false) {
                 continue;
             }
 
@@ -385,7 +385,7 @@ impl PlayerManager {
             (&mut self.active_bosses, &self.active_heroes)
         };
         for pl1 in player_list1 {
-            if pl1.is_dead().unwrap_or(false) {
+            if pl1.stats.is_dead().unwrap_or(false) {
                 continue;
             }
             let speed_pl1 = match pl1.stats.all_stats.get_mut(SPEED) {
@@ -430,7 +430,7 @@ impl PlayerManager {
     pub fn process_died_players(&mut self) {
         // heroes
         self.active_heroes.iter_mut().for_each(|c| {
-            if c.is_dead() == Some(true) {
+            if c.stats.is_dead() == Some(true) {
                 c.reset_all_effects_on_player();
                 c.reset_all_buffers();
             }
@@ -447,7 +447,7 @@ impl PlayerManager {
             .active_heroes
             .iter()
             .enumerate()
-            .filter(|(_, c)| c.is_dead() == Some(false))
+            .filter(|(_, c)| c.stats.is_dead() == Some(false))
             .max_by_key(|&(_, c)| c.stats.all_stats[AGGRO].current)
         {
             self.active_heroes[max_index]
@@ -510,7 +510,7 @@ impl PlayerManager {
             if atk.target == TARGET_ALL_ALLIES {
                 let mut nb = 0;
                 self.active_heroes.iter().for_each(|c| {
-                    if c.is_dead() == Some(false) {
+                    if c.stats.is_dead() == Some(false) {
                         nb += 1;
                     }
                 });
@@ -572,7 +572,7 @@ impl PlayerManager {
             // all heroes - atk
             if atk.target == TARGET_ALL_ALLIES {
                 self.active_heroes.iter_mut().for_each(|c| {
-                    if c.is_dead() == Some(false) {
+                    if c.stats.is_dead() == Some(false) {
                         c.character_rounds_info.is_potential_target = true;
                         c.character_rounds_info.is_current_target = true;
                     }
@@ -649,7 +649,7 @@ impl PlayerManager {
         characters
             .iter_mut()
             .filter(|c| {
-                c.is_dead() == Some(false)
+                c.stats.is_dead() == Some(false)
                     && ((is_ally_condition && c.id_name != launcher_id_name) || is_ennemy_condition)
             })
             .for_each(|c| {
@@ -677,7 +677,7 @@ impl PlayerManager {
         characters
             .iter()
             .filter(|c| {
-                c.is_dead() == Some(false)
+                c.stats.is_dead() == Some(false)
                     && ((is_ally_condition && c.id_name != launcher_id_name) || is_ennemy_condition)
             })
             .for_each(|_c| {

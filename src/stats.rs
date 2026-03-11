@@ -203,6 +203,14 @@ impl Stats {
         };
         armor.current as i64
     }
+
+    pub fn is_dead(&self) -> Option<bool> {
+        if self.all_stats.contains_key(HP) {
+            Some(self.all_stats[HP].current == 0)
+        } else {
+            None
+        }
+    }
 }
 
 #[cfg(test)]
