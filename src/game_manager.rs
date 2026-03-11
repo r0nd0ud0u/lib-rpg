@@ -30,7 +30,7 @@ pub struct ResultLaunchAttack {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LogData {
-    pub log: String,
+    pub message: String,
     pub color: String,
 }
 
@@ -207,7 +207,7 @@ impl GameManager {
             return (
                 false,
                 vec![LogData {
-                    log: "End of turn has been reached".to_string(),
+                    message: "End of turn has been reached".to_string(),
                     ..Default::default()
                 }],
             );
@@ -220,7 +220,7 @@ impl GameManager {
             return (
                 false,
                 vec![LogData {
-                    log: "Error while updating current player".to_string(),
+                    message: "Error while updating current player".to_string(),
                     ..Default::default()
                 }],
             );
@@ -310,6 +310,8 @@ impl GameManager {
             .pm
             .current_player
             .process_atk(&self.game_state, is_crit, &atk);
+
+        // apply effect param on targets
         let launcher_stats = self.pm.current_player.stats.clone();
         let id_name = self.pm.current_player.id_name.clone();
         let kind = self.pm.current_player.kind.clone();
@@ -320,13 +322,13 @@ impl GameManager {
             stats: launcher_stats,
             atk_type: atk.clone(),
         };
-        for ep in &all_effects_param {
+        for processed_effect in &all_effects_param {
             for target_id_name in &all_players {
                 let mut o: Option<EffectOutcome> = None;
                 let mut all_di: Option<Vec<DodgeInfo>> = None;
                 if id_name == *target_id_name {
                     (o, all_di) = self.pm.current_player.is_receiving_atk(
-                        ep,
+                        processed_effect,
                         self.game_state.current_turn_nb,
                         is_crit,
                         &launcher_info,
@@ -334,7 +336,7 @@ impl GameManager {
                     tracing::trace!("Effect outcome for self target {}: {:?}", target_id_name, o);
                 } else if let Some(c) = self.pm.get_mut_active_character(target_id_name) {
                     (o, all_di) = c.is_receiving_atk(
-                        ep,
+                        processed_effect,
                         self.game_state.current_turn_nb,
                         is_crit,
                         &launcher_info,
@@ -397,7 +399,7 @@ impl GameManager {
         // update action done in round
         self.pm.current_player.actions_done_in_round += 1;
         let logs_atk = vec![LogData {
-            log: "No attack launched".to_string(),
+            message: "No attack launched".to_string(),
             color: "red".to_string(),
         }];
         // eval next step of the game
@@ -452,12 +454,12 @@ impl GameManager {
             tracing::debug!("Dodge info for {}: {:?}", d.name, d);
             if d.is_dodging {
                 logs.push(LogData {
-                    log: format!("{} is dodging", d.name),
+                    message: format!("{} is dodging", d.name),
                     color: "#1a73e8".to_string(),
                 });
             } else if d.is_blocking {
                 logs.push(LogData {
-                    log: format!("{} is blocking", d.name),
+                    message: format!("{} is blocking", d.name),
                     color: "#10b981".to_string(),
                 });
             }
@@ -465,55 +467,61 @@ impl GameManager {
         // logs for the atk
         if !effects_outcomes.is_empty() {
             logs.push(LogData {
-                log: utils::format_string_with_timestamp("Last attack"),
+                message: utils::format_string_with_timestamp("Last attack"),
                 color: "".to_string(),
             });
             if is_crit {
                 logs.push(LogData {
-                    log: "Critical strike!".to_string(),
+                    message: "Critical strike!".to_string(),
                     color: "#9b1c1c".to_string(),
                 });
             }
 
             for eo in effects_outcomes {
+                // log for the processed effect param
+                if !eo.processed_effect_param.log.message.is_empty() {
+                    logs.push(eo.processed_effect_param.log.clone());
+                }
+                // log for the effect outcome
                 let mut colortext = "#10b981";
-                if eo.new_effect_param.stats_name == HP && eo.real_hp_amount_tx < 0
+                if eo.processed_effect_param.input_effect_param.stats_name == HP
+                    && eo.real_hp_amount_tx < 0
                     || eo.full_atk_amount_tx < 0
                 {
                     colortext = "#9b1c1c";
                 }
-                if eo.new_effect_param.effect_type == EFFECT_NB_COOL_DOWN {
+                if eo.processed_effect_param.input_effect_param.effect_type == EFFECT_NB_COOL_DOWN {
                     logs.push(LogData {
                         color: colortext.to_string(),
-                        log: format!(
+                        message: format!(
                             "{} is applying {} on {} for {} turns",
                             eo.target_kind,
-                            eo.new_effect_param.effect_type,
-                            eo.new_effect_param.stats_name,
-                            eo.new_effect_param.nb_turns
+                            eo.processed_effect_param.input_effect_param.effect_type,
+                            eo.processed_effect_param.input_effect_param.stats_name,
+                            eo.processed_effect_param.input_effect_param.nb_turns
                         ),
                     });
-                } else if eo.new_effect_param.stats_name == HP {
+                } else if eo.processed_effect_param.input_effect_param.stats_name == HP {
                     logs.push(LogData {
                         color: colortext.to_string(),
-                        log: format!(
+                        message: format!(
                             "{} is applying {} on {} for {} HP",
                             eo.target_kind,
-                            eo.new_effect_param.effect_type,
-                            eo.new_effect_param.stats_name,
+                            eo.processed_effect_param.input_effect_param.effect_type,
+                            eo.processed_effect_param.input_effect_param.stats_name,
                             eo.full_atk_amount_tx
                         ),
                     });
                 } else {
                     logs.push(LogData {
                         color: colortext.to_string(),
-                        log: format!(
+                        message: format!(
                             "{} is applying {} on {} for {} {}",
                             eo.target_kind,
-                            eo.new_effect_param.effect_type,
-                            eo.new_effect_param.stats_name,
+                            eo.processed_effect_param.input_effect_param.effect_type,
+                            eo.processed_effect_param.input_effect_param.stats_name,
                             eo.full_atk_amount_tx,
-                            eo.new_effect_param.stats_name
+                            eo.processed_effect_param.input_effect_param.stats_name
                         ),
                     });
                 }
@@ -712,7 +720,7 @@ mod tests {
         assert_eq!(
             ra.logs_atk,
             vec![LogData {
-                log: "No attack launched".to_string(),
+                message: "No attack launched".to_string(),
                 color: "red".to_string(),
             }]
         );
@@ -1223,7 +1231,8 @@ mod tests {
                 .outcomes
                 .first()
                 .unwrap()
-                .new_effect_param
+                .processed_effect_param
+                .input_effect_param
                 .effect_type,
             EFFECT_NB_COOL_DOWN
         );

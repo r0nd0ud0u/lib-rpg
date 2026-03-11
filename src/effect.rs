@@ -3,7 +3,10 @@ use std::collections::HashSet;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::common::{effect_const::*, stats_const::HP};
+use crate::{
+    common::{effect_const::*, stats_const::HP},
+    game_manager::LogData,
+};
 
 /// Define the parameters of an effect.
 /// An effect can be enabled from an attack, a passive power or an object.
@@ -35,15 +38,19 @@ pub struct EffectParam {
     /// TODO from a magical attack ?or is magical effect ?
     #[serde(rename = "IsMagicEffect")]
     pub is_magic_atk: bool,
+}
 
-    /// Processed
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ProcessedEffectParam {
+    pub input_effect_param: EffectParam,
     /// TODO
     pub updated: bool,
-
     /// Lasting turns
     pub counter_turn: i64,
     /// Number of applies
     pub number_of_applies: i64,
+    pub log: LogData,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -54,7 +61,7 @@ pub struct EffectOutcome {
     pub atk: String,
     pub is_critical: bool,
     /// Updated effect param after apply on the target
-    pub new_effect_param: EffectParam,
+    pub processed_effect_param: ProcessedEffectParam,
 }
 
 pub fn is_effet_hot_or_dot(effect_name: &str) -> bool {
