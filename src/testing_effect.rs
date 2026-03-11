@@ -1,200 +1,241 @@
 #![allow(dead_code)]
+#[cfg(not(tarpaulin_include))]
+use crate::effect::ProcessedEffectParam;
 use crate::{
     common::{all_target_const::*, effect_const::*, reach_const::*, stats_const::*},
     effect::EffectParam,
 };
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_cooldown_effect() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_NB_COOL_DOWN.to_owned(),
-        nb_turns: 3,
-        sub_value_effect: 0,
-        target_id_name: TARGET_HIMSELF.to_owned(),
-        reach: INDIVIDUAL.to_owned(),
-        stats_name: "".to_owned(),
-        value: 0,
+pub fn build_cooldown_effect() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_NB_COOL_DOWN.to_owned(),
+            nb_turns: 3,
+            sub_value_effect: 0,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            stats_name: "".to_owned(),
+            value: 0,
+            ..Default::default()
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_heal_atk_blocked() -> EffectParam {
-    EffectParam {
-        effect_type: "".to_owned(),
-        nb_turns: 1,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ALL_ALLIES.to_owned(),
-        reach: INDIVIDUAL.to_owned(),
-        stats_name: HP.to_owned(),
-        value: 0,
+pub fn build_heal_atk_blocked() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: "".to_owned(),
+            nb_turns: 1,
+            sub_value_effect: 0,
+            target_kind: TARGET_ALL_ALLIES.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            stats_name: HP.to_owned(),
+            value: 0,
+            ..Default::default()
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_dot_effect_individual() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
-        nb_turns: 3,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ENNEMY.to_owned(),
-        reach: INDIVIDUAL.to_owned(),
-        stats_name: HP.to_owned(),
-        value: -20,
+pub fn build_dot_effect_individual() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+            nb_turns: 3,
+            sub_value_effect: 0,
+            target_kind: TARGET_ENNEMY.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            stats_name: HP.to_owned(),
+            value: -20,
+            ..Default::default()
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_dot_effect_zone() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
-        nb_turns: 3,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ENNEMY.to_owned(),
-        reach: ZONE.to_owned(),
-        stats_name: HP.to_owned(),
-        value: -20,
+pub fn build_dot_effect_zone() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+            nb_turns: 3,
+            sub_value_effect: 0,
+            target_kind: TARGET_ENNEMY.to_owned(),
+            reach: ZONE.to_owned(),
+            stats_name: HP.to_owned(),
+            value: -20,
+            ..Default::default()
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_dmg_effect_individual() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
-        nb_turns: 1,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ENNEMY.to_owned(),
-        reach: INDIVIDUAL.to_owned(),
-        stats_name: HP.to_owned(),
-        value: -30,
-        number_of_applies: 1,
-        is_magic_atk: false,
-        ..Default::default()
-    }
-}
-
-#[cfg(not(tarpaulin_include))]
-pub fn build_dmg_effect_zone() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
-        nb_turns: 1,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ENNEMY.to_owned(),
-        reach: ZONE.to_owned(),
-        stats_name: HP.to_owned(),
-        value: -30,
+pub fn build_dmg_effect_individual() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+            nb_turns: 1,
+            sub_value_effect: 0,
+            target_kind: TARGET_ENNEMY.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            stats_name: HP.to_owned(),
+            value: -30,
+            is_magic_atk: false,
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_hot_effect_individual() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
-        nb_turns: 2,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ALLY.to_owned(),
-        reach: INDIVIDUAL.to_owned(),
-        stats_name: HP.to_owned(),
-        value: 30,
+pub fn build_dmg_effect_zone() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+            nb_turns: 1,
+            sub_value_effect: 0,
+            target_kind: TARGET_ENNEMY.to_owned(),
+            reach: ZONE.to_owned(),
+            stats_name: HP.to_owned(),
+            value: -30,
+            is_magic_atk: false,
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_hot_effect_zone() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_PERCENT_CHANGE.to_owned(),
-        nb_turns: 3,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ALLY.to_owned(),
-        reach: ZONE.to_owned(),
-        stats_name: HP.to_owned(),
-        value: 30,
+pub fn build_hot_effect_individual() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+            nb_turns: 2,
+            sub_value_effect: 0,
+            target_kind: TARGET_ALLY.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            stats_name: HP.to_owned(),
+            value: 30,
+
+            ..Default::default()
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_hot_effect_all() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
-        nb_turns: 3,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ALL_ALLIES.to_owned(),
-        reach: ZONE.to_owned(),
-        stats_name: HP.to_owned(),
-        value: 20,
+pub fn build_hot_effect_zone() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_PERCENT_CHANGE.to_owned(),
+            nb_turns: 3,
+            sub_value_effect: 0,
+            target_kind: TARGET_ALLY.to_owned(),
+            reach: ZONE.to_owned(),
+            stats_name: HP.to_owned(),
+            value: 30,
+            ..Default::default()
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_effect_max_stats() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned(),
-        nb_turns: 3,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ENNEMY.to_owned(),
-        reach: INDIVIDUAL.to_owned(),
-        stats_name: HP.to_owned(),
-        value: -20,
+pub fn build_hot_effect_all() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+            nb_turns: 3,
+            sub_value_effect: 0,
+            target_kind: TARGET_ALL_ALLIES.to_owned(),
+            reach: ZONE.to_owned(),
+            stats_name: HP.to_owned(),
+            value: 20,
+            ..Default::default()
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_debuf_effect_individual() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
-        nb_turns: 3,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ENNEMY.to_owned(),
-        reach: INDIVIDUAL.to_owned(),
-        stats_name: MAGICAL_ARMOR.to_owned(),
-        value: -20,
+pub fn build_effect_max_stats() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned(),
+            nb_turns: 3,
+            sub_value_effect: 0,
+            target_kind: TARGET_ENNEMY.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            stats_name: HP.to_owned(),
+            value: -20,
+            ..Default::default()
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_buf_effect_individual() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
-        nb_turns: 3,
-        sub_value_effect: 0,
-        target_id_name: TARGET_ENNEMY.to_owned(),
-        reach: INDIVIDUAL.to_owned(),
-        stats_name: MAGICAL_ARMOR.to_owned(),
-        value: 20,
+pub fn build_debuf_effect_individual() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+            nb_turns: 3,
+            sub_value_effect: 0,
+            target_kind: TARGET_ENNEMY.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            stats_name: MAGICAL_ARMOR.to_owned(),
+            value: -20,
+            ..Default::default()
+        },
         number_of_applies: 1,
         ..Default::default()
     }
 }
 
 #[cfg(not(tarpaulin_include))]
-pub fn build_buf_effect_individual_speed_regen() -> EffectParam {
-    EffectParam {
-        effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned(),
-        nb_turns: 3,
-        sub_value_effect: 0,
-        target_id_name: TARGET_HIMSELF.to_owned(),
-        reach: INDIVIDUAL.to_owned(),
-        stats_name: SPEED_REGEN.to_owned(),
-        value: 10,
+pub fn build_buf_effect_individual() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+            nb_turns: 3,
+            sub_value_effect: 0,
+            target_kind: TARGET_ENNEMY.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            stats_name: MAGICAL_ARMOR.to_owned(),
+            value: 20,
+            ..Default::default()
+        },
+        number_of_applies: 1,
+        ..Default::default()
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+pub fn build_buf_effect_individual_speed_regen() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned(),
+            nb_turns: 3,
+            sub_value_effect: 0,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            stats_name: SPEED_REGEN.to_owned(),
+            value: 10,
+            ..Default::default()
+        },
         number_of_applies: 6,
         ..Default::default()
     }

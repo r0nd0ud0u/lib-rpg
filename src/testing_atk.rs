@@ -13,7 +13,7 @@ pub fn build_atk_damage_indiv() -> AttackType {
         vigor_cost: 10,
         target: TARGET_ENNEMY.to_owned(),
         reach: INDIVIDUAL.to_owned(),
-        all_effects: vec![build_dmg_effect_individual()],
+        all_effects: vec![build_dmg_effect_individual().input_effect_param],
         ..Default::default()
     }
 }
@@ -28,7 +28,7 @@ pub fn build_atk_damage_zone() -> AttackType {
         mana_cost: 10,
         target: TARGET_ENNEMY.to_owned(),
         reach: ZONE.to_owned(),
-        all_effects: vec![build_dmg_effect_zone()],
+        all_effects: vec![build_dmg_effect_zone().input_effect_param],
         ..Default::default()
     }
 }
@@ -41,7 +41,7 @@ pub fn build_atk_berseck_damage1() -> AttackType {
         berseck_cost: 2,
         target: TARGET_ENNEMY.to_owned(),
         reach: INDIVIDUAL.to_owned(),
-        all_effects: vec![build_dmg_effect_individual()],
+        all_effects: vec![build_dmg_effect_individual().input_effect_param],
         ..Default::default()
     }
 }
@@ -53,7 +53,7 @@ pub fn build_atk_heal1_indiv() -> AttackType {
         berseck_cost: 2,
         target: TARGET_ALLY.to_owned(),
         reach: INDIVIDUAL.to_owned(),
-        all_effects: vec![build_hot_effect_individual()],
+        all_effects: vec![build_hot_effect_individual().input_effect_param],
         ..Default::default()
     }
 }
@@ -67,7 +67,7 @@ pub fn build_atk_heal1_zone() -> AttackType {
         mana_cost: 10,
         target: TARGET_ALLY.to_owned(),
         reach: ZONE.to_owned(),
-        all_effects: vec![build_hot_effect_zone()],
+        all_effects: vec![build_hot_effect_zone().input_effect_param],
         ..Default::default()
     }
 }

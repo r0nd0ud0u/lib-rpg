@@ -55,21 +55,21 @@ impl CharacterFightInfo {
     pub fn get_hot_and_buf_nbs_txts(all_effects: &Vec<GameAtkEffects>) -> HotsBufs {
         let mut hots_bufs = HotsBufs::default();
         for e in all_effects {
-            if e.all_atk_effects.nb_turns < 2 {
+            if e.all_atk_effects.input_effect_param.nb_turns < 2 {
                 continue;
             }
-            let txt = Self::get_hot_and_buf_texts(&e.all_atk_effects);
+            let txt = Self::get_hot_and_buf_texts(&e.all_atk_effects.input_effect_param);
             if effect::is_hot(
-                &e.all_atk_effects.effect_type,
-                &e.all_atk_effects.stats_name,
-                e.all_atk_effects.value,
+                &e.all_atk_effects.input_effect_param.effect_type,
+                &e.all_atk_effects.input_effect_param.stats_name,
+                e.all_atk_effects.input_effect_param.value,
             ) {
                 hots_bufs.hot_nb += 1;
                 hots_bufs.hot_txt.push(txt);
-            } else if e.all_atk_effects.stats_name == HP {
+            } else if e.all_atk_effects.input_effect_param.stats_name == HP {
                 hots_bufs.dot_nb += 1;
                 hots_bufs.dot_txt.push(txt);
-            } else if e.all_atk_effects.value > 0 {
+            } else if e.all_atk_effects.input_effect_param.value > 0 {
                 hots_bufs.buf_nb += 1;
                 hots_bufs.buf_txt.push(txt);
             } else {
