@@ -13,7 +13,7 @@ use crate::{
         reach_const::{INDIVIDUAL, ZONE},
         stats_const::*,
     },
-    effect::{EffectParam, is_effet_hot_or_dot},
+    effect::{ProcessedEffectParam, is_effet_hot_or_dot},
     equipment::{Equipment, EquipmentJsonKey},
     game_manager::LogData,
     game_state::GameState,
@@ -22,7 +22,7 @@ use crate::{
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GameAtkEffects {
-    pub all_atk_effects: EffectParam,
+    pub all_atk_effects: ProcessedEffectParam,
     pub atk: AttackType,
     pub launcher: String,
     pub target: String,
@@ -294,7 +294,7 @@ impl PlayerManager {
                         .iter()
                         .map(|e| {
                             logs.push(LogData {
-                                log: format!("{} on {}", e.effect_type, e.stats_name),
+                                message: format!("{} on {}", e.effect_type, e.stats_name),
                                 ..Default::default()
                             });
                         });
@@ -356,8 +356,8 @@ impl PlayerManager {
                 continue;
             }
             // Process hot or dot
-            if gae.all_atk_effects.stats_name == HP
-                && is_effet_hot_or_dot(&gae.all_atk_effects.effect_type)
+            if gae.all_atk_effects.input_effect_param.stats_name == HP
+                && is_effet_hot_or_dot(&gae.all_atk_effects.input_effect_param.effect_type)
             {
                 process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
             }
@@ -689,16 +689,16 @@ impl PlayerManager {
 }
 
 fn process_hot_or_dot(local_log: &mut Vec<LogData>, hot_and_dot: &mut i64, gae: &GameAtkEffects) {
-    *hot_and_dot += gae.all_atk_effects.value;
-    let effect_type = if gae.all_atk_effects.value > 0 {
+    *hot_and_dot += gae.all_atk_effects.input_effect_param.value;
+    let effect_type = if gae.all_atk_effects.input_effect_param.value > 0 {
         "HOT->"
     } else {
         "DOT->"
     };
     local_log.push(LogData {
-        log: format!(
+        message: format!(
             "{} valeur: {}, atk: {}",
-            effect_type, gae.all_atk_effects.value, gae.atk.name
+            effect_type, gae.all_atk_effects.input_effect_param.value, gae.atk.name
         ),
         ..Default::default()
     });

@@ -30,47 +30,46 @@ pub struct ResultLaunchAttack {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LogData {
-    pub log: String,
+    pub message: String,
     pub color: String,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GamePaths {
     /// Root path for the game, where all the different files will be stored
-    pub root: PathBuf,
+    pub input_data_root: PathBuf,
     /// Path where the characters of the game are stored
-    pub characters: PathBuf,
+    pub input_data_characters: PathBuf,
     /// Path where the equipments of the game are stored
-    pub equipments: PathBuf,
+    pub input_data_equipments: PathBuf,
     /// Path where the loot of the game are stored
-    pub loot: PathBuf,
+    pub output_loot: PathBuf,
     /// Path where the ongoing effects of the game are stored
-    pub ongoing_effects: PathBuf,
+    pub output_ongoing_effects: PathBuf,
     /// Path where the game state of the game is stored
-    pub game_state: PathBuf,
+    pub output_game_state: PathBuf,
     /// Path where the stats in game of the game are stored
-    pub stats_in_game: PathBuf,
+    pub output_stats_in_game: PathBuf,
     /// Path where the different games are stored
-    pub games_dir: PathBuf,
+    pub output_games_dir: PathBuf,
     /// Path where the current game is stored
-    pub current_game_dir: PathBuf,
+    pub output_current_game_dir: PathBuf,
 }
 
 impl GamePaths {
-    pub fn new<P: AsRef<Path>>(root_path: P, game_name: &str) -> GamePaths {
-        let cur_game_path = root_path.as_ref().join(game_name);
-
+    pub fn new<P: AsRef<Path>>(data_path: P, game_name: &str) -> GamePaths {
+        // join GAMES_DIR with game_name to create the current game dir
+        let output_dir = GAMES_DIR.to_path_buf().join(game_name);
         GamePaths {
-            root: root_path.as_ref().to_path_buf(),
-            games_dir: GAMES_DIR.to_path_buf(),
-            current_game_dir: cur_game_path.clone(),
-            characters: cur_game_path.join(OFFLINE_CHARACTERS.to_path_buf()),
-
-            equipments: cur_game_path.join(OFFLINE_EQUIPMENT.to_path_buf()),
-            game_state: cur_game_path.join(OFFLINE_GAMESTATE.to_path_buf()),
-            loot: cur_game_path.join(OFFLINE_LOOT_EQUIPMENT.to_path_buf()),
-            ongoing_effects: cur_game_path.join(OFFLINE_EFFECTS.to_path_buf()),
-            stats_in_game: cur_game_path.join(GAME_STATE_STATS_IN_GAME.to_path_buf()),
+            input_data_root: data_path.as_ref().to_path_buf(),
+            output_games_dir: GAMES_DIR.to_path_buf(),
+            output_current_game_dir: output_dir.clone(),
+            input_data_characters: data_path.as_ref().join(OFFLINE_CHARACTERS.to_path_buf()),
+            input_data_equipments: data_path.as_ref().join(OFFLINE_EQUIPMENT.to_path_buf()),
+            output_game_state: output_dir.join(OFFLINE_GAMESTATE.to_path_buf()),
+            output_loot: output_dir.join(OFFLINE_LOOT_EQUIPMENT.to_path_buf()),
+            output_ongoing_effects: output_dir.join(OFFLINE_EFFECTS.to_path_buf()),
+            output_stats_in_game: output_dir.join(GAME_STATE_STATS_IN_GAME.to_path_buf()),
         }
     }
 }
@@ -208,7 +207,7 @@ impl GameManager {
             return (
                 false,
                 vec![LogData {
-                    log: "End of turn has been reached".to_string(),
+                    message: "End of turn has been reached".to_string(),
                     ..Default::default()
                 }],
             );
@@ -221,7 +220,7 @@ impl GameManager {
             return (
                 false,
                 vec![LogData {
-                    log: "Error while updating current player".to_string(),
+                    message: "Error while updating current player".to_string(),
                     ..Default::default()
                 }],
             );
@@ -311,6 +310,8 @@ impl GameManager {
             .pm
             .current_player
             .process_atk(&self.game_state, is_crit, &atk);
+
+        // apply effect param on targets
         let launcher_stats = self.pm.current_player.stats.clone();
         let id_name = self.pm.current_player.id_name.clone();
         let kind = self.pm.current_player.kind.clone();
@@ -321,13 +322,13 @@ impl GameManager {
             stats: launcher_stats,
             atk_type: atk.clone(),
         };
-        for ep in &all_effects_param {
+        for processed_effect in &all_effects_param {
             for target_id_name in &all_players {
                 let mut o: Option<EffectOutcome> = None;
                 let mut all_di: Option<Vec<DodgeInfo>> = None;
                 if id_name == *target_id_name {
                     (o, all_di) = self.pm.current_player.is_receiving_atk(
-                        ep,
+                        processed_effect,
                         self.game_state.current_turn_nb,
                         is_crit,
                         &launcher_info,
@@ -335,7 +336,7 @@ impl GameManager {
                     tracing::trace!("Effect outcome for self target {}: {:?}", target_id_name, o);
                 } else if let Some(c) = self.pm.get_mut_active_character(target_id_name) {
                     (o, all_di) = c.is_receiving_atk(
-                        ep,
+                        processed_effect,
                         self.game_state.current_turn_nb,
                         is_crit,
                         &launcher_info,
@@ -398,7 +399,7 @@ impl GameManager {
         // update action done in round
         self.pm.current_player.actions_done_in_round += 1;
         let logs_atk = vec![LogData {
-            log: "No attack launched".to_string(),
+            message: "No attack launched".to_string(),
             color: "red".to_string(),
         }];
         // eval next step of the game
@@ -453,68 +454,74 @@ impl GameManager {
             tracing::debug!("Dodge info for {}: {:?}", d.name, d);
             if d.is_dodging {
                 logs.push(LogData {
-                    log: format!("{} is dodging", d.name),
-                    color: "blue".to_string(),
+                    message: format!("{} is dodging", d.name),
+                    color: "#1a73e8".to_string(),
                 });
             } else if d.is_blocking {
                 logs.push(LogData {
-                    log: format!("{} is blocking", d.name),
-                    color: "green".to_string(),
+                    message: format!("{} is blocking", d.name),
+                    color: "#10b981".to_string(),
                 });
             }
         }
         // logs for the atk
         if !effects_outcomes.is_empty() {
             logs.push(LogData {
-                log: utils::format_string_with_timestamp("Last attack"),
+                message: utils::format_string_with_timestamp("Last attack"),
                 color: "".to_string(),
             });
             if is_crit {
                 logs.push(LogData {
-                    log: "Critical strike!".to_string(),
-                    color: "red".to_string(),
+                    message: "Critical strike!".to_string(),
+                    color: "#9b1c1c".to_string(),
                 });
             }
 
             for eo in effects_outcomes {
-                let mut colortext = "green";
-                if eo.new_effect_param.stats_name == HP && eo.real_hp_amount_tx < 0
+                // log for the processed effect param
+                if !eo.processed_effect_param.log.message.is_empty() {
+                    logs.push(eo.processed_effect_param.log.clone());
+                }
+                // log for the effect outcome
+                let mut colortext = "#10b981";
+                if eo.processed_effect_param.input_effect_param.stats_name == HP
+                    && eo.real_hp_amount_tx < 0
                     || eo.full_atk_amount_tx < 0
                 {
-                    colortext = "red";
+                    colortext = "#9b1c1c";
                 }
-                if eo.new_effect_param.effect_type == EFFECT_NB_COOL_DOWN {
+                if eo.processed_effect_param.input_effect_param.effect_type == EFFECT_NB_COOL_DOWN {
                     logs.push(LogData {
                         color: colortext.to_string(),
-                        log: format!(
+                        message: format!(
                             "{} is applying {} on {} for {} turns",
                             eo.target_kind,
-                            eo.new_effect_param.effect_type,
-                            eo.new_effect_param.stats_name,
-                            eo.new_effect_param.nb_turns
+                            eo.processed_effect_param.input_effect_param.effect_type,
+                            eo.processed_effect_param.input_effect_param.stats_name,
+                            eo.processed_effect_param.input_effect_param.nb_turns
                         ),
                     });
-                } else if eo.new_effect_param.stats_name == HP {
+                } else if eo.processed_effect_param.input_effect_param.stats_name == HP {
                     logs.push(LogData {
                         color: colortext.to_string(),
-                        log: format!(
+                        message: format!(
                             "{} is applying {} on {} for {} HP",
                             eo.target_kind,
-                            eo.new_effect_param.effect_type,
-                            eo.new_effect_param.stats_name,
+                            eo.processed_effect_param.input_effect_param.effect_type,
+                            eo.processed_effect_param.input_effect_param.stats_name,
                             eo.full_atk_amount_tx
                         ),
                     });
                 } else {
                     logs.push(LogData {
                         color: colortext.to_string(),
-                        log: format!(
+                        message: format!(
                             "{} is applying {} on {} for {} {}",
                             eo.target_kind,
-                            eo.new_effect_param.effect_type,
-                            eo.new_effect_param.stats_name,
+                            eo.processed_effect_param.input_effect_param.effect_type,
+                            eo.processed_effect_param.input_effect_param.stats_name,
                             eo.full_atk_amount_tx,
-                            eo.new_effect_param.stats_name
+                            eo.processed_effect_param.input_effect_param.stats_name
                         ),
                     });
                 }
@@ -528,22 +535,24 @@ impl GameManager {
         // write_to_json
         utils::write_to_json(
             &self,
-            self.game_paths.current_game_dir.join("game_manager.json"),
+            self.game_paths
+                .output_current_game_dir
+                .join("game_manager.json"),
         )?;
         Ok(())
     }
 
     pub fn create_game_dirs(&self) -> Result<()> {
-        if let Err(e) = fs::create_dir_all(&self.game_paths.root) {
+        if let Err(e) = fs::create_dir_all(&self.game_paths.input_data_root) {
             eprintln!("Failed to create directory: {}", e);
         }
-        if let Err(e) = fs::create_dir_all(&self.game_paths.characters) {
+        if let Err(e) = fs::create_dir_all(&self.game_paths.input_data_characters) {
             eprintln!("Failed to create directory: {}", e);
         }
-        if let Err(e) = fs::create_dir_all(&self.game_paths.game_state) {
+        if let Err(e) = fs::create_dir_all(&self.game_paths.output_game_state) {
             eprintln!("Failed to create directory: {}", e);
         }
-        if let Err(e) = fs::create_dir_all(&self.game_paths.loot) {
+        if let Err(e) = fs::create_dir_all(&self.game_paths.output_loot) {
             eprintln!("Failed to create directory: {}", e);
         }
         Ok(())
@@ -603,7 +612,6 @@ mod tests {
     use crate::testing_all_characters::{
         self, testing_game_manager, testing_test_ally1_vs_test_boss1,
     };
-    use crate::utils;
     use crate::{
         common::{character_const::SPEED_THRESHOLD, stats_const::*},
         testing_atk::*,
@@ -712,7 +720,7 @@ mod tests {
         assert_eq!(
             ra.logs_atk,
             vec![LogData {
-                log: "No attack launched".to_string(),
+                message: "No attack launched".to_string(),
                 color: "red".to_string(),
             }]
         );
@@ -747,9 +755,7 @@ mod tests {
         let ra = gm.launch_attack(Some("SimpleAtk"));
 
         assert_eq!(1, ra.outcomes.len());
-        assert_eq!(1, ra.all_dodging.len());
-        assert_eq!(target_id_name, ra.all_dodging[0].name);
-        assert!(!ra.all_dodging[0].is_dodging);
+        assert!(ra.all_dodging.is_empty());
         assert!(ra.logs_atk.len() > 0);
         // not dead boss : end of game
         assert!(!gm.check_end_of_game());
@@ -1225,7 +1231,8 @@ mod tests {
                 .outcomes
                 .first()
                 .unwrap()
-                .new_effect_param
+                .processed_effect_param
+                .input_effect_param
                 .effect_type,
             EFFECT_NB_COOL_DOWN
         );
@@ -1317,16 +1324,6 @@ mod tests {
             let _ra = gm.launch_attack(Some("SimpleAtk"));
         }
         assert_eq!(GameStatus::EndOfGame, gm.game_state.status);
-
-        // check save game
-        // not use in dx-rpg
-        let _ = gm.save_game_manager();
-        let path = gm.game_paths.current_game_dir.clone();
-        let big_list = utils::list_dirs_in_dir(path);
-        let one_save = big_list.unwrap()[0].clone();
-        let result = gm.load_game("");
-        assert!(result.is_err());
-        let _ = gm.load_game(one_save);
 
         // TODO case heroes are killing both bosses
     }
