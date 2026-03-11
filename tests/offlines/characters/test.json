@@ -1,11 +1,11 @@
 {
     "Class": "Standard",
     "Color": "green",
-    "Experience": 50,
     "CharacterRoundsInfo": {
         "is_first_round": true,
         "is_heal_atk_blocked": true,
         "is_random_target": false,
+        "Experience": 50,
         "Buf-debuf": [
         {
             "Buf-all-stats": ["hp","mana"],

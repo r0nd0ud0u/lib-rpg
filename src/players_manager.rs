@@ -475,12 +475,12 @@ impl PlayerManager {
     pub fn get_current_target_nb(&self) -> usize {
         self.active_heroes
             .iter()
-            .filter(|c| c.is_potential_target)
+            .filter(|c| c.character_rounds_info.is_potential_target)
             .count()
             + self
                 .active_bosses
                 .iter()
-                .filter(|c| c.is_potential_target)
+                .filter(|c| c.character_rounds_info.is_potential_target)
                 .count()
     }
 
@@ -566,14 +566,14 @@ impl PlayerManager {
             // self - atk
             if atk.target == TARGET_HIMSELF {
                 launcher.character_rounds_info.is_current_target = true;
-                launcher.is_potential_target = true;
+                launcher.character_rounds_info.is_potential_target = true;
                 return;
             }
             // all heroes - atk
             if atk.target == TARGET_ALL_ALLIES {
                 self.active_heroes.iter_mut().for_each(|c| {
                     if c.is_dead() == Some(false) {
-                        c.is_potential_target = true;
+                        c.character_rounds_info.is_potential_target = true;
                         c.character_rounds_info.is_current_target = true;
                     }
                 });
@@ -615,10 +615,10 @@ impl PlayerManager {
     pub fn reset_potential_targeted_character(&mut self) {
         self.active_heroes
             .iter_mut()
-            .for_each(|c| c.is_potential_target = false);
+            .for_each(|c| c.character_rounds_info.is_potential_target = false);
         self.active_bosses
             .iter_mut()
-            .for_each(|c| c.is_potential_target = false);
+            .for_each(|c| c.character_rounds_info.is_potential_target = false);
     }
 
     pub fn process_launchable_atks(&self) -> Vec<AttackType> {
@@ -655,10 +655,10 @@ impl PlayerManager {
             .for_each(|c| {
                 if !has_at_least_one_target && atk.reach == INDIVIDUAL || atk.reach == ZONE {
                     c.character_rounds_info.is_current_target = true;
-                    c.is_potential_target = true;
+                    c.character_rounds_info.is_potential_target = true;
                     has_at_least_one_target = true;
                 } else {
-                    c.is_potential_target = true;
+                    c.character_rounds_info.is_potential_target = true;
                 }
             });
     }
@@ -999,7 +999,7 @@ mod tests {
         let potential_nb = pl
             .active_bosses
             .iter_mut()
-            .filter(|x| x.is_potential_target)
+            .filter(|x| x.character_rounds_info.is_potential_target)
             .count();
         assert_eq!(potential_nb, 2);
         assert!(
@@ -1011,6 +1011,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1022,6 +1023,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         // atk to ennemy - effect dmg zone
@@ -1035,6 +1037,7 @@ mod tests {
         assert!(
             pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1046,6 +1049,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1057,6 +1061,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         // atk to ally(himself in this example) - effect heal indiv, test -> test2
@@ -1070,6 +1075,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target,
         );
         assert!(
@@ -1081,6 +1087,7 @@ mod tests {
         assert!(
             pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target,
         );
         assert!(
@@ -1092,6 +1099,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         // atk to ally(himself in this example) - effect heal indiv, test2 -> test
@@ -1105,6 +1113,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1116,6 +1125,7 @@ mod tests {
         assert!(
             pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1127,6 +1137,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         // atk to ally - effect heal zone
@@ -1140,6 +1151,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1151,6 +1163,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1162,6 +1175,7 @@ mod tests {
         assert!(
             pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         // atk to all heroes target
@@ -1175,7 +1189,7 @@ mod tests {
         let potential_nb = pl
             .active_heroes
             .iter_mut()
-            .filter(|x| x.is_potential_target)
+            .filter(|x| x.character_rounds_info.is_potential_target)
             .count();
         assert_eq!(potential_nb, 2);
 
@@ -1191,6 +1205,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target
         );
         let nb = pl
@@ -1202,6 +1217,7 @@ mod tests {
         assert!(
             pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target,
         );
         // atk from ennemy - effect dmg zone
@@ -1215,6 +1231,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1226,6 +1243,7 @@ mod tests {
         assert!(
             pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         // atk to ally(himself in this example) - effect heal indiv
@@ -1239,6 +1257,7 @@ mod tests {
         assert!(
             pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1250,6 +1269,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
         // boss atk to ally - effect heal zone  => ZONE is not himself
@@ -1263,6 +1283,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1274,6 +1295,7 @@ mod tests {
         assert!(
             pl.get_active_character(boss2_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target
         );
         assert!(
@@ -1285,6 +1307,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_potential_target
         );
     }
@@ -1315,6 +1338,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target
         );
         // consequently only one boss remaining, that boss is the target
@@ -1327,6 +1351,7 @@ mod tests {
         assert!(
             pl.get_active_character(boss2_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_potential_target
         );
     }
@@ -1349,9 +1374,13 @@ mod tests {
     fn unit_get_current_target_nb() {
         let mut pl = testing_all_characters::testing_pm();
         assert_eq!(0, pl.get_current_target_nb());
-        pl.active_heroes[0].is_potential_target = true;
+        pl.active_heroes[0]
+            .character_rounds_info
+            .is_potential_target = true;
         assert_eq!(1, pl.get_current_target_nb());
-        pl.active_bosses[0].is_potential_target = true;
+        pl.active_bosses[0]
+            .character_rounds_info
+            .is_potential_target = true;
         assert_eq!(2, pl.get_current_target_nb());
     }
 

@@ -1,5 +1,9 @@
 use crate::{
-    attack_type::AttackType, buffers::Buffers, common::{all_target_const::TARGET_ENNEMY, stats_const::HP}, effect::{self, EffectParam}, players_manager::{DodgeInfo, GameAtkEffects}
+    attack_type::AttackType,
+    buffers::Buffers,
+    common::{all_target_const::TARGET_ENNEMY, stats_const::HP},
+    effect::{self, EffectParam},
+    players_manager::{DodgeInfo, GameAtkEffects},
 };
 use std::collections::HashMap;
 
@@ -32,6 +36,15 @@ pub struct CharacterRoundsInfo {
     /// Fight information: Enabled buf/debuf acquired through the fight
     #[serde(default, rename = "Buf-debuf")]
     pub all_buffers: Vec<Buffers>,
+    #[serde(default, rename = "ExpToNextLevel")]
+    /// Experience to acquire to upgrade to next level
+    pub exp_to_next_level: u64,
+    /// Experience of the character, start 0
+    #[serde(default, rename = "Experience")]
+    pub exp: u64,
+    /// Potential target by an individual effect of an atk
+    #[serde(default, rename = "is-potential-target")]
+    pub is_potential_target: bool,
 }
 
 impl Default for CharacterRoundsInfo {
@@ -46,6 +59,9 @@ impl Default for CharacterRoundsInfo {
             is_current_target: false,
             tx_rx: vec![HashMap::new()],
             all_buffers: vec![],
+            exp_to_next_level: 100,
+            exp: 0,
+            is_potential_target: false,
         }
     }
 }

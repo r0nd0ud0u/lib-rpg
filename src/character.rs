@@ -70,11 +70,6 @@ pub struct Character {
     /// Level of the character, start 1
     #[serde(rename = "Level")]
     pub level: u64,
-    /// Experience of the character, start 0
-    #[serde(rename = "Experience")]
-    pub exp: u64,
-    /// Experience to acquire to upgrade to next level
-    pub next_exp_level: u64,
     /// key: body, value: equipmentName
     pub equipment_on: HashMap<String, Vec<Equipment>>,
     /// key: attak name, value: AttakType struct
@@ -96,13 +91,9 @@ pub struct Character {
     pub shape: String,
     #[serde(default, rename = "Effects")]
     pub all_effects: Vec<GameAtkEffects>,
-    /// Fight information: is_potential_target
-    #[serde(default, rename = "is-potential-target")]
-    /// Potential target by an individual effect of an atk
-    pub is_potential_target: bool,
     /// Fight information: stats_in_game
     #[serde(default)]
-    stats_in_game: StatsInGame,
+    pub stats_in_game: StatsInGame,
 }
 
 impl Default for Character {
@@ -117,8 +108,6 @@ impl Default for Character {
             equipment_on: HashMap::new(),
             attacks_list: IndexMap::new(),
             level: 1,
-            exp: 0,
-            next_exp_level: 100,
             color_theme: "dark".to_owned(),
             power: Powers::default(),
             character_rounds_info: CharacterRoundsInfo::default(),
@@ -126,7 +115,6 @@ impl Default for Character {
             rank: 0,
             shape: String::new(),
             all_effects: vec![],
-            is_potential_target: false,
             stats_in_game: StatsInGame::default(),
         }
     }
@@ -169,7 +157,6 @@ impl Character {
             for _ in 0..BufTypes::EnumSize as usize - buflen {
                 value
                     .character_rounds_info
-                    
                     .all_buffers
                     .push(Buffers::default());
             }
@@ -386,7 +373,6 @@ impl Character {
     pub fn update_buf(&mut self, buf_type: BufTypes, value: i64, is_percent: bool, stat: &str) {
         if let Some(buf) = self
             .character_rounds_info
-            
             .all_buffers
             .get_mut(buf_type as usize)
         {
@@ -536,7 +522,6 @@ impl Character {
             // To place first
             if let Some(buf_multi) = self
                 .character_rounds_info
-                
                 .all_buffers
                 .get(BufTypes::MultiValue as usize)
                 && buf_multi.value > 0
@@ -546,7 +531,6 @@ impl Character {
             // Launcher TX
             if let Some(buf_hp_tx) = self
                 .character_rounds_info
-                
                 .all_buffers
                 .get(BufTypes::HealTx as usize)
             {
@@ -556,7 +540,6 @@ impl Character {
             // Receiver RX
             if let Some(buf_hp_rx) = self
                 .character_rounds_info
-                
                 .all_buffers
                 .get(BufTypes::HealRx as usize)
             {
@@ -566,7 +549,6 @@ impl Character {
             // Launcher TX
             if let Some(buf_nb_hots) = self
                 .character_rounds_info
-                
                 .all_buffers
                 .get(BufTypes::BoostedByHots as usize)
             {
@@ -579,7 +561,6 @@ impl Character {
             // Launcher TX
             if let Some(buf_dmg_tx) = self
                 .character_rounds_info
-                
                 .all_buffers
                 .get(BufTypes::DamageTx as usize)
             {
@@ -589,7 +570,6 @@ impl Character {
             // Receiver RX
             if let Some(buf_dmg_rx) = self
                 .character_rounds_info
-                
                 .all_buffers
                 .get(BufTypes::DamageRx as usize)
             {
@@ -599,7 +579,6 @@ impl Character {
             // Receiver RX
             if let Some(buf_dmg_crit) = self
                 .character_rounds_info
-                
                 .all_buffers
                 .get(BufTypes::DamageCritCapped as usize)
             {
@@ -665,7 +644,6 @@ impl Character {
 
     pub fn reset_all_buffers(&mut self) {
         self.character_rounds_info
-            
             .all_buffers
             .iter_mut()
             .for_each(|b| {
@@ -1241,7 +1219,7 @@ mod tests {
         // Color
         assert_eq!("green", c.color_theme);
         // Experience
-        assert_eq!(50, c.exp);
+        assert_eq!(50, c.character_rounds_info.exp);
         // extended character
         assert!(c.character_rounds_info.is_first_round);
         assert!(c.character_rounds_info.is_heal_atk_blocked);
