@@ -100,7 +100,7 @@
     "Class": "Standard",
     "Color": "green",
     "Experience": 0,
-    "ExtendedCharacter": {
+    "CharacterRoundsInfo": {
         "is_first_round": false,
         "is_heal_atk_blocked": false,
         "is_random_target": false

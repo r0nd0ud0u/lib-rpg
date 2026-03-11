@@ -1,13 +1,11 @@
 use crate::{
-    attack_type::AttackType,
-    common::stats_const::HP,
-    effect::{self, EffectParam},
-    players_manager::GameAtkEffects,
+    attack_type::AttackType, buffers::Buffers, common::{all_target_const::TARGET_ENNEMY, stats_const::HP}, effect::{self, EffectParam}, players_manager::{DodgeInfo, GameAtkEffects}
 };
+use std::collections::HashMap;
 
-/// ExtendedCharacter
+/// CharacterRoundsInfo
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
-pub struct CharacterFightInfo {
+pub struct CharacterRoundsInfo {
     /// Fight information: Is the random character targeted by the current attack of other character
     #[serde(default, rename = "is_random_target")]
     pub is_random_target: bool,
@@ -19,26 +17,46 @@ pub struct CharacterFightInfo {
     pub is_first_round: bool,
     #[serde(default, rename = "launchable_atks")]
     pub launchable_atks: Vec<AttackType>,
+    /// Fight information: dodge information on atk
+    #[serde(default, rename = "dodge-info")]
+    pub dodge_info: DodgeInfo,
+    /// Fight information: nb-actions-in-round
+    #[serde(default, rename = "nb-actions-in-round")]
+    pub actions_done_in_round: u64,
+    /// Fight information: is_current_target
+    #[serde(default, rename = "is-current-target")]
+    pub is_current_target: bool,
+    /// Fight information: damages transmitted or received through the fight
+    #[serde(default, rename = "Tx-rx")]
+    pub tx_rx: Vec<HashMap<u64, i64>>,
+    /// Fight information: Enabled buf/debuf acquired through the fight
+    #[serde(default, rename = "Buf-debuf")]
+    pub all_buffers: Vec<Buffers>,
 }
 
-impl Default for CharacterFightInfo {
+impl Default for CharacterRoundsInfo {
     fn default() -> Self {
-        CharacterFightInfo {
+        CharacterRoundsInfo {
             is_random_target: false,
             is_heal_atk_blocked: false,
             is_first_round: true,
             launchable_atks: Vec::new(),
+            dodge_info: DodgeInfo::default(),
+            actions_done_in_round: 0,
+            is_current_target: false,
+            tx_rx: vec![HashMap::new()],
+            all_buffers: vec![],
         }
     }
 }
 
-impl CharacterFightInfo {
+impl CharacterRoundsInfo {
     pub fn apply_launchable_atks(&mut self, launchable_atks: Vec<AttackType>) {
         self.launchable_atks = launchable_atks;
     }
 }
 
-/// ExtendedCharacter
+/// CharacterRoundsInfo
 #[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct HotsBufs {
     pub hot_nb: u64,
@@ -50,7 +68,7 @@ pub struct HotsBufs {
     pub buf_txt: Vec<String>,
     pub debuf_txt: Vec<String>,
 }
-impl CharacterFightInfo {
+impl CharacterRoundsInfo {
     /// Output: hot, dot, buf, debuf
     pub fn get_hot_and_buf_nbs_txts(all_effects: &Vec<GameAtkEffects>) -> HotsBufs {
         let mut hots_bufs = HotsBufs::default();
@@ -87,12 +105,20 @@ impl CharacterFightInfo {
             format!("{}-{}: {}", ep.effect_type, ep.stats_name, ep.value)
         }
     }
+
+    pub fn is_dodging(&self, target_kind: &str) -> bool {
+        self.dodge_info.is_dodging && target_kind == TARGET_ENNEMY
+    }
+
+    pub fn is_blocking(&mut self, ep: &EffectParam) -> bool {
+        self.dodge_info.is_blocking && ep.stats_name == HP && ep.target_kind == TARGET_ENNEMY
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        character_mod::fight_information::{CharacterFightInfo, HotsBufs},
+        character_mod::rounds_information::{CharacterRoundsInfo, HotsBufs},
         players_manager::GameAtkEffects,
         testing_effect::{
             build_buf_effect_individual, build_debuf_effect_individual,
@@ -102,7 +128,7 @@ mod tests {
 
     #[test]
     fn unit_get_hot_and_buf_nbs() {
-        let result = CharacterFightInfo::get_hot_and_buf_nbs_txts(&vec![]);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![]);
         assert_eq!(result, HotsBufs::default());
         let mut all_effects: Vec<GameAtkEffects> = vec![];
         // add a 1-turn-effect
@@ -110,14 +136,14 @@ mod tests {
             all_atk_effects: build_dmg_effect_individual(),
             ..Default::default()
         });
-        let result = CharacterFightInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(result, HotsBufs::default());
         // add a 2-turn-effect HOT
         all_effects.push(GameAtkEffects {
             all_atk_effects: build_hot_effect_individual(),
             ..Default::default()
         });
-        let result = CharacterFightInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(
             result,
             HotsBufs {
@@ -141,7 +167,7 @@ mod tests {
             all_atk_effects: build_dot_effect_individual(),
             ..Default::default()
         });
-        let result = CharacterFightInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(
             result,
             HotsBufs {
@@ -170,7 +196,7 @@ mod tests {
             all_atk_effects: build_buf_effect_individual(),
             ..Default::default()
         });
-        let result = CharacterFightInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(
             result,
             HotsBufs {
@@ -204,7 +230,7 @@ mod tests {
             all_atk_effects: build_debuf_effect_individual(),
             ..Default::default()
         });
-        let result = CharacterFightInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(
             result,
             HotsBufs {

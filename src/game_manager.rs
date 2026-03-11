@@ -255,7 +255,7 @@ impl GameManager {
             if self.is_round_auto() {
                 // auto atk for boss
                 if let Some(auto_atk_name) = AttackType::get_one_random_atk_name(
-                    &self.pm.current_player.extended_character.launchable_atks,
+                    &self.pm.current_player.character_rounds_info.launchable_atks,
                 ) {
                     tracing::info!(
                         "Auto attack for boss {}: {}",
@@ -271,7 +271,10 @@ impl GameManager {
         // output
         let mut output: Vec<EffectOutcome> = vec![];
         // update action done in round
-        self.pm.current_player.actions_done_in_round += 1;
+        self.pm
+            .current_player
+            .character_rounds_info
+            .actions_done_in_round += 1;
         // get all players
         let all_players = self.pm.get_all_active_id_names();
         // get atk
@@ -357,7 +360,8 @@ impl GameManager {
         // other function
         // update tx rx
         if is_crit {
-            *self.pm.current_player.tx_rx[AmountType::CriticalStrike as usize]
+            *self.pm.current_player.character_rounds_info.tx_rx
+                [AmountType::CriticalStrike as usize]
                 .entry(self.game_state.current_turn_nb as u64)
                 .or_insert(1) += 1;
         }
@@ -397,7 +401,10 @@ impl GameManager {
     fn process_no_atk_launched(&mut self) -> ResultLaunchAttack {
         // no atk launched
         // update action done in round
-        self.pm.current_player.actions_done_in_round += 1;
+        self.pm
+            .current_player
+            .character_rounds_info
+            .actions_done_in_round += 1;
         let logs_atk = vec![LogData {
             message: "No attack launched".to_string(),
             color: "red".to_string(),
@@ -751,6 +758,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
+            .character_rounds_info
             .is_current_target = true;
         let ra = gm.launch_attack(Some("SimpleAtk"));
 
@@ -798,6 +806,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
+            .character_rounds_info
             .is_current_target = true;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_boss = gm
@@ -856,6 +865,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
+            .character_rounds_info
             .is_current_target = true;
         let old_vigor_hero = gm.pm.current_player.stats.all_stats[VIGOR].current;
         gm.launch_attack(Some("SimpleAtk"));
@@ -914,6 +924,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
+            .character_rounds_info
             .is_current_target = true;
         gm.launch_attack(Some("SimpleAtk"));
         // not dead boss : end of game
@@ -1253,6 +1264,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character("Angmar_#1")
             .unwrap()
+            .character_rounds_info
             .is_current_target = true;
         // thrain
         // game is starting, ennemy is not playing

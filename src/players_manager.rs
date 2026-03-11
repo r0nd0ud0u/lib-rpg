@@ -132,10 +132,10 @@ impl PlayerManager {
      */
     pub fn reset_is_first_round(&mut self) {
         for c in &mut self.active_heroes {
-            c.extended_character.is_first_round = true;
+            c.character_rounds_info.is_first_round = true;
         }
         for c in &mut self.active_bosses {
-            c.extended_character.is_first_round = true;
+            c.character_rounds_info.is_first_round = true;
         }
     }
 
@@ -281,10 +281,12 @@ impl PlayerManager {
                 self.current_player = c.clone();
 
                 // update the shadow current player
-                self.current_player.actions_done_in_round = 0;
+                self.current_player
+                    .character_rounds_info
+                    .actions_done_in_round = 0;
 
-                if self.current_player.extended_character.is_first_round {
-                    self.current_player.extended_character.is_first_round = false;
+                if self.current_player.character_rounds_info.is_first_round {
+                    self.current_player.character_rounds_info.is_first_round = false;
                     // aggro is initialized before any action
                     self.current_player
                         .init_aggro_on_turn(game_state.current_turn_nb);
@@ -302,7 +304,7 @@ impl PlayerManager {
 
                     // atk assessment to be launched
                     self.current_player
-                        .extended_character
+                        .character_rounds_info
                         .apply_launchable_atks(self.process_launchable_atks());
 
                     // apply hot and dot
@@ -338,7 +340,7 @@ impl PlayerManager {
             let delta_over_heal: i64 = hp.current as i64 - hp.max as i64;
             if delta_over_heal > 0 {
                 // update txrx
-                self.current_player.tx_rx[AmountType::OverHealRx as usize]
+                self.current_player.character_rounds_info.tx_rx[AmountType::OverHealRx as usize]
                     .insert(game_state.current_turn_nb as u64, delta_over_heal);
             }
             // current value must be included between 0 and max value
@@ -448,7 +450,9 @@ impl PlayerManager {
             .filter(|(_, c)| c.is_dead() == Some(false))
             .max_by_key(|&(_, c)| c.stats.all_stats[AGGRO].current)
         {
-            self.active_heroes[max_index].is_current_target = true;
+            self.active_heroes[max_index]
+                .character_rounds_info
+                .is_current_target = true;
         }
     }
 
@@ -462,7 +466,7 @@ impl PlayerManager {
             }
             self.reset_targeted_character();
             if let Some(target) = self.get_mut_active_character(target_id_name) {
-                target.is_current_target = true;
+                target.character_rounds_info.is_current_target = true;
             }
         }
     }
@@ -561,7 +565,7 @@ impl PlayerManager {
 
             // self - atk
             if atk.target == TARGET_HIMSELF {
-                launcher.is_current_target = true;
+                launcher.character_rounds_info.is_current_target = true;
                 launcher.is_potential_target = true;
                 return;
             }
@@ -570,7 +574,7 @@ impl PlayerManager {
                 self.active_heroes.iter_mut().for_each(|c| {
                     if c.is_dead() == Some(false) {
                         c.is_potential_target = true;
-                        c.is_current_target = true;
+                        c.character_rounds_info.is_current_target = true;
                     }
                 });
                 return;
@@ -602,10 +606,10 @@ impl PlayerManager {
     pub fn reset_targeted_character(&mut self) {
         self.active_heroes
             .iter_mut()
-            .for_each(|c| c.is_current_target = false);
+            .for_each(|c| c.character_rounds_info.is_current_target = false);
         self.active_bosses
             .iter_mut()
-            .for_each(|c| c.is_current_target = false);
+            .for_each(|c| c.character_rounds_info.is_current_target = false);
     }
 
     pub fn reset_potential_targeted_character(&mut self) {
@@ -650,7 +654,7 @@ impl PlayerManager {
             })
             .for_each(|c| {
                 if !has_at_least_one_target && atk.reach == INDIVIDUAL || atk.reach == ZONE {
-                    c.is_current_target = true;
+                    c.character_rounds_info.is_current_target = true;
                     c.is_potential_target = true;
                     has_at_least_one_target = true;
                 } else {
@@ -747,7 +751,7 @@ mod tests {
     fn unit_reset_is_first_round() {
         let mut pl = testing_all_characters::testing_pm();
         pl.reset_is_first_round();
-        assert!(pl.active_heroes[0].extended_character.is_first_round);
+        assert!(pl.active_heroes[0].character_rounds_info.is_first_round);
     }
 
     #[test]
@@ -828,10 +832,11 @@ mod tests {
         let mut pl = testing_all_characters::testing_pm();
         pl.get_mut_active_hero_character("test_#1")
             .unwrap()
-            .extended_character
+            .character_rounds_info
             .is_first_round = false;
         pl.get_mut_active_hero_character("test_#1")
             .unwrap()
+            .character_rounds_info
             .actions_done_in_round = 100;
         let gs = GameState::default();
         pl.update_current_player(&gs, "test_#1").unwrap();
@@ -839,6 +844,7 @@ mod tests {
             0,
             pl.get_mut_active_hero_character("test_#1")
                 .unwrap()
+                .character_rounds_info
                 .actions_done_in_round
         );
     }
@@ -926,11 +932,13 @@ mod tests {
         assert!(
             pl.get_mut_active_hero_character("test_#1")
                 .unwrap()
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
             !pl.get_mut_active_boss_character("test_boss1_#1")
                 .unwrap()
+                .character_rounds_info
                 .is_current_target
         );
         // indiv launched a hero
@@ -938,11 +946,13 @@ mod tests {
         assert!(
             !pl.get_mut_active_hero_character("test_#1")
                 .unwrap()
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
             pl.get_mut_active_boss_character("test_boss1_#1")
                 .unwrap()
+                .character_rounds_info
                 .is_current_target
         );
         // whatever launched with ZONE no reset is done
@@ -950,17 +960,20 @@ mod tests {
         assert!(
             !pl.get_mut_active_hero_character("test_#1")
                 .unwrap()
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
             pl.get_mut_active_boss_character("test_boss1_#1")
                 .unwrap()
+                .character_rounds_info
                 .is_current_target
         );
         pl.set_one_target("test_#1", "Offrande vitale", "test2_#1");
         assert!(
             pl.get_mut_active_hero_character("test2_#1")
                 .unwrap()
+                .character_rounds_info
                 .is_current_target
         );
     }
@@ -980,7 +993,7 @@ mod tests {
         let current_nb = pl
             .active_bosses
             .iter_mut()
-            .filter(|x| x.is_current_target)
+            .filter(|x| x.character_rounds_info.is_current_target)
             .count();
         assert_eq!(current_nb, 1);
         let potential_nb = pl
@@ -992,6 +1005,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1002,6 +1016,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1014,6 +1029,7 @@ mod tests {
         assert!(
             pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1024,6 +1040,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1034,6 +1051,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1046,6 +1064,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1056,6 +1075,7 @@ mod tests {
         assert!(
             pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1066,6 +1086,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1078,6 +1099,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1088,6 +1110,7 @@ mod tests {
         assert!(
             pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1098,6 +1121,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1110,6 +1134,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1120,6 +1145,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1130,6 +1156,7 @@ mod tests {
         assert!(
             pl.get_active_character(test2_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1142,7 +1169,7 @@ mod tests {
         let current_nb = pl
             .active_heroes
             .iter_mut()
-            .filter(|x| x.is_current_target)
+            .filter(|x| x.character_rounds_info.is_current_target)
             .count();
         assert_eq!(current_nb, 2);
         let potential_nb = pl
@@ -1158,6 +1185,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1168,7 +1196,7 @@ mod tests {
         let nb = pl
             .active_heroes
             .iter_mut()
-            .filter(|x| x.is_current_target)
+            .filter(|x| x.character_rounds_info.is_current_target)
             .count();
         assert_eq!(nb, 1);
         assert!(
@@ -1181,6 +1209,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1191,6 +1220,7 @@ mod tests {
         assert!(
             pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1203,6 +1233,7 @@ mod tests {
         assert!(
             pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1213,6 +1244,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1225,6 +1257,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1235,6 +1268,7 @@ mod tests {
         assert!(
             pl.get_active_character(boss2_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1245,6 +1279,7 @@ mod tests {
         assert!(
             !pl.get_active_character(test_ally_id_name)
                 .expect("no hero")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1274,6 +1309,7 @@ mod tests {
         assert!(
             !pl.get_active_character(boss_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1285,6 +1321,7 @@ mod tests {
         assert!(
             pl.get_active_character(boss2_id_name)
                 .expect("no boss")
+                .character_rounds_info
                 .is_current_target
         );
         assert!(
@@ -1343,7 +1380,7 @@ mod tests {
         // no problem of level
         pl.current_player.level = 100;
         // no problem of is_heal_atk_blocked
-        pl.current_player.extended_character.is_heal_atk_blocked = false;
+        pl.current_player.character_rounds_info.is_heal_atk_blocked = false;
         let launchable_atks = pl.process_launchable_atks();
         // print launcgable atks for debug
         //println!("Launchable attacks: {:?}", launchable_atks);
@@ -1355,7 +1392,7 @@ mod tests {
         assert_eq!(12, launchable_atks.len()); // 12 on 16 are level 1
 
         // case is_heal_atk_blocked
-        pl.current_player.extended_character.is_heal_atk_blocked = true;
+        pl.current_player.character_rounds_info.is_heal_atk_blocked = true;
         pl.current_player.level = 100;
         let launchable_atks = pl.process_launchable_atks();
         assert_eq!(10, launchable_atks.len()); // 6 attacks are HP and linked to is_heal_atk_blocked condition
