@@ -1549,7 +1549,7 @@ mod tests {
         );
         assert_eq!(
             "Cooldown actif sur  de 10 tours.",
-            processed_effect_param.log.first().unwrap().log
+            processed_effect_param.log.message
         );
 
         // test - critical
@@ -1573,7 +1573,7 @@ mod tests {
         );
         assert_eq!(
             "Max stat of HP is up by value:15",
-            processed_effect_param.log.first().unwrap().log
+            processed_effect_param.log.message
         );
 
         // conditions - number of died ennemies
@@ -1601,7 +1601,7 @@ mod tests {
         );
         assert_eq!(
             "Max stat of HP is up by 10%",
-            processed_effect_param.log.first().unwrap().log
+            processed_effect_param.log.message
         );
     }
 
