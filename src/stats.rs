@@ -211,6 +211,27 @@ impl Stats {
             None
         }
     }
+
+    pub fn modify_stat_current(&mut self, attribute_name: &str, delta: i64) {
+        let stat = self
+            .all_stats
+            .get_mut(attribute_name)
+            .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
+
+        let mut new_value = stat.current as i128 + delta as i128;
+
+        // always prevent negative
+        if new_value < 0 {
+            new_value = 0;
+        }
+
+        // only clamp if max is defined
+        if stat.max > 0 {
+            new_value = new_value.min(stat.max as i128);
+        }
+
+        stat.current = new_value as u64;
+    }
 }
 
 #[cfg(test)]
@@ -270,5 +291,30 @@ mod tests {
         attr.sync_raw_values();
         assert_eq!(attr.current_raw, 10);
         assert_eq!(attr.max_raw, 20);
+    }
+
+    #[test]
+    fn unit_is_dead() {
+        let mut stats = Stats::default();
+        stats.init();
+        assert!(stats.is_dead().is_some());
+        assert!(stats.is_dead().unwrap());
+        stats.all_stats.get_mut(HP).unwrap().current = 15;
+        assert!(!stats.is_dead().unwrap());
+    }
+
+    #[test]
+    fn unit_set_current_stats() {
+        let mut stats = Stats::default();
+        stats.init();
+
+        stats.modify_stat_current(HP, 10);
+        assert_eq!(stats.all_stats[HP].current, 10);
+
+        stats.modify_stat_current(HP, -5);
+        assert_eq!(stats.all_stats[HP].current, 5);
+
+        stats.modify_stat_current(HP, -10);
+        assert_eq!(stats.all_stats[HP].current, 0);
     }
 }

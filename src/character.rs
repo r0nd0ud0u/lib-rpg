@@ -290,15 +290,6 @@ impl Character {
         self.character_rounds_info.tx_rx[AmountType::Aggro as usize].insert(turn_nb as u64, 0);
     }
 
-    pub fn set_current_stats(&mut self, attribute_name: &str, value: i64) {
-        let stat = self
-            .stats
-            .all_stats
-            .get_mut(attribute_name)
-            .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
-        stat.current = stat.current.saturating_add(value as u64).min(stat.max);
-    }
-
     /// stat.m_RawMaxValue of a stat cannot be equal to 0.
     /// updateEffect: false -> enable to update current value et max value only with equipments buf
     pub fn set_stats_on_effect(
@@ -944,7 +935,8 @@ impl Character {
         if processed_ep.input_effect_param.stats_name != HP
             && processed_ep.input_effect_param.effect_type == EFFECT_VALUE_CHANGE
         {
-            self.set_current_stats(&processed_ep.input_effect_param.stats_name, full_amount);
+            self.stats
+                .modify_stat_current(&processed_ep.input_effect_param.stats_name, full_amount);
         }
         // blocking the atk
         if self
@@ -1311,16 +1303,6 @@ mod tests {
             )
             .is_err()
         );
-    }
-
-    #[test]
-    fn unit_is_dead() {
-        let mut c = Character::default();
-        c.stats.init();
-        assert!(c.stats.is_dead().is_some());
-        assert!(c.stats.is_dead().unwrap());
-        c.stats.all_stats.get_mut(HP).unwrap().current = 15;
-        assert!(!c.stats.is_dead().unwrap());
     }
 
     #[test]
