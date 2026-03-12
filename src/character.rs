@@ -524,23 +524,6 @@ impl Character {
         real_amount
     }
 
-    pub fn damage_by_atk(
-        target_stats: &Stats,
-        launcher_stats: &Stats,
-        is_magic: bool,
-        atk_value: i64,
-        nb_of_turns: i64,
-    ) -> i64 {
-        let target_armor = target_stats.get_armor_stat(is_magic);
-        let launcher_pow = launcher_stats.get_power_stat(is_magic);
-
-        // dmg is negative towards ennemy (atk outcome, is positive while healing >< dmg)
-        let damage = atk_value - launcher_pow / nb_of_turns;
-        let protection = 1000.0 / (1000.0 + target_armor as f64);
-
-        (damage as f64 * protection).round() as i64
-    }
-
     pub fn increment_counter_effect(&mut self) {
         for gae in self.all_effects.iter_mut() {
             gae.all_atk_effects.counter_turn += 1;
@@ -803,7 +786,7 @@ impl Character {
             } else {
                 // DOT
                 full_amount = processed_ep.number_of_applies
-                    * Self::damage_by_atk(
+                    * AttackType::damage_by_atk(
                         &self.stats,
                         launcher_stats,
                         processed_ep.input_effect_param.is_magic_atk,
@@ -1401,11 +1384,12 @@ mod tests {
         );
         assert!(c.is_ok());
         let mut c = c.unwrap();
-        c.update_buf(&BufTypes::DamageTx, 10, false, HP);
+        let result = c.update_buf(&BufTypes::DamageTx, 10, false, HP);
         assert_eq!(
             10,
             c.character_rounds_info.all_buffers[BufTypes::DamageTx as usize].value
         );
+        assert!(result.is_ok());
         assert!(!c.character_rounds_info.all_buffers[BufTypes::DamageTx as usize].is_percent);
         assert_eq!(
             HP,
