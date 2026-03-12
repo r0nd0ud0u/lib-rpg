@@ -290,48 +290,15 @@ impl Character {
         self.character_rounds_info.tx_rx[AmountType::Aggro as usize].insert(turn_nb as u64, 0);
     }
 
-    /// stat.m_RawMaxValue of a stat cannot be equal to 0.
-    /// updateEffect: false -> enable to update current value et max value only with equipments buf
-    pub fn set_stats_on_effect(
-        &mut self,
-        attribute_name: &str,
-        value: i64,
-        is_percent: bool,
-        update_effect: bool,
-    ) {
-        let stat = self
-            .stats
-            .all_stats
-            .get_mut(attribute_name)
-            .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
-        if stat.max_raw == 0 {
-            return;
-        }
-        if update_effect {
-            if is_percent {
-                stat.buf_effect_percent += value;
-            } else {
-                stat.buf_effect_value += value;
-            }
-        }
-        let base_value = stat.max_raw as i64
-            + stat.buf_equip_value
-            + stat.buf_equip_percent * stat.max_raw as i64 / 100;
-        let new_base =
-            base_value + stat.buf_effect_value + stat.buf_effect_percent * base_value / 100;
-        stat.max = new_base.max(0) as u64;
-        // stats current
-        let ratio = utils::calc_ratio(stat.current as i64, stat.max as i64);
-        stat.current = (stat.max as f64 * ratio).round() as u64;
-    }
-
     // TODO if I remove a malus percent for DamageTx with EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT, how can if make the difference with a value which is not percent
     pub fn remove_malus_effect(&mut self, ep: &EffectParam) {
         if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
-            self.set_stats_on_effect(&ep.stats_name, -ep.value, true, true);
+            self.stats
+                .set_stats_on_effect(&ep.stats_name, -ep.value, true, true);
         }
         if ep.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE {
-            self.set_stats_on_effect(&ep.stats_name, -ep.value, false, true);
+            self.stats
+                .set_stats_on_effect(&ep.stats_name, -ep.value, false, true);
         }
         if ep.effect_type == EFFECT_BLOCK_HEAL_ATK {
             self.character_rounds_info.is_heal_atk_blocked = false;
@@ -904,7 +871,7 @@ impl Character {
             && (processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
                 || processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
         {
-            self.set_stats_on_effect(
+            self.stats.set_stats_on_effect(
                 &processed_ep.input_effect_param.stats_name,
                 full_amount,
                 processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
@@ -1344,44 +1311,6 @@ mod tests {
         c.character_rounds_info.tx_rx[5].insert(9, 90);
         c.init_aggro_on_turn(10);
         assert_eq!(350, c.stats.all_stats[AGGRO].current);
-    }
-
-    #[test]
-    fn unit_set_stats_on_effect() {
-        let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(
-            file_path,
-            *TEST_OFFLINE_ROOT,
-            false,
-            &testing_all_equipment(),
-        );
-        assert!(c.is_ok());
-        let mut c = c.unwrap();
-        c.set_stats_on_effect(HP, -10, false, true);
-        assert_eq!(125, c.stats.all_stats[HP].max);
-        assert_eq!(1, c.stats.all_stats[HP].current);
-        c.set_stats_on_effect(HP, 10, false, true);
-        assert_eq!(135, c.stats.all_stats[HP].max);
-        assert_eq!(1, c.stats.all_stats[HP].current);
-        c.set_stats_on_effect(HP, 10, false, true);
-        assert_eq!(145, c.stats.all_stats[HP].max);
-        assert_eq!(1, c.stats.all_stats[HP].current);
-        c.set_stats_on_effect(HP, -10, false, true);
-        assert_eq!(135, c.stats.all_stats[HP].max);
-        assert_eq!(1, c.stats.all_stats[HP].current);
-        c.set_stats_on_effect(HP, 10, true, true);
-        assert_eq!(148, c.stats.all_stats[HP].max);
-        assert_eq!(1, c.stats.all_stats[HP].current);
-        c.set_stats_on_effect(HP, -10, true, true);
-        assert_eq!(135, c.stats.all_stats[HP].max);
-        assert_eq!(1, c.stats.all_stats[HP].current);
-        // test raw max = 0, nothing change
-        c.stats.all_stats[HP].max_raw = 0;
-        assert_eq!(135, c.stats.all_stats[HP].max);
-        assert_eq!(1, c.stats.all_stats[HP].current);
-        c.set_stats_on_effect(DODGE, 20, false, true);
-        assert_eq!(25, c.stats.all_stats[DODGE].max);
-        assert_eq!(5, c.stats.all_stats[DODGE].current);
     }
 
     #[test]

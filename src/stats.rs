@@ -3,10 +3,13 @@ use std::cmp::Ordering;
 
 use serde::{Deserialize, Serialize};
 
-use crate::common::stats_const::{
-    AGGRO, AGGRO_RATE, BERSECK_RATE, BERSERK, CRITICAL_STRIKE, DODGE, HP, HP_REGEN, MAGICAL_ARMOR,
-    MAGICAL_POWER, MANA, MANA_REGEN, PHYSICAL_ARMOR, PHYSICAL_POWER, SPEED, SPEED_REGEN, VIGOR,
-    VIGOR_REGEN,
+use crate::{
+    common::stats_const::{
+        AGGRO, AGGRO_RATE, BERSECK_RATE, BERSERK, CRITICAL_STRIKE, DODGE, HP, HP_REGEN,
+        MAGICAL_ARMOR, MAGICAL_POWER, MANA, MANA_REGEN, PHYSICAL_ARMOR, PHYSICAL_POWER, SPEED,
+        SPEED_REGEN, VIGOR, VIGOR_REGEN,
+    },
+    utils,
 };
 
 /// Define allt the paramaters of tx-rx
@@ -232,10 +235,49 @@ impl Stats {
 
         stat.current = new_value as u64;
     }
+
+    /// stat.m_RawMaxValue of a stat cannot be equal to 0.
+    /// updateEffect: false -> enable to update current value et max value only with equipments buf
+    pub fn set_stats_on_effect(
+        &mut self,
+        attribute_name: &str,
+        value: i64,
+        is_percent: bool,
+        update_effect: bool,
+    ) {
+        let stat = self
+            .all_stats
+            .get_mut(attribute_name)
+            .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
+        if stat.max_raw == 0 {
+            return;
+        }
+        if update_effect {
+            if is_percent {
+                stat.buf_effect_percent += value;
+            } else {
+                stat.buf_effect_value += value;
+            }
+        }
+        let base_value = stat.max_raw as i64
+            + stat.buf_equip_value
+            + stat.buf_equip_percent * stat.max_raw as i64 / 100;
+        let new_base =
+            base_value + stat.buf_effect_value + stat.buf_effect_percent * base_value / 100;
+        stat.max = new_base.max(0) as u64;
+        // stats current
+        let ratio = utils::calc_ratio(stat.current as i64, stat.max as i64);
+        stat.current = (stat.max as f64 * ratio).round() as u64;
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::{
+        character::Character, common::paths_const::TEST_OFFLINE_ROOT,
+        testing_all_characters::testing_all_equipment,
+    };
+
     use super::*;
 
     #[test]
@@ -316,5 +358,43 @@ mod tests {
 
         stats.modify_stat_current(HP, -10);
         assert_eq!(stats.all_stats[HP].current, 0);
+    }
+
+    #[test]
+    fn unit_set_stats_on_effect() {
+        let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
+        let c = Character::try_new_from_json(
+            file_path,
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        );
+        assert!(c.is_ok());
+        let mut c = c.unwrap();
+        c.stats.set_stats_on_effect(HP, -10, false, true);
+        assert_eq!(125, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.stats.set_stats_on_effect(HP, 10, false, true);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.stats.set_stats_on_effect(HP, 10, false, true);
+        assert_eq!(145, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.stats.set_stats_on_effect(HP, -10, false, true);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.stats.set_stats_on_effect(HP, 10, true, true);
+        assert_eq!(148, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.stats.set_stats_on_effect(HP, -10, true, true);
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        // test raw max = 0, nothing change
+        c.stats.all_stats[HP].max_raw = 0;
+        assert_eq!(135, c.stats.all_stats[HP].max);
+        assert_eq!(1, c.stats.all_stats[HP].current);
+        c.stats.set_stats_on_effect(DODGE, 20, false, true);
+        assert_eq!(25, c.stats.all_stats[DODGE].max);
+        assert_eq!(5, c.stats.all_stats[DODGE].current);
     }
 }
