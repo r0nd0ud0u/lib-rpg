@@ -1,13 +1,16 @@
 use indexmap::IndexMap;
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::HashMap};
 
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    common::stats_const::{
-        AGGRO, AGGRO_RATE, BERSECK_RATE, BERSERK, CRITICAL_STRIKE, DODGE, HP, HP_REGEN,
-        MAGICAL_ARMOR, MAGICAL_POWER, MANA, MANA_REGEN, PHYSICAL_ARMOR, PHYSICAL_POWER, SPEED,
-        SPEED_REGEN, VIGOR, VIGOR_REGEN,
+    common::{
+        character_const::NB_TURN_SUM_AGGRO,
+        stats_const::{
+            AGGRO, AGGRO_RATE, BERSECK_RATE, BERSERK, CRITICAL_STRIKE, DODGE, HP, HP_REGEN,
+            MAGICAL_ARMOR, MAGICAL_POWER, MANA, MANA_REGEN, PHYSICAL_ARMOR, PHYSICAL_POWER, SPEED,
+            SPEED_REGEN, VIGOR, VIGOR_REGEN,
+        },
     },
     equipment::Equipment,
     utils,
@@ -291,6 +294,23 @@ impl Stats {
             }
         }
     }
+
+    pub fn init_aggro_on_turn(&mut self, turn_nb: usize, all_aggro: &HashMap<u64, i64>) {
+        if let Some(aggro_stat) = self.all_stats.get_mut(AGGRO) {
+            aggro_stat.current = 0;
+            let mut index: i64;
+            for i in 1..NB_TURN_SUM_AGGRO + 1 {
+                index = turn_nb as i64 - i as i64;
+                if index < 0 {
+                    break;
+                }
+                if i <= all_aggro.len() {
+                    let aggro = *all_aggro.get(&(index as u64)).unwrap_or(&0);
+                    aggro_stat.current = aggro_stat.current.saturating_add(aggro as u64);
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -453,5 +473,30 @@ mod tests {
         assert_eq!(10, stats.all_stats[BERSERK].buf_equip_value);
         assert_eq!(10, stats.all_stats[BERSERK].buf_equip_percent);
         assert_eq!(0, stats.all_stats[BERSERK].current_raw);
+    }
+
+    #[test]
+    fn unit_init_aggro_on_turn() {
+        let mut stats = Stats::default();
+        stats.init();
+
+        let mut all_aggro = HashMap::new();
+        assert!(NB_TURN_SUM_AGGRO > 0);
+
+        // Insert NB_TURN_SUM_AGGRO + 1 turns
+        for i in 0..=NB_TURN_SUM_AGGRO {
+            all_aggro.insert(i as u64, (i as i64 + 1) * 10);
+        }
+
+        // Initialize stats on turn NB_TURN_SUM_AGGRO + 1
+        stats.init_aggro_on_turn(NB_TURN_SUM_AGGRO + 1, &all_aggro);
+
+        // Compute expected sum: only the last NB_TURN_SUM_AGGRO turns
+        let mut expected_sum = 0;
+        for i in 1..=NB_TURN_SUM_AGGRO {
+            expected_sum += (i as i64 + 1) * 10;
+        }
+
+        assert_eq!(expected_sum, stats.all_stats[AGGRO].current as i64);
     }
 }

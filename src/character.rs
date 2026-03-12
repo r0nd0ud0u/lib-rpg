@@ -10,7 +10,7 @@ use crate::{
     common::{
         all_target_const::*,
         attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
-        character_const::{NB_TURN_SUM_AGGRO, ULTIMATE_LEVEL},
+        character_const::ULTIMATE_LEVEL,
         effect_const::*,
         paths_const::*,
         reach_const::*,
@@ -254,22 +254,10 @@ impl Character {
         if self.character_rounds_info.tx_rx.len() <= AmountType::Aggro as usize {
             return;
         }
-        if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO) {
-            aggro_stat.current = 0;
-            let mut index: i64;
-            for i in 1..NB_TURN_SUM_AGGRO + 1 {
-                index = turn_nb as i64 - i as i64;
-                if index < 0 {
-                    break;
-                }
-                if i <= self.character_rounds_info.tx_rx[AmountType::Aggro as usize].len() {
-                    let aggro = *self.character_rounds_info.tx_rx[AmountType::Aggro as usize]
-                        .get(&(index as u64))
-                        .unwrap_or(&0);
-                    aggro_stat.current = aggro_stat.current.saturating_add(aggro as u64);
-                }
-            }
-        }
+        self.stats.init_aggro_on_turn(
+            turn_nb,
+            &self.character_rounds_info.tx_rx[AmountType::Aggro as usize],
+        );
 
         self.character_rounds_info.tx_rx[AmountType::Aggro as usize].insert(turn_nb as u64, 0);
     }
