@@ -304,16 +304,38 @@ impl GameManager {
         );
 
         // critical strike
-        let is_crit = self.pm.current_player.process_critical_strike(atk_name);
+        let is_crit = match self.pm.current_player.process_critical_strike(atk_name) {
+            Ok(is_crit) => is_crit,
+            Err(e) => {
+                tracing::error!(
+                    "Error while processing critical strike for player {}: {}",
+                    self.pm.current_player.id_name,
+                    e
+                );
+                false
+            }
+        };
         // process boss target
         self.pm.process_boss_target();
 
         // ProcessAtk
-        let all_effects_param = self
-            .pm
-            .current_player
-            .process_atk(&self.game_state, is_crit, &atk);
-
+        let all_effects_param =
+            match self
+                .pm
+                .current_player
+                .process_atk(&self.game_state, is_crit, &atk)
+            {
+                Ok(effects) => effects,
+                Err(e) => {
+                    tracing::error!(
+                        "Error while processing attack {} for player {}: {}",
+                        atk_name,
+                        self.pm.current_player.id_name,
+                        e
+                    );
+                    vec![]
+                }
+            };
         // apply effect param on targets
         let launcher_stats = self.pm.current_player.stats.clone();
         let id_name = self.pm.current_player.id_name.clone();
@@ -371,7 +393,9 @@ impl GameManager {
         // RemoveTerminatedEffectsOnPlayer which last only that turn
 
         // check who died
-        self.pm.process_died_players();
+        self.pm.process_died_players().unwrap_or_else(|e| {
+            tracing::error!("Error while processing died players: {}", e);
+        });
         // TODO if boss died -> loot
 
         // update active character for cost atk and buf received.

@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+#[repr(usize)]
+#[derive(Debug, Clone)]
 pub enum BufTypes {
     DefaultBuf = 0,
     DamageRx,
@@ -61,6 +63,12 @@ impl Buffers {
     pub fn set_buffers(&mut self, value: i64, is_percent: bool) {
         self.value = value;
         self.is_percent = is_percent;
+    }
+
+    pub fn update_buf(&mut self, value: i64, is_percent: bool, stat: &str) {
+        self.value += value;
+        self.is_percent = is_percent;
+        self.all_stats_name.push(stat.to_string());
     }
 }
 

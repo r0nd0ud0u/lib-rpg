@@ -292,7 +292,7 @@ impl PlayerManager {
                         .init_aggro_on_turn(game_state.current_turn_nb);
                     let _ = self
                         .current_player
-                        .remove_terminated_effect_on_player()
+                        .remove_terminated_effect_on_player()?
                         .iter()
                         .map(|e| {
                             logs.push(LogData {
@@ -427,14 +427,15 @@ impl PlayerManager {
         }
     }
 
-    pub fn process_died_players(&mut self) {
+    pub fn process_died_players(&mut self) -> Result<()> {
         // heroes
-        self.active_heroes.iter_mut().for_each(|c| {
+        for c in self.active_heroes.iter_mut() {
             if c.stats.is_dead() == Some(true) {
-                c.reset_all_effects_on_player();
+                c.reset_all_effects_on_player()?; // now ? works
                 c.reset_all_buffers();
             }
-        });
+        }
+        Ok(())
     }
 
     pub fn process_boss_target(&mut self) {
