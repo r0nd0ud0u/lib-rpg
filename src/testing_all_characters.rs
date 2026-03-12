@@ -82,10 +82,37 @@ pub fn dxrpg_pm() -> PlayerManager {
 }
 
 pub fn dxrpg_game_manager() -> crate::game_manager::GameManager {
-    let dm = dxrpg_dm();
+    let dm: DataManager = dxrpg_dm();
     // init gm
     let mut gm = GameManager::new("./offlines", dm.equipment_table.clone());
     // All the bosses are active
     gm.pm = dxrpg_pm();
     gm
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{data_manager::DataManager, testing_all_characters::dxrpg_dm};
+
+    #[test]
+    fn unit_dxrpg_game_manager() {
+        let gm = super::dxrpg_game_manager();
+        assert_eq!(gm.pm.active_heroes.len(), 4);
+        assert_eq!(gm.pm.active_bosses.len(), 2);
+
+        // test all_buffer length
+        assert_eq!(
+            gm.pm.active_bosses[0]
+                .character_rounds_info
+                .all_buffers
+                .len(),
+            12
+        );
+    }
+
+    #[test]
+    fn unit_dxrpg_dm() {
+        let dm: DataManager = dxrpg_dm();
+        assert_eq!(dm.all_bosses[0].character_rounds_info.all_buffers.len(), 12);
+    }
 }

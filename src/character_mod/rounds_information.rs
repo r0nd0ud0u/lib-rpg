@@ -1,9 +1,10 @@
 use crate::{
     attack_type::AttackType,
-    buffers::Buffers,
-    common::{all_target_const::TARGET_ENNEMY, stats_const::HP},
+    buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
+    common::{all_target_const::TARGET_ENNEMY, attak_const::COEFF_CRIT_DMG, stats_const::HP},
     effect::{self, EffectParam},
     players_manager::{DodgeInfo, GameAtkEffects},
+    target::is_target_ally,
 };
 use std::collections::HashMap;
 
@@ -49,7 +50,7 @@ pub struct CharacterRoundsInfo {
 
 impl Default for CharacterRoundsInfo {
     fn default() -> Self {
-        CharacterRoundsInfo {
+        let mut info = CharacterRoundsInfo {
             is_random_target: false,
             is_heal_atk_blocked: false,
             is_first_round: true,
@@ -62,7 +63,11 @@ impl Default for CharacterRoundsInfo {
             exp_to_next_level: 100,
             exp: 0,
             is_potential_target: false,
-        }
+        };
+        // init all_buffers
+        info.new_buffers();
+
+        info
     }
 }
 
@@ -85,6 +90,13 @@ pub struct HotsBufs {
     pub debuf_txt: Vec<String>,
 }
 impl CharacterRoundsInfo {
+    /// Init all buffers with default values
+    pub fn new_buffers(&mut self) {
+        for _ in 0..BufTypes::EnumSize as usize {
+            self.all_buffers.push(Buffers::default());
+        }
+    }
+
     /// Output: hot, dot, buf, debuf
     pub fn get_hot_and_buf_nbs_txts(all_effects: &Vec<GameAtkEffects>) -> HotsBufs {
         let mut hots_bufs = HotsBufs::default();
@@ -129,12 +141,72 @@ impl CharacterRoundsInfo {
     pub fn is_blocking(&mut self, ep: &EffectParam) -> bool {
         self.dodge_info.is_blocking && ep.stats_name == HP && ep.target_kind == TARGET_ENNEMY
     }
+
+    pub fn apply_buf_debuf(&self, full_amount: i64, target: &str, is_crit: bool) -> i64 {
+        let mut real_amount = full_amount;
+        let mut buf_debuf = 0;
+        let mut coeff_crit = COEFF_CRIT_DMG;
+        // buf debuf heal
+        if full_amount > 0 && is_target_ally(target) {
+            // Launcher TX
+            // To place first
+            if let Some(buf_multi) = self.all_buffers.get(BufTypes::MultiValue as usize)
+                && buf_multi.value > 0
+            {
+                real_amount = update_heal_by_multi(real_amount, buf_multi.value);
+            }
+            // Launcher TX
+            if let Some(buf_hp_tx) = self.all_buffers.get(BufTypes::HealTx as usize) {
+                buf_debuf +=
+                    update_damage_by_buf(buf_hp_tx.value, buf_hp_tx.is_percent, real_amount);
+            }
+            // Receiver RX
+            if let Some(buf_hp_rx) = self.all_buffers.get(BufTypes::HealRx as usize) {
+                buf_debuf +=
+                    update_damage_by_buf(buf_hp_rx.value, buf_hp_rx.is_percent, real_amount);
+            }
+            // Launcher TX
+            if let Some(buf_nb_hots) = self.all_buffers.get(BufTypes::BoostedByHots as usize) {
+                buf_debuf +=
+                    update_damage_by_buf(buf_nb_hots.value, buf_nb_hots.is_percent, real_amount);
+            }
+        }
+        // buf debuf damage
+        if full_amount < 0 && !is_target_ally(target) {
+            // Launcher TX
+            if let Some(buf_dmg_tx) = self.all_buffers.get(BufTypes::DamageTx as usize) {
+                buf_debuf +=
+                    update_damage_by_buf(buf_dmg_tx.value, buf_dmg_tx.is_percent, real_amount);
+            }
+            // Receiver RX
+            if let Some(buf_dmg_rx) = self.all_buffers.get(BufTypes::DamageRx as usize) {
+                buf_debuf +=
+                    update_damage_by_buf(buf_dmg_rx.value, buf_dmg_rx.is_percent, real_amount);
+            }
+            // Receiver RX
+            if let Some(buf_dmg_crit) = self.all_buffers.get(BufTypes::DamageCritCapped as usize) {
+                // improve crit coeff
+                coeff_crit += buf_dmg_crit.value as f64 / 100.0;
+            }
+        }
+
+        // apply buf/debuf
+        real_amount += buf_debuf;
+        // is it a critical strike ?
+        if is_crit {
+            real_amount = (real_amount as f64 * coeff_crit).round() as i64;
+        }
+
+        real_amount
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
+        buffers::BufTypes,
         character_mod::rounds_information::{CharacterRoundsInfo, HotsBufs},
+        common::all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
         players_manager::GameAtkEffects,
         testing_effect::{
             build_buf_effect_individual, build_debuf_effect_individual,
@@ -280,5 +352,22 @@ mod tests {
                 )]
             }
         );
+    }
+
+    #[test]
+    fn unit_apply_buf_debuf() {
+        let mut cri = CharacterRoundsInfo::default();
+        // no buf/debuf
+        let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
+        assert_eq!(result, 100);
+        // damage buf aigainst ennemy
+        cri.all_buffers
+            .get_mut(BufTypes::DamageTx as usize)
+            .unwrap()
+            .value = 20;
+
+        let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
+        // -100 -20 = -120
+        assert_eq!(result, -120);
     }
 }

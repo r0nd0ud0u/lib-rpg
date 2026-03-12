@@ -5,16 +5,11 @@ use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
-    buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
+    buffers::BufTypes,
     character_mod::rounds_information::CharacterRoundsInfo,
     common::{
-        all_target_const::*,
-        attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
-        character_const::ULTIMATE_LEVEL,
-        effect_const::*,
-        paths_const::*,
-        reach_const::*,
-        stats_const::*,
+        all_target_const::*, attak_const::COEFF_CRIT_STATS, character_const::ULTIMATE_LEVEL,
+        effect_const::*, paths_const::*, reach_const::*, stats_const::*,
     },
     effect::{
         EffectOutcome, EffectParam, ProcessedEffectParam, is_boosted_by_crit,
@@ -138,6 +133,7 @@ pub enum Class {
 }
 
 impl Character {
+    // TODO add function to validate json
     pub fn try_new_from_json<P1: AsRef<Path>, P2: AsRef<Path>>(
         path: P1,
         root_path: P2,
@@ -151,14 +147,6 @@ impl Character {
             let txrxlen = value.character_rounds_info.tx_rx.len();
             for _ in 0..AmountType::EnumSize as usize - txrxlen {
                 value.character_rounds_info.tx_rx.push(HashMap::new());
-            }
-            // init all_buffers
-            let buflen = value.character_rounds_info.all_buffers.len();
-            for _ in 0..BufTypes::EnumSize as usize - buflen {
-                value
-                    .character_rounds_info
-                    .all_buffers
-                    .push(Buffers::default());
             }
             // read atk only if it is new game
             if !load_from_saved_game {
@@ -437,91 +425,6 @@ impl Character {
             return Ok(processed_effect_param);
         }
         Ok(processed_effect_param)
-    }
-
-    pub fn apply_buf_debuf(&self, full_amount: i64, target: &str, is_crit: bool) -> i64 {
-        let mut real_amount = full_amount;
-        let mut buf_debuf = 0;
-        let mut coeff_crit = COEFF_CRIT_DMG;
-        // buf debuf heal
-        if full_amount > 0 && is_target_ally(target) {
-            // Launcher TX
-            // To place first
-            if let Some(buf_multi) = self
-                .character_rounds_info
-                .all_buffers
-                .get(BufTypes::MultiValue as usize)
-                && buf_multi.value > 0
-            {
-                real_amount = update_heal_by_multi(full_amount, buf_multi.value);
-            }
-            // Launcher TX
-            if let Some(buf_hp_tx) = self
-                .character_rounds_info
-                .all_buffers
-                .get(BufTypes::HealTx as usize)
-            {
-                buf_debuf +=
-                    update_damage_by_buf(buf_hp_tx.value, buf_hp_tx.is_percent, real_amount);
-            }
-            // Receiver RX
-            if let Some(buf_hp_rx) = self
-                .character_rounds_info
-                .all_buffers
-                .get(BufTypes::HealRx as usize)
-            {
-                buf_debuf +=
-                    update_damage_by_buf(buf_hp_rx.value, buf_hp_rx.is_percent, real_amount);
-            }
-            // Launcher TX
-            if let Some(buf_nb_hots) = self
-                .character_rounds_info
-                .all_buffers
-                .get(BufTypes::BoostedByHots as usize)
-            {
-                buf_debuf +=
-                    update_damage_by_buf(buf_nb_hots.value, buf_nb_hots.is_percent, real_amount);
-            }
-        }
-        // buf debuf damage
-        if full_amount < 0 && !is_target_ally(target) {
-            // Launcher TX
-            if let Some(buf_dmg_tx) = self
-                .character_rounds_info
-                .all_buffers
-                .get(BufTypes::DamageTx as usize)
-            {
-                buf_debuf +=
-                    update_damage_by_buf(buf_dmg_tx.value, buf_dmg_tx.is_percent, real_amount);
-            }
-            // Receiver RX
-            if let Some(buf_dmg_rx) = self
-                .character_rounds_info
-                .all_buffers
-                .get(BufTypes::DamageRx as usize)
-            {
-                buf_debuf +=
-                    update_damage_by_buf(buf_dmg_rx.value, buf_dmg_rx.is_percent, real_amount);
-            }
-            // Receiver RX
-            if let Some(buf_dmg_crit) = self
-                .character_rounds_info
-                .all_buffers
-                .get(BufTypes::DamageCritCapped as usize)
-            {
-                // improve crit coeff
-                coeff_crit += buf_dmg_crit.value as f64 / 100.0;
-            }
-        }
-
-        // apply buf/debuf
-        real_amount += buf_debuf;
-        // is it a critical strike ?
-        if is_crit {
-            real_amount = (real_amount as f64 * coeff_crit).round() as i64;
-        }
-
-        real_amount
     }
 
     pub fn increment_counter_effect(&mut self) {
@@ -821,7 +724,7 @@ impl Character {
 
         // apply buf/debuf to full_amount in case of damages/heal
         if processed_ep.input_effect_param.stats_name == HP {
-            full_amount = self.apply_buf_debuf(
+            full_amount = self.character_rounds_info.apply_buf_debuf(
                 full_amount,
                 &processed_ep.input_effect_param.target_kind,
                 is_crit,
@@ -1107,12 +1010,27 @@ mod tests {
     };
 
     #[test]
+    fn unit_try_new_from_json_thrain() {
+        let file_path = "./offlines/characters/Thraïn.json"; // Path to the JSON file
+        let equipment = testing_all_equipment();
+        assert_eq!(EquipmentJsonKey::iter().count(), equipment.len());
+        let c = Character::try_new_from_json(file_path, "./offlines", false, &equipment);
+        assert!(c.is_ok());
+        let c = c.unwrap();
+        // name
+        assert_eq!("Thraïn", c.db_full_name);
+        assert_eq!("Thraïn", c.short_name);
+        assert_eq!("Thraïn_#1", c.id_name);
+        // buf-debuf
+        assert_eq!(12, c.character_rounds_info.all_buffers.len());
+    }
+
+    #[test]
     fn unit_try_new_from_json() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let equipment = testing_all_equipment();
         assert_eq!(EquipmentJsonKey::iter().count(), equipment.len());
         let c = Character::try_new_from_json(file_path, *TEST_OFFLINE_ROOT, false, &equipment);
-        println!("{:#?}", c);
         assert!(c.is_ok());
         let c = c.unwrap();
         // name

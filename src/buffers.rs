@@ -56,7 +56,7 @@ pub struct Buffers {
     pub all_stats_name: Vec<String>,
     /// TODO buf-type
     #[serde(rename = "Buf-type")]
-    pub buf_type: i64,
+    pub buf_type: usize,
 }
 
 impl Buffers {
