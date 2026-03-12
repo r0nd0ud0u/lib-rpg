@@ -9,6 +9,7 @@ use crate::{
         MAGICAL_ARMOR, MAGICAL_POWER, MANA, MANA_REGEN, PHYSICAL_ARMOR, PHYSICAL_POWER, SPEED,
         SPEED_REGEN, VIGOR, VIGOR_REGEN,
     },
+    equipment::Equipment,
     utils,
 };
 
@@ -269,6 +270,27 @@ impl Stats {
         let ratio = utils::calc_ratio(stat.current as i64, stat.max as i64);
         stat.current = (stat.max as f64 * ratio).round() as u64;
     }
+
+    pub fn apply_equipment_on_stats(&mut self, equipment_on: &Vec<Equipment>) {
+        for equipment in equipment_on {
+            for (stat_name, stat_effect) in &equipment.stats.all_stats {
+                if stat_effect.buf_equip_percent == 0 && stat_effect.buf_equip_value == 0 {
+                    continue;
+                }
+
+                let attr = self.get_mut_value(stat_name);
+                attr.buf_equip_value += stat_effect.buf_equip_value;
+                attr.buf_equip_percent += stat_effect.buf_equip_percent;
+
+                let ratio = utils::calc_ratio(attr.current as i64, attr.max as i64);
+                attr.max = attr.max_raw
+                    + attr.buf_equip_value as u64
+                    + attr.max_raw * attr.buf_equip_percent as u64 / 100;
+
+                attr.current = (attr.max as f64 * ratio).round() as u64;
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -396,5 +418,40 @@ mod tests {
         c.stats.set_stats_on_effect(DODGE, 20, false, true);
         assert_eq!(25, c.stats.all_stats[DODGE].max);
         assert_eq!(5, c.stats.all_stats[DODGE].current);
+    }
+
+    #[test]
+    fn unit_apply_equipment_on_stats() {
+        let stat = Attribute {
+            current: 100,
+            max: 100,
+            max_raw: 100,
+            ..Default::default()
+        };
+        let mut stats = Stats::default();
+        stats.all_stats.insert(BERSERK.to_string(), stat.clone());
+        let equipment = Equipment {
+            stats: Stats {
+                all_stats: vec![(
+                    BERSERK.to_string(),
+                    Attribute {
+                        buf_equip_value: 10,
+                        buf_equip_percent: 10,
+                        ..Default::default()
+                    },
+                )]
+                .into_iter()
+                .collect(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        stats.apply_equipment_on_stats(&vec![equipment]);
+        assert_eq!(120, stats.all_stats[BERSERK].max);
+        assert_eq!(120, stats.all_stats[BERSERK].current);
+        assert_eq!(100, stats.all_stats[BERSERK].max_raw);
+        assert_eq!(10, stats.all_stats[BERSERK].buf_equip_value);
+        assert_eq!(10, stats.all_stats[BERSERK].buf_equip_percent);
+        assert_eq!(0, stats.all_stats[BERSERK].current_raw);
     }
 }

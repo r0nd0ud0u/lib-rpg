@@ -232,35 +232,19 @@ impl Character {
                     })
                     .collect::<HashMap<String, Vec<Equipment>>>();
                 // apply equipment on stats
-                value.apply_equipment_on_stats();
+                value.stats.apply_equipment_on_stats(
+                    &value
+                        .equipment_on
+                        .values()
+                        .flatten()
+                        .cloned()
+                        .collect::<Vec<Equipment>>(),
+                );
             }
 
             Ok(value)
         } else {
             Err(anyhow!("Unknown file: {:?}", path.as_ref()))
-        }
-    }
-
-    pub fn apply_equipment_on_stats(&mut self) {
-        for equipments in self.equipment_on.values() {
-            for equipment in equipments {
-                for (stat_name, stat_effect) in &equipment.stats.all_stats {
-                    if stat_effect.buf_equip_percent == 0 && stat_effect.buf_equip_value == 0 {
-                        continue;
-                    }
-
-                    let attr = self.stats.get_mut_value(stat_name);
-                    attr.buf_equip_value += stat_effect.buf_equip_value;
-                    attr.buf_equip_percent += stat_effect.buf_equip_percent;
-
-                    let ratio = utils::calc_ratio(attr.current as i64, attr.max as i64);
-                    attr.max = attr.max_raw
-                        + attr.buf_equip_value as u64
-                        + attr.max_raw * attr.buf_equip_percent as u64 / 100;
-
-                    attr.current = (attr.max as f64 * ratio).round() as u64;
-                }
-            }
         }
     }
 
@@ -1200,8 +1184,8 @@ mod tests {
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].current);
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].max);
         // stats - berseck
-        assert_eq!(100, c.stats.all_stats[BERSERK].current);
-        assert_eq!(200, c.stats.all_stats[BERSERK].max);
+        assert_eq!(105, c.stats.all_stats[BERSERK].current);
+        assert_eq!(210, c.stats.all_stats[BERSERK].max); // right ring + 10 to max berseck (ratio -> update current 100 -> 105)
         // stats - berseck_rate
         assert_eq!(5, c.stats.all_stats[BERSECK_RATE].current); // +4 right ring
         assert_eq!(5, c.stats.all_stats[BERSECK_RATE].max);
