@@ -199,6 +199,13 @@ impl CharacterRoundsInfo {
 
         real_amount
     }
+
+    pub fn reset_all_buffers(&mut self) {
+        self.all_buffers.iter_mut().for_each(|b| {
+            b.set_buffers(0, false);
+            b.is_passive_enabled = false;
+        });
+    }
 }
 
 #[cfg(test)]
@@ -376,10 +383,7 @@ mod tests {
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
         // -100 -20 = -120 * 2 = -240
         assert_eq!(result, -240);
-        cri.all_buffers
-            .get_mut(BufTypes::DamageTx as usize)
-            .unwrap()
-            .set_buffers(0, false);
+        cri.reset_all_buffers();
 
         //Receiver RX: BufTypes::DamageRx
         cri.all_buffers
@@ -389,10 +393,7 @@ mod tests {
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
         // -100 -20 = -120
         assert_eq!(result, -120);
-        cri.all_buffers
-            .get_mut(BufTypes::DamageRx as usize)
-            .unwrap()
-            .set_buffers(0, false);
+        cri.reset_all_buffers();
 
         //Receiver RX: BufTypes::DamageCritCapped
         cri.all_buffers
@@ -403,6 +404,7 @@ mod tests {
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
         // -100 * 4 = -400
         assert_eq!(result, -400);
+
         // it can be accunulated with damage buf
         cri.all_buffers
             .get_mut(BufTypes::DamageTx as usize)
@@ -411,14 +413,7 @@ mod tests {
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
         // -100 -20 = -120* 4 = -480
         assert_eq!(result, -480);
-        cri.all_buffers
-            .get_mut(BufTypes::DamageCritCapped as usize)
-            .unwrap()
-            .set_buffers(0, false);
-        cri.all_buffers
-            .get_mut(BufTypes::DamageTx as usize)
-            .unwrap()
-            .set_buffers(0, false);
+        cri.reset_all_buffers();
 
         // buf debuf heal against ally
 
@@ -430,10 +425,7 @@ mod tests {
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 * 3 = 300
         assert_eq!(result, 300);
-        cri.all_buffers
-            .get_mut(BufTypes::MultiValue as usize)
-            .unwrap()
-            .set_buffers(0, false);
+        cri.reset_all_buffers();
 
         // BufTypes::HealTx
         cri.all_buffers
@@ -443,10 +435,7 @@ mod tests {
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 + 20 = 120
         assert_eq!(result, 120);
-        cri.all_buffers
-            .get_mut(BufTypes::HealTx as usize)
-            .unwrap()
-            .set_buffers(0, false);
+        cri.reset_all_buffers();
         // BufTypes::HealRx
         cri.all_buffers
             .get_mut(BufTypes::HealRx as usize)
@@ -455,10 +444,7 @@ mod tests {
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 + 20 = 120
         assert_eq!(result, 120);
-        cri.all_buffers
-            .get_mut(BufTypes::HealRx as usize)
-            .unwrap()
-            .set_buffers(0, false);
+        cri.reset_all_buffers();
         // BufTypes::BoostedByHots
         cri.all_buffers
             .get_mut(BufTypes::BoostedByHots as usize)
@@ -467,9 +453,20 @@ mod tests {
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 + 20 = 120
         assert_eq!(result, 120);
+        cri.reset_all_buffers();
+    }
+
+    #[test]
+    fn unit_reset_all_buffers() {
+        let mut cri = CharacterRoundsInfo::default();
         cri.all_buffers
-            .get_mut(BufTypes::BoostedByHots as usize)
+            .get_mut(BufTypes::DamageTx as usize)
             .unwrap()
-            .set_buffers(0, false);
+            .set_buffers(20, false);
+        cri.reset_all_buffers();
+        let result = cri.all_buffers.get(BufTypes::DamageTx as usize).unwrap();
+        assert_eq!(result.value, 0);
+        assert!(!result.is_percent);
+        assert!(!result.is_passive_enabled);
     }
 }

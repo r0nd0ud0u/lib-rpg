@@ -456,16 +456,6 @@ impl Character {
         Ok(())
     }
 
-    pub fn reset_all_buffers(&mut self) {
-        self.character_rounds_info
-            .all_buffers
-            .iter_mut()
-            .for_each(|b| {
-                b.set_buffers(0, false);
-                b.is_passive_enabled = false;
-            });
-    }
-
     pub fn process_atk_cost(&mut self, atk_name: &str) {
         if let Some(atk) = self.attacks_list.get(atk_name) {
             if let Some(mana) = self.stats.all_stats.get_mut(MANA) {
@@ -994,7 +984,6 @@ mod tests {
 
     use super::Character;
     use crate::attack_type::AttackType;
-    use crate::buffers::Buffers;
     use crate::character::AmountType;
     use crate::common::paths_const::TEST_OFFLINE_ROOT;
     use crate::effect::EffectOutcome;
@@ -1700,23 +1689,6 @@ mod tests {
             c.stats.all_stats[HP].max as i64
         );
         assert!(c.all_effects.is_empty());
-    }
-
-    #[test]
-    fn unit_reset_all_buffers() {
-        let mut c = Character::try_new_from_json(
-            "./tests/offlines/characters/test.json",
-            *TEST_OFFLINE_ROOT,
-            false,
-            &testing_all_equipment(),
-        )
-        .unwrap();
-        let mut b = Buffers::default();
-        b.set_buffers(30, true);
-        c.character_rounds_info.all_buffers.push(b);
-        c.reset_all_buffers();
-        assert_eq!(c.character_rounds_info.all_buffers[0].value, 0);
-        assert!(!c.character_rounds_info.all_buffers[0].is_percent);
     }
 
     #[test]

@@ -432,7 +432,7 @@ impl PlayerManager {
         for c in self.active_heroes.iter_mut() {
             if c.stats.is_dead() == Some(true) {
                 c.reset_all_effects_on_player()?; // now ? works
-                c.reset_all_buffers();
+                c.character_rounds_info.reset_all_buffers();
             }
         }
         Ok(())
