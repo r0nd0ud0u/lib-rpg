@@ -264,37 +264,22 @@ impl Character {
             self.character_rounds_info.is_heal_atk_blocked = false;
         }
         if ep.effect_type == EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT {
-            self.update_buf(&BufTypes::DamageTx, -ep.value, true, "")?;
+            self.character_rounds_info
+                .update_buf(&BufTypes::DamageTx, -ep.value, true, "")?;
         }
         if ep.effect_type == EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT {
-            self.update_buf(&BufTypes::DamageRx, -ep.value, true, "")?;
+            self.character_rounds_info
+                .update_buf(&BufTypes::DamageRx, -ep.value, true, "")?;
         }
         if ep.effect_type == EFFECT_CHANGE_HEAL_RX_BY_PERCENT {
-            self.update_buf(&BufTypes::HealRx, -ep.value, true, "")?;
+            self.character_rounds_info
+                .update_buf(&BufTypes::HealRx, -ep.value, true, "")?;
         }
         if ep.effect_type == EFFECT_CHANGE_HEAL_TX_BY_PERCENT {
-            self.update_buf(&BufTypes::HealTx, -ep.value, true, "")?;
+            self.character_rounds_info
+                .update_buf(&BufTypes::HealTx, -ep.value, true, "")?;
         }
         Ok(())
-    }
-
-    pub fn update_buf(
-        &mut self,
-        buf_type: &BufTypes,
-        value: i64,
-        is_percent: bool,
-        stat: &str,
-    ) -> Result<()> {
-        if let Some(buf) = self
-            .character_rounds_info
-            .all_buffers
-            .get_mut(buf_type.clone() as usize)
-        {
-            buf.update_buf(value, is_percent, stat);
-            Ok(())
-        } else {
-            bail!("Buffer type {:?} cannot be found", buf_type);
-        }
     }
 
     pub fn process_one_effect(
@@ -352,7 +337,7 @@ impl Character {
             }
             EFFECT_NB_DECREASE_ON_TURN => {
                 processed_effect_param.number_of_applies = process_decrease_on_turn(ep);
-                self.update_buf(
+                self.character_rounds_info.update_buf(
                     &BufTypes::ApplyEffectInit,
                     processed_effect_param.number_of_applies,
                     false,
@@ -527,7 +512,12 @@ impl Character {
         );
         if is_crit && !is_crit_by_passive {
             if delta_capped > 0 {
-                self.update_buf(&BufTypes::DamageCritCapped, delta_capped, false, "")?;
+                self.character_rounds_info.update_buf(
+                    &BufTypes::DamageCritCapped,
+                    delta_capped,
+                    false,
+                    "",
+                )?;
             }
             Ok(true)
         } else if is_crit_by_passive {
@@ -1261,30 +1251,6 @@ mod tests {
         assert_eq!(
             -10,
             c.character_rounds_info.all_buffers[BufTypes::HealTx as usize].value
-        );
-    }
-
-    #[test]
-    fn unit_update_buf() {
-        let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
-        let c = Character::try_new_from_json(
-            file_path,
-            *TEST_OFFLINE_ROOT,
-            false,
-            &testing_all_equipment(),
-        );
-        assert!(c.is_ok());
-        let mut c = c.unwrap();
-        let result = c.update_buf(&BufTypes::DamageTx, 10, false, HP);
-        assert_eq!(
-            10,
-            c.character_rounds_info.all_buffers[BufTypes::DamageTx as usize].value
-        );
-        assert!(result.is_ok());
-        assert!(!c.character_rounds_info.all_buffers[BufTypes::DamageTx as usize].is_percent);
-        assert_eq!(
-            HP,
-            c.character_rounds_info.all_buffers[BufTypes::DamageTx as usize].all_stats_name[0]
         );
     }
 

@@ -1,3 +1,5 @@
+use anyhow::{Result, bail};
+
 use crate::{
     attack_type::AttackType,
     buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
@@ -206,6 +208,21 @@ impl CharacterRoundsInfo {
             b.is_passive_enabled = false;
         });
     }
+
+    pub fn update_buf(
+        &mut self,
+        buf_type: &BufTypes,
+        value: i64,
+        is_percent: bool,
+        stat: &str,
+    ) -> Result<()> {
+        if let Some(buf) = self.all_buffers.get_mut(buf_type.clone() as usize) {
+            buf.update_buf(value, is_percent, stat);
+            Ok(())
+        } else {
+            bail!("Buffer type {:?} cannot be found", buf_type);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -213,7 +230,10 @@ mod tests {
     use crate::{
         buffers::BufTypes,
         character_mod::rounds_information::{CharacterRoundsInfo, HotsBufs},
-        common::all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+        common::{
+            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+            stats_const::HP,
+        },
         players_manager::GameAtkEffects,
         testing_effect::{
             build_buf_effect_individual, build_debuf_effect_individual,
@@ -468,5 +488,22 @@ mod tests {
         assert_eq!(result.value, 0);
         assert!(!result.is_percent);
         assert!(!result.is_passive_enabled);
+    }
+
+    #[test]
+    fn unit_update_buf() {
+        let mut cri = CharacterRoundsInfo::default();
+        cri.all_buffers
+            .get_mut(BufTypes::DamageTx as usize)
+            .unwrap()
+            .set_buffers(20, false);
+        let result = cri.update_buf(&BufTypes::DamageTx, 10, false, HP);
+        assert_eq!(30, cri.all_buffers[BufTypes::DamageTx as usize].value);
+        assert!(result.is_ok());
+        assert!(!cri.all_buffers[BufTypes::DamageTx as usize].is_percent);
+        assert_eq!(
+            HP,
+            cri.all_buffers[BufTypes::DamageTx as usize].all_stats_name[0]
+        );
     }
 }
