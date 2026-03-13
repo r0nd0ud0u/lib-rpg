@@ -148,24 +148,24 @@ impl CharacterRoundsInfo {
         let mut coeff_crit = COEFF_CRIT_DMG;
         // buf debuf heal
         if full_amount > 0 && is_target_ally(target) {
-            // Launcher TX
+            // Launcher TX: BufTypes::MultiValue
             // To place first
             if let Some(buf_multi) = self.all_buffers.get(BufTypes::MultiValue as usize)
                 && buf_multi.value > 0
             {
                 real_amount = update_heal_by_multi(real_amount, buf_multi.value);
             }
-            // Launcher TX
+            // Launcher TX: BufTypes::HealTx
             if let Some(buf_hp_tx) = self.all_buffers.get(BufTypes::HealTx as usize) {
                 buf_debuf +=
                     update_damage_by_buf(buf_hp_tx.value, buf_hp_tx.is_percent, real_amount);
             }
-            // Receiver RX
+            // Receiver RX: BufTypes::HealRx
             if let Some(buf_hp_rx) = self.all_buffers.get(BufTypes::HealRx as usize) {
                 buf_debuf +=
                     update_damage_by_buf(buf_hp_rx.value, buf_hp_rx.is_percent, real_amount);
             }
-            // Launcher TX
+            // Launcher TX: BufTypes::BoostedByHots
             if let Some(buf_nb_hots) = self.all_buffers.get(BufTypes::BoostedByHots as usize) {
                 buf_debuf +=
                     update_damage_by_buf(buf_nb_hots.value, buf_nb_hots.is_percent, real_amount);
@@ -173,20 +173,20 @@ impl CharacterRoundsInfo {
         }
         // buf debuf damage
         if full_amount < 0 && !is_target_ally(target) {
-            // Launcher TX
+            // Launcher TX: BufTypes::DamageTx
             if let Some(buf_dmg_tx) = self.all_buffers.get(BufTypes::DamageTx as usize) {
                 buf_debuf +=
                     update_damage_by_buf(buf_dmg_tx.value, buf_dmg_tx.is_percent, real_amount);
             }
-            // Receiver RX
+            // Receiver RX: BufTypes::DamageRx
             if let Some(buf_dmg_rx) = self.all_buffers.get(BufTypes::DamageRx as usize) {
                 buf_debuf +=
                     update_damage_by_buf(buf_dmg_rx.value, buf_dmg_rx.is_percent, real_amount);
             }
-            // Receiver RX
+            // Receiver RX: BufTypes::DamageCritCapped
             if let Some(buf_dmg_crit) = self.all_buffers.get(BufTypes::DamageCritCapped as usize) {
                 // improve crit coeff
-                coeff_crit += buf_dmg_crit.value as f64 / 100.0;
+                coeff_crit += buf_dmg_crit.value as f64;
             }
         }
 
@@ -360,14 +360,116 @@ mod tests {
         // no buf/debuf
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         assert_eq!(result, 100);
+
+        // buf defub damage against ennemy
+
+        // Launcher TX: BufTypes::DamageTx
         // damage buf aigainst ennemy
         cri.all_buffers
             .get_mut(BufTypes::DamageTx as usize)
             .unwrap()
-            .value = 20;
-
+            .set_buffers(20, false);
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
         // -100 -20 = -120
         assert_eq!(result, -120);
+        // same but with critical strike
+        let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
+        // -100 -20 = -120 * 2 = -240
+        assert_eq!(result, -240);
+        cri.all_buffers
+            .get_mut(BufTypes::DamageTx as usize)
+            .unwrap()
+            .set_buffers(0, false);
+
+        //Receiver RX: BufTypes::DamageRx
+        cri.all_buffers
+            .get_mut(BufTypes::DamageRx as usize)
+            .unwrap()
+            .set_buffers(20, false);
+        let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
+        // -100 -20 = -120
+        assert_eq!(result, -120);
+        cri.all_buffers
+            .get_mut(BufTypes::DamageRx as usize)
+            .unwrap()
+            .set_buffers(0, false);
+
+        //Receiver RX: BufTypes::DamageCritCapped
+        cri.all_buffers
+            .get_mut(BufTypes::DamageCritCapped as usize)
+            .unwrap()
+            .set_buffers(2, false);
+        // crit is doubled init:2 -> 2 + 2 = 4
+        let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
+        // -100 * 4 = -400
+        assert_eq!(result, -400);
+        // it can be accunulated with damage buf
+        cri.all_buffers
+            .get_mut(BufTypes::DamageTx as usize)
+            .unwrap()
+            .set_buffers(20, false);
+        let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
+        // -100 -20 = -120* 4 = -480
+        assert_eq!(result, -480);
+        cri.all_buffers
+            .get_mut(BufTypes::DamageCritCapped as usize)
+            .unwrap()
+            .set_buffers(0, false);
+        cri.all_buffers
+            .get_mut(BufTypes::DamageTx as usize)
+            .unwrap()
+            .set_buffers(0, false);
+
+        // buf debuf heal against ally
+
+        // Launcher TX: BufTypes::MultiValue
+        cri.all_buffers
+            .get_mut(BufTypes::MultiValue as usize)
+            .unwrap()
+            .set_buffers(3, false);
+        let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
+        // 100 * 3 = 300
+        assert_eq!(result, 300);
+        cri.all_buffers
+            .get_mut(BufTypes::MultiValue as usize)
+            .unwrap()
+            .set_buffers(0, false);
+
+        // BufTypes::HealTx
+        cri.all_buffers
+            .get_mut(BufTypes::HealTx as usize)
+            .unwrap()
+            .set_buffers(20, false);
+        let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
+        // 100 + 20 = 120
+        assert_eq!(result, 120);
+        cri.all_buffers
+            .get_mut(BufTypes::HealTx as usize)
+            .unwrap()
+            .set_buffers(0, false);
+        // BufTypes::HealRx
+        cri.all_buffers
+            .get_mut(BufTypes::HealRx as usize)
+            .unwrap()
+            .set_buffers(20, false);
+        let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
+        // 100 + 20 = 120
+        assert_eq!(result, 120);
+        cri.all_buffers
+            .get_mut(BufTypes::HealRx as usize)
+            .unwrap()
+            .set_buffers(0, false);
+        // BufTypes::BoostedByHots
+        cri.all_buffers
+            .get_mut(BufTypes::BoostedByHots as usize)
+            .unwrap()
+            .set_buffers(20, false);
+        let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
+        // 100 + 20 = 120
+        assert_eq!(result, 120);
+        cri.all_buffers
+            .get_mut(BufTypes::BoostedByHots as usize)
+            .unwrap()
+            .set_buffers(0, false);
     }
 }

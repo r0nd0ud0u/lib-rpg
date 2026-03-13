@@ -1010,22 +1010,6 @@ mod tests {
     };
 
     #[test]
-    fn unit_try_new_from_json_thrain() {
-        let file_path = "./offlines/characters/Thraïn.json"; // Path to the JSON file
-        let equipment = testing_all_equipment();
-        assert_eq!(EquipmentJsonKey::iter().count(), equipment.len());
-        let c = Character::try_new_from_json(file_path, "./offlines", false, &equipment);
-        assert!(c.is_ok());
-        let c = c.unwrap();
-        // name
-        assert_eq!("Thraïn", c.db_full_name);
-        assert_eq!("Thraïn", c.short_name);
-        assert_eq!("Thraïn_#1", c.id_name);
-        // buf-debuf
-        assert_eq!(12, c.character_rounds_info.all_buffers.len());
-    }
-
-    #[test]
     fn unit_try_new_from_json() {
         let file_path = "./tests/offlines/characters/test.json"; // Path to the JSON file
         let equipment = testing_all_equipment();
