@@ -444,8 +444,8 @@ impl Character {
     pub fn process_atk_cost(&mut self, atk_name: &str) {
         if let Some(atk) = self.attacks_list.get(atk_name) {
             self.stats.apply_cost_on_stats(atk.mana_cost, MANA);
-            self.stats.apply_cost_on_stats(atk.mana_cost, BERSERK);
-            self.stats.apply_cost_on_stats(atk.mana_cost, VIGOR);
+            self.stats.apply_cost_on_stats(atk.berseck_cost, BERSERK);
+            self.stats.apply_cost_on_stats(atk.vigor_cost, VIGOR);
         }
     }
 
@@ -740,8 +740,9 @@ impl Character {
             full_amount = 10 * full_amount / 100;
         }
         // Calculation of the real amount of the value of the effect and update the energy stats
-        let real_hp_amount =
-            self.update_hp_process_real_amount(&processed_ep.input_effect_param, full_amount);
+        let real_hp_amount = self
+            .stats
+            .update_hp_process_real_amount(&processed_ep.input_effect_param, full_amount);
 
         // process aggro
         if processed_ep.input_effect_param.effect_type != EFFECT_IMPROVE_MAX_STAT_BY_VALUE
@@ -780,31 +781,6 @@ impl Character {
                 .push(self.process_one_effect(&effect, atk, game_state, is_crit)?);
         }
         Ok(processed_effect_param_list)
-    }
-
-    /// access the real amount received by the effect on that character
-    pub fn update_hp_process_real_amount(&mut self, ep: &EffectParam, full_amount: i64) -> i64 {
-        if ep.stats_name != HP {
-            return 0;
-        }
-        let real_hp_amount;
-        if full_amount > 0 {
-            // heal
-            let delta =
-                self.stats.all_stats[HP].max as i64 - self.stats.all_stats[HP].current as i64;
-            self.stats.all_stats[HP].current = std::cmp::min(
-                full_amount + self.stats.all_stats[HP].current as i64,
-                self.stats.all_stats[HP].max as i64,
-            ) as u64;
-            real_hp_amount = std::cmp::min(delta, full_amount);
-        } else {
-            // damage
-            let tmp = self.stats.all_stats[HP].current as i64;
-            self.stats.all_stats[HP].current =
-                std::cmp::max(0, self.stats.all_stats[HP].current as i64 + full_amount) as u64;
-            real_hp_amount = std::cmp::max(-tmp, full_amount);
-        }
-        real_hp_amount
     }
 
     pub fn process_aggro(&mut self, atk_value: i64, aggro_value: i64, turn_nb: usize) {
@@ -1568,24 +1544,6 @@ mod tests {
             SPEED_REGEN
         );
         assert_eq!(eo.processed_effect_param.input_effect_param.value, 10);
-    }
-
-    #[test]
-    fn unit_process_real_amount() {
-        let mut c = Character::try_new_from_json(
-            "./tests/offlines/characters/test.json",
-            *TEST_OFFLINE_ROOT,
-            false,
-            &testing_all_equipment(),
-        )
-        .unwrap();
-        let old_hp = c.stats.all_stats[HP].current;
-        let result = c.update_hp_process_real_amount(
-            &build_dmg_effect_individual().input_effect_param,
-            -(c.stats.all_stats[HP].current as i64) - 10,
-        );
-        // real amount cannot excess the life of the character
-        assert_eq!(result, -(old_hp as i64));
     }
 
     #[test]

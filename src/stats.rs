@@ -12,6 +12,7 @@ use crate::{
             SPEED_REGEN, VIGOR, VIGOR_REGEN,
         },
     },
+    effect::EffectParam,
     equipment::Equipment,
     utils,
 };
@@ -313,7 +314,7 @@ impl Stats {
     }
 
     pub fn apply_cost_on_stats(&mut self, cost: u64, stats_name: &str) {
-        let mut attribute = self.get_mut_value(stats_name);
+        let attribute = self.get_mut_value(stats_name);
         attribute.current = std::cmp::max(
             0,
             attribute
@@ -321,13 +322,37 @@ impl Stats {
                 .saturating_sub(cost.saturating_mul(attribute.max) / 100),
         );
     }
+
+    /// access the real amount received by the effect on that character
+    pub fn update_hp_process_real_amount(&mut self, ep: &EffectParam, full_amount: i64) -> i64 {
+        if ep.stats_name != HP {
+            return 0;
+        }
+        let real_hp_amount;
+        if full_amount > 0 {
+            // heal
+            let delta = self.all_stats[HP].max as i64 - self.all_stats[HP].current as i64;
+            self.all_stats[HP].current = std::cmp::min(
+                full_amount + self.all_stats[HP].current as i64,
+                self.all_stats[HP].max as i64,
+            ) as u64;
+            real_hp_amount = std::cmp::min(delta, full_amount);
+        } else {
+            // damage
+            let tmp = self.all_stats[HP].current as i64;
+            self.all_stats[HP].current =
+                std::cmp::max(0, self.all_stats[HP].current as i64 + full_amount) as u64;
+            real_hp_amount = std::cmp::max(-tmp, full_amount);
+        }
+        real_hp_amount
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
         character::Character, common::paths_const::TEST_OFFLINE_ROOT,
-        testing_all_characters::testing_all_equipment,
+        testing_all_characters::testing_all_equipment, testing_effect::build_dmg_effect_individual,
     };
 
     use super::*;
@@ -508,5 +533,23 @@ mod tests {
         }
 
         assert_eq!(expected_sum, stats.all_stats[AGGRO].current as i64);
+    }
+
+    #[test]
+    fn unit_process_real_amount() {
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let old_hp = c.stats.all_stats[HP].current;
+        let result = c.stats.update_hp_process_real_amount(
+            &build_dmg_effect_individual().input_effect_param,
+            -(c.stats.all_stats[HP].current as i64) - 10,
+        );
+        // real amount cannot excess the life of the character
+        assert_eq!(result, -(old_hp as i64));
     }
 }
