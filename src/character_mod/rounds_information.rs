@@ -48,6 +48,8 @@ pub struct CharacterRoundsInfo {
     /// Potential target by an individual effect of an atk
     #[serde(default, rename = "is-potential-target")]
     pub is_potential_target: bool,
+    #[serde(default, rename = "Effects")]
+    pub all_effects: Vec<GameAtkEffects>,
 }
 
 impl Default for CharacterRoundsInfo {
@@ -65,6 +67,7 @@ impl Default for CharacterRoundsInfo {
             exp_to_next_level: 100,
             exp: 0,
             is_potential_target: false,
+            all_effects: vec![],
         };
         // init all_buffers
         info.new_buffers();
@@ -221,6 +224,12 @@ impl CharacterRoundsInfo {
             Ok(())
         } else {
             bail!("Buffer type {:?} cannot be found", buf_type);
+        }
+    }
+
+    pub fn increment_counter_effect(&mut self) {
+        for gae in self.all_effects.iter_mut() {
+            gae.all_atk_effects.counter_turn += 1;
         }
     }
 }

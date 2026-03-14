@@ -119,10 +119,10 @@ impl PlayerManager {
 
     pub fn increment_counter_effect(&mut self) {
         for c in self.active_heroes.iter_mut() {
-            c.increment_counter_effect();
+            c.character_rounds_info.increment_counter_effect();
         }
         for c in self.active_bosses.iter_mut() {
-            c.increment_counter_effect();
+            c.character_rounds_info.increment_counter_effect();
         }
     }
 
@@ -353,7 +353,7 @@ impl PlayerManager {
         let mut logs = Vec::new();
         let mut hot_and_dot = 0;
         // First process all the effects whatever their order
-        for gae in self.current_player.all_effects.iter() {
+        for gae in self.current_player.character_rounds_info.all_effects.iter() {
             if gae.launching_turn == game_state.current_turn_nb {
                 continue;
             }
@@ -732,16 +732,19 @@ mod tests {
     #[test]
     fn unit_increment_counter_effect() {
         let mut pl = testing_all_characters::testing_pm();
-        pl.active_heroes[0].all_effects.push(GameAtkEffects {
-            all_atk_effects: build_cooldown_effect(),
-            ..Default::default()
-        });
-        let old_counter_turn = pl.active_heroes[0].all_effects[0]
+        pl.active_heroes[0]
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffects {
+                all_atk_effects: build_cooldown_effect(),
+                ..Default::default()
+            });
+        let old_counter_turn = pl.active_heroes[0].character_rounds_info.all_effects[0]
             .all_atk_effects
             .counter_turn;
         pl.increment_counter_effect();
         assert_eq!(
-            pl.active_heroes[0].all_effects[0]
+            pl.active_heroes[0].character_rounds_info.all_effects[0]
                 .all_atk_effects
                 .counter_turn,
             old_counter_turn + 1
@@ -855,6 +858,7 @@ mod tests {
         let mut pl = testing_all_characters::testing_pm();
         // push default effect
         pl.current_player
+            .character_rounds_info
             .all_effects
             .push(GameAtkEffects::default());
         let mut gs = GameState::new();
@@ -862,18 +866,24 @@ mod tests {
         assert_eq!(0, logs.len());
         assert_eq!(0, hot_and_dot);
         // test cooldown effect
-        pl.current_player.all_effects.push(GameAtkEffects {
-            all_atk_effects: build_cooldown_effect(),
-            ..Default::default()
-        });
+        pl.current_player
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffects {
+                all_atk_effects: build_cooldown_effect(),
+                ..Default::default()
+            });
         let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(0, logs.len());
         assert_eq!(0, hot_and_dot);
         // add test HOT but on same turn
-        pl.current_player.all_effects.push(GameAtkEffects {
-            all_atk_effects: build_hot_effect_individual(),
-            ..Default::default()
-        });
+        pl.current_player
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffects {
+                all_atk_effects: build_hot_effect_individual(),
+                ..Default::default()
+            });
         let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(0, logs.len());
         assert_eq!(0, hot_and_dot);
@@ -883,10 +893,13 @@ mod tests {
         assert_eq!(1, logs.len());
         assert_eq!(30, hot_and_dot);
         // add test DOT on different turn
-        pl.current_player.all_effects.push(GameAtkEffects {
-            all_atk_effects: build_dot_effect_individual(),
-            ..Default::default()
-        });
+        pl.current_player
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffects {
+                all_atk_effects: build_dot_effect_individual(),
+                ..Default::default()
+            });
         let (logs, hot_and_dot) = pl.process_hot_and_dot(&gs);
         assert_eq!(2, logs.len()); // hot + dot
         assert_eq!(10, hot_and_dot); // 30(hot) - 20 (dot)

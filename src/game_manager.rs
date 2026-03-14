@@ -1180,7 +1180,10 @@ mod tests {
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // 2 effects received from eclat d espoir (counter turn 1/2, 1 on 2 )
-        assert_eq!(gm.pm.current_player.all_effects.len(), 2);
+        assert_eq!(
+            gm.pm.current_player.character_rounds_info.all_effects.len(),
+            2
+        );
         // turn 2 round 3 (boss1)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());

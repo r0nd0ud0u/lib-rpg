@@ -84,8 +84,6 @@ pub struct Character {
     /// TODO shape
     #[serde(rename = "Shape")]
     pub shape: String,
-    #[serde(default, rename = "Effects")]
-    pub all_effects: Vec<GameAtkEffects>,
     /// Fight information: stats_in_game
     #[serde(default)]
     pub stats_in_game: StatsInGame,
@@ -109,7 +107,6 @@ impl Default for Character {
             class: Class::Standard,
             rank: 0,
             shape: String::new(),
-            all_effects: vec![],
             stats_in_game: StatsInGame::default(),
         }
     }
@@ -412,21 +409,15 @@ impl Character {
         Ok(processed_effect_param)
     }
 
-    pub fn increment_counter_effect(&mut self) {
-        for gae in self.all_effects.iter_mut() {
-            gae.all_atk_effects.counter_turn += 1;
-        }
-    }
-
     pub fn remove_terminated_effect_on_player(&mut self) -> Result<Vec<EffectParam>> {
         let mut ended_effects: Vec<EffectParam> = Vec::new();
-        for gae in self.all_effects.clone() {
+        for gae in self.character_rounds_info.all_effects.clone() {
             if gae.all_atk_effects.counter_turn == gae.all_atk_effects.input_effect_param.nb_turns {
                 self.remove_malus_effect(&gae.all_atk_effects.input_effect_param)?;
                 ended_effects.push(gae.all_atk_effects.input_effect_param.clone());
             }
         }
-        self.all_effects.retain(|element| {
+        self.character_rounds_info.all_effects.retain(|element| {
             element.all_atk_effects.input_effect_param.nb_turns
                 != element.all_atk_effects.counter_turn
         });
@@ -434,10 +425,10 @@ impl Character {
     }
 
     pub fn reset_all_effects_on_player(&mut self) -> Result<()> {
-        for gae in self.all_effects.clone() {
+        for gae in self.character_rounds_info.all_effects.clone() {
             self.remove_malus_effect(&gae.all_atk_effects.input_effect_param)?;
         }
-        self.all_effects.clear();
+        self.character_rounds_info.all_effects.clear();
         Ok(())
     }
 
@@ -843,7 +834,7 @@ impl Character {
                 di.push(self.character_rounds_info.dodge_info.clone());
             }
             // update all effects
-            self.all_effects.push(GameAtkEffects {
+            self.character_rounds_info.all_effects.push(GameAtkEffects {
                 all_atk_effects: processed_ep.clone(),
                 atk: launcher_info.atk_type.clone(),
                 launcher: launcher_info.id_name.clone(),
@@ -890,7 +881,7 @@ impl Character {
         // that attack has a cooldown
         for atk_effect in &atk_type.all_effects {
             if atk_effect.effect_type == EFFECT_NB_COOL_DOWN {
-                for e in &self.all_effects {
+                for e in &self.character_rounds_info.all_effects {
                     if e.atk.name == atk_type.name
                         && e.all_atk_effects.input_effect_param.nb_turns
                             - e.all_atk_effects.counter_turn
@@ -1306,9 +1297,11 @@ mod tests {
     #[test]
     fn unit_remove_terminated_effect_on_player() {
         let mut c = testing_character();
-        c.all_effects.push(GameAtkEffects::default());
+        c.character_rounds_info
+            .all_effects
+            .push(GameAtkEffects::default());
         c.remove_terminated_effect_on_player().unwrap();
-        assert_eq!(0, c.all_effects.len());
+        assert_eq!(0, c.character_rounds_info.all_effects.len());
         // TODO improve the test  by checking if the effect is removed on character stats
     }
 
@@ -1579,20 +1572,23 @@ mod tests {
         )
         .unwrap();
         let hp_without_malus = c.stats.all_stats[HP].max as i64;
-        c.all_effects.push(GameAtkEffects {
+        c.character_rounds_info.all_effects.push(GameAtkEffects {
             all_atk_effects: build_effect_max_stats(),
             atk: AttackType::default(),
             launcher: "".to_owned(),
             target: "".to_owned(),
             launching_turn: 0,
         });
-        let effect_value = c.all_effects[0].all_atk_effects.input_effect_param.value;
+        let effect_value = c.character_rounds_info.all_effects[0]
+            .all_atk_effects
+            .input_effect_param
+            .value;
         c.reset_all_effects_on_player().unwrap();
         assert_eq!(
             hp_without_malus - effect_value,
             c.stats.all_stats[HP].max as i64
         );
-        assert!(c.all_effects.is_empty());
+        assert!(c.character_rounds_info.all_effects.is_empty());
     }
 
     #[test]
@@ -1649,7 +1645,7 @@ mod tests {
         atk_type
             .all_effects
             .push(build_cooldown_effect().input_effect_param);
-        c1.all_effects.push(GameAtkEffects {
+        c1.character_rounds_info.all_effects.push(GameAtkEffects {
             all_atk_effects: build_cooldown_effect(),
             atk: atk_type.clone(),
             ..Default::default()
@@ -1663,8 +1659,8 @@ mod tests {
             .push(build_cooldown_effect().input_effect_param);
         let mut processed_ep = build_cooldown_effect();
         processed_ep.counter_turn = processed_ep.input_effect_param.nb_turns;
-        c1.all_effects.clear();
-        c1.all_effects.push(GameAtkEffects {
+        c1.character_rounds_info.all_effects.clear();
+        c1.character_rounds_info.all_effects.push(GameAtkEffects {
             all_atk_effects: processed_ep.clone(),
             atk: atk_type.clone(),
             ..Default::default()
@@ -1676,7 +1672,7 @@ mod tests {
         atk_type
             .all_effects
             .push(build_hot_effect_individual().input_effect_param);
-        c1.all_effects.clear();
+        c1.character_rounds_info.all_effects.clear();
         atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current + 100;
         let result = c1.can_be_launched(&atk_type);
         assert!(!result);
