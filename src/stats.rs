@@ -311,6 +311,16 @@ impl Stats {
             }
         }
     }
+
+    pub fn apply_cost_on_stats(&mut self, cost: u64, stats_name: &str) {
+        let mut attribute = self.get_mut_value(stats_name);
+        attribute.current = std::cmp::max(
+            0,
+            attribute
+                .current
+                .saturating_sub(cost.saturating_mul(attribute.max) / 100),
+        );
+    }
 }
 
 #[cfg(test)]

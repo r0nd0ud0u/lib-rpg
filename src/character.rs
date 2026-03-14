@@ -443,29 +443,9 @@ impl Character {
 
     pub fn process_atk_cost(&mut self, atk_name: &str) {
         if let Some(atk) = self.attacks_list.get(atk_name) {
-            if let Some(mana) = self.stats.all_stats.get_mut(MANA) {
-                mana.current = std::cmp::max(
-                    0,
-                    mana.current
-                        .saturating_sub(atk.mana_cost.saturating_mul(mana.max) / 100),
-                );
-            }
-            if let Some(vigor) = self.stats.all_stats.get_mut(VIGOR) {
-                vigor.current = std::cmp::max(
-                    0,
-                    vigor
-                        .current
-                        .saturating_sub(atk.vigor_cost.saturating_mul(vigor.max) / 100),
-                );
-            }
-            if let Some(berseck) = self.stats.all_stats.get_mut(BERSERK) {
-                berseck.current = std::cmp::max(
-                    0,
-                    berseck
-                        .current
-                        .saturating_sub(atk.berseck_cost.saturating_mul(berseck.max) / 100),
-                );
-            }
+            self.stats.apply_cost_on_stats(atk.mana_cost, MANA);
+            self.stats.apply_cost_on_stats(atk.mana_cost, BERSERK);
+            self.stats.apply_cost_on_stats(atk.mana_cost, VIGOR);
         }
     }
 
