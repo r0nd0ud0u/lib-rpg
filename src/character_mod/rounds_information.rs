@@ -3,8 +3,12 @@ use anyhow::{Result, bail};
 use crate::{
     attack_type::AttackType,
     buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
-    common::{all_target_const::TARGET_ENNEMY, attak_const::COEFF_CRIT_DMG, stats_const::HP},
-    effect::{self, EffectParam},
+    common::{
+        all_target_const::TARGET_ENNEMY, attak_const::COEFF_CRIT_DMG, effect_const::*,
+        stats_const::HP,
+    },
+    effect::{self, EffectParam, ProcessedEffectParam, process_decrease_on_turn},
+    game_manager::LogData,
     players_manager::{DodgeInfo, GameAtkEffects},
     target::is_target_ally,
 };
@@ -231,6 +235,107 @@ impl CharacterRoundsInfo {
         for gae in self.all_effects.iter_mut() {
             gae.all_atk_effects.counter_turn += 1;
         }
+    }
+
+    /// Update all the bufs
+    pub fn process_effect_type(
+        &mut self,
+        ep: &EffectParam,
+        atk: &AttackType,
+    ) -> Result<ProcessedEffectParam> {
+        let mut processed_effect_param = ProcessedEffectParam {
+            input_effect_param: ep.clone(),
+            ..Default::default()
+        };
+        processed_effect_param.number_of_applies = 1;
+        let bug_apply_init = &self.all_buffers[BufTypes::ApplyEffectInit as usize];
+        if bug_apply_init.value > 0 {
+            processed_effect_param.number_of_applies = bug_apply_init.value;
+        }
+
+        match ep.effect_type.as_str() {
+            EFFECT_NB_COOL_DOWN => {
+                processed_effect_param.log = LogData {
+                    message: format!("Cooldown actif sur {} de {} tours.", atk.name, ep.nb_turns),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            EFFECT_NB_DECREASE_ON_TURN => {
+                processed_effect_param.number_of_applies = process_decrease_on_turn(ep);
+                self.update_buf(
+                    &BufTypes::ApplyEffectInit,
+                    processed_effect_param.number_of_applies,
+                    false,
+                    "",
+                )?;
+                processed_effect_param.log = LogData {
+                    message: format!(
+                        "L'attaque sera effectuée {} fois.",
+                        processed_effect_param.number_of_applies
+                    ),
+                    color: "".to_owned(),
+                };
+            }
+            EFFECT_REINIT => {}
+            _ => {}
+        }
+        // Must be filled before changing value of nbTurns
+        if ep.effect_type == EFFECT_REINIT {
+            // TODO
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_DELETE_BAD {
+            // TODO
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_IMPROVE_HOTS {
+            // TODO
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_BOOSTED_BY_HOTS {
+            // TODO
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT {
+            // TODO
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT {
+            // TODO
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_CHANGE_HEAL_RX_BY_PERCENT {
+            // TODO
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_CHANGE_HEAL_TX_BY_PERCENT {
+            // TODO
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
+            processed_effect_param.log = LogData {
+                message: format!("Max stat of {} is up by {}%", ep.stats_name, ep.value),
+                color: "".to_owned(),
+            };
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE {
+            processed_effect_param.log = LogData {
+                message: format!("Max stat of {} is up by value:{}", ep.stats_name, ep.value),
+                color: "".to_owned(),
+            };
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_REPEAT_AS_MANY_AS {
+            // TODO
+            return Ok(processed_effect_param);
+        }
+        if ep.effect_type == EFFECT_INTO_DAMAGE {
+            // TODO
+            return Ok(processed_effect_param);
+        }
+        Ok(processed_effect_param)
     }
 }
 

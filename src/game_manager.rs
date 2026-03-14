@@ -1203,7 +1203,13 @@ mod tests {
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // effects ended after 2 turns
-        assert!(gm.pm.current_player.all_effects.is_empty());
+        assert!(
+            gm.pm
+                .current_player
+                .character_rounds_info
+                .all_effects
+                .is_empty()
+        );
     }
 
     #[test]
