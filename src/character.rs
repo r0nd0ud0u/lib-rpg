@@ -8,10 +8,10 @@ use crate::{
     buffers::BufTypes,
     character_mod::rounds_information::CharacterRoundsInfo,
     common::{
-        all_target_const::*, attak_const::COEFF_CRIT_STATS, character_const::ULTIMATE_LEVEL,
-        effect_const::*, paths_const::*, reach_const::*, stats_const::*,
+        all_target_const::*, character_const::ULTIMATE_LEVEL, effect_const::*, paths_const::*,
+        reach_const::*, stats_const::*,
     },
-    effect::{EffectOutcome, EffectParam, ProcessedEffectParam, is_boosted_by_crit},
+    effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
     equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
     game_state::GameState,
     players_manager::{DodgeInfo, GameAtkEffects},
@@ -273,35 +273,6 @@ impl Character {
                 .update_buf(&BufTypes::HealTx, -ep.value, true, "")?;
         }
         Ok(())
-    }
-
-    pub fn process_one_effect(
-        &mut self,
-        ep: &EffectParam,
-        atk: &AttackType,
-        game_state: &GameState,
-        is_crit: bool,
-    ) -> Result<ProcessedEffectParam> {
-        let mut effect_param_mutable = ep.clone();
-
-        // Preprocess effectParam before applying it
-        // update effectParam -> only used on in case of atk launched
-        if is_crit && is_boosted_by_crit(&ep.effect_type) {
-            effect_param_mutable.sub_value_effect =
-                (COEFF_CRIT_STATS * ep.sub_value_effect as f64) as i64;
-            effect_param_mutable.value = (COEFF_CRIT_STATS * ep.value as f64) as i64;
-        }
-        // conditions
-        if ep.effect_type == CONDITION_ENNEMIES_DIED {
-            effect_param_mutable.value +=
-                game_state.died_ennemies[&(game_state.current_turn_nb - 1)].len() as i64
-                    * effect_param_mutable.sub_value_effect;
-            effect_param_mutable.effect_type = EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE.to_owned();
-        }
-
-        // Process and return the new effect param
-        self.character_rounds_info
-            .process_effect_type(&effect_param_mutable, atk)
     }
 
     pub fn remove_terminated_effect_on_player(&mut self) -> Result<Vec<EffectParam>> {
@@ -663,8 +634,10 @@ impl Character {
     ) -> Result<Vec<ProcessedEffectParam>> {
         let mut processed_effect_param_list: Vec<ProcessedEffectParam> = vec![];
         for effect in atk.all_effects.clone() {
-            processed_effect_param_list
-                .push(self.process_one_effect(&effect, atk, game_state, is_crit)?);
+            processed_effect_param_list.push(
+                self.character_rounds_info
+                    .process_one_effect(&effect, atk, game_state, is_crit)?,
+            );
         }
         Ok(processed_effect_param_list)
     }
@@ -1116,7 +1089,10 @@ mod tests {
         let atk = Default::default();
         let mut game_state = Default::default();
         // target is himself
-        let processed_effect_param = c.process_one_effect(&ep, &atk, &game_state, false).unwrap();
+        let processed_effect_param = c
+            .character_rounds_info
+            .process_one_effect(&ep, &atk, &game_state, false)
+            .unwrap();
         assert_eq!(
             EFFECT_NB_COOL_DOWN,
             processed_effect_param.input_effect_param.effect_type
@@ -1140,7 +1116,10 @@ mod tests {
         ep.stats_name = HP.to_owned();
         ep.effect_type = EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned();
         ep.value = 10;
-        let processed_effect_param = c.process_one_effect(&ep, &atk, &game_state, true).unwrap();
+        let processed_effect_param = c
+            .character_rounds_info
+            .process_one_effect(&ep, &atk, &game_state, true)
+            .unwrap();
         assert_eq!(
             EFFECT_IMPROVE_MAX_STAT_BY_VALUE,
             processed_effect_param.input_effect_param.effect_type
@@ -1166,7 +1145,10 @@ mod tests {
         ep.effect_type = CONDITION_ENNEMIES_DIED.to_owned();
         ep.sub_value_effect = 10;
         ep.value = 0;
-        let processed_effect_param = c.process_one_effect(&ep, &atk, &game_state, false).unwrap();
+        let processed_effect_param = c
+            .character_rounds_info
+            .process_one_effect(&ep, &atk, &game_state, false)
+            .unwrap();
         // focus on effect_type
         assert_eq!(
             EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,

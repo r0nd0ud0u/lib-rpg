@@ -4,11 +4,16 @@ use crate::{
     attack_type::AttackType,
     buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
     common::{
-        all_target_const::TARGET_ENNEMY, attak_const::COEFF_CRIT_DMG, effect_const::*,
+        all_target_const::TARGET_ENNEMY,
+        attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
+        effect_const::*,
         stats_const::HP,
     },
-    effect::{self, EffectParam, ProcessedEffectParam, process_decrease_on_turn},
+    effect::{
+        self, EffectParam, ProcessedEffectParam, is_boosted_by_crit, process_decrease_on_turn,
+    },
     game_manager::LogData,
+    game_state::GameState,
     players_manager::{DodgeInfo, GameAtkEffects},
     target::is_target_ally,
 };
@@ -336,6 +341,34 @@ impl CharacterRoundsInfo {
             return Ok(processed_effect_param);
         }
         Ok(processed_effect_param)
+    }
+
+    pub fn process_one_effect(
+        &mut self,
+        ep: &EffectParam,
+        atk: &AttackType,
+        game_state: &GameState,
+        is_crit: bool,
+    ) -> Result<ProcessedEffectParam> {
+        let mut effect_param_mutable = ep.clone();
+
+        // Preprocess effectParam before applying it
+        // update effectParam -> only used on in case of atk launched
+        if is_crit && is_boosted_by_crit(&ep.effect_type) {
+            effect_param_mutable.sub_value_effect =
+                (COEFF_CRIT_STATS * ep.sub_value_effect as f64) as i64;
+            effect_param_mutable.value = (COEFF_CRIT_STATS * ep.value as f64) as i64;
+        }
+        // conditions
+        if ep.effect_type == CONDITION_ENNEMIES_DIED {
+            effect_param_mutable.value +=
+                game_state.died_ennemies[&(game_state.current_turn_nb - 1)].len() as i64
+                    * effect_param_mutable.sub_value_effect;
+            effect_param_mutable.effect_type = EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE.to_owned();
+        }
+
+        // Process and return the new effect param
+        self.process_effect_type(&effect_param_mutable, atk)
     }
 }
 
