@@ -284,6 +284,7 @@ impl Character {
         );
     }
 
+    // TODO character info
     pub fn process_critical_strike(&mut self, atk_name: &str) -> Result<bool> {
         let atk = if let Some(atk) = self.attacks_list.get(atk_name) {
             atk
@@ -323,6 +324,7 @@ impl Character {
         }
     }
 
+    // TODO character info
     pub fn is_targeted(
         &self,
         effect: &EffectParam,
@@ -415,6 +417,7 @@ impl Character {
         true
     }
 
+    // TODO divide function
     pub fn apply_effect_outcome(
         &mut self,
         processed_ep: &ProcessedEffectParam,
@@ -610,6 +613,8 @@ impl Character {
         if local_aggro == 0.0 {
             return;
         }
+
+        // TODO character info
         // Update aggro
         if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO)
             && let Some(tx_map) = self
