@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     attack_type::AttackType,
-    character::{AmountType, Character, CharacterType},
+    character::{Character, CharacterType},
+    character_mod::rounds_information::AmountType,
     common::{
         all_target_const::{TARGET_ALL_ALLIES, TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF},
         character_const::*,

@@ -6,10 +6,9 @@ use std::{collections::HashMap, path::Path, vec};
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
     buffers::BufTypes,
-    character_mod::rounds_information::CharacterRoundsInfo,
+    character_mod::rounds_information::{AmountType, CharacterRoundsInfo},
     common::{
-        all_target_const::*, character_const::ULTIMATE_LEVEL, effect_const::*, paths_const::*,
-        reach_const::*, stats_const::*,
+        all_target_const::*, effect_const::*, paths_const::*, reach_const::*, stats_const::*,
     },
     effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
     equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
@@ -21,18 +20,6 @@ use crate::{
     target::is_target_ally,
     utils::{self, get_random_nb, list_files_in_dir},
 };
-
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, Hash, PartialEq)]
-pub enum AmountType {
-    DamageRx = 0,
-    DamageTx,
-    HealRx,
-    HealTx,
-    OverHealRx,
-    Aggro,
-    CriticalStrike,
-    EnumSize,
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(default)]
@@ -253,25 +240,7 @@ impl Character {
             self.stats
                 .set_stats_on_effect(&ep.stats_name, -ep.value, false, true);
         }
-        if ep.effect_type == EFFECT_BLOCK_HEAL_ATK {
-            self.character_rounds_info.is_heal_atk_blocked = false;
-        }
-        if ep.effect_type == EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT {
-            self.character_rounds_info
-                .update_buf(&BufTypes::DamageTx, -ep.value, true, "")?;
-        }
-        if ep.effect_type == EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT {
-            self.character_rounds_info
-                .update_buf(&BufTypes::DamageRx, -ep.value, true, "")?;
-        }
-        if ep.effect_type == EFFECT_CHANGE_HEAL_RX_BY_PERCENT {
-            self.character_rounds_info
-                .update_buf(&BufTypes::HealRx, -ep.value, true, "")?;
-        }
-        if ep.effect_type == EFFECT_CHANGE_HEAL_TX_BY_PERCENT {
-            self.character_rounds_info
-                .update_buf(&BufTypes::HealTx, -ep.value, true, "")?;
-        }
+        self.character_rounds_info.remove_malus_effect(ep)?;
         Ok(())
     }
 
@@ -307,24 +276,12 @@ impl Character {
     }
 
     pub fn process_dodging(&mut self, atk_level: u64) {
-        let dodge_info = if atk_level == ULTIMATE_LEVEL {
-            DodgeInfo {
-                name: self.id_name.clone(),
-                is_dodging: false,
-                is_blocking: false,
-            }
-        } else {
-            let rand_nb = get_random_nb(1, 100);
-            let is_dodging =
-                self.class != Class::Tank && rand_nb <= self.stats.all_stats[DODGE].current as i64;
-            let is_blocking = self.class == Class::Tank;
-            DodgeInfo {
-                name: self.id_name.clone(),
-                is_dodging,
-                is_blocking,
-            }
-        };
-        self.character_rounds_info.dodge_info = dodge_info;
+        self.character_rounds_info.process_dodging(
+            atk_level,
+            &self.class,
+            self.stats.all_stats[DODGE].current,
+            &self.id_name,
+        );
     }
 
     pub fn process_critical_strike(&mut self, atk_name: &str) -> Result<bool> {

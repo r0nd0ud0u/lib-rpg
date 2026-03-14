@@ -3,9 +3,11 @@ use anyhow::{Result, bail};
 use crate::{
     attack_type::AttackType,
     buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
+    character::Class,
     common::{
         all_target_const::TARGET_ENNEMY,
         attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
+        character_const::ULTIMATE_LEVEL,
         effect_const::*,
         stats_const::HP,
     },
@@ -16,8 +18,21 @@ use crate::{
     game_state::GameState,
     players_manager::{DodgeInfo, GameAtkEffects},
     target::is_target_ally,
+    utils::get_random_nb,
 };
 use std::collections::HashMap;
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, Eq, Hash, PartialEq)]
+pub enum AmountType {
+    DamageRx = 0,
+    DamageTx,
+    HealRx,
+    HealTx,
+    OverHealRx,
+    Aggro,
+    CriticalStrike,
+    EnumSize,
+}
 
 /// CharacterRoundsInfo
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -369,6 +384,54 @@ impl CharacterRoundsInfo {
 
         // Process and return the new effect param
         self.process_effect_type(&effect_param_mutable, atk)
+    }
+
+    pub fn process_dodging(
+        &mut self,
+        atk_level: u64,
+        class: &Class,
+        current_dodge: u64,
+        id_name: &str,
+    ) {
+        let dodge_info = if atk_level == ULTIMATE_LEVEL {
+            DodgeInfo {
+                name: id_name.to_owned(),
+                is_dodging: false,
+                is_blocking: false,
+            }
+        } else {
+            let rand_nb = get_random_nb(1, 100);
+            let is_dodging = *class != Class::Tank && rand_nb <= current_dodge as i64;
+            let is_blocking = *class == Class::Tank;
+            DodgeInfo {
+                name: id_name.to_owned(),
+                is_dodging,
+                is_blocking,
+            }
+        };
+        self.dodge_info = dodge_info;
+    }
+
+    pub fn remove_malus_effect(&mut self, ep: &EffectParam) -> Result<()> {
+        if ep.effect_type == EFFECT_BLOCK_HEAL_ATK {
+            self.is_heal_atk_blocked = false;
+        }
+        if ep.effect_type == EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT {
+            self
+                .update_buf(&BufTypes::DamageTx, -ep.value, true, "")?;
+        }
+        if ep.effect_type == EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT {
+            self
+                .update_buf(&BufTypes::DamageRx, -ep.value, true, "")?;
+        }
+        if ep.effect_type == EFFECT_CHANGE_HEAL_RX_BY_PERCENT {
+            self
+                .update_buf(&BufTypes::HealRx, -ep.value, true, "")?;
+        }
+        if ep.effect_type == EFFECT_CHANGE_HEAL_TX_BY_PERCENT {
+            self.update_buf(&BufTypes::HealTx, -ep.value, true, "")?;
+        }
+        Ok(())
     }
 }
 

@@ -6,7 +6,8 @@ use std::{
 
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
-    character::{AmountType, CharacterType},
+    character::CharacterType,
+    character_mod::rounds_information::AmountType,
     common::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
     effect::EffectOutcome,
     equipment::{Equipment, EquipmentJsonKey},
