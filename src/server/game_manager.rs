@@ -1,8 +1,4 @@
-use std::{
-    collections::HashMap,
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{collections::HashMap, path::Path};
 
 use crate::{
     character_mod::{
@@ -20,12 +16,12 @@ use crate::{
         },
     },
     server::{
+        game_paths::GamePaths,
         game_state::{GameState, GameStatus},
         players_manager::{DodgeInfo, PlayerManager},
     },
     utils,
 };
-use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -37,46 +33,6 @@ pub struct ResultLaunchAttack {
     pub is_boss_atk: bool,
     pub logs_end_of_round: Vec<LogData>,
     pub logs_atk: Vec<LogData>,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GamePaths {
-    /// Root path for the game, where all the different files will be stored
-    pub input_data_root: PathBuf,
-    /// Path where the characters of the game are stored
-    pub input_data_characters: PathBuf,
-    /// Path where the equipments of the game are stored
-    pub input_data_equipments: PathBuf,
-    /// Path where the loot of the game are stored
-    pub output_loot: PathBuf,
-    /// Path where the ongoing effects of the game are stored
-    pub output_ongoing_effects: PathBuf,
-    /// Path where the game state of the game is stored
-    pub output_game_state: PathBuf,
-    /// Path where the stats in game of the game are stored
-    pub output_stats_in_game: PathBuf,
-    /// Path where the different games are stored
-    pub output_games_dir: PathBuf,
-    /// Path where the current game is stored
-    pub output_current_game_dir: PathBuf,
-}
-
-impl GamePaths {
-    pub fn new<P: AsRef<Path>>(data_path: P, game_name: &str) -> GamePaths {
-        // join GAMES_DIR with game_name to create the current game dir
-        let output_dir = GAMES_DIR.to_path_buf().join(game_name);
-        GamePaths {
-            input_data_root: data_path.as_ref().to_path_buf(),
-            output_games_dir: GAMES_DIR.to_path_buf(),
-            output_current_game_dir: output_dir.clone(),
-            input_data_characters: data_path.as_ref().join(OFFLINE_CHARACTERS.to_path_buf()),
-            input_data_equipments: data_path.as_ref().join(OFFLINE_EQUIPMENT.to_path_buf()),
-            output_game_state: output_dir.join(OFFLINE_GAMESTATE.to_path_buf()),
-            output_loot: output_dir.join(OFFLINE_LOOT_EQUIPMENT.to_path_buf()),
-            output_ongoing_effects: output_dir.join(OFFLINE_EFFECTS.to_path_buf()),
-            output_stats_in_game: output_dir.join(GAME_STATE_STATS_IN_GAME.to_path_buf()),
-        }
-    }
 }
 
 /// The entry of the library.
@@ -178,20 +134,6 @@ impl GameManager {
         self.game_state.order_to_play.extend(supp_rounds_bosses);
     }
 
-    pub fn check_end_of_game(&self) -> bool {
-        let all_heroes_dead = self
-            .pm
-            .active_heroes
-            .iter()
-            .all(|c| c.stats.is_dead() == Some(true));
-        let all_bosses_dead = self
-            .pm
-            .active_bosses
-            .iter()
-            .all(|c| c.stats.is_dead() == Some(true));
-        all_bosses_dead || all_heroes_dead
-    }
-
     pub fn new_round(&mut self) -> (bool, Vec<LogData>) {
         self.game_state.new_round();
         // Still round to play
@@ -225,10 +167,6 @@ impl GameManager {
         self.pm.reset_targeted_character();
 
         (true, logs)
-    }
-
-    pub fn is_boss_atk(&self) -> bool {
-        self.pm.current_player.kind == CharacterKind::Boss
     }
 
     /// Launch an attack from the current player
@@ -393,7 +331,7 @@ impl GameManager {
             is_crit,
             outcomes: output.clone(),
             all_dodging: all_dodging.clone(),
-            is_boss_atk: self.is_boss_atk(),
+            is_boss_atk: self.pm.current_player.is_boss_atk(),
             logs_end_of_round: Vec::new(),
             logs_atk: self.build_logs_atk(&all_dodging, &output, is_crit),
         };
@@ -416,13 +354,13 @@ impl GameManager {
             .actions_done_in_round += 1;
         let logs_atk = vec![LogData {
             message: "No attack launched".to_string(),
-            color: "red".to_string(),
+            color: DARK_RED.to_string(),
         }];
         // eval next step of the game
         let logs_end_of_round = self.eval_end_of_round(logs_atk.clone());
         ResultLaunchAttack {
             launcher_id_name: self.pm.current_player.id_name.clone(),
-            is_boss_atk: self.is_boss_atk(),
+            is_boss_atk: self.pm.current_player.is_boss_atk(),
             logs_end_of_round,
             logs_atk,
             ..Default::default()
@@ -434,7 +372,7 @@ impl GameManager {
     ///  and return the logs to display for the new round if it is the case
     fn eval_end_of_round(&mut self, logs_atk: Vec<LogData>) -> Vec<LogData> {
         let mut output_logs = vec![];
-        if self.check_end_of_game() {
+        if self.pm.check_end_of_game() {
             self.game_state.status = GameStatus::EndOfGame;
         } else {
             let (is_new_round, logs) = self.new_round();
@@ -546,22 +484,6 @@ impl GameManager {
         logs
     }
 
-    pub fn create_game_dirs(&self) -> Result<()> {
-        if let Err(e) = fs::create_dir_all(&self.game_paths.input_data_root) {
-            eprintln!("Failed to create directory: {}", e);
-        }
-        if let Err(e) = fs::create_dir_all(&self.game_paths.input_data_characters) {
-            eprintln!("Failed to create directory: {}", e);
-        }
-        if let Err(e) = fs::create_dir_all(&self.game_paths.output_game_state) {
-            eprintln!("Failed to create directory: {}", e);
-        }
-        if let Err(e) = fs::create_dir_all(&self.game_paths.output_loot) {
-            eprintln!("Failed to create directory: {}", e);
-        }
-        Ok(())
-    }
-
     /// Check if it is the turn to a boss to play
     /// HMI function
     pub fn is_round_auto(&self) -> bool {
@@ -611,6 +533,7 @@ mod tests {
     use crate::character_mod::character::{CharacterKind, Class};
     use crate::common::constants::attak_const::COEFF_CRIT_DMG;
     use crate::common::constants::effect_const::EFFECT_NB_COOL_DOWN;
+    use crate::common::log_data::const_colors::DARK_RED;
     use crate::server::game_manager::LogData;
     use crate::server::game_state::GameStatus;
     use crate::testing::testing_all_characters::{
@@ -722,7 +645,7 @@ mod tests {
             ra.logs_atk,
             vec![LogData {
                 message: "No attack launched".to_string(),
-                color: "red".to_string(),
+                color: DARK_RED.to_string(),
             }]
         );
     }
@@ -760,7 +683,7 @@ mod tests {
         assert!(ra.all_dodging.is_empty());
         assert!(ra.logs_atk.len() > 0);
         // not dead boss : end of game
-        assert!(!gm.check_end_of_game());
+        assert!(gm.game_state.status != GameStatus::EndOfGame);
         // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
         assert_eq!(
             old_hp_boss - 45,
@@ -813,7 +736,7 @@ mod tests {
         let old_vigor_hero = gm.pm.current_player.stats.all_stats[VIGOR].current;
         gm.launch_attack(Some("SimpleAtk"));
         // not dead boss : end of game
-        assert!(!gm.check_end_of_game());
+        assert!(gm.game_state.status != GameStatus::EndOfGame);
         assert_eq!(
             old_hp_boss,
             gm.pm
@@ -864,7 +787,7 @@ mod tests {
         let old_vigor_hero = gm.pm.current_player.stats.all_stats[VIGOR].current;
         gm.launch_attack(Some("SimpleAtk"));
         // 1 dead boss : end of game
-        assert!(!gm.check_end_of_game()); // still one boss
+        assert!(gm.game_state.status != GameStatus::EndOfGame); // still one boss
         // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
         // at least coeff critical strike = 2.0 (-45 * 2.0 = -90)
         assert_eq!(
@@ -922,7 +845,7 @@ mod tests {
             .is_current_target = true;
         gm.launch_attack(Some("SimpleAtk"));
         // not dead boss : end of game
-        assert!(!gm.check_end_of_game());
+        assert!(gm.game_state.status != GameStatus::EndOfGame);
         // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
         // blocking 10% of the damage is received (10% of 45)
         assert_eq!(
@@ -969,7 +892,7 @@ mod tests {
             .current;
         let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack(Some(&atk.clone().name));
-        assert!(!gm.check_end_of_game());
+        assert!(gm.game_state.status != GameStatus::EndOfGame);
         // + 30  of max HP:135 = 40.5
         assert_eq!(
             old_hp_test2 + 40,
@@ -1041,7 +964,7 @@ mod tests {
             .max;
         let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack(Some("Eclat d'espoir"));
-        assert!(!gm.check_end_of_game());
+        assert!(gm.game_state.status != GameStatus::EndOfGame);
         // "up-current-stat-by-percentage"
         // + 30 % of max HP:135 = 40.5
         assert_eq!(
@@ -1238,7 +1161,7 @@ mod tests {
 
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let result = gm.launch_attack(Some("cooldown"));
-        assert!(!gm.check_end_of_game());
+        assert!(gm.game_state.status != GameStatus::EndOfGame);
         assert_eq!(result.outcomes.len(), 1);
         assert_eq!(
             result
@@ -1255,7 +1178,6 @@ mod tests {
     #[test]
     fn unit_integ_dxrpg() {
         let mut gm = testing_all_characters::dxrpg_game_manager();
-        gm.create_game_dirs().unwrap();
         gm.start_game();
         let old_hp_boss = gm
             .pm
@@ -1310,7 +1232,7 @@ mod tests {
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
         let _ra = gm.launch_attack(Some("SimpleAtk"));
-        assert!(!gm.check_end_of_game());
+        assert!(gm.game_state.status != GameStatus::EndOfGame);
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(5, gm.game_state.current_round);
@@ -1319,14 +1241,14 @@ mod tests {
         assert_eq!(2, gm.process_nb_bosses_atk_in_a_row());
         // None => random atk for boss
         let _ = gm.launch_attack(None); // one or several hero could be dead
-        if !gm.check_end_of_game() {
+        if !gm.pm.check_end_of_game() {
             assert_eq!(GameStatus::StartRound, gm.game_state.status);
             assert_eq!(1, gm.game_state.current_turn_nb);
             assert_eq!(6, gm.game_state.current_round);
             assert_eq!(1, gm.process_nb_bosses_atk_in_a_row());
             // None => random atk for boss
             let _ = gm.launch_attack(None); // one or several hero could be dead
-            if !gm.check_end_of_game() {
+            if !gm.pm.check_end_of_game() {
                 assert_eq!(GameStatus::StartRound, gm.game_state.status);
                 assert_eq!(2, gm.game_state.current_turn_nb);
                 assert_eq!(1, gm.game_state.current_round);

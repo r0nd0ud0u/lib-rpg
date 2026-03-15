@@ -521,6 +521,18 @@ impl PlayerManager {
             });
         nb
     }
+
+    pub fn check_end_of_game(&self) -> bool {
+        let all_heroes_dead = self
+            .active_heroes
+            .iter()
+            .all(|c| c.stats.is_dead() == Some(true));
+        let all_bosses_dead = self
+            .active_bosses
+            .iter()
+            .all(|c| c.stats.is_dead() == Some(true));
+        all_bosses_dead || all_heroes_dead
+    }
 }
 
 #[cfg(test)]
