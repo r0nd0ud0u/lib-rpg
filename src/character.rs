@@ -5,7 +5,6 @@ use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
-    buffers::BufTypes,
     character_mod::rounds_information::{AmountType, CharacterRoundsInfo},
     common::{
         all_target_const::*, effect_const::*, paths_const::*, reach_const::*, stats_const::*,
@@ -18,7 +17,7 @@ use crate::{
     stats::Stats,
     stats_in_game::StatsInGame,
     target::is_target_ally,
-    utils::{self, get_random_nb, list_files_in_dir},
+    utils::{self, list_files_in_dir},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -113,7 +112,6 @@ pub enum Class {
 }
 
 impl Character {
-    // TODO add function to validate json
     pub fn try_new_from_json<P1: AsRef<Path>, P2: AsRef<Path>>(
         path: P1,
         root_path: P2,
@@ -291,37 +289,9 @@ impl Character {
         } else {
             return Ok(false);
         };
-        // process passive power
-        let is_crit_by_passive = self.character_rounds_info.all_buffers
-            [BufTypes::NextHealAtkIsCrit as usize]
-            .is_passive_enabled
-            && atk.has_only_heal_effect();
-        let crit_capped = 60;
-        let rand_nb = get_random_nb(1, 100);
-        let is_crit = rand_nb <= self.stats.all_stats[CRITICAL_STRIKE].current as i64;
 
-        // priority to passive
-        let delta_capped = std::cmp::max(
-            0,
-            self.stats.all_stats[CRITICAL_STRIKE].current as i64 - crit_capped,
-        );
-        if is_crit && !is_crit_by_passive {
-            if delta_capped > 0 {
-                self.character_rounds_info.update_buf(
-                    &BufTypes::DamageCritCapped,
-                    delta_capped,
-                    false,
-                    "",
-                )?;
-            }
-            Ok(true)
-        } else if is_crit_by_passive {
-            self.character_rounds_info.all_buffers[BufTypes::NextHealAtkIsCrit as usize]
-                .is_passive_enabled = false;
-            Ok(true)
-        } else {
-            Ok(false)
-        }
+        self.character_rounds_info
+            .process_critical_strike(atk, self.stats.all_stats[CRITICAL_STRIKE].current as i64)
     }
 
     // TODO character info

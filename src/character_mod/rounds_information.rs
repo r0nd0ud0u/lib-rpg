@@ -430,6 +430,40 @@ impl CharacterRoundsInfo {
         }
         Ok(())
     }
+
+    pub fn process_critical_strike(&mut self, atk: &AttackType, current_critical: i64) -> Result<bool> {
+        // process passive power
+        let is_crit_by_passive = self.all_buffers
+            [BufTypes::NextHealAtkIsCrit as usize]
+            .is_passive_enabled
+            && atk.has_only_heal_effect();
+        let crit_capped = 60;
+        let rand_nb = get_random_nb(1, 100);
+        let is_crit = rand_nb <= current_critical;
+
+        // priority to passive
+        let delta_capped = std::cmp::max(
+            0,
+            current_critical - crit_capped,
+        );
+        if is_crit && !is_crit_by_passive {
+            if delta_capped > 0 {
+                self.update_buf(
+                    &BufTypes::DamageCritCapped,
+                    delta_capped,
+                    false,
+                    "",
+                )?;
+            }
+            Ok(true)
+        } else if is_crit_by_passive {
+            self.all_buffers[BufTypes::NextHealAtkIsCrit as usize]
+                .is_passive_enabled = false;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
 }
 
 #[cfg(test)]
