@@ -141,7 +141,6 @@ impl PlayerManager {
         }
     }
 
-    // TODO change swap remove see processCost
     pub fn apply_regen_stats(&mut self, kind: CharacterKind) {
         let player_list = if kind == CharacterKind::Hero {
             &mut self.active_heroes
@@ -153,7 +152,6 @@ impl PlayerManager {
                 continue;
             }
 
-            // TODO change swap remove see processCost
             let mut hp = pl.stats.all_stats.swap_remove(HP).expect("hp is missing");
             let mut mana = pl
                 .stats

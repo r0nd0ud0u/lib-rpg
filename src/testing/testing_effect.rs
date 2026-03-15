@@ -89,6 +89,7 @@ pub fn build_dmg_effect_individual() -> ProcessedEffectParam {
             stats_name: HP.to_owned(),
             value: -30,
             is_magic_atk: false,
+            conditions: vec![],
         },
         number_of_applies: 1,
         ..Default::default()
@@ -107,6 +108,7 @@ pub fn build_dmg_effect_zone() -> ProcessedEffectParam {
             stats_name: HP.to_owned(),
             value: -30,
             is_magic_atk: false,
+            conditions: vec![],
         },
         number_of_applies: 1,
         ..Default::default()

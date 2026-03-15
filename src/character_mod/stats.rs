@@ -10,15 +10,6 @@ use crate::{
     utils,
 };
 
-/// Define allt the paramaters of tx-rx
-#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq, Eq)]
-#[serde(default)]
-pub struct TxRx {
-    /// TODO use?
-    #[serde(rename = "Tx-rx-size")]
-    pub tx_rx_size: u64,
-}
-
 /// Define all the parameter of an attribute of a stat
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq, Eq)]
 #[serde(default)]

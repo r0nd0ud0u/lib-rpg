@@ -119,15 +119,6 @@ impl GameManager {
         let _ = self.start_new_turn();
     }
 
-    /// TODO use the one from dxrpg
-    pub fn load_game<P: AsRef<Path>>(&mut self, game_path_dir: P) -> Result<()> {
-        self.game_state =
-            utils::read_from_json(game_path_dir.as_ref().join(OFFLINE_GAMESTATE.to_path_buf()))?;
-        self.pm
-            .load_active_characters_from_saved_game(&game_path_dir)?;
-        Ok(())
-    }
-
     /// Process the start of a new turn:
     /// - Process the order of the players to play
     /// - Increment the turn number
@@ -138,13 +129,9 @@ impl GameManager {
         // For each turn now
         // Process the order of the players
         self.process_order_to_play();
-
         self.game_state.start_new_turn();
         self.pm.start_new_turn();
 
-        // TODO update game status
-        // TODO init target view
-        // TODO add channel for the logs
         self.new_round()
     }
 
@@ -233,13 +220,6 @@ impl GameManager {
         }
 
         self.pm.reset_targeted_character();
-        // Those 2 TODO are logs to give info
-        // TODO case BOSS: random atk to choose
-        // TODO who has the most aggro ?
-
-        // TODO update game status
-
-        // reinit each round
 
         (true, logs)
     }
@@ -563,18 +543,6 @@ impl GameManager {
         logs
     }
 
-    /// TODO use that one in dxrpg
-    pub fn save_game_manager(&self) -> Result<()> {
-        // write_to_json
-        utils::write_to_json(
-            &self,
-            self.game_paths
-                .output_current_game_dir
-                .join("game_manager.json"),
-        )?;
-        Ok(())
-    }
-
     pub fn create_game_dirs(&self) -> Result<()> {
         if let Err(e) = fs::create_dir_all(&self.game_paths.input_data_root) {
             eprintln!("Failed to create directory: {}", e);
@@ -722,7 +690,6 @@ mod tests {
         let result = gm.start_new_turn();
         assert!(result.0);
         assert_eq!(gm.game_state.current_round, 1);
-        // TODO add second hero player to test the current round and avoid auto atk of boss
 
         // test current player -test- is dead - round for boss is starting
         gm.game_state.current_round = 0;
@@ -1369,7 +1336,5 @@ mod tests {
             let _ra = gm.launch_attack(Some("SimpleAtk"));
         }
         assert_eq!(GameStatus::EndOfGame, gm.game_state.status);
-
-        // TODO case heroes are killing both bosses
     }
 }
