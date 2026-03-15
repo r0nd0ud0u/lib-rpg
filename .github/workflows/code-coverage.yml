@@ -39,7 +39,7 @@ jobs:
       - name: Build code coverage LCOV report
         run: |
           mkdir -p target/coverage
-          grcov . --keep-only 'src/*' --ignore 'src/bin/*' --binary-path ./target/debug/deps/ --source-dir . --output-types lcov,html --branch --ignore-not-existing --output-path target/coverage/
+          grcov . --keep-only 'src/**' --ignore 'src/bin/*' --binary-path ./target/debug/deps/ --source-dir . --output-types lcov,html --branch --ignore-not-existing --output-path target/coverage/
 
       - name: Report code coverage in Pull Request
         uses: zgosalvez/github-actions-report-lcov@v7.0.2
