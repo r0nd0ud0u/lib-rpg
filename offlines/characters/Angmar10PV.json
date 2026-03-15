@@ -1,109 +1,97 @@
 {
-    "Buf-debuf": [
+    "Class": "Standard",
+    "Color": "red",
+    "Experience": 0,
+    "CharacterRoundsInfo": {
+        "is_first_round": false,
+        "is_heal_atk_blocked": false,
+        "is_random_target": false,
+        "Buf-debuf": [
         {
-            "Buf-all-stats": [
-            ],
-            "Buf-is-percent": false,
+            "Buf-all-stats": ["hp","mana"],
+            "Buf-is-percent": true,
             "Buf-passive-enabled": false,
-            "Buf-type": 0,
-            "Buf-value": 0
+            "Buf-type": 3,
+            "Buf-value": 100
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 1,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 2,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 3,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 4,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 5,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 6,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 7,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 8,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 9,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 10,
             "Buf-value": 0
         },
         {
-            "Buf-all-stats": [
-            ],
+            "Buf-all-stats": [],
             "Buf-is-percent": false,
             "Buf-passive-enabled": false,
             "Buf-type": 11,
             "Buf-value": 0
         }
-    ],
-    "Class": "Standard",
-    "Color": "red",
-    "Experience": 0,
-    "ExtendedCharacter": {
-        "is_first_round": false,
-        "is_heal_atk_blocked": false,
-        "is_random_target": false
+    ]
     },
     "Level": 2147483647,
     "Name": "Angmar10PV",
