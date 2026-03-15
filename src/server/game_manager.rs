@@ -5,11 +5,17 @@ use std::{
 };
 
 use crate::{
-    character_mod::attack_type::{AttackType, LauncherAtkInfo},
-    character_mod::effect::EffectOutcome,
-    character_mod::equipment::{Equipment, EquipmentJsonKey},
-    character_mod::{character::CharacterKind, rounds_information::AmountType},
-    common::constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
+    character_mod::{
+        attack_type::{AttackType, LauncherAtkInfo},
+        character::CharacterKind,
+        effect::EffectOutcome,
+        equipment::{Equipment, EquipmentJsonKey},
+        rounds_information::AmountType,
+    },
+    common::{
+        constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
+        log_data::{LogData, const_colors::DARK_RED},
+    },
     server::{
         game_state::{GameState, GameStatus},
         players_manager::{DodgeInfo, PlayerManager},
@@ -28,12 +34,6 @@ pub struct ResultLaunchAttack {
     pub is_boss_atk: bool,
     pub logs_end_of_round: Vec<LogData>,
     pub logs_atk: Vec<LogData>,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct LogData {
-    pub message: String,
-    pub color: String,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -486,7 +486,7 @@ impl GameManager {
             if is_crit {
                 logs.push(LogData {
                     message: "Critical strike!".to_string(),
-                    color: "#9b1c1c".to_string(),
+                    color: DARK_RED.to_string(),
                 });
             }
 
@@ -501,7 +501,7 @@ impl GameManager {
                     && eo.real_hp_amount_tx < 0
                     || eo.full_atk_amount_tx < 0
                 {
-                    colortext = "#9b1c1c";
+                    colortext = DARK_RED;
                 }
                 if eo.processed_effect_param.input_effect_param.effect_type == EFFECT_NB_COOL_DOWN {
                     logs.push(LogData {

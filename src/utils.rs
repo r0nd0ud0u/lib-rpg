@@ -72,7 +72,7 @@ pub fn read_from_json<P: AsRef<Path>, T: DeserializeOwned>(path: P) -> Result<T>
     Ok(value)
 }
 
-pub(crate) fn write_to_json<P: AsRef<Path>, T: Serialize>(value: &T, path: P) -> Result<()> {
+pub(crate) fn _write_to_json<P: AsRef<Path>, T: Serialize>(value: &T, path: P) -> Result<()> {
     let normalized = normalize_cross_platform(path);
     let data = serde_json::to_string_pretty(value)?;
     fs::write(normalized, data)?;

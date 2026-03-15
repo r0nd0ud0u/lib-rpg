@@ -1,25 +1,28 @@
 use anyhow::{Result, bail};
 
 use crate::{
-    character_mod::attack_type::AttackType,
-    character_mod::effect::{
-        self, EffectParam, ProcessedEffectParam, is_boosted_by_crit, process_decrease_on_turn,
-    },
     character_mod::{
+        attack_type::AttackType,
         buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
         character::Class,
+        effect::{
+            self, EffectParam, ProcessedEffectParam, is_boosted_by_crit, is_effet_hot_or_dot,
+            process_decrease_on_turn,
+        },
         target::{TargetData, is_target_ally},
     },
-    common::constants::{
-        all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
-        attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
-        character_const::ULTIMATE_LEVEL,
-        effect_const::*,
-        reach_const::INDIVIDUAL,
-        stats_const::HP,
+    common::{
+        constants::{
+            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+            attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
+            character_const::ULTIMATE_LEVEL,
+            effect_const::*,
+            reach_const::INDIVIDUAL,
+            stats_const::HP,
+        },
+        log_data::LogData,
     },
     server::{
-        game_manager::LogData,
         game_state::GameState,
         players_manager::{DodgeInfo, GameAtkEffects},
     },
@@ -498,6 +501,44 @@ impl CharacterRoundsInfo {
         }
 
         true
+    }
+
+    fn process_hot_or_dot(
+        local_log: &mut Vec<LogData>,
+        hot_and_dot: &mut i64,
+        gae: &GameAtkEffects,
+    ) {
+        *hot_and_dot += gae.all_atk_effects.input_effect_param.value;
+        let effect_type = if gae.all_atk_effects.input_effect_param.value > 0 {
+            "HOT->"
+        } else {
+            "DOT->"
+        };
+        local_log.push(LogData {
+            message: format!(
+                "{} valeur: {}, atk: {}",
+                effect_type, gae.all_atk_effects.input_effect_param.value, gae.atk.name
+            ),
+            ..Default::default()
+        });
+    }
+
+    pub fn process_hot_and_dot(&mut self, current_turn_nb: usize) -> (Vec<LogData>, i64) {
+        let mut logs = Vec::new();
+        let mut hot_and_dot = 0;
+        // First process all the effects whatever their order
+        for gae in self.all_effects.iter() {
+            if gae.launching_turn == current_turn_nb {
+                continue;
+            }
+            // Process hot or dot
+            if gae.all_atk_effects.input_effect_param.stats_name == HP
+                && is_effet_hot_or_dot(&gae.all_atk_effects.input_effect_param.effect_type)
+            {
+                Self::process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
+            }
+        }
+        (logs, hot_and_dot)
     }
 }
 
