@@ -4,9 +4,11 @@ use std::{cmp::Ordering, collections::HashMap};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    character_mod::effect::EffectParam,
-    character_mod::equipment::Equipment,
-    common::{constants::character_const::NB_TURN_SUM_AGGRO, constants::stats_const::*},
+    character_mod::{effect::EffectParam, equipment::Equipment},
+    common::constants::{
+        character_const::{NB_TURN_SUM_AGGRO, SPEED_THRESHOLD},
+        stats_const::*,
+    },
     utils,
 };
 
@@ -227,6 +229,14 @@ impl Stats {
         stat.current = new_value as u64;
 
         overhead
+    }
+
+    pub fn reset_speed(&mut self) {
+        let speed_pl1 = self.get_mut_value(SPEED);
+        speed_pl1.current = speed_pl1.current.saturating_sub(SPEED_THRESHOLD);
+        speed_pl1.max = speed_pl1.max.saturating_sub(SPEED_THRESHOLD);
+        speed_pl1.max_raw = speed_pl1.max_raw.saturating_sub(SPEED_THRESHOLD);
+        speed_pl1.current_raw = speed_pl1.current_raw.saturating_sub(SPEED_THRESHOLD);
     }
 
     /// stat.m_RawMaxValue of a stat cannot be equal to 0.

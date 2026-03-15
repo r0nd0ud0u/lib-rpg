@@ -5,8 +5,20 @@ use std::{
 };
 
 use crate::{
-    character_mod::{attack_type::{AttackType, LauncherAtkInfo}, character::CharacterKind, effect::EffectOutcome, equipment::{Equipment, EquipmentJsonKey}, rounds_information::AmountType},
-    common::{constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*}, log_data::{LogData, const_colors::{DARK_RED, LIGHT_BLUE, LIGHT_GREEN}}},
+    character_mod::{
+        attack_type::{AttackType, LauncherAtkInfo},
+        character::CharacterKind,
+        effect::EffectOutcome,
+        equipment::{Equipment, EquipmentJsonKey},
+        rounds_information::AmountType,
+    },
+    common::{
+        constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
+        log_data::{
+            LogData,
+            const_colors::{DARK_RED, LIGHT_BLUE, LIGHT_GREEN},
+        },
+    },
     server::{
         game_state::{GameState, GameStatus},
         players_manager::{DodgeInfo, PlayerManager},
@@ -160,8 +172,8 @@ impl GameManager {
             }
         }
         // supplementary atks to be added
-        let supp_rounds_heroes = self.pm.compute_sup_atk_turn(CharacterKind::Hero);
-        let supp_rounds_bosses = self.pm.compute_sup_atk_turn(CharacterKind::Boss);
+        let supp_rounds_heroes = self.pm.process_sup_atk_turn(CharacterKind::Hero);
+        let supp_rounds_bosses = self.pm.process_sup_atk_turn(CharacterKind::Boss);
         self.game_state.order_to_play.extend(supp_rounds_heroes);
         self.game_state.order_to_play.extend(supp_rounds_bosses);
     }
@@ -192,7 +204,7 @@ impl GameManager {
                 }],
             );
         }
-        let Ok(logs) = self.pm.update_current_player(
+        let Ok(logs) = self.pm.update_current_player_on_new_round(
             &self.game_state,
             &self.game_state.order_to_play[self.game_state.current_round - 1],
         ) else {
@@ -670,7 +682,7 @@ mod tests {
         hero.stats.all_stats.get_mut(SPEED).unwrap().current = 300;
         let boss = gm.pm.active_bosses.first_mut().unwrap();
         boss.stats.all_stats.get_mut(SPEED).unwrap().current = 10;
-        let result = gm.pm.compute_sup_atk_turn(CharacterKind::Hero);
+        let result = gm.pm.process_sup_atk_turn(CharacterKind::Hero);
         // there are 2 allies in the test/offlines to len = 2
         assert_eq!(result.len(), 2);
     }

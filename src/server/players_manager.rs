@@ -174,7 +174,7 @@ impl PlayerManager {
         self.active_bosses.iter().find(|c| c.id_name == id_name)
     }
 
-    pub fn update_current_player(
+    pub fn update_current_player_on_new_round(
         &mut self,
         game_state: &GameState,
         id_name: &str,
@@ -209,7 +209,7 @@ impl PlayerManager {
         self.apply_regen_stats(CharacterKind::Hero);
     }
 
-    pub fn compute_sup_atk_turn(&mut self, launcher_type: CharacterKind) -> Vec<String> {
+    pub fn process_sup_atk_turn(&mut self, launcher_type: CharacterKind) -> Vec<String> {
         let mut output = Vec::new();
         let (player_list1, player_list2) = if launcher_type == CharacterKind::Hero {
             (&mut self.active_heroes, &self.active_bosses)
@@ -220,7 +220,7 @@ impl PlayerManager {
             if pl1.stats.is_dead().unwrap_or(false) {
                 continue;
             }
-            let speed_pl1 = match pl1.stats.all_stats.get_mut(SPEED) {
+            let speed_pl1 = match pl1.stats.all_stats.get(SPEED) {
                 Some(speed) => speed,
                 None => continue,
             };
@@ -228,11 +228,7 @@ impl PlayerManager {
                 let speed_pl2_current = pl2.stats.all_stats[SPEED].current;
                 let delta = speed_pl1.current.saturating_sub(speed_pl2_current);
                 if delta >= SPEED_THRESHOLD {
-                    // Update of current value aspeed_threshold
-                    speed_pl1.current = speed_pl1.current.saturating_sub(SPEED_THRESHOLD);
-                    speed_pl1.max = speed_pl1.max.saturating_sub(SPEED_THRESHOLD);
-                    speed_pl1.max_raw = speed_pl1.max_raw.saturating_sub(SPEED_THRESHOLD);
-                    speed_pl1.current_raw = speed_pl1.current_raw.saturating_sub(SPEED_THRESHOLD);
+                    pl1.stats.reset_speed();
                     output.push(pl1.id_name.clone());
                     break;
                 }
@@ -661,7 +657,8 @@ mod tests {
             .character_rounds_info
             .actions_done_in_round = 100;
         let gs = GameState::default();
-        pl.update_current_player(&gs, "test_#1").unwrap();
+        pl.update_current_player_on_new_round(&gs, "test_#1")
+            .unwrap();
         assert_eq!(
             0,
             pl.get_mut_active_hero_character("test_#1")
