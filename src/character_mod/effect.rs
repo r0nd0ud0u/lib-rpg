@@ -8,6 +8,13 @@ use crate::{
     server::game_manager::LogData,
 };
 
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Condition {
+    pub condition_type: String,
+    pub condition_value: i64,
+}
+
 /// Define the parameters of an effect.
 /// An effect can be enabled from an attack, a passive power or an object.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -20,13 +27,13 @@ pub struct EffectParam {
     /// Duration of the effect
     #[serde(rename = "Tours actifs")]
     pub nb_turns: i64,
-    /// TODO sub_value_effect
+    /// sub_value_effect
     #[serde(rename = "Valeur de l'effet")]
     pub sub_value_effect: i64,
-    /// TODO target of the effect, ally or ennemy
+    /// target of the effect, ally or ennemy
     #[serde(rename = "Cible")]
     pub target_kind: String,
-    /// TODO, reach of the effect, zone or individual
+    /// reach of the effect, zone or individual
     #[serde(rename = "Portée")]
     pub reach: String,
     /// Name of the targeted stat
@@ -35,17 +42,18 @@ pub struct EffectParam {
     /// Value of the effect
     #[serde(rename = "Value")]
     pub value: i64,
-    /// TODO from a magical attack ?or is magical effect ?
+    /// from a magical attack ?or is magical effect ?
     #[serde(rename = "IsMagicEffect")]
     pub is_magic_atk: bool,
+    /// Conditions for the effect
+    #[serde(rename = "Conditions")]
+    pub conditions: Vec<Condition>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ProcessedEffectParam {
     pub input_effect_param: EffectParam,
-    /// TODO
-    pub updated: bool,
     /// Lasting turns
     pub counter_turn: i64,
     /// Number of applies

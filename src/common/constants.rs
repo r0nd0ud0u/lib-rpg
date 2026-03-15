@@ -36,7 +36,6 @@ pub mod stats_const {
 
 /// Defines all the keys except stats you can decode from the JSON input
 pub mod character_json_key {
-    pub const STANDARD_CLASS: &str = "Standard";
     pub const IS_CRIT_HEAL_AFTER_CRIT: &str = "is_crit_heal_after_crit";
     pub const IS_DAMAGE_TX_HEAL_NEEDY_ALLY: &str = "is_damage_tx_heal_needy_ally";
     pub const IS_FIRST_ROUND: &str = "is_first_round";

@@ -53,9 +53,6 @@ pub struct EquipmentOnCharacterJson {
     pub tattoes: Vec<String>,
     #[serde(rename = "Gloves")]
     pub gloves: String,
-    // TODO is it useful ?
-    #[serde(rename = "Name")]
-    pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
