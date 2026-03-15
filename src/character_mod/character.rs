@@ -4,17 +4,19 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
-    attack_type::{AttackType, LauncherAtkInfo},
-    character_mod::rounds_information::{AmountType, CharacterRoundsInfo},
-    common::{all_target_const::*, effect_const::*, paths_const::*, stats_const::*},
-    effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
-    equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
-    game_state::GameState,
-    players_manager::{DodgeInfo, GameAtkEffects},
-    powers::Powers,
-    stats::Stats,
-    stats_in_game::StatsInGame,
-    target::TargetData,
+    character_mod::effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
+    character_mod::equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
+    character_mod::stats::Stats,
+    character_mod::{
+        attack_type::{AttackType, LauncherAtkInfo},
+        powers::Powers,
+        rounds_information::{AmountType, CharacterRoundsInfo},
+        stats_in_game::StatsInGame,
+        target::TargetData,
+    },
+    common::constants::{all_target_const::*, effect_const::*, paths_const::*, stats_const::*},
+    server::game_state::GameState,
+    server::players_manager::{DodgeInfo, GameAtkEffects},
     utils::{self, list_files_in_dir},
 };
 
@@ -594,19 +596,19 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::Character;
-    use crate::attack_type::AttackType;
-    use crate::character::AmountType;
-    use crate::common::paths_const::TEST_OFFLINE_ROOT;
-    use crate::effect::EffectOutcome;
-    use crate::equipment::EquipmentJsonKey;
-    use crate::testing_all_characters::{testing_all_equipment, testing_character};
+    use crate::character_mod::attack_type::AttackType;
+    use crate::character_mod::character::AmountType;
+    use crate::character_mod::effect::EffectOutcome;
+    use crate::character_mod::equipment::EquipmentJsonKey;
+    use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
+    use crate::testing::testing_all_characters::{testing_all_equipment, testing_character};
     use crate::{
-        buffers::BufTypes,
-        character::{CharacterKind, Class},
-        common::{all_target_const::TARGET_ALLY, effect_const::*, stats_const::*},
-        effect::EffectParam,
-        players_manager::GameAtkEffects,
-        testing_effect::*,
+        character_mod::buffers::BufTypes,
+        character_mod::character::{CharacterKind, Class},
+        character_mod::effect::EffectParam,
+        common::constants::{all_target_const::TARGET_ALLY, effect_const::*, stats_const::*},
+        server::players_manager::GameAtkEffects,
+        testing::testing_effect::*,
     };
 
     #[test]

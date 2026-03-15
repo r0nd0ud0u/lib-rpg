@@ -1,9 +1,9 @@
 use indexmap::IndexSet;
 
 use crate::{
-    character::CharacterKind,
-    common::{all_target_const::*, reach_const::ZONE},
-    effect::EffectParam,
+    character_mod::character::CharacterKind,
+    character_mod::effect::EffectParam,
+    common::constants::{all_target_const::*, reach_const::ZONE},
 };
 
 /// Define all the parameters of target info during a round

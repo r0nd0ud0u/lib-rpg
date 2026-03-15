@@ -2,8 +2,8 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 
-use crate::data_manager::DataManager;
-use crate::game_manager::GameManager;
+use crate::server::data_manager::DataManager;
+use crate::server::game_manager::GameManager;
 use crate::server::server_manager::GamePhase;
 
 /// Game core state, stored on the server and sent to clients
@@ -49,9 +49,9 @@ impl CoreGameData {
 
 #[cfg(test)]
 mod tests {
-    use crate::common::paths_const::TEST_OFFLINE_ROOT;
-    use crate::data_manager::DataManager;
+    use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::server::core_game_data::CoreGameData;
+    use crate::server::data_manager::DataManager;
 
     #[test]
     fn unit_core_game_data_new() {

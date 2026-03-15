@@ -5,14 +5,14 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    character::CharacterKind,
+    character_mod::character::CharacterKind,
+    character_mod::effect::EffectParam,
+    character_mod::stats::Stats,
     common::{
-        all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
-        reach_const::INDIVIDUAL,
-        stats_const::*,
+        constants::all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+        constants::reach_const::INDIVIDUAL,
+        constants::stats_const::*,
     },
-    effect::EffectParam,
-    stats::Stats,
     utils::{self, get_random_nb},
 };
 
@@ -154,13 +154,13 @@ mod tests {
     use indexmap::IndexMap;
 
     use crate::{
-        attack_type::AttackType,
-        common::{
+        character_mod::attack_type::AttackType,
+        character_mod::stats::Stats,
+        common::constants::{
             all_target_const::TARGET_ENNEMY, character_json_key::STANDARD_CLASS,
             effect_const::EFFECT_VALUE_CHANGE, reach_const::INDIVIDUAL, stats_const::*,
         },
-        stats::Stats,
-        testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
+        testing::testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
     };
 
     #[test]

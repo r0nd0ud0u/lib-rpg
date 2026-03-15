@@ -4,16 +4,9 @@ use std::{cmp::Ordering, collections::HashMap};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    common::{
-        character_const::NB_TURN_SUM_AGGRO,
-        stats_const::{
-            AGGRO, AGGRO_RATE, BERSECK_RATE, BERSERK, CRITICAL_STRIKE, DODGE, HP, HP_REGEN,
-            MAGICAL_ARMOR, MAGICAL_POWER, MANA, MANA_REGEN, PHYSICAL_ARMOR, PHYSICAL_POWER, SPEED,
-            SPEED_REGEN, VIGOR, VIGOR_REGEN,
-        },
-    },
-    effect::EffectParam,
-    equipment::Equipment,
+    character_mod::effect::EffectParam,
+    character_mod::equipment::Equipment,
+    common::{constants::character_const::NB_TURN_SUM_AGGRO, constants::stats_const::*},
     utils,
 };
 
@@ -351,8 +344,9 @@ impl Stats {
 #[cfg(test)]
 mod tests {
     use crate::{
-        character::Character, common::paths_const::TEST_OFFLINE_ROOT,
-        testing_all_characters::testing_all_equipment, testing_effect::build_dmg_effect_individual,
+        character_mod::character::Character, common::constants::paths_const::TEST_OFFLINE_ROOT,
+        testing::testing_all_characters::testing_all_equipment,
+        testing::testing_effect::build_dmg_effect_individual,
     };
 
     use super::*;

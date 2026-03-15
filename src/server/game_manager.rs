@@ -5,14 +5,15 @@ use std::{
 };
 
 use crate::{
-    attack_type::{AttackType, LauncherAtkInfo},
-    character::CharacterKind,
-    character_mod::rounds_information::AmountType,
-    common::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
-    effect::EffectOutcome,
-    equipment::{Equipment, EquipmentJsonKey},
-    game_state::{GameState, GameStatus},
-    players_manager::{DodgeInfo, PlayerManager},
+    character_mod::attack_type::{AttackType, LauncherAtkInfo},
+    character_mod::effect::EffectOutcome,
+    character_mod::equipment::{Equipment, EquipmentJsonKey},
+    character_mod::{character::CharacterKind, rounds_information::AmountType},
+    common::constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
+    server::{
+        game_state::{GameState, GameStatus},
+        players_manager::{DodgeInfo, PlayerManager},
+    },
     utils,
 };
 use anyhow::Result;
@@ -636,17 +637,17 @@ impl GameManager {
 
 #[cfg(test)]
 mod tests {
-    use crate::character::Class;
-    use crate::common::attak_const::COEFF_CRIT_DMG;
-    use crate::common::effect_const::EFFECT_NB_COOL_DOWN;
-    use crate::game_manager::LogData;
-    use crate::game_state::GameStatus;
-    use crate::testing_all_characters::{
+    use crate::character_mod::character::{CharacterKind, Class};
+    use crate::common::constants::attak_const::COEFF_CRIT_DMG;
+    use crate::common::constants::effect_const::EFFECT_NB_COOL_DOWN;
+    use crate::server::game_manager::LogData;
+    use crate::server::game_state::GameStatus;
+    use crate::testing::testing_all_characters::{
         self, testing_game_manager, testing_test_ally1_vs_test_boss1,
     };
     use crate::{
-        common::{character_const::SPEED_THRESHOLD, stats_const::*},
-        testing_atk::*,
+        common::constants::{character_const::SPEED_THRESHOLD, stats_const::*},
+        testing::testing_atk::*,
     };
 
     #[test]
@@ -710,9 +711,7 @@ mod tests {
         hero.stats.all_stats.get_mut(SPEED).unwrap().current = 300;
         let boss = gm.pm.active_bosses.first_mut().unwrap();
         boss.stats.all_stats.get_mut(SPEED).unwrap().current = 10;
-        let result = gm
-            .pm
-            .compute_sup_atk_turn(crate::character::CharacterKind::Hero);
+        let result = gm.pm.compute_sup_atk_turn(CharacterKind::Hero);
         // there are 2 allies in the test/offlines to len = 2
         assert_eq!(result.len(), 2);
     }
