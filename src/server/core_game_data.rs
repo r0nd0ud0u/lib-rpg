@@ -11,7 +11,7 @@ use crate::server::server_manager::GamePhase;
 #[derive(Default, Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct CoreGameData {
     pub game_manager: GameManager,
-    /// TODO use in ServerData struct
+    /// Name of the server, used to identify the game and for clients to connect to the right game
     pub server_name: String,
     pub game_phase: GamePhase,
     /// reload info: players_nb

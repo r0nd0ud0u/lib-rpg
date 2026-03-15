@@ -380,6 +380,7 @@ impl CharacterRoundsInfo {
             effect_param_mutable.value = (COEFF_CRIT_STATS * ep.value as f64) as i64;
         }
         // conditions
+        // TODO use condition in effect param object
         if ep.effect_type == CONDITION_ENNEMIES_DIED {
             effect_param_mutable.value +=
                 game_state.died_ennemies[&(game_state.current_turn_nb - 1)].len() as i64
