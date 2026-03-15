@@ -219,7 +219,6 @@ impl Character {
         self.character_rounds_info.tx_rx[AmountType::Aggro as usize].insert(turn_nb as u64, 0);
     }
 
-    // TODO if I remove a malus percent for DamageTx with EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT, how can if make the difference with a value which is not percent
     pub fn remove_malus_effect(&mut self, ep: &EffectParam) -> Result<()> {
         if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
             self.stats
@@ -284,7 +283,6 @@ impl Character {
             .process_critical_strike(atk, self.stats.all_stats[CRITICAL_STRIKE].current as i64)
     }
 
-    // TODO divide function
     pub fn apply_effect_outcome(
         &mut self,
         processed_ep: &ProcessedEffectParam,
@@ -292,13 +290,14 @@ impl Character {
         is_crit: bool,
         current_turn: usize, // to process aggro
     ) -> EffectOutcome {
+        // eval if the effect can be applied on the target
         if processed_ep.input_effect_param.stats_name.is_empty()
             || !self
                 .stats
                 .all_stats
                 .contains_key(&processed_ep.input_effect_param.stats_name)
         {
-            tracing::info!(
+            tracing::debug!(
                 "Effect {} cannot be applied on {} because the stat {} does not exist.",
                 processed_ep.input_effect_param.effect_type,
                 self.id_name,
@@ -309,6 +308,8 @@ impl Character {
                 ..Default::default()
             };
         }
+
+        // eval `full_amount`
         let mut full_amount;
         let mut processed_effect_param = processed_ep.clone();
         let pow_current =
@@ -356,17 +357,7 @@ impl Character {
         } else {
             full_amount = processed_ep.number_of_applies * processed_ep.input_effect_param.value;
         }
-        // Return now if the full amount is 0
-        if full_amount == 0 {
-            tracing::info!(
-                "Effect {} has no impact on {} because the full amount is 0.",
-                processed_ep.input_effect_param.effect_type,
-                self.id_name
-            );
-            return EffectOutcome::default();
-        }
-
-        // apply buf/debuf to full_amount in case of damages/heal
+        // Apply buf/debuf, crit, blocking on damages/heal
         if processed_ep.input_effect_param.stats_name == HP {
             full_amount = self.character_rounds_info.apply_buf_debuf(
                 full_amount,
@@ -375,9 +366,22 @@ impl Character {
             );
             processed_effect_param.input_effect_param.value = full_amount;
         }
+        // blocking the atk
+        if self
+            .character_rounds_info
+            .is_blocking(&processed_ep.input_effect_param)
+        {
+            full_amount = 10 * full_amount / 100;
+        }
 
-        // Otherwise update the current value of the stats or the HOT/DOT
-        // stats update
+        // Process stats `HP`
+        // Calculation of the real amount of the value of the effect and update the energy stats
+        let real_hp_amount = self
+            .stats
+            .update_hp_process_real_amount(&processed_ep.input_effect_param, full_amount);
+
+        // Process non-stats `HP`
+        // Otherwise update the max value of the stats
         if processed_ep.input_effect_param.stats_name != HP
             && (processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
                 || processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
@@ -388,47 +392,16 @@ impl Character {
                 processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
                 true,
             );
-            tracing::info!(
-                "Effect {} applied on {} for stat {} by {}{}.",
-                processed_ep.input_effect_param.effect_type,
-                self.id_name,
-                processed_ep.input_effect_param.stats_name,
-                full_amount,
-                if processed_ep.input_effect_param.effect_type
-                    == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
-                {
-                    "%"
-                } else {
-                    ""
-                }
-            );
-            return EffectOutcome {
-                full_atk_amount_tx: full_amount,
-                real_hp_amount_tx: full_amount,
-                processed_effect_param,
-                target_kind: self.id_name.clone(),
-                ..Default::default()
-            };
         }
+        // apply change current stats for non HP stats
         if processed_ep.input_effect_param.stats_name != HP
             && processed_ep.input_effect_param.effect_type == EFFECT_VALUE_CHANGE
         {
             self.stats
                 .modify_stat_current(&processed_ep.input_effect_param.stats_name, full_amount);
         }
-        // blocking the atk
-        if self
-            .character_rounds_info
-            .is_blocking(&processed_ep.input_effect_param)
-        {
-            full_amount = 10 * full_amount / 100;
-        }
-        // Calculation of the real amount of the value of the effect and update the energy stats
-        let real_hp_amount = self
-            .stats
-            .update_hp_process_real_amount(&processed_ep.input_effect_param, full_amount);
 
-        // process aggro
+        // process aggro for `HP` and `non-HP` stats
         if processed_ep.input_effect_param.effect_type != EFFECT_IMPROVE_MAX_STAT_BY_VALUE
             && processed_ep.input_effect_param.effect_type != EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
         {
@@ -450,6 +423,7 @@ impl Character {
             ..Default::default()
         };
         self.stats_in_game.update_by_effectoutcome(&eo);
+
         eo
     }
 
@@ -1166,7 +1140,7 @@ mod tests {
         let launcher_stats = c.stats.clone();
         let eo = c.apply_effect_outcome(&processed_ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, 60);
-        assert_eq!(eo.real_hp_amount_tx, 60);
+        assert_eq!(eo.real_hp_amount_tx, 0);
         assert_eq!(
             eo.processed_effect_param.input_effect_param.stats_name,
             SPEED_REGEN
