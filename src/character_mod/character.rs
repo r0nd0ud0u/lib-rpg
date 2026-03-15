@@ -660,6 +660,10 @@ impl Character {
         }
         output_logs_data
     }
+
+    pub fn is_boss_atk(&self) -> bool {
+        self.kind == CharacterKind::Boss
+    }
 }
 
 #[cfg(test)]
