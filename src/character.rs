@@ -455,7 +455,6 @@ impl Character {
             return;
         }
 
-        // TODO character info
         // Update aggro
         if let Some(aggro_stat) = self.stats.all_stats.get_mut(AGGRO)
             && let Some(tx_map) = self
@@ -495,7 +494,6 @@ impl Character {
 
         // check if the effect is applied on the target
         if self.character_rounds_info.is_effect_applied(&target_data) {
-            // TODO check if the effect is not already applied
             eo = Some(self.apply_effect_outcome(
                 processed_ep,
                 &launcher_info.stats,
@@ -625,7 +623,6 @@ mod tests {
         assert_eq!("test_#1", c.id_name);
         // buf-debuf
         assert_eq!(12, c.character_rounds_info.all_buffers.len());
-        // TODO change
         assert_eq!(3, c.character_rounds_info.all_buffers[0].buf_type);
         assert!(!c.character_rounds_info.all_buffers[0].is_passive_enabled);
         assert!(c.character_rounds_info.all_buffers[0].is_percent);
@@ -983,7 +980,6 @@ mod tests {
             .push(GameAtkEffects::default());
         c.remove_terminated_effect_on_player().unwrap();
         assert_eq!(0, c.character_rounds_info.all_effects.len());
-        // TODO improve the test  by checking if the effect is removed on character stats
     }
 
     #[test]
