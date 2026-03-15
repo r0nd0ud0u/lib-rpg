@@ -3,7 +3,7 @@ use std::{collections::HashMap, fmt, path::Path};
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 
-use crate::{stats::Stats, utils};
+use crate::{character_mod::stats::Stats, utils};
 use strum_macros::EnumIter;
 
 /// Define the parameters of an equipment.
@@ -181,7 +181,7 @@ impl Equipment {
 mod tests {
     use strum::IntoEnumIterator;
 
-    use crate::common::stats_const::*;
+    use crate::common::constants::stats_const::*;
 
     use super::*;
 

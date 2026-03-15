@@ -1,10 +1,16 @@
 use anyhow::{Result, bail};
 
 use crate::{
-    attack_type::AttackType,
-    buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
-    character::Class,
-    common::{
+    character_mod::attack_type::AttackType,
+    character_mod::effect::{
+        self, EffectParam, ProcessedEffectParam, is_boosted_by_crit, process_decrease_on_turn,
+    },
+    character_mod::{
+        buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
+        character::Class,
+        target::{TargetData, is_target_ally},
+    },
+    common::constants::{
         all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
         attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
         character_const::ULTIMATE_LEVEL,
@@ -12,13 +18,11 @@ use crate::{
         reach_const::INDIVIDUAL,
         stats_const::HP,
     },
-    effect::{
-        self, EffectParam, ProcessedEffectParam, is_boosted_by_crit, process_decrease_on_turn,
+    server::{
+        game_manager::LogData,
+        game_state::GameState,
+        players_manager::{DodgeInfo, GameAtkEffects},
     },
-    game_manager::LogData,
-    game_state::GameState,
-    players_manager::{DodgeInfo, GameAtkEffects},
-    target::{TargetData, is_target_ally},
     utils::get_random_nb,
 };
 use std::collections::HashMap;
@@ -499,21 +503,26 @@ impl CharacterRoundsInfo {
 #[cfg(test)]
 mod tests {
     use crate::{
-        buffers::BufTypes,
-        character::Character,
-        character_mod::rounds_information::{CharacterRoundsInfo, HotsBufs},
-        common::{
-            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
-            paths_const::TEST_OFFLINE_ROOT,
-            stats_const::HP,
+        character_mod::{
+            buffers::BufTypes,
+            character::Character,
+            rounds_information::{CharacterRoundsInfo, HotsBufs},
+            target::TargetData,
         },
-        players_manager::GameAtkEffects,
-        target::TargetData,
-        testing_all_characters::testing_all_equipment,
-        testing_effect::{
-            build_buf_effect_individual, build_cooldown_effect, build_debuf_effect_individual,
-            build_dmg_effect_individual, build_dot_effect_individual, build_dot_effect_zone,
-            build_hot_effect_all, build_hot_effect_individual, build_hot_effect_zone,
+        common::constants::{
+            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+            effect_const::*,
+            paths_const::TEST_OFFLINE_ROOT,
+            stats_const::*,
+        },
+        server::players_manager::GameAtkEffects,
+        testing::{
+            testing_all_characters::testing_all_equipment,
+            testing_effect::{
+                build_buf_effect_individual, build_cooldown_effect, build_debuf_effect_individual,
+                build_dmg_effect_individual, build_dot_effect_individual, build_dot_effect_zone,
+                build_hot_effect_all, build_hot_effect_individual, build_hot_effect_zone,
+            },
         },
     };
 
@@ -542,12 +551,7 @@ mod tests {
                 dot_nb: 0,
                 buf_nb: 0,
                 debuf_nb: 0,
-                hot_txt: vec![format!(
-                    "{}-{}: {}",
-                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
-                    crate::common::stats_const::HP,
-                    30
-                )],
+                hot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, 30)],
                 dot_txt: vec![],
                 buf_txt: vec![],
                 debuf_txt: vec![]
@@ -566,18 +570,8 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 0,
                 debuf_nb: 0,
-                hot_txt: vec![format!(
-                    "{}-{}: {}",
-                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
-                    crate::common::stats_const::HP,
-                    30
-                )],
-                dot_txt: vec![format!(
-                    "{}-{}: {}",
-                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
-                    crate::common::stats_const::HP,
-                    -20
-                )],
+                hot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, 30)],
+                dot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, -20)],
                 buf_txt: vec![],
                 debuf_txt: vec![]
             }
@@ -595,24 +589,9 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 1,
                 debuf_nb: 0,
-                hot_txt: vec![format!(
-                    "{}-{}: {}",
-                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
-                    crate::common::stats_const::HP,
-                    30
-                )],
-                dot_txt: vec![format!(
-                    "{}-{}: {}",
-                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
-                    crate::common::stats_const::HP,
-                    -20
-                )],
-                buf_txt: vec![format!(
-                    "{}-{}: {}",
-                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
-                    crate::common::stats_const::MAGICAL_ARMOR,
-                    20
-                )],
+                hot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, 30)],
+                dot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, -20)],
+                buf_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, MAGICAL_ARMOR, 20)],
                 debuf_txt: vec![]
             }
         );
@@ -629,29 +608,12 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 1,
                 debuf_nb: 1,
-                hot_txt: vec![format!(
-                    "{}-{}: {}",
-                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
-                    crate::common::stats_const::HP,
-                    30
-                )],
-                dot_txt: vec![format!(
-                    "{}-{}: {}",
-                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
-                    crate::common::stats_const::HP,
-                    -20
-                )],
-                buf_txt: vec![format!(
-                    "{}-{}: {}",
-                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
-                    crate::common::stats_const::MAGICAL_ARMOR,
-                    20
-                )],
+                hot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, 30)],
+                dot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, -20)],
+                buf_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, MAGICAL_ARMOR, 20)],
                 debuf_txt: vec![format!(
                     "{}-{}: {}",
-                    crate::common::effect_const::EFFECT_VALUE_CHANGE,
-                    crate::common::stats_const::MAGICAL_ARMOR,
-                    -20
+                    EFFECT_VALUE_CHANGE, MAGICAL_ARMOR, -20
                 )]
             }
         );
