@@ -1,7 +1,7 @@
-use std::path::{Path, PathBuf};
 use crate::common::constants::paths_const::*;
+use std::path::{Path, PathBuf};
 
-    #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct GamePaths {
     /// Root path for the game, where all the different files will be stored
     pub input_data_root: PathBuf,
@@ -39,6 +39,4 @@ impl GamePaths {
             output_stats_in_game: output_dir.join(GAME_STATE_STATS_IN_GAME.to_path_buf()),
         }
     }
-
 }
-

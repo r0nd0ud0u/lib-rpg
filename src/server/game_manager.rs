@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    path::Path,
-};
+use std::{collections::HashMap, path::Path};
 
 use crate::{
     character_mod::{
@@ -19,7 +16,9 @@ use crate::{
         },
     },
     server::{
-        game_paths::GamePaths, game_state::{GameState, GameStatus}, players_manager::{DodgeInfo, PlayerManager}
+        game_paths::GamePaths,
+        game_state::{GameState, GameStatus},
+        players_manager::{DodgeInfo, PlayerManager},
     },
     utils,
 };
