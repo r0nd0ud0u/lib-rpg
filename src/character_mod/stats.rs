@@ -4,9 +4,11 @@ use std::{cmp::Ordering, collections::HashMap};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    character_mod::effect::EffectParam,
-    character_mod::equipment::Equipment,
-    common::{constants::character_const::NB_TURN_SUM_AGGRO, constants::stats_const::*},
+    character_mod::{effect::EffectParam, equipment::Equipment},
+    common::constants::{
+        character_const::{NB_TURN_SUM_AGGRO, SPEED_THRESHOLD},
+        stats_const::*,
+    },
     utils,
 };
 
@@ -204,7 +206,7 @@ impl Stats {
         }
     }
 
-    pub fn modify_stat_current(&mut self, attribute_name: &str, delta: i64) {
+    pub fn modify_stat_current(&mut self, attribute_name: &str, delta: i64) -> i64 {
         let stat = self
             .all_stats
             .get_mut(attribute_name)
@@ -218,11 +220,23 @@ impl Stats {
         }
 
         // only clamp if max is defined
+        let mut overhead = 0;
         if stat.max > 0 {
+            overhead = (new_value - stat.max as i128) as i64;
             new_value = new_value.min(stat.max as i128);
         }
 
         stat.current = new_value as u64;
+
+        overhead
+    }
+
+    pub fn reset_speed(&mut self) {
+        let speed_pl1 = self.get_mut_value(SPEED);
+        speed_pl1.current = speed_pl1.current.saturating_sub(SPEED_THRESHOLD);
+        speed_pl1.max = speed_pl1.max.saturating_sub(SPEED_THRESHOLD);
+        speed_pl1.max_raw = speed_pl1.max_raw.saturating_sub(SPEED_THRESHOLD);
+        speed_pl1.current_raw = speed_pl1.current_raw.saturating_sub(SPEED_THRESHOLD);
     }
 
     /// stat.m_RawMaxValue of a stat cannot be equal to 0.
@@ -330,6 +344,55 @@ impl Stats {
         }
         real_hp_amount
     }
+
+    pub fn apply_regen(&mut self) {
+        let mut hp = self.all_stats.swap_remove(HP).expect("hp is missing");
+        let mut mana = self.all_stats.swap_remove(MANA).expect("mana is missing");
+        let mut berseck = self
+            .all_stats
+            .swap_remove(BERSERK)
+            .expect("berseck is missing");
+        let mut vigor = self.all_stats.swap_remove(VIGOR).expect("vigor is missing");
+        let mut speed = self.all_stats.swap_remove(SPEED).expect("speed is missing");
+
+        let regen_hp = &self.all_stats[HP_REGEN];
+        let regen_mana = &self.all_stats[MANA_REGEN];
+        let regen_berseck = &self.all_stats[BERSECK_RATE];
+        let regen_vigor = &self.all_stats[VIGOR_REGEN];
+        let regen_speed = &self.all_stats[SPEED_REGEN];
+
+        hp.current = std::cmp::min(hp.max, hp.current + regen_hp.current);
+        hp.current_raw = hp.max_raw * (hp.current / hp.max);
+
+        mana.current = std::cmp::min(mana.max, mana.current + regen_mana.current);
+        if mana.max > 0 {
+            mana.current_raw = mana.max_raw * (mana.current / mana.max);
+        }
+
+        vigor.current = std::cmp::min(vigor.max, vigor.current + regen_vigor.current);
+        if vigor.max > 0 {
+            vigor.current_raw = vigor.max_raw * (vigor.current / vigor.max);
+        }
+
+        berseck.current = std::cmp::min(berseck.max, berseck.current + regen_berseck.current);
+        if berseck.max > 0 {
+            berseck.max_raw = berseck.current_raw * (berseck.current / berseck.max);
+        }
+
+        speed.current += regen_speed.current;
+        speed.max += regen_speed.current;
+        speed.max_raw += regen_speed.current;
+        // TODO change current raw calculation
+        if speed.max > 0 {
+            speed.current_raw = speed.max_raw * (speed.current / speed.max);
+        }
+
+        self.all_stats.insert(HP.to_owned(), hp);
+        self.all_stats.insert(MANA.to_owned(), mana);
+        self.all_stats.insert(VIGOR.to_owned(), vigor);
+        self.all_stats.insert(SPEED.to_owned(), speed);
+        self.all_stats.insert(BERSERK.to_owned(), berseck);
+    }
 }
 
 #[cfg(test)]
@@ -412,14 +475,17 @@ mod tests {
         let mut stats = Stats::default();
         stats.init();
 
-        stats.modify_stat_current(HP, 10);
+        let overhead = stats.modify_stat_current(HP, 10);
         assert_eq!(stats.all_stats[HP].current, 10);
+        assert_eq!(overhead, 0);
 
-        stats.modify_stat_current(HP, -5);
+        let overhead = stats.modify_stat_current(HP, -5);
         assert_eq!(stats.all_stats[HP].current, 5);
+        assert_eq!(overhead, 0);
 
-        stats.modify_stat_current(HP, -10);
+        let overhead = stats.modify_stat_current(HP, -10);
         assert_eq!(stats.all_stats[HP].current, 0);
+        assert_eq!(overhead, 0);
     }
 
     #[test]

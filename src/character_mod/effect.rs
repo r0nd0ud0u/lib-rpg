@@ -3,9 +3,9 @@ use std::collections::HashSet;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    common::constants::{effect_const::*, stats_const::HP},
-    server::game_manager::LogData,
+use crate::common::{
+    constants::{effect_const::*, stats_const::HP},
+    log_data::LogData,
 };
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
