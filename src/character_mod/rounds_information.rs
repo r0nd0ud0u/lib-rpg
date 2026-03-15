@@ -5,10 +5,11 @@ use crate::{
     buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
     character::Class,
     common::{
-        all_target_const::TARGET_ENNEMY,
+        all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
         attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
         character_const::ULTIMATE_LEVEL,
         effect_const::*,
+        reach_const::INDIVIDUAL,
         stats_const::HP,
     },
     effect::{
@@ -17,7 +18,7 @@ use crate::{
     game_manager::LogData,
     game_state::GameState,
     players_manager::{DodgeInfo, GameAtkEffects},
-    target::is_target_ally,
+    target::{TargetData, is_target_ally},
     utils::get_random_nb,
 };
 use std::collections::HashMap;
@@ -431,10 +432,13 @@ impl CharacterRoundsInfo {
         Ok(())
     }
 
-    pub fn process_critical_strike(&mut self, atk: &AttackType, current_critical: i64) -> Result<bool> {
+    pub fn process_critical_strike(
+        &mut self,
+        atk: &AttackType,
+        current_critical: i64,
+    ) -> Result<bool> {
         // process passive power
-        let is_crit_by_passive = self.all_buffers
-            [BufTypes::NextHealAtkIsCrit as usize]
+        let is_crit_by_passive = self.all_buffers[BufTypes::NextHealAtkIsCrit as usize]
             .is_passive_enabled
             && atk.has_only_heal_effect();
         let crit_capped = 60;
@@ -442,27 +446,53 @@ impl CharacterRoundsInfo {
         let is_crit = rand_nb <= current_critical;
 
         // priority to passive
-        let delta_capped = std::cmp::max(
-            0,
-            current_critical - crit_capped,
-        );
+        let delta_capped = std::cmp::max(0, current_critical - crit_capped);
         if is_crit && !is_crit_by_passive {
             if delta_capped > 0 {
-                self.update_buf(
-                    &BufTypes::DamageCritCapped,
-                    delta_capped,
-                    false,
-                    "",
-                )?;
+                self.update_buf(&BufTypes::DamageCritCapped, delta_capped, false, "")?;
             }
             Ok(true)
         } else if is_crit_by_passive {
-            self.all_buffers[BufTypes::NextHealAtkIsCrit as usize]
-                .is_passive_enabled = false;
+            self.all_buffers[BufTypes::NextHealAtkIsCrit as usize].is_passive_enabled = false;
             Ok(true)
         } else {
             Ok(false)
         }
+    }
+
+    pub fn is_effect_applied(&self, target_data: &TargetData) -> bool {
+        // eval effect target logic
+        if !target_data.is_potential_target_on_effect() {
+            return false;
+        }
+
+        // eval target choice `is_current_target`
+        if (target_data.effect_param.target_kind == TARGET_ENNEMY
+            || target_data.effect_param.target_kind == TARGET_ALLY)
+            && target_data.effect_param.reach == INDIVIDUAL
+            && !self.is_current_target
+        {
+            tracing::debug!(
+                "Effect {} cannot be applied on {} because the target is {} but not current target.",
+                target_data.effect_param.effect_type,
+                target_data.target_id_name,
+                target_data.effect_param.target_kind
+            );
+            return false;
+        }
+        if self.is_dodging(&target_data.effect_param.target_kind)
+            && target_data.target_chara_kind != target_data.launcher_chara_kind
+            && self.is_current_target
+        {
+            tracing::debug!(
+                "Effect {} cannot be applied on {} because the target is dodging.",
+                target_data.effect_param.effect_type,
+                target_data.target_id_name
+            );
+            return false;
+        }
+
+        true
     }
 }
 
@@ -470,15 +500,20 @@ impl CharacterRoundsInfo {
 mod tests {
     use crate::{
         buffers::BufTypes,
+        character::Character,
         character_mod::rounds_information::{CharacterRoundsInfo, HotsBufs},
         common::{
             all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+            paths_const::TEST_OFFLINE_ROOT,
             stats_const::HP,
         },
         players_manager::GameAtkEffects,
+        target::TargetData,
+        testing_all_characters::testing_all_equipment,
         testing_effect::{
-            build_buf_effect_individual, build_debuf_effect_individual,
-            build_dmg_effect_individual, build_dot_effect_individual, build_hot_effect_individual,
+            build_buf_effect_individual, build_cooldown_effect, build_debuf_effect_individual,
+            build_dmg_effect_individual, build_dot_effect_individual, build_dot_effect_zone,
+            build_hot_effect_all, build_hot_effect_individual, build_hot_effect_zone,
         },
     };
 
@@ -745,6 +780,172 @@ mod tests {
         assert_eq!(
             HP,
             cri.all_buffers[BufTypes::DamageTx as usize].all_stats_name[0]
+        );
+    }
+
+    #[test]
+    fn unit_is_effect_applied() {
+        let c1 = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let mut c2 = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        c2.db_full_name = "other".to_string();
+        c2.id_name = "other_#1".to_string();
+        let mut boss1 = Character::try_new_from_json(
+            "./tests/offlines/characters/test_boss1.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        // effect on himself
+        let mut target_data_1 = TargetData {
+            launcher_id_name: c1.id_name.clone(),
+            target_id_name: c1.id_name.clone(),
+            target_chara_kind: c1.kind.clone(),
+            launcher_chara_kind: c1.kind.clone(),
+            effect_param: build_cooldown_effect().input_effect_param,
+        };
+        let mut target_data_2 = TargetData {
+            launcher_id_name: c1.id_name.clone(),
+            target_id_name: c2.id_name.clone(),
+            target_chara_kind: c2.kind.clone(),
+            launcher_chara_kind: c1.kind.clone(),
+            effect_param: build_cooldown_effect().input_effect_param,
+        };
+        let mut target_data_3 = TargetData {
+            launcher_id_name: c1.id_name.clone(),
+            target_id_name: boss1.id_name.clone(),
+            target_chara_kind: boss1.kind.clone(),
+            launcher_chara_kind: c1.kind.clone(),
+            effect_param: build_cooldown_effect().input_effect_param,
+        };
+        assert!(c1.character_rounds_info.is_effect_applied(&target_data_1));
+        // other ally
+        assert!(!c2.character_rounds_info.is_effect_applied(&target_data_2));
+        // boss
+        assert!(
+            !boss1
+                .character_rounds_info
+                .is_effect_applied(&target_data_3)
+        );
+
+        // effect on ally individual
+        target_data_1.effect_param = build_hot_effect_individual().input_effect_param;
+        target_data_2.effect_param = build_hot_effect_individual().input_effect_param;
+        target_data_3.effect_param = build_hot_effect_individual().input_effect_param;
+        // target is himself
+        assert!(!c1.character_rounds_info.is_effect_applied(&target_data_1));
+        // other ally
+        // not targeted on main atk
+        c2.character_rounds_info.is_current_target = false;
+        assert!(!c2.character_rounds_info.is_effect_applied(&target_data_2));
+        // targeted on main atk
+        c2.character_rounds_info.is_current_target = true;
+        assert!(c2.character_rounds_info.is_effect_applied(&target_data_2));
+        // boss
+        assert!(
+            !boss1
+                .character_rounds_info
+                .is_effect_applied(&target_data_3)
+        );
+
+        // effect on ennemy individual
+        target_data_1.effect_param = build_dmg_effect_individual().input_effect_param;
+        target_data_2.effect_param = build_dmg_effect_individual().input_effect_param;
+        target_data_3.effect_param = build_dmg_effect_individual().input_effect_param;
+        assert!(!c1.character_rounds_info.is_effect_applied(&target_data_1));
+        // other ally
+        assert!(!c2.character_rounds_info.is_effect_applied(&target_data_2));
+        // boss
+        // targeted on main atk
+        boss1.character_rounds_info.is_current_target = true;
+        assert!(
+            boss1
+                .character_rounds_info
+                .is_effect_applied(&target_data_3)
+        );
+        // not targeted on main atk
+        boss1.character_rounds_info.is_current_target = false;
+        assert!(
+            !boss1
+                .character_rounds_info
+                .is_effect_applied(&target_data_3)
+        );
+
+        // effect on ally ZONE
+        target_data_1.effect_param = build_hot_effect_zone().input_effect_param;
+        target_data_2.effect_param = build_hot_effect_zone().input_effect_param;
+        target_data_3.effect_param = build_hot_effect_zone().input_effect_param;
+        // target is himself
+        assert!(!c1.character_rounds_info.is_effect_applied(&target_data_1));
+        // other ally
+        // targeted on main atk
+        assert!(c2.character_rounds_info.is_effect_applied(&target_data_2));
+        // boss
+        assert!(
+            !boss1
+                .character_rounds_info
+                .is_effect_applied(&target_data_3)
+        );
+
+        // effect on ennemy ZONE
+        target_data_1.effect_param = build_dot_effect_zone().input_effect_param;
+        target_data_2.effect_param = build_dot_effect_zone().input_effect_param;
+        target_data_3.effect_param = build_dot_effect_zone().input_effect_param;
+        // target is himself
+        assert!(!c1.character_rounds_info.is_effect_applied(&target_data_1));
+        // other ally
+        assert!(!c2.character_rounds_info.is_effect_applied(&target_data_2));
+        // boss
+        // targeted on main atk
+        boss1.character_rounds_info.is_current_target = true;
+        assert!(
+            boss1
+                .character_rounds_info
+                .is_effect_applied(&target_data_3)
+        );
+        // not targeted on main atk
+        boss1.character_rounds_info.is_current_target = false;
+        assert!(
+            boss1
+                .character_rounds_info
+                .is_effect_applied(&target_data_3)
+        );
+
+        // effect on all allies
+        target_data_1.effect_param = build_hot_effect_all().input_effect_param;
+        target_data_2.effect_param = build_hot_effect_all().input_effect_param;
+        target_data_3.effect_param = build_hot_effect_all().input_effect_param;
+        // target is himself
+        assert!(c1.character_rounds_info.is_effect_applied(&target_data_1));
+        assert!(c1.character_rounds_info.is_effect_applied(&target_data_1));
+        // other ally
+        assert!(c2.character_rounds_info.is_effect_applied(&target_data_2));
+        assert!(c2.character_rounds_info.is_effect_applied(&target_data_2));
+        // boss
+        // targeted on main atk
+        boss1.character_rounds_info.is_current_target = true;
+        assert!(
+            !boss1
+                .character_rounds_info
+                .is_effect_applied(&target_data_3)
+        );
+        boss1.character_rounds_info.is_current_target = false;
+        assert!(
+            !boss1
+                .character_rounds_info
+                .is_effect_applied(&target_data_3)
         );
     }
 }

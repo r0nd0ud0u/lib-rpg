@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     attack_type::AttackType,
-    character::{Character, CharacterType},
+    character::{Character, CharacterKind},
     character_mod::rounds_information::AmountType,
     common::{
         all_target_const::{TARGET_ALL_ALLIES, TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF},
@@ -104,7 +104,7 @@ impl PlayerManager {
                     &self.equipment_table,
                 ) {
                     Ok(c) => {
-                        if c.kind == CharacterType::Hero {
+                        if c.kind == CharacterKind::Hero {
                             self.active_heroes.push(c);
                         } else {
                             self.active_bosses.push(c);
@@ -141,8 +141,8 @@ impl PlayerManager {
     }
 
     // TODO change swap remove see processCost
-    pub fn apply_regen_stats(&mut self, kind: CharacterType) {
-        let player_list = if kind == CharacterType::Hero {
+    pub fn apply_regen_stats(&mut self, kind: CharacterKind) {
+        let player_list = if kind == CharacterKind::Hero {
             &mut self.active_heroes
         } else {
             &mut self.active_bosses
@@ -374,13 +374,13 @@ impl PlayerManager {
         // Reset new round boolean for characters
         self.reset_is_first_round();
         // Apply regen stats
-        self.apply_regen_stats(CharacterType::Boss);
-        self.apply_regen_stats(CharacterType::Hero);
+        self.apply_regen_stats(CharacterKind::Boss);
+        self.apply_regen_stats(CharacterKind::Hero);
     }
 
-    pub fn compute_sup_atk_turn(&mut self, launcher_type: CharacterType) -> Vec<String> {
+    pub fn compute_sup_atk_turn(&mut self, launcher_type: CharacterKind) -> Vec<String> {
         let mut output = Vec::new();
-        let (player_list1, player_list2) = if launcher_type == CharacterType::Hero {
+        let (player_list1, player_list2) = if launcher_type == CharacterKind::Hero {
             (&mut self.active_heroes, &self.active_bosses)
         } else {
             (&mut self.active_bosses, &self.active_heroes)
@@ -414,7 +414,7 @@ impl PlayerManager {
         &mut self,
         all_targets: &Vec<String>,
         atk_level: u64,
-        kind: &CharacterType,
+        kind: &CharacterKind,
     ) {
         for t in all_targets {
             match self.get_mut_active_character(t) {
@@ -440,7 +440,7 @@ impl PlayerManager {
     }
 
     pub fn process_boss_target(&mut self) {
-        if self.current_player.kind == CharacterType::Hero {
+        if self.current_player.kind == CharacterKind::Hero {
             return;
         }
 
@@ -458,6 +458,7 @@ impl PlayerManager {
         }
     }
 
+    /// Apply target choice from UI
     pub fn set_one_target(&mut self, launcher_id_name: &str, atk_name: &str, target_id_name: &str) {
         if let Some(h) = self.get_mut_active_character(launcher_id_name) {
             let Some(atk) = h.attacks_list.iter().find(|a| a.0 == atk_name) else {
@@ -497,12 +498,12 @@ impl PlayerManager {
                 return 0;
             };
 
-            let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
-            let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
+            let is_hero_ally = launcher.kind == CharacterKind::Hero && atk.target == TARGET_ALLY;
+            let is_boss_ally = launcher.kind == CharacterKind::Boss && atk.target == TARGET_ALLY;
             let is_boss_ennemy =
-                launcher.kind == CharacterType::Boss && atk.target == TARGET_ENNEMY;
+                launcher.kind == CharacterKind::Boss && atk.target == TARGET_ENNEMY;
             let is_hero_ennemy =
-                launcher.kind == CharacterType::Hero && atk.target == TARGET_ENNEMY;
+                launcher.kind == CharacterKind::Hero && atk.target == TARGET_ENNEMY;
 
             // self - atk
             if atk.target == TARGET_HIMSELF {
@@ -544,6 +545,7 @@ impl PlayerManager {
         0
     }
 
+    /// Apply potential target choice for UI
     pub fn set_targeted_characters(&mut self, launcher_id_name: &str, atk_name: &str) {
         self.reset_targeted_character();
         self.reset_potential_targeted_character();
@@ -558,12 +560,12 @@ impl PlayerManager {
                 return;
             };
 
-            let is_hero_ally = launcher.kind == CharacterType::Hero && atk.target == TARGET_ALLY;
-            let is_boss_ally = launcher.kind == CharacterType::Boss && atk.target == TARGET_ALLY;
+            let is_hero_ally = launcher.kind == CharacterKind::Hero && atk.target == TARGET_ALLY;
+            let is_boss_ally = launcher.kind == CharacterKind::Boss && atk.target == TARGET_ALLY;
             let is_boss_ennemy =
-                launcher.kind == CharacterType::Boss && atk.target == TARGET_ENNEMY;
+                launcher.kind == CharacterKind::Boss && atk.target == TARGET_ENNEMY;
             let is_hero_ennemy =
-                launcher.kind == CharacterType::Hero && atk.target == TARGET_ENNEMY;
+                launcher.kind == CharacterKind::Hero && atk.target == TARGET_ENNEMY;
 
             // self - atk
             if atk.target == TARGET_HIMSELF {
@@ -772,7 +774,7 @@ mod tests {
         let vigor_regen = pl.active_heroes[0].stats.all_stats[VIGOR_REGEN].current;
         let old_speed = pl.active_heroes[0].stats.all_stats[SPEED].current;
         let speed_regen = pl.active_heroes[0].stats.all_stats[SPEED_REGEN].current;
-        pl.apply_regen_stats(crate::character::CharacterType::Hero);
+        pl.apply_regen_stats(crate::character::CharacterKind::Hero);
         assert_eq!(
             old_hp + hp_regen,
             pl.active_heroes[0].stats.all_stats[HP].current
@@ -805,7 +807,7 @@ mod tests {
 
         let old_hp = pl.active_bosses[0].stats.all_stats[HP].current;
         let hp_regen = pl.active_bosses[0].stats.all_stats[HP_REGEN].current;
-        pl.apply_regen_stats(crate::character::CharacterType::Boss);
+        pl.apply_regen_stats(crate::character::CharacterKind::Boss);
         // max is topped
         assert_eq!(
             std::cmp::min(

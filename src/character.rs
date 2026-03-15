@@ -6,9 +6,7 @@ use std::{collections::HashMap, path::Path, vec};
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
     character_mod::rounds_information::{AmountType, CharacterRoundsInfo},
-    common::{
-        all_target_const::*, effect_const::*, paths_const::*, reach_const::*, stats_const::*,
-    },
+    common::{all_target_const::*, effect_const::*, paths_const::*, stats_const::*},
     effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
     equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
     game_state::GameState,
@@ -16,7 +14,7 @@ use crate::{
     powers::Powers,
     stats::Stats,
     stats_in_game::StatsInGame,
-    target::is_target_ally,
+    target::TargetData,
     utils::{self, list_files_in_dir},
 };
 
@@ -40,7 +38,7 @@ pub struct Character {
     pub stats: Stats,
     /// Type of the character {Hero, Boss}
     #[serde(rename = "Type")]
-    pub kind: CharacterType,
+    pub kind: CharacterKind,
     /// Class of the character {Standard, Tank ...}
     #[serde(rename = "Class")]
     pub class: Class,
@@ -79,7 +77,7 @@ impl Default for Character {
             id_name: String::from("_#1"),
             photo_name: String::from("default"),
             stats: Stats::default(),
-            kind: CharacterType::Hero,
+            kind: CharacterKind::Hero,
             equipment_on: HashMap::new(),
             attacks_list: IndexMap::new(),
             level: 1,
@@ -96,9 +94,10 @@ impl Default for Character {
 
 /// Defines the type of player: hero -> player, boss -> computer.
 /// "PascalCase" ensures that "Hero" and "Boss" from JSON map correctly to the Rust enum variants.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "PascalCase")]
-pub enum CharacterType {
+pub enum CharacterKind {
+    #[default]
     Hero,
     Boss,
 }
@@ -282,7 +281,6 @@ impl Character {
         );
     }
 
-    // TODO character info
     pub fn process_critical_strike(&mut self, atk_name: &str) -> Result<bool> {
         let atk = if let Some(atk) = self.attacks_list.get(atk_name) {
             atk
@@ -292,99 +290,6 @@ impl Character {
 
         self.character_rounds_info
             .process_critical_strike(atk, self.stats.all_stats[CRITICAL_STRIKE].current as i64)
-    }
-
-    // TODO character info
-    pub fn is_targeted(
-        &self,
-        effect: &EffectParam,
-        launcher_id_name: &str,
-        launcher_kind: &CharacterType,
-    ) -> bool {
-        let is_ally = self.kind == *launcher_kind;
-        if effect.target_kind == TARGET_HIMSELF && launcher_id_name != self.id_name {
-            tracing::debug!(
-                "Effect {} cannot be applied on {} because the target is himself.",
-                effect.effect_type,
-                self.id_name
-            );
-            return false;
-        }
-        if effect.target_kind == TARGET_ONLY_ALLY && launcher_id_name == self.id_name {
-            tracing::debug!(
-                "Effect {} cannot be applied on {} because the target is only ally but launcher is himself.",
-                effect.effect_type,
-                self.id_name
-            );
-            return false;
-        }
-        if !is_ally && is_target_ally(&effect.target_kind) {
-            tracing::debug!(
-                "Effect {} cannot be applied on {} because the target is ally but launcher is ennemy.",
-                effect.effect_type,
-                self.id_name
-            );
-            return false;
-        }
-        if is_ally && effect.target_kind == TARGET_ENNEMY {
-            tracing::debug!(
-                "Effect {} cannot be applied on {} because the target is ennemy but launcher is ally.",
-                effect.effect_type,
-                self.id_name
-            );
-            return false;
-        }
-        // is targeted ?
-        if effect.target_kind == TARGET_ALLY
-            && effect.reach == INDIVIDUAL
-            && !self.character_rounds_info.is_current_target
-        {
-            tracing::debug!(
-                "Effect {} cannot be applied on {} because the target is ally but not current target.",
-                effect.effect_type,
-                self.id_name
-            );
-            return false;
-        }
-        if effect.target_kind == TARGET_ENNEMY
-            && effect.reach == INDIVIDUAL
-            && !self.character_rounds_info.is_current_target
-        {
-            tracing::debug!(
-                "Effect {} cannot be applied on {} because the target is ennemy but not current target.",
-                effect.effect_type,
-                self.id_name
-            );
-            return false;
-        }
-        if effect.target_kind == TARGET_ALLY
-            && effect.reach == ZONE
-            && launcher_id_name == self.id_name
-        {
-            tracing::debug!(
-                "Effect {} cannot be applied on {} because the target is ally but launcher is himself.",
-                effect.effect_type,
-                self.id_name
-            );
-            return false;
-        }
-        if self.character_rounds_info.is_dodging(&effect.target_kind)
-            && self.kind != *launcher_kind
-            && self.character_rounds_info.is_current_target
-        {
-            tracing::debug!(
-                "Effect {} cannot be applied on {} because the target is dodging.",
-                effect.effect_type,
-                self.id_name
-            );
-            return false;
-        }
-        // TODO reach random
-        /* if effect.reach == REACH_RAND_INDIVIDUAL && target.m_ext_character.is_some()
-            && !target.m_ext_character.as_ref().unwrap().get_is_random_target() {
-                return false;
-        } */
-        true
     }
 
     // TODO divide function
@@ -613,12 +518,17 @@ impl Character {
             tracing::info!("is_receiving_atk: {} is already dead.", self.id_name);
             return (None, None);
         }
+
+        let target_data = TargetData {
+            launcher_id_name: launcher_info.id_name.to_string(),
+            target_id_name: self.id_name.clone(),
+            target_chara_kind: self.kind.clone(),
+            launcher_chara_kind: launcher_info.kind.clone(),
+            effect_param: processed_ep.input_effect_param.clone(),
+        };
+
         // check if the effect is applied on the target
-        if self.is_targeted(
-            &processed_ep.input_effect_param,
-            &launcher_info.id_name,
-            &launcher_info.kind,
-        ) {
+        if self.character_rounds_info.is_effect_applied(&target_data) {
             // TODO check if the effect is not already applied
             eo = Some(self.apply_effect_outcome(
                 processed_ep,
@@ -728,7 +638,7 @@ mod tests {
     use crate::testing_all_characters::{testing_all_equipment, testing_character};
     use crate::{
         buffers::BufTypes,
-        character::{CharacterType, Class},
+        character::{CharacterKind, Class},
         common::{all_target_const::TARGET_ALLY, effect_const::*, stats_const::*},
         effect::EffectParam,
         players_manager::GameAtkEffects,
@@ -844,7 +754,7 @@ mod tests {
         // tx-rx
         assert_eq!(7, c.character_rounds_info.tx_rx.len());
         // Type - kind
-        assert_eq!(CharacterType::Hero, c.kind);
+        assert_eq!(CharacterKind::Hero, c.kind);
         // nb-actions-in-round
         assert_eq!(0, c.character_rounds_info.actions_done_in_round);
         // atk
@@ -1197,107 +1107,6 @@ mod tests {
             !c.character_rounds_info.all_buffers[BufTypes::NextHealAtkIsCrit as usize]
                 .is_passive_enabled
         );
-    }
-
-    #[test]
-    fn unit_is_targeted() {
-        let c1 = Character::try_new_from_json(
-            "./tests/offlines/characters/test.json",
-            *TEST_OFFLINE_ROOT,
-            false,
-            &testing_all_equipment(),
-        )
-        .unwrap();
-        let mut c2 = Character::try_new_from_json(
-            "./tests/offlines/characters/test.json",
-            *TEST_OFFLINE_ROOT,
-            false,
-            &testing_all_equipment(),
-        )
-        .unwrap();
-        c2.db_full_name = "other".to_string();
-        c2.id_name = "other_#1".to_string();
-        let mut boss1 = Character::try_new_from_json(
-            "./tests/offlines/characters/test_boss1.json",
-            *TEST_OFFLINE_ROOT,
-            false,
-            &testing_all_equipment(),
-        )
-        .unwrap();
-        // effect on himself
-        let mut ep = build_cooldown_effect().input_effect_param;
-        // target is himself
-        assert!(c1.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // other ally
-        assert!(!c2.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // boss
-        assert!(!boss1.is_targeted(&ep, &c1.id_name, &c1.kind));
-
-        // effect on ally individual
-        ep = build_hot_effect_individual().input_effect_param;
-        // target is himself
-        assert!(!c1.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // other ally
-        // not targeted on main atk
-        c2.character_rounds_info.is_current_target = false;
-        assert!(!c2.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // targeted on main atk
-        c2.character_rounds_info.is_current_target = true;
-        assert!(c2.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // boss
-        assert!(!boss1.is_targeted(&ep, &c1.id_name, &c1.kind));
-
-        // effect on ennemy individual
-        ep = build_dmg_effect_individual().input_effect_param;
-        assert!(!c1.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // other ally
-        assert!(!c2.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // boss
-        // targeted on main atk
-        boss1.character_rounds_info.is_current_target = true;
-        assert!(boss1.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // not targeted on main atk
-        boss1.character_rounds_info.is_current_target = false;
-        assert!(!boss1.is_targeted(&ep, &c1.id_name, &c1.kind));
-
-        // effect on ally ZONE
-        ep = build_hot_effect_zone().input_effect_param;
-        // target is himself
-        assert!(!c1.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // other ally
-        // targeted on main atk
-        assert!(c2.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // boss
-        assert!(!boss1.is_targeted(&ep, &c1.id_name, &c1.kind));
-
-        // effect on ennemy ZONE
-        ep = build_dot_effect_zone().input_effect_param;
-        // target is himself
-        assert!(!c1.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // other ally
-        assert!(!c2.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // boss
-        // targeted on main atk
-        boss1.character_rounds_info.is_current_target = true;
-        assert!(boss1.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // not targeted on main atk
-        boss1.character_rounds_info.is_current_target = false;
-        assert!(boss1.is_targeted(&ep, &c1.id_name, &c1.kind));
-
-        // effect on all allies
-        ep = build_hot_effect_all().input_effect_param;
-        // target is himself
-        assert!(c1.is_targeted(&ep, &c1.id_name, &c1.kind));
-        assert!(c1.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // other ally
-        assert!(c2.is_targeted(&ep, &c1.id_name, &c1.kind));
-        assert!(c2.is_targeted(&ep, &c1.id_name, &c1.kind));
-        // boss
-        // targeted on main atk
-        boss1.character_rounds_info.is_current_target = true;
-        assert!(!boss1.is_targeted(&ep, &c1.id_name, &c1.kind));
-        boss1.character_rounds_info.is_current_target = false;
-        assert!(!boss1.is_targeted(&ep, &c1.id_name, &c1.kind));
     }
 
     #[test]

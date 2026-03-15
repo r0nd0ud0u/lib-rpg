@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
-    character::CharacterType,
+    character::CharacterKind,
     character_mod::rounds_information::AmountType,
     common::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
     effect::EffectOutcome,
@@ -181,8 +181,8 @@ impl GameManager {
             }
         }
         // supplementary atks to be added
-        let supp_rounds_heroes = self.pm.compute_sup_atk_turn(CharacterType::Hero);
-        let supp_rounds_bosses = self.pm.compute_sup_atk_turn(CharacterType::Boss);
+        let supp_rounds_heroes = self.pm.compute_sup_atk_turn(CharacterKind::Hero);
+        let supp_rounds_bosses = self.pm.compute_sup_atk_turn(CharacterKind::Boss);
         self.game_state.order_to_play.extend(supp_rounds_heroes);
         self.game_state.order_to_play.extend(supp_rounds_bosses);
     }
@@ -244,7 +244,7 @@ impl GameManager {
     }
 
     pub fn is_boss_atk(&self) -> bool {
-        self.pm.current_player.kind == CharacterType::Boss
+        self.pm.current_player.kind == CharacterKind::Boss
     }
 
     /// Launch an attack from the current player
@@ -598,7 +598,7 @@ impl GameManager {
         {
             let name = self.game_state.order_to_play[self.game_state.current_round - 1].clone();
             if let Some(c) = self.pm.get_active_character(&name) {
-                return c.kind == CharacterType::Boss;
+                return c.kind == CharacterKind::Boss;
             }
         }
 
@@ -619,7 +619,7 @@ impl GameManager {
                 let name = &self.game_state.order_to_play[i];
 
                 if let Some(c) = self.pm.get_active_character(name) {
-                    if c.kind == CharacterType::Boss && c.stats.is_dead() != Some(true) {
+                    if c.kind == CharacterKind::Boss && c.stats.is_dead() != Some(true) {
                         count += 1;
                     } else {
                         break; // Stop counting when a non-Boss is found
@@ -712,7 +712,7 @@ mod tests {
         boss.stats.all_stats.get_mut(SPEED).unwrap().current = 10;
         let result = gm
             .pm
-            .compute_sup_atk_turn(crate::character::CharacterType::Hero);
+            .compute_sup_atk_turn(crate::character::CharacterKind::Hero);
         // there are 2 allies in the test/offlines to len = 2
         assert_eq!(result.len(), 2);
     }

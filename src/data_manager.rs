@@ -4,7 +4,7 @@ use anyhow::{Result, bail};
 use strum::IntoEnumIterator;
 
 use crate::{
-    character::{Character, CharacterType},
+    character::{Character, CharacterKind},
     common::paths_const::{OFFLINE_CHARACTERS, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT},
     equipment::{Equipment, EquipmentJsonKey},
     utils::list_files_in_dir,
@@ -94,7 +94,7 @@ impl DataManager {
                     &self.equipment_table,
                 ) {
                     Ok(c) => {
-                        if c.kind == CharacterType::Hero {
+                        if c.kind == CharacterKind::Hero {
                             self.all_heroes.push(c);
                         } else {
                             self.all_bosses.push(c);

@@ -5,7 +5,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    character::CharacterType,
+    character::CharacterKind,
     common::{
         all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
         reach_const::INDIVIDUAL,
@@ -26,7 +26,7 @@ pub struct AtksInfo {
 #[derive(Debug, Clone, PartialEq)]
 pub struct LauncherAtkInfo {
     pub id_name: String,
-    pub kind: CharacterType,
+    pub kind: CharacterKind,
     pub stats: Stats,
     pub atk_type: AttackType,
 }
