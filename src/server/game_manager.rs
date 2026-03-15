@@ -5,11 +5,20 @@ use std::{
 };
 
 use crate::{
-    character_mod::attack_type::{AttackType, LauncherAtkInfo},
-    character_mod::effect::EffectOutcome,
-    character_mod::equipment::{Equipment, EquipmentJsonKey},
-    character_mod::{character::CharacterKind, rounds_information::AmountType},
-    common::constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
+    character_mod::{
+        attack_type::{AttackType, LauncherAtkInfo},
+        character::CharacterKind,
+        effect::EffectOutcome,
+        equipment::{Equipment, EquipmentJsonKey},
+        rounds_information::AmountType,
+    },
+    common::{
+        constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
+        log_data::{
+            LogData,
+            const_colors::{DARK_RED, LIGHT_BLUE, LIGHT_GREEN},
+        },
+    },
     server::{
         game_state::{GameState, GameStatus},
         players_manager::{DodgeInfo, PlayerManager},
@@ -28,12 +37,6 @@ pub struct ResultLaunchAttack {
     pub is_boss_atk: bool,
     pub logs_end_of_round: Vec<LogData>,
     pub logs_atk: Vec<LogData>,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct LogData {
-    pub message: String,
-    pub color: String,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -169,8 +172,8 @@ impl GameManager {
             }
         }
         // supplementary atks to be added
-        let supp_rounds_heroes = self.pm.compute_sup_atk_turn(CharacterKind::Hero);
-        let supp_rounds_bosses = self.pm.compute_sup_atk_turn(CharacterKind::Boss);
+        let supp_rounds_heroes = self.pm.process_sup_atk_turn(CharacterKind::Hero);
+        let supp_rounds_bosses = self.pm.process_sup_atk_turn(CharacterKind::Boss);
         self.game_state.order_to_play.extend(supp_rounds_heroes);
         self.game_state.order_to_play.extend(supp_rounds_bosses);
     }
@@ -201,7 +204,7 @@ impl GameManager {
                 }],
             );
         }
-        let Ok(logs) = self.pm.update_current_player(
+        let Ok(logs) = self.pm.update_current_player_on_new_round(
             &self.game_state,
             &self.game_state.order_to_play[self.game_state.current_round - 1],
         ) else {
@@ -468,12 +471,12 @@ impl GameManager {
             if d.is_dodging {
                 logs.push(LogData {
                     message: format!("{} is dodging", d.name),
-                    color: "#1a73e8".to_string(),
+                    color: LIGHT_BLUE.to_string(),
                 });
             } else if d.is_blocking {
                 logs.push(LogData {
                     message: format!("{} is blocking", d.name),
-                    color: "#10b981".to_string(),
+                    color: LIGHT_GREEN.to_string(),
                 });
             }
         }
@@ -486,7 +489,7 @@ impl GameManager {
             if is_crit {
                 logs.push(LogData {
                     message: "Critical strike!".to_string(),
-                    color: "#9b1c1c".to_string(),
+                    color: DARK_RED.to_string(),
                 });
             }
 
@@ -496,12 +499,12 @@ impl GameManager {
                     logs.push(eo.processed_effect_param.log.clone());
                 }
                 // log for the effect outcome
-                let mut colortext = "#10b981";
+                let mut colortext = LIGHT_GREEN;
                 if eo.processed_effect_param.input_effect_param.stats_name == HP
                     && eo.real_hp_amount_tx < 0
                     || eo.full_atk_amount_tx < 0
                 {
-                    colortext = "#9b1c1c";
+                    colortext = DARK_RED;
                 }
                 if eo.processed_effect_param.input_effect_param.effect_type == EFFECT_NB_COOL_DOWN {
                     logs.push(LogData {
@@ -679,7 +682,7 @@ mod tests {
         hero.stats.all_stats.get_mut(SPEED).unwrap().current = 300;
         let boss = gm.pm.active_bosses.first_mut().unwrap();
         boss.stats.all_stats.get_mut(SPEED).unwrap().current = 10;
-        let result = gm.pm.compute_sup_atk_turn(CharacterKind::Hero);
+        let result = gm.pm.process_sup_atk_turn(CharacterKind::Hero);
         // there are 2 allies in the test/offlines to len = 2
         assert_eq!(result.len(), 2);
     }

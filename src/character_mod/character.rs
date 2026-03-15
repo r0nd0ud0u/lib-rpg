@@ -4,19 +4,27 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
-    character_mod::effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
-    character_mod::equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
-    character_mod::stats::Stats,
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
+        effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
+        equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
         powers::Powers,
         rounds_information::{AmountType, CharacterRoundsInfo},
+        stats::Stats,
         stats_in_game::StatsInGame,
         target::TargetData,
     },
-    common::constants::{all_target_const::*, effect_const::*, paths_const::*, stats_const::*},
-    server::game_state::GameState,
-    server::players_manager::{DodgeInfo, GameAtkEffects},
+    common::{
+        constants::{all_target_const::*, effect_const::*, paths_const::*, stats_const::*},
+        log_data::{
+            LogData,
+            const_colors::{DARK_RED, LIGHT_GREEN},
+        },
+    },
+    server::{
+        game_state::GameState,
+        players_manager::{DodgeInfo, GameAtkEffects},
+    },
     utils::{self, list_files_in_dir},
 };
 
@@ -399,7 +407,8 @@ impl Character {
         if processed_ep.input_effect_param.stats_name != HP
             && processed_ep.input_effect_param.effect_type == EFFECT_VALUE_CHANGE
         {
-            self.stats
+            let _ = self
+                .stats
                 .modify_stat_current(&processed_ep.input_effect_param.stats_name, full_amount);
         }
 
@@ -587,6 +596,70 @@ impl Character {
             && atk_type.vigor_cost * vigor.max / 100 <= vigor.current
             && atk_type.berseck_cost <= berserk.current
     }
+
+    pub fn apply_hot_or_dot(&mut self, current_turn_nb: usize, hot_or_dot: i64) -> String {
+        let mut log = String::new();
+        if hot_or_dot != 0 {
+            let overhead = self.stats.modify_stat_current(HP, hot_or_dot);
+
+            // TODO output log
+            // localLog.append(QString("HOT et DOT totaux: %1").arg(hotAndDot));
+            // update buf overheal
+            if overhead > 0 {
+                // update txrx
+                self.character_rounds_info.tx_rx[AmountType::OverHealRx as usize]
+                    .insert(current_turn_nb as u64, overhead);
+                log = format!("overheal of {}", overhead);
+            }
+        }
+        log
+    }
+
+    pub fn new_round(
+        &mut self,
+        current_turn_nb: usize,
+        launchable_atks: Vec<AttackType>,
+    ) -> Vec<LogData> {
+        let mut output_logs_data: Vec<LogData> = Vec::new();
+        self.character_rounds_info.actions_done_in_round = 0;
+
+        if self.character_rounds_info.is_first_round {
+            self.character_rounds_info.is_first_round = false;
+            // aggro is initialized before any action
+            self.init_aggro_on_turn(current_turn_nb);
+
+            match self.remove_terminated_effect_on_player() {
+                Ok(effects_param_removed) => effects_param_removed.iter().for_each(|e| {
+                    output_logs_data.push(LogData {
+                        message: format!("{} on {}", e.effect_type, e.stats_name),
+                        ..Default::default()
+                    })
+                }),
+                Err(e) => output_logs_data.push(LogData {
+                    message: format!("effects not removed on {}: {}", self.id_name, e),
+                    color: DARK_RED.to_string(),
+                }),
+            }
+
+            // TODO apply passive power
+
+            // atk assessment to be launched
+            self.character_rounds_info
+                .apply_launchable_atks(launchable_atks);
+
+            // apply hot and dot
+            let (mut process_logs, hot_or_dot) = self
+                .character_rounds_info
+                .process_hot_and_dot(current_turn_nb);
+            output_logs_data.append(&mut process_logs);
+            let hot_dot_logs = self.apply_hot_or_dot(current_turn_nb, hot_or_dot);
+            output_logs_data.push(LogData {
+                message: hot_dot_logs,
+                color: LIGHT_GREEN.to_string(),
+            });
+        }
+        output_logs_data
+    }
 }
 
 #[cfg(test)]
@@ -601,7 +674,7 @@ mod tests {
     use crate::character_mod::effect::EffectOutcome;
     use crate::character_mod::equipment::EquipmentJsonKey;
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
-    use crate::testing::testing_all_characters::{testing_all_equipment, testing_character};
+    use crate::testing::testing_all_characters::{self, testing_all_equipment, testing_character};
     use crate::{
         character_mod::buffers::BufTypes,
         character_mod::character::{CharacterKind, Class},
@@ -1294,5 +1367,20 @@ mod tests {
         atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
         let result = c1.can_be_launched(&atk_type);
         assert!(result);
+    }
+
+    #[test]
+    fn unit_apply_hot_or_dot() {
+        let mut pl = testing_all_characters::testing_pm();
+        pl.current_player.stats.all_stats[HP].current = 100;
+        pl.current_player.stats.all_stats[HP].max = 100;
+        pl.current_player.stats.all_stats[HP].max_raw = 100;
+        pl.current_player.stats.all_stats[HP].current_raw = 100;
+        // max value is topped, 100 and not 100 + 30
+        pl.current_player.apply_hot_or_dot(0, 30);
+        assert_eq!(100, pl.current_player.stats.all_stats[HP].current);
+
+        pl.current_player.apply_hot_or_dot(0, -30);
+        assert_eq!(70, pl.current_player.stats.all_stats[HP].current);
     }
 }
