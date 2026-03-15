@@ -2,13 +2,14 @@
 
 use std::collections::HashMap;
 
-use crate::character::Character;
-use crate::common::paths_const::TEST_OFFLINE_ROOT;
-use crate::data_manager::DataManager;
-use crate::equipment::{Equipment, EquipmentJsonKey};
-use crate::game_manager::GameManager;
-use crate::players_manager::PlayerManager;
-use crate::testing_atk::build_atk_damage_indiv;
+#[cfg(not(tarpaulin_include))]
+use crate::character_mod::character::Character;
+use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
+use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
+use crate::server::data_manager::DataManager;
+use crate::server::game_manager::GameManager;
+use crate::server::players_manager::PlayerManager;
+use crate::testing::testing_atk::build_atk_damage_indiv;
 
 pub fn testing_dm() -> DataManager {
     DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap()
@@ -28,7 +29,7 @@ pub fn testing_pm() -> PlayerManager {
     pl
 }
 
-pub fn testing_game_manager() -> crate::game_manager::GameManager {
+pub fn testing_game_manager() -> GameManager {
     let dm = testing_dm();
     // init gm
     let mut gm = GameManager::new(*TEST_OFFLINE_ROOT, dm.equipment_table.clone());
@@ -37,7 +38,7 @@ pub fn testing_game_manager() -> crate::game_manager::GameManager {
     gm
 }
 
-pub fn testing_test_ally1_vs_test_boss1() -> (crate::game_manager::GameManager, String, String) {
+pub fn testing_test_ally1_vs_test_boss1() -> (GameManager, String, String) {
     let mut gm = testing_game_manager();
     gm.start_game();
     let hero_launcher_id_name = "test_#1".to_string();
@@ -81,7 +82,7 @@ pub fn dxrpg_pm() -> PlayerManager {
     pl
 }
 
-pub fn dxrpg_game_manager() -> crate::game_manager::GameManager {
+pub fn dxrpg_game_manager() -> GameManager {
     let dm: DataManager = dxrpg_dm();
     // init gm
     let mut gm = GameManager::new("./offlines", dm.equipment_table.clone());
@@ -92,7 +93,7 @@ pub fn dxrpg_game_manager() -> crate::game_manager::GameManager {
 
 #[cfg(test)]
 mod tests {
-    use crate::{data_manager::DataManager, testing_all_characters::dxrpg_dm};
+    use crate::{server::data_manager::DataManager, testing::testing_all_characters::dxrpg_dm};
 
     #[test]
     fn unit_dxrpg_game_manager() {

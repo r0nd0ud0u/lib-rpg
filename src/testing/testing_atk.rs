@@ -1,9 +1,10 @@
 #![allow(dead_code)]
 
+#[cfg(not(tarpaulin_include))]
 use crate::{
-    attack_type::AttackType,
-    common::{all_target_const::*, reach_const::*},
-    testing_effect::{build_dmg_effect_individual, build_hot_effect_individual},
+    character_mod::attack_type::AttackType,
+    common::constants::{all_target_const::*, reach_const::*},
+    testing::testing_effect::{build_dmg_effect_individual, build_hot_effect_individual},
 };
 
 #[cfg(not(tarpaulin_include))]
@@ -23,7 +24,7 @@ pub fn build_atk_damage_indiv() -> AttackType {
 #[cfg(not(tarpaulin_include))]
 #[cfg(not(test))]
 pub fn build_atk_damage_zone() -> AttackType {
-    use crate::testing_effect::build_dmg_effect_zone;
+    use crate::testing::testing_effect::build_dmg_effect_zone;
 
     AttackType {
         name: "atk1_zone".to_owned(),
@@ -62,7 +63,7 @@ pub fn build_atk_heal1_indiv() -> AttackType {
 
 #[cfg(not(tarpaulin_include))]
 pub fn build_atk_heal1_zone() -> AttackType {
-    use crate::testing_effect::build_hot_effect_zone;
+    use crate::testing::testing_effect::build_hot_effect_zone;
 
     AttackType {
         name: "atk1".to_owned(),

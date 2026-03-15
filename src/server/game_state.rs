@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::{attack_type::AttackType, game_manager::ResultLaunchAttack};
+use crate::{character_mod::attack_type::AttackType, server::game_manager::ResultLaunchAttack};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum GameStatus {
@@ -67,7 +67,7 @@ impl GameState {
 
 #[cfg(test)]
 mod tests {
-    use crate::game_state::{GameState, GameStatus};
+    use crate::server::game_state::{GameState, GameStatus};
 
     #[test]
     fn unit_new() {

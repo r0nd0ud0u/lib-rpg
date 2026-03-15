@@ -4,20 +4,21 @@ use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    attack_type::AttackType,
-    character::{Character, CharacterKind},
-    character_mod::rounds_information::AmountType,
-    common::{
+    character_mod::{
+        attack_type::AttackType,
+        character::{Character, CharacterKind},
+        effect::{ProcessedEffectParam, is_effet_hot_or_dot},
+        equipment::{Equipment, EquipmentJsonKey},
+        rounds_information::AmountType,
+    },
+    common::constants::{
         all_target_const::{TARGET_ALL_ALLIES, TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF},
         character_const::*,
         paths_const::OFFLINE_CHARACTERS,
         reach_const::{INDIVIDUAL, ZONE},
         stats_const::*,
     },
-    effect::{ProcessedEffectParam, is_effet_hot_or_dot},
-    equipment::{Equipment, EquipmentJsonKey},
-    game_manager::LogData,
-    game_state::GameState,
+    server::{game_manager::LogData, game_state::GameState},
     utils::list_files_in_dir,
 };
 
@@ -715,12 +716,12 @@ fn process_hot_or_dot(local_log: &mut Vec<LogData>, hot_and_dot: &mut i64, gae: 
 #[cfg(test)]
 mod tests {
     use crate::{
-        common::stats_const::*,
-        equipment::EquipmentJsonKey,
-        game_state::GameState,
-        players_manager::GameAtkEffects,
-        testing_all_characters::{self, testing_pm},
-        testing_effect::*,
+        character_mod::equipment::EquipmentJsonKey,
+        common::constants::stats_const::*,
+        server::game_state::GameState,
+        server::players_manager::GameAtkEffects,
+        testing::testing_all_characters::{self, testing_pm},
+        testing::testing_effect::*,
     };
     use strum::IntoEnumIterator;
 
@@ -774,7 +775,7 @@ mod tests {
         let vigor_regen = pl.active_heroes[0].stats.all_stats[VIGOR_REGEN].current;
         let old_speed = pl.active_heroes[0].stats.all_stats[SPEED].current;
         let speed_regen = pl.active_heroes[0].stats.all_stats[SPEED_REGEN].current;
-        pl.apply_regen_stats(crate::character::CharacterKind::Hero);
+        pl.apply_regen_stats(crate::character_mod::character::CharacterKind::Hero);
         assert_eq!(
             old_hp + hp_regen,
             pl.active_heroes[0].stats.all_stats[HP].current
@@ -807,7 +808,7 @@ mod tests {
 
         let old_hp = pl.active_bosses[0].stats.all_stats[HP].current;
         let hp_regen = pl.active_bosses[0].stats.all_stats[HP_REGEN].current;
-        pl.apply_regen_stats(crate::character::CharacterKind::Boss);
+        pl.apply_regen_stats(crate::character_mod::character::CharacterKind::Boss);
         // max is topped
         assert_eq!(
             std::cmp::min(

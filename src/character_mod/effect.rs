@@ -4,8 +4,8 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    common::{effect_const::*, stats_const::HP},
-    game_manager::LogData,
+    common::constants::{effect_const::*, stats_const::HP},
+    server::game_manager::LogData,
 };
 
 /// Define the parameters of an effect.
@@ -130,7 +130,9 @@ pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{common::all_target_const::TARGET_ALLY, target::is_target_ally};
+    use crate::{
+        character_mod::target::is_target_ally, common::constants::all_target_const::TARGET_ALLY,
+    };
 
     use super::*;
 

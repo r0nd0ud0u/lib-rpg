@@ -1,9 +1,8 @@
 #![allow(dead_code)]
 #[cfg(not(tarpaulin_include))]
-use crate::effect::ProcessedEffectParam;
-use crate::{
-    common::{all_target_const::*, effect_const::*, reach_const::*, stats_const::*},
-    effect::EffectParam,
+use crate::character_mod::effect::{EffectParam, ProcessedEffectParam};
+use crate::common::constants::{
+    all_target_const::*, effect_const::*, reach_const::*, stats_const::*,
 };
 
 #[cfg(not(tarpaulin_include))]

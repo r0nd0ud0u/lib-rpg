@@ -4,9 +4,9 @@ use anyhow::{Result, bail};
 use strum::IntoEnumIterator;
 
 use crate::{
-    character::{Character, CharacterKind},
-    common::paths_const::{OFFLINE_CHARACTERS, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT},
-    equipment::{Equipment, EquipmentJsonKey},
+    character_mod::character::{Character, CharacterKind},
+    character_mod::equipment::{Equipment, EquipmentJsonKey},
+    common::constants::paths_const::{OFFLINE_CHARACTERS, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT},
     utils::list_files_in_dir,
 };
 
@@ -114,8 +114,9 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use crate::{
-        common::paths_const::TEST_OFFLINE_ROOT, data_manager::DataManager,
-        equipment::EquipmentJsonKey, testing_all_characters::testing_dm,
+        character_mod::equipment::EquipmentJsonKey,
+        common::constants::paths_const::TEST_OFFLINE_ROOT, server::data_manager::DataManager,
+        testing::testing_all_characters::testing_dm,
     };
 
     #[test]

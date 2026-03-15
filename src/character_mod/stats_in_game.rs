@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::{attack_type::AtksInfo, effect::EffectOutcome};
+use crate::character_mod::{attack_type::AtksInfo, effect::EffectOutcome};
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct StatsInGame {
