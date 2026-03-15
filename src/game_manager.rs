@@ -6,7 +6,8 @@ use std::{
 
 use crate::{
     attack_type::{AttackType, LauncherAtkInfo},
-    character::{AmountType, CharacterType},
+    character::CharacterKind,
+    character_mod::rounds_information::AmountType,
     common::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
     effect::EffectOutcome,
     equipment::{Equipment, EquipmentJsonKey},
@@ -159,7 +160,7 @@ impl GameManager {
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
         let mut dead_heroes = Vec::new();
         for hero in &self.pm.active_heroes {
-            if !hero.is_dead().unwrap_or(false) {
+            if !hero.stats.is_dead().unwrap_or(false) {
                 self.game_state.order_to_play.push(hero.id_name.clone());
             } else {
                 dead_heroes.push(hero.id_name.clone());
@@ -175,13 +176,13 @@ impl GameManager {
             .active_bosses
             .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
         for boss in &self.pm.active_bosses {
-            if !boss.is_dead().unwrap_or(false) {
+            if !boss.stats.is_dead().unwrap_or(false) {
                 self.game_state.order_to_play.push(boss.id_name.clone());
             }
         }
         // supplementary atks to be added
-        let supp_rounds_heroes = self.pm.compute_sup_atk_turn(CharacterType::Hero);
-        let supp_rounds_bosses = self.pm.compute_sup_atk_turn(CharacterType::Boss);
+        let supp_rounds_heroes = self.pm.compute_sup_atk_turn(CharacterKind::Hero);
+        let supp_rounds_bosses = self.pm.compute_sup_atk_turn(CharacterKind::Boss);
         self.game_state.order_to_play.extend(supp_rounds_heroes);
         self.game_state.order_to_play.extend(supp_rounds_bosses);
     }
@@ -191,12 +192,12 @@ impl GameManager {
             .pm
             .active_heroes
             .iter()
-            .all(|c| c.is_dead() == Some(true));
+            .all(|c| c.stats.is_dead() == Some(true));
         let all_bosses_dead = self
             .pm
             .active_bosses
             .iter()
-            .all(|c| c.is_dead() == Some(true));
+            .all(|c| c.stats.is_dead() == Some(true));
         all_bosses_dead || all_heroes_dead
     }
 
@@ -226,7 +227,7 @@ impl GameManager {
             );
         };
 
-        if self.pm.current_player.is_dead() == Some(true) {
+        if self.pm.current_player.stats.is_dead() == Some(true) {
             return self.new_round();
         }
 
@@ -243,7 +244,7 @@ impl GameManager {
     }
 
     pub fn is_boss_atk(&self) -> bool {
-        self.pm.current_player.kind == CharacterType::Boss
+        self.pm.current_player.kind == CharacterKind::Boss
     }
 
     /// Launch an attack from the current player
@@ -255,7 +256,7 @@ impl GameManager {
             if self.is_round_auto() {
                 // auto atk for boss
                 if let Some(auto_atk_name) = AttackType::get_one_random_atk_name(
-                    &self.pm.current_player.extended_character.launchable_atks,
+                    &self.pm.current_player.character_rounds_info.launchable_atks,
                 ) {
                     tracing::info!(
                         "Auto attack for boss {}: {}",
@@ -271,7 +272,10 @@ impl GameManager {
         // output
         let mut output: Vec<EffectOutcome> = vec![];
         // update action done in round
-        self.pm.current_player.actions_done_in_round += 1;
+        self.pm
+            .current_player
+            .character_rounds_info
+            .actions_done_in_round += 1;
         // get all players
         let all_players = self.pm.get_all_active_id_names();
         // get atk
@@ -301,16 +305,38 @@ impl GameManager {
         );
 
         // critical strike
-        let is_crit = self.pm.current_player.process_critical_strike(atk_name);
+        let is_crit = match self.pm.current_player.process_critical_strike(atk_name) {
+            Ok(is_crit) => is_crit,
+            Err(e) => {
+                tracing::error!(
+                    "Error while processing critical strike for player {}: {}",
+                    self.pm.current_player.id_name,
+                    e
+                );
+                false
+            }
+        };
         // process boss target
         self.pm.process_boss_target();
 
         // ProcessAtk
-        let all_effects_param = self
-            .pm
-            .current_player
-            .process_atk(&self.game_state, is_crit, &atk);
-
+        let all_effects_param =
+            match self
+                .pm
+                .current_player
+                .process_atk(&self.game_state, is_crit, &atk)
+            {
+                Ok(effects) => effects,
+                Err(e) => {
+                    tracing::error!(
+                        "Error while processing attack {} for player {}: {}",
+                        atk_name,
+                        self.pm.current_player.id_name,
+                        e
+                    );
+                    vec![]
+                }
+            };
         // apply effect param on targets
         let launcher_stats = self.pm.current_player.stats.clone();
         let id_name = self.pm.current_player.id_name.clone();
@@ -357,7 +383,8 @@ impl GameManager {
         // other function
         // update tx rx
         if is_crit {
-            *self.pm.current_player.tx_rx[AmountType::CriticalStrike as usize]
+            *self.pm.current_player.character_rounds_info.tx_rx
+                [AmountType::CriticalStrike as usize]
                 .entry(self.game_state.current_turn_nb as u64)
                 .or_insert(1) += 1;
         }
@@ -367,7 +394,9 @@ impl GameManager {
         // RemoveTerminatedEffectsOnPlayer which last only that turn
 
         // check who died
-        self.pm.process_died_players();
+        self.pm.process_died_players().unwrap_or_else(|e| {
+            tracing::error!("Error while processing died players: {}", e);
+        });
         // TODO if boss died -> loot
 
         // update active character for cost atk and buf received.
@@ -397,7 +426,10 @@ impl GameManager {
     fn process_no_atk_launched(&mut self) -> ResultLaunchAttack {
         // no atk launched
         // update action done in round
-        self.pm.current_player.actions_done_in_round += 1;
+        self.pm
+            .current_player
+            .character_rounds_info
+            .actions_done_in_round += 1;
         let logs_atk = vec![LogData {
             message: "No attack launched".to_string(),
             color: "red".to_string(),
@@ -566,7 +598,7 @@ impl GameManager {
         {
             let name = self.game_state.order_to_play[self.game_state.current_round - 1].clone();
             if let Some(c) = self.pm.get_active_character(&name) {
-                return c.kind == CharacterType::Boss;
+                return c.kind == CharacterKind::Boss;
             }
         }
 
@@ -587,7 +619,7 @@ impl GameManager {
                 let name = &self.game_state.order_to_play[i];
 
                 if let Some(c) = self.pm.get_active_character(name) {
-                    if c.kind == CharacterType::Boss && c.is_dead() != Some(true) {
+                    if c.kind == CharacterKind::Boss && c.stats.is_dead() != Some(true) {
                         count += 1;
                     } else {
                         break; // Stop counting when a non-Boss is found
@@ -680,7 +712,7 @@ mod tests {
         boss.stats.all_stats.get_mut(SPEED).unwrap().current = 10;
         let result = gm
             .pm
-            .compute_sup_atk_turn(crate::character::CharacterType::Hero);
+            .compute_sup_atk_turn(crate::character::CharacterKind::Hero);
         // there are 2 allies in the test/offlines to len = 2
         assert_eq!(result.len(), 2);
     }
@@ -751,6 +783,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
+            .character_rounds_info
             .is_current_target = true;
         let ra = gm.launch_attack(Some("SimpleAtk"));
 
@@ -798,6 +831,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
+            .character_rounds_info
             .is_current_target = true;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_boss = gm
@@ -856,6 +890,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
+            .character_rounds_info
             .is_current_target = true;
         let old_vigor_hero = gm.pm.current_player.stats.all_stats[VIGOR].current;
         gm.launch_attack(Some("SimpleAtk"));
@@ -914,6 +949,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
+            .character_rounds_info
             .is_current_target = true;
         gm.launch_attack(Some("SimpleAtk"));
         // not dead boss : end of game
@@ -1145,7 +1181,10 @@ mod tests {
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // 2 effects received from eclat d espoir (counter turn 1/2, 1 on 2 )
-        assert_eq!(gm.pm.current_player.all_effects.len(), 2);
+        assert_eq!(
+            gm.pm.current_player.character_rounds_info.all_effects.len(),
+            2
+        );
         // turn 2 round 3 (boss1)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
@@ -1165,7 +1204,13 @@ mod tests {
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // effects ended after 2 turns
-        assert!(gm.pm.current_player.all_effects.is_empty());
+        assert!(
+            gm.pm
+                .current_player
+                .character_rounds_info
+                .all_effects
+                .is_empty()
+        );
     }
 
     #[test]
@@ -1253,6 +1298,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character("Angmar_#1")
             .unwrap()
+            .character_rounds_info
             .is_current_target = true;
         // thrain
         // game is starting, ennemy is not playing

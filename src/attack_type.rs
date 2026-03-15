@@ -5,7 +5,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    character::CharacterType,
+    character::CharacterKind,
     common::{
         all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
         reach_const::INDIVIDUAL,
@@ -26,7 +26,7 @@ pub struct AtksInfo {
 #[derive(Debug, Clone, PartialEq)]
 pub struct LauncherAtkInfo {
     pub id_name: String,
-    pub kind: CharacterType,
+    pub kind: CharacterKind,
     pub stats: Stats,
     pub atk_type: AttackType,
 }
@@ -130,6 +130,23 @@ impl AttackType {
         let nb = get_random_nb(0, launchable_atks.len() as i64 - 1);
         launchable_atks.get(nb as usize).map(|atk| atk.name.clone())
     }
+
+    pub fn damage_by_atk(
+        target_stats: &Stats,
+        launcher_stats: &Stats,
+        is_magic: bool,
+        atk_value: i64,
+        nb_of_turns: i64,
+    ) -> i64 {
+        let target_armor = target_stats.get_armor_stat(is_magic);
+        let launcher_pow = launcher_stats.get_power_stat(is_magic);
+
+        // dmg is negative towards ennemy (atk outcome, is positive while healing >< dmg)
+        let damage = atk_value - launcher_pow / nb_of_turns;
+        let protection = 1000.0 / (1000.0 + target_armor as f64);
+
+        (damage as f64 * protection).round() as i64
+    }
 }
 
 #[cfg(test)]
@@ -142,6 +159,7 @@ mod tests {
             all_target_const::TARGET_ENNEMY, character_json_key::STANDARD_CLASS,
             effect_const::EFFECT_VALUE_CHANGE, reach_const::INDIVIDUAL, stats_const::*,
         },
+        stats::Stats,
         testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
     };
 
@@ -206,5 +224,20 @@ mod tests {
         let random_atk_name =
             AttackType::get_one_random_atk_name(&empty_atks.values().cloned().collect::<Vec<_>>());
         assert!(random_atk_name.is_none());
+    }
+
+    #[test]
+    fn unit_damage_by_atk() {
+        let mut target_stats = Stats::default();
+        target_stats.init();
+        target_stats.get_mut_value(MAGICAL_ARMOR).current = 10;
+
+        let mut launcher_stats = Stats::default();
+        launcher_stats.init();
+        launcher_stats.get_mut_value(MAGICAL_POWER).current = 100;
+
+        let damage = AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 1);
+        // dmg = 50 - 100/1 = -50, protection = 1000/(1000+10) = 0.990099, final dmg = -50*0.990099 = -49.5 -> -50
+        assert_eq!(damage, -50);
     }
 }

@@ -1,1 +1,1 @@
-pub mod fight_information;
+pub mod rounds_information;

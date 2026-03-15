@@ -1,11 +1,13 @@
 use serde::{Deserialize, Serialize};
 
+#[repr(usize)]
+#[derive(Debug, Clone)]
 pub enum BufTypes {
     DefaultBuf = 0,
-    DamageRx,
-    DamageTx,
-    HealTx,
-    HealRx,
+    DamageRxPercent,
+    DamageTxPercent,
+    HealTxPercent,
+    HealRxPercent,
     DamageCritCapped,
     PowPhyBuf,
     NextHealAtkIsCrit,
@@ -54,13 +56,19 @@ pub struct Buffers {
     pub all_stats_name: Vec<String>,
     /// TODO buf-type
     #[serde(rename = "Buf-type")]
-    pub buf_type: i64,
+    pub buf_type: usize,
 }
 
 impl Buffers {
     pub fn set_buffers(&mut self, value: i64, is_percent: bool) {
         self.value = value;
         self.is_percent = is_percent;
+    }
+
+    pub fn update_buf(&mut self, value: i64, is_percent: bool, stat: &str) {
+        self.value += value;
+        self.is_percent = is_percent;
+        self.all_stats_name.push(stat.to_string());
     }
 }
 
