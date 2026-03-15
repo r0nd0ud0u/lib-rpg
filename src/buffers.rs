@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone)]
 pub enum BufTypes {
     DefaultBuf = 0,
-    DamageRx,
-    DamageTx,
-    HealTx,
-    HealRx,
+    DamageRxPercent,
+    DamageTxPercent,
+    HealTxPercent,
+    HealRxPercent,
     DamageCritCapped,
     PowPhyBuf,
     NextHealAtkIsCrit,

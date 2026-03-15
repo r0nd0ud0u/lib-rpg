@@ -58,13 +58,7 @@ pub struct Character {
     /// CharacterRoundsInfo
     #[serde(rename = "CharacterRoundsInfo")]
     pub character_rounds_info: CharacterRoundsInfo,
-    /// TODO rank
-    #[serde(rename = "Rank")]
-    pub rank: u64,
-    /// TODO shape
-    #[serde(rename = "Shape")]
-    pub shape: String,
-    /// Fight information: stats_in_game
+    /// stats_in_game
     #[serde(default)]
     pub stats_in_game: StatsInGame,
 }
@@ -85,8 +79,6 @@ impl Default for Character {
             power: Powers::default(),
             character_rounds_info: CharacterRoundsInfo::default(),
             class: Class::Standard,
-            rank: 0,
-            shape: String::new(),
             stats_in_game: StatsInGame::default(),
         }
     }
@@ -681,10 +673,6 @@ mod tests {
         // powers
         assert!(!c.power.is_crit_heal_after_crit);
         assert!(c.power.is_damage_tx_heal_needy_ally);
-        // rank
-        assert_eq!(4, c.rank);
-        // shape
-        assert_eq!("", c.shape);
         // stats
         // stats - aggro
         assert_eq!(0, c.stats.all_stats[AGGRO].current);
@@ -868,7 +856,7 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(
             -10,
-            c.character_rounds_info.all_buffers[BufTypes::DamageTx as usize].value
+            c.character_rounds_info.all_buffers[BufTypes::DamageTxPercent as usize].value
         );
         let ep = EffectParam {
             effect_type: EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT.to_string(),
@@ -881,7 +869,7 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(
             -10,
-            c.character_rounds_info.all_buffers[BufTypes::DamageRx as usize].value
+            c.character_rounds_info.all_buffers[BufTypes::DamageRxPercent as usize].value
         );
         let ep = EffectParam {
             effect_type: EFFECT_CHANGE_HEAL_RX_BY_PERCENT.to_string(),
@@ -894,7 +882,7 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(
             -10,
-            c.character_rounds_info.all_buffers[BufTypes::HealRx as usize].value
+            c.character_rounds_info.all_buffers[BufTypes::HealRxPercent as usize].value
         );
         let ep = EffectParam {
             effect_type: EFFECT_CHANGE_HEAL_TX_BY_PERCENT.to_string(),
@@ -907,7 +895,7 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(
             -10,
-            c.character_rounds_info.all_buffers[BufTypes::HealTx as usize].value
+            c.character_rounds_info.all_buffers[BufTypes::HealTxPercent as usize].value
         );
     }
 

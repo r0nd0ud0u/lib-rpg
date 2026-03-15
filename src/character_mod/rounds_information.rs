@@ -186,12 +186,12 @@ impl CharacterRoundsInfo {
                 real_amount = update_heal_by_multi(real_amount, buf_multi.value);
             }
             // Launcher TX: BufTypes::HealTx
-            if let Some(buf_hp_tx) = self.all_buffers.get(BufTypes::HealTx as usize) {
+            if let Some(buf_hp_tx) = self.all_buffers.get(BufTypes::HealTxPercent as usize) {
                 buf_debuf +=
                     update_damage_by_buf(buf_hp_tx.value, buf_hp_tx.is_percent, real_amount);
             }
             // Receiver RX: BufTypes::HealRx
-            if let Some(buf_hp_rx) = self.all_buffers.get(BufTypes::HealRx as usize) {
+            if let Some(buf_hp_rx) = self.all_buffers.get(BufTypes::HealRxPercent as usize) {
                 buf_debuf +=
                     update_damage_by_buf(buf_hp_rx.value, buf_hp_rx.is_percent, real_amount);
             }
@@ -203,13 +203,13 @@ impl CharacterRoundsInfo {
         }
         // buf debuf damage
         if full_amount < 0 && !is_target_ally(target) {
-            // Launcher TX: BufTypes::DamageTx
-            if let Some(buf_dmg_tx) = self.all_buffers.get(BufTypes::DamageTx as usize) {
+            // Launcher TX: BufTypes::DamageTxPercent
+            if let Some(buf_dmg_tx) = self.all_buffers.get(BufTypes::DamageTxPercent as usize) {
                 buf_debuf +=
                     update_damage_by_buf(buf_dmg_tx.value, buf_dmg_tx.is_percent, real_amount);
             }
             // Receiver RX: BufTypes::DamageRx
-            if let Some(buf_dmg_rx) = self.all_buffers.get(BufTypes::DamageRx as usize) {
+            if let Some(buf_dmg_rx) = self.all_buffers.get(BufTypes::DamageRxPercent as usize) {
                 buf_debuf +=
                     update_damage_by_buf(buf_dmg_rx.value, buf_dmg_rx.is_percent, real_amount);
             }
@@ -418,16 +418,16 @@ impl CharacterRoundsInfo {
             self.is_heal_atk_blocked = false;
         }
         if ep.effect_type == EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT {
-            self.update_buf(&BufTypes::DamageTx, -ep.value, true, "")?;
+            self.update_buf(&BufTypes::DamageTxPercent, -ep.value, true, "")?;
         }
         if ep.effect_type == EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT {
-            self.update_buf(&BufTypes::DamageRx, -ep.value, true, "")?;
+            self.update_buf(&BufTypes::DamageRxPercent, -ep.value, true, "")?;
         }
         if ep.effect_type == EFFECT_CHANGE_HEAL_RX_BY_PERCENT {
-            self.update_buf(&BufTypes::HealRx, -ep.value, true, "")?;
+            self.update_buf(&BufTypes::HealRxPercent, -ep.value, true, "")?;
         }
         if ep.effect_type == EFFECT_CHANGE_HEAL_TX_BY_PERCENT {
-            self.update_buf(&BufTypes::HealTx, -ep.value, true, "")?;
+            self.update_buf(&BufTypes::HealTxPercent, -ep.value, true, "")?;
         }
         Ok(())
     }
@@ -666,10 +666,10 @@ mod tests {
 
         // buf defub damage against ennemy
 
-        // Launcher TX: BufTypes::DamageTx
+        // Launcher TX: BufTypes::DamageTxPercent
         // damage buf aigainst ennemy
         cri.all_buffers
-            .get_mut(BufTypes::DamageTx as usize)
+            .get_mut(BufTypes::DamageTxPercent as usize)
             .unwrap()
             .set_buffers(20, false);
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
@@ -683,7 +683,7 @@ mod tests {
 
         //Receiver RX: BufTypes::DamageRx
         cri.all_buffers
-            .get_mut(BufTypes::DamageRx as usize)
+            .get_mut(BufTypes::DamageRxPercent as usize)
             .unwrap()
             .set_buffers(20, false);
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
@@ -703,7 +703,7 @@ mod tests {
 
         // it can be accunulated with damage buf
         cri.all_buffers
-            .get_mut(BufTypes::DamageTx as usize)
+            .get_mut(BufTypes::DamageTxPercent as usize)
             .unwrap()
             .set_buffers(20, false);
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
@@ -725,7 +725,7 @@ mod tests {
 
         // BufTypes::HealTx
         cri.all_buffers
-            .get_mut(BufTypes::HealTx as usize)
+            .get_mut(BufTypes::HealTxPercent as usize)
             .unwrap()
             .set_buffers(20, false);
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
@@ -734,7 +734,7 @@ mod tests {
         cri.reset_all_buffers();
         // BufTypes::HealRx
         cri.all_buffers
-            .get_mut(BufTypes::HealRx as usize)
+            .get_mut(BufTypes::HealRxPercent as usize)
             .unwrap()
             .set_buffers(20, false);
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
@@ -756,11 +756,14 @@ mod tests {
     fn unit_reset_all_buffers() {
         let mut cri = CharacterRoundsInfo::default();
         cri.all_buffers
-            .get_mut(BufTypes::DamageTx as usize)
+            .get_mut(BufTypes::DamageTxPercent as usize)
             .unwrap()
-            .set_buffers(20, false);
+            .set_buffers(20, true);
         cri.reset_all_buffers();
-        let result = cri.all_buffers.get(BufTypes::DamageTx as usize).unwrap();
+        let result = cri
+            .all_buffers
+            .get(BufTypes::DamageTxPercent as usize)
+            .unwrap();
         assert_eq!(result.value, 0);
         assert!(!result.is_percent);
         assert!(!result.is_passive_enabled);
@@ -770,16 +773,19 @@ mod tests {
     fn unit_update_buf() {
         let mut cri = CharacterRoundsInfo::default();
         cri.all_buffers
-            .get_mut(BufTypes::DamageTx as usize)
+            .get_mut(BufTypes::DamageTxPercent as usize)
             .unwrap()
             .set_buffers(20, false);
-        let result = cri.update_buf(&BufTypes::DamageTx, 10, false, HP);
-        assert_eq!(30, cri.all_buffers[BufTypes::DamageTx as usize].value);
+        let result = cri.update_buf(&BufTypes::DamageTxPercent, 10, false, HP);
+        assert_eq!(
+            30,
+            cri.all_buffers[BufTypes::DamageTxPercent as usize].value
+        );
         assert!(result.is_ok());
-        assert!(!cri.all_buffers[BufTypes::DamageTx as usize].is_percent);
+        assert!(!cri.all_buffers[BufTypes::DamageTxPercent as usize].is_percent);
         assert_eq!(
             HP,
-            cri.all_buffers[BufTypes::DamageTx as usize].all_stats_name[0]
+            cri.all_buffers[BufTypes::DamageTxPercent as usize].all_stats_name[0]
         );
     }
 
