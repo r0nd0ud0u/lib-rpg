@@ -417,16 +417,13 @@ impl CharacterRoundsInfo {
             self.is_heal_atk_blocked = false;
         }
         if ep.effect_type == EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT {
-            self
-                .update_buf(&BufTypes::DamageTx, -ep.value, true, "")?;
+            self.update_buf(&BufTypes::DamageTx, -ep.value, true, "")?;
         }
         if ep.effect_type == EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT {
-            self
-                .update_buf(&BufTypes::DamageRx, -ep.value, true, "")?;
+            self.update_buf(&BufTypes::DamageRx, -ep.value, true, "")?;
         }
         if ep.effect_type == EFFECT_CHANGE_HEAL_RX_BY_PERCENT {
-            self
-                .update_buf(&BufTypes::HealRx, -ep.value, true, "")?;
+            self.update_buf(&BufTypes::HealRx, -ep.value, true, "")?;
         }
         if ep.effect_type == EFFECT_CHANGE_HEAL_TX_BY_PERCENT {
             self.update_buf(&BufTypes::HealTx, -ep.value, true, "")?;

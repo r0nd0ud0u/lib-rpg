@@ -1147,11 +1147,40 @@ mod tests {
     #[test]
     fn unit_process_atk_cost() {
         let mut c = testing_character();
-        let old_vigor = c.stats.all_stats[VIGOR].current;
+
+        let old_vigor_current = c.stats.all_stats[VIGOR].current;
+        let old_mana_current = c.stats.all_stats[MANA].current;
+        let old_berseck_current = c.stats.all_stats[BERSERK].current;
+        let old_vigor_max = c.stats.all_stats[VIGOR].max;
+        let old_mana_max = c.stats.all_stats[MANA].max;
+        let old_berseck_max = c.stats.all_stats[BERSERK].max;
         c.process_atk_cost("atk1"); // 10% vigor cost
-        assert_eq!(old_vigor - 20, c.stats.all_stats[VIGOR].current);
+
+        assert_eq!(
+            old_vigor_current - 10 * old_vigor_max / 100,
+            c.stats.all_stats[VIGOR].current
+        );
+        assert_eq!(
+            old_mana_current - 10 * old_mana_max / 100,
+            c.stats.all_stats[MANA].current
+        );
+        assert_eq!(
+            old_berseck_current - 10 * old_berseck_max / 100,
+            c.stats.all_stats[BERSERK].current
+        );
         c.process_atk_cost("atk1"); // 10% vigor cost again!
-        assert_eq!(old_vigor - 40, c.stats.all_stats[VIGOR].current);
+        assert_eq!(
+            old_vigor_current - 20 * old_vigor_max / 100,
+            c.stats.all_stats[VIGOR].current
+        );
+        assert_eq!(
+            old_mana_current - 20 * old_mana_max / 100,
+            c.stats.all_stats[MANA].current
+        );
+        assert_eq!(
+            old_berseck_current - 20 * old_berseck_max / 100,
+            c.stats.all_stats[BERSERK].current
+        );
     }
 
     #[test]

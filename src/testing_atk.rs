@@ -11,6 +11,8 @@ pub fn build_atk_damage_indiv() -> AttackType {
     AttackType {
         name: "atk1".to_owned(),
         vigor_cost: 10,
+        mana_cost: 10,
+        berseck_cost: 10,
         target: TARGET_ENNEMY.to_owned(),
         reach: INDIVIDUAL.to_owned(),
         all_effects: vec![build_dmg_effect_individual().input_effect_param],
