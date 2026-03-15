@@ -5,17 +5,8 @@ use std::{
 };
 
 use crate::{
-    character_mod::{
-        attack_type::{AttackType, LauncherAtkInfo},
-        character::CharacterKind,
-        effect::EffectOutcome,
-        equipment::{Equipment, EquipmentJsonKey},
-        rounds_information::AmountType,
-    },
-    common::{
-        constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
-        log_data::{LogData, const_colors::DARK_RED},
-    },
+    character_mod::{attack_type::{AttackType, LauncherAtkInfo}, character::CharacterKind, effect::EffectOutcome, equipment::{Equipment, EquipmentJsonKey}, rounds_information::AmountType},
+    common::{constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*}, log_data::{LogData, const_colors::{DARK_RED, LIGHT_BLUE, LIGHT_GREEN}}},
     server::{
         game_state::{GameState, GameStatus},
         players_manager::{DodgeInfo, PlayerManager},
@@ -468,12 +459,12 @@ impl GameManager {
             if d.is_dodging {
                 logs.push(LogData {
                     message: format!("{} is dodging", d.name),
-                    color: "#1a73e8".to_string(),
+                    color: LIGHT_BLUE.to_string(),
                 });
             } else if d.is_blocking {
                 logs.push(LogData {
                     message: format!("{} is blocking", d.name),
-                    color: "#10b981".to_string(),
+                    color: LIGHT_GREEN.to_string(),
                 });
             }
         }
@@ -496,7 +487,7 @@ impl GameManager {
                     logs.push(eo.processed_effect_param.log.clone());
                 }
                 // log for the effect outcome
-                let mut colortext = "#10b981";
+                let mut colortext = LIGHT_GREEN;
                 if eo.processed_effect_param.input_effect_param.stats_name == HP
                     && eo.real_hp_amount_tx < 0
                     || eo.full_atk_amount_tx < 0
