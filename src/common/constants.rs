@@ -123,3 +123,20 @@ pub mod attak_const {
     pub const COEFF_CRIT_DMG: f64 = 2.0;
     pub const COEFF_CRIT_STATS: f64 = 1.5;
 }
+
+pub mod emoji_const {
+    pub const EMOJI_HEAL: &str = "❤️";
+    pub const EMOJI_DAMAGE: &str = "⚔️";
+    pub const EMOJI_BUFF: &str = "✨";
+    pub const EMOJI_DEBUFF: &str = "💀";
+    pub const EMOJI_TANK: &str = "🛡️";
+    pub const EMOJI_SUPPORT: &str = "💉";
+    pub const EMOJI_DPS: &str = "⚡";
+    pub const EMOJI_AGGRO: &str = "🔥";
+    pub const EMOJI_VIGOR: &str = "💪";
+    pub const EMOJI_BERSERK: &str = "😡";
+    pub const EMOJI_MANA: &str = "🔮";
+    pub const EMOJI_MAGE: &str = "🧙";
+    pub const EMOJI_WARRIOR: &str = "🗡️";
+    pub const EMOJI_HEALER: &str = "💊";
+}
