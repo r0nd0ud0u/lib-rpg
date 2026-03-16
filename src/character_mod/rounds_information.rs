@@ -410,8 +410,8 @@ impl CharacterRoundsInfo {
             }
         } else {
             let rand_nb = get_random_nb(1, 100);
-            let is_dodging = *class != Class::Tank && rand_nb <= current_dodge as i64;
-            let is_blocking = *class == Class::Tank;
+            let is_dodging = *class != Class::Berserker && rand_nb <= current_dodge as i64;
+            let is_blocking = *class == Class::Berserker;
             DodgeInfo {
                 name: id_name.to_owned(),
                 is_dodging,

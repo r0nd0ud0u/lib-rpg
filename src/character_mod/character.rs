@@ -1120,7 +1120,7 @@ mod tests {
         // A tank is not dodging, he is blocking
         let atk_level = 1;
         c.stats.all_stats[DODGE].current = 100;
-        c.class = Class::Tank;
+        c.class = Class::Berserker;
         c.process_dodging(atk_level);
         assert!(!c.character_rounds_info.dodge_info.is_dodging);
         assert!(c.character_rounds_info.dodge_info.is_blocking);
