@@ -1,6 +1,7 @@
 pub mod attack_type;
 pub mod buffers;
 pub mod character;
+pub mod class;
 pub mod effect;
 pub mod equipment;
 pub mod powers;
