@@ -1,8 +1,10 @@
+use std::str::FromStr;
+
 use crate::common::constants::emoji_const::{EMOJI_HEALER, EMOJI_MAGE, EMOJI_TANK, EMOJI_WARRIOR};
 
 /// Defines the class of the character
 /// In the future, bonus and stats will be acquired.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub enum Class {
     Standard,
     Tank,
@@ -10,17 +12,21 @@ pub enum Class {
     Mage,
 }
 
-impl Class {
-    pub fn from_str(class: &str) -> Self {
-        match class {
-            "Standard" => Class::Standard,
-            "Tank" => Class::Tank,
-            "Healer" => Class::Healer,
-            "Mage" => Class::Mage,
-            _ => panic!("Unknown class: {}", class),
+impl FromStr for Class {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Standard" => Ok(Class::Standard),
+            "Tank" => Ok(Class::Tank),
+            "Healer" => Ok(Class::Healer),
+            "Mage" => Ok(Class::Mage),
+            _ => Err(format!("Unknown class: {}", s)),
         }
     }
+}
 
+impl Class {
     pub fn to_str(&self) -> &str {
         match self {
             Class::Standard => "Standard",

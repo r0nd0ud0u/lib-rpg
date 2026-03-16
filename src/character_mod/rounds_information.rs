@@ -4,7 +4,7 @@ use crate::{
     character_mod::{
         attack_type::AttackType,
         buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
-        character::Class,
+        class::Class,
         effect::{
             self, EffectParam, ProcessedEffectParam, is_boosted_by_crit, is_effet_hot_or_dot,
             process_decrease_on_turn,
