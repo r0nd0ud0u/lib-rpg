@@ -1,6 +1,8 @@
 use std::str::FromStr;
 
-use crate::common::constants::emoji_const::{EMOJI_HEALER, EMOJI_MAGE, EMOJI_TANK, EMOJI_WARRIOR};
+use crate::common::constants::emoji_const::{
+    EMOJI_BERSERK, EMOJI_HEALER, EMOJI_MAGE, EMOJI_WARRIOR,
+};
 
 /// Defines the class of the character
 /// In the future, bonus and stats will be acquired.
@@ -42,7 +44,7 @@ impl Class {
     pub fn to_emoji(&self) -> &str {
         match self {
             Class::Standard => EMOJI_WARRIOR,
-            Class::Berserker => EMOJI_TANK,
+            Class::Berserker => EMOJI_BERSERK,
             Class::Healer => EMOJI_HEALER,
             Class::Mage => EMOJI_MAGE,
             Class::Warrior => EMOJI_WARRIOR,

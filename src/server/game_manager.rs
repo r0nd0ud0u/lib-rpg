@@ -530,7 +530,8 @@ impl GameManager {
 
 #[cfg(test)]
 mod tests {
-    use crate::character_mod::character::{CharacterKind, Class};
+    use crate::character_mod::character::CharacterKind;
+    use crate::character_mod::class::Class;
     use crate::common::constants::attak_const::COEFF_CRIT_DMG;
     use crate::common::constants::effect_const::EFFECT_NB_COOL_DOWN;
     use crate::common::log_data::const_colors::DARK_RED;
@@ -828,7 +829,7 @@ mod tests {
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
-            .class = Class::Tank;
+            .class = Class::Berserker;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_boss = gm
             .pm
