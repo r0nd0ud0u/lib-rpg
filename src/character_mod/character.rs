@@ -6,6 +6,7 @@ use std::{collections::HashMap, path::Path, vec};
 use crate::{
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
+        class::Class,
         effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
         equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
         powers::Powers,
@@ -102,14 +103,6 @@ pub enum CharacterKind {
     #[default]
     Hero,
     Boss,
-}
-
-/// Defines the class of the character
-/// In the future, bonus and stats will be acquired.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum Class {
-    Standard,
-    Tank,
 }
 
 impl Character {
