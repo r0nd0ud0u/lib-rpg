@@ -679,6 +679,9 @@ impl Character {
         game_state: &GameState,
         launcher_stats: &Stats,
     ) -> Result<Vec<EffectOutcome>> {
+        if !self.inventory.contains_potion(&consumable.name) {
+            bail!("no {} is in the inventory", consumable.name)
+        }
         match self.process_all_effects(game_state, false, &consumable.name, &consumable.effects) {
             Ok(all_processed_ep) => {
                 let mut all_eo: Vec<EffectOutcome> = vec![];
@@ -690,6 +693,7 @@ impl Character {
                         game_state.current_turn_nb,
                     ));
                 }
+                self.inventory.remove_potion(&consumable.name);
                 Ok(all_eo)
             }
             Err(e) => Err(e),

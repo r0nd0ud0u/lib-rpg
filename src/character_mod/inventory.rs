@@ -29,27 +29,32 @@ pub enum ConsumableKind {
 }
 
 impl Inventory {
-    pub fn add_potion(&mut self) {
+    pub fn add_potion(&mut self, name: &str, hp_amount: i64) {
         self.consumables.push(Consumable {
-            name: "potion".to_owned(),
-            effects: vec![build_hp_effect(20, false)],
+            name: name.to_owned(),
+            effects: vec![build_hp_effect(hp_amount, false)],
             consumable_kind: ConsumableKind::Potion,
         });
+    }
+
+    pub fn add_small_potion(&mut self) {
+        self.add_potion("potion", 20);
     }
 
     pub fn add_super_potion(&mut self) {
-        self.consumables.push(Consumable {
-            name: "potion".to_owned(),
-            effects: vec![build_hp_effect(60, false)],
-            consumable_kind: ConsumableKind::Potion,
-        });
+        self.add_potion("super potion", 60);
     }
 
     pub fn add_hyper_potion(&mut self) {
-        self.consumables.push(Consumable {
-            name: "potion".to_owned(),
-            effects: vec![build_hp_effect(120, false)],
-            consumable_kind: ConsumableKind::Potion,
-        });
+        self.add_potion("hyper potion", 120);
+    }
+
+    pub fn remove_potion(&mut self, name: &str) {
+        self.consumables
+            .retain(|consumable| consumable.name != name);
+    }
+
+    pub fn contains_potion(&self, name: &str) -> bool {
+        self.consumables.iter().any(|c| c.name == name)
     }
 }
