@@ -9,6 +9,7 @@ use crate::{
         class::Class,
         effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
         equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
+        inventory::{Consumable, Inventory},
         powers::Powers,
         rounds_information::{AmountType, CharacterRoundsInfo},
         stats::Stats,
@@ -70,8 +71,9 @@ pub struct Character {
     #[serde(rename = "CharacterRoundsInfo")]
     pub character_rounds_info: CharacterRoundsInfo,
     /// stats_in_game
-    #[serde(default)]
     pub stats_in_game: StatsInGame,
+    /// Inventory
+    pub inventory: Inventory,
 }
 
 impl Default for Character {
@@ -91,6 +93,7 @@ impl Default for Character {
             character_rounds_info: CharacterRoundsInfo::default(),
             class: Class::Standard,
             stats_in_game: StatsInGame::default(),
+            inventory: Inventory::default(),
         }
     }
 }
@@ -286,7 +289,7 @@ impl Character {
             .process_critical_strike(atk, self.stats.all_stats[CRITICAL_STRIKE].current as i64)
     }
 
-    pub fn apply_effect_outcome(
+    pub fn apply_processed_effect_param(
         &mut self,
         processed_ep: &ProcessedEffectParam,
         launcher_stats: &Stats,
@@ -437,12 +440,24 @@ impl Character {
         is_crit: bool,
         atk: &AttackType,
     ) -> Result<Vec<ProcessedEffectParam>> {
+        self.process_all_effects(game_state, is_crit, &atk.name, &atk.all_effects)
+    }
+
+    fn process_all_effects(
+        &mut self,
+        game_state: &GameState,
+        is_crit: bool,
+        action_name: &str,
+        all_effects: &[EffectParam],
+    ) -> Result<Vec<ProcessedEffectParam>> {
         let mut processed_effect_param_list: Vec<ProcessedEffectParam> = vec![];
-        for effect in atk.all_effects.clone() {
-            processed_effect_param_list.push(
-                self.character_rounds_info
-                    .process_one_effect(&effect, atk, game_state, is_crit)?,
-            );
+        for effect in all_effects {
+            processed_effect_param_list.push(self.character_rounds_info.process_one_effect(
+                effect,
+                action_name,
+                game_state,
+                is_crit,
+            )?);
         }
         Ok(processed_effect_param_list)
     }
@@ -498,7 +513,7 @@ impl Character {
 
         // check if the effect is applied on the target
         if self.character_rounds_info.is_effect_applied(&target_data) {
-            eo = Some(self.apply_effect_outcome(
+            eo = Some(self.apply_processed_effect_param(
                 processed_ep,
                 &launcher_info.stats,
                 is_crit,
@@ -656,6 +671,29 @@ impl Character {
 
     pub fn is_boss_atk(&self) -> bool {
         self.kind == CharacterKind::Boss
+    }
+
+    pub fn use_consumable(
+        &mut self,
+        consumable: Consumable,
+        game_state: &GameState,
+        launcher_stats: &Stats,
+    ) -> Result<Vec<EffectOutcome>> {
+        match self.process_all_effects(game_state, false, &consumable.name, &consumable.effects) {
+            Ok(all_processed_ep) => {
+                let mut all_eo: Vec<EffectOutcome> = vec![];
+                for processed_ep in all_processed_ep {
+                    all_eo.push(self.apply_processed_effect_param(
+                        &processed_ep,
+                        launcher_stats,
+                        false,
+                        game_state.current_turn_nb,
+                    ));
+                }
+                Ok(all_eo)
+            }
+            Err(e) => Err(e),
+        }
     }
 }
 
@@ -959,12 +997,11 @@ mod tests {
             target_kind: c.id_name.clone(),
             ..Default::default()
         };
-        let atk = Default::default();
         let mut game_state = Default::default();
         // target is himself
         let processed_effect_param = c
             .character_rounds_info
-            .process_one_effect(&ep, &atk, &game_state, false)
+            .process_one_effect(&ep, "", &game_state, false)
             .unwrap();
         assert_eq!(
             EFFECT_NB_COOL_DOWN,
@@ -991,7 +1028,7 @@ mod tests {
         ep.value = 10;
         let processed_effect_param = c
             .character_rounds_info
-            .process_one_effect(&ep, &atk, &game_state, true)
+            .process_one_effect(&ep, "", &game_state, true)
             .unwrap();
         assert_eq!(
             EFFECT_IMPROVE_MAX_STAT_BY_VALUE,
@@ -1020,7 +1057,7 @@ mod tests {
         ep.value = 0;
         let processed_effect_param = c
             .character_rounds_info
-            .process_one_effect(&ep, &atk, &game_state, false)
+            .process_one_effect(&ep, "", &game_state, false)
             .unwrap();
         // focus on effect_type
         assert_eq!(
@@ -1158,7 +1195,7 @@ mod tests {
         let mut processed_ep = build_cooldown_effect();
         let launcher_stats = c.stats.clone();
         // target is himself
-        let eo = c.apply_effect_outcome(&processed_ep, &launcher_stats, false, 0);
+        let eo = c.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
         assert_eq!(
             eo,
             EffectOutcome {
@@ -1170,7 +1207,7 @@ mod tests {
         // target is other ally
         processed_ep = build_hot_effect_individual();
         let old_hp = c2.stats.all_stats[HP].current;
-        let eo = c2.apply_effect_outcome(&processed_ep, &launcher_stats, false, 0);
+        let eo = c2.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, 20);
         assert_eq!(eo.real_hp_amount_tx, 20);
         assert_eq!(eo.processed_effect_param.input_effect_param.value, 20);
@@ -1198,7 +1235,7 @@ mod tests {
         .unwrap();
         processed_ep = build_dmg_effect_individual();
         let old_hp = boss1.stats.all_stats[HP].current;
-        let eo = boss1.apply_effect_outcome(&processed_ep, &launcher_stats, false, 0);
+        let eo = boss1.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, -40);
         assert_eq!(eo.real_hp_amount_tx, -40);
         assert_eq!(eo.processed_effect_param.input_effect_param.value, -40);
@@ -1206,7 +1243,7 @@ mod tests {
 
         processed_ep = build_buf_effect_individual_speed_regen();
         let launcher_stats = c.stats.clone();
-        let eo = c.apply_effect_outcome(&processed_ep, &launcher_stats, false, 0);
+        let eo = c.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, 60);
         assert_eq!(eo.real_hp_amount_tx, 0);
         assert_eq!(
