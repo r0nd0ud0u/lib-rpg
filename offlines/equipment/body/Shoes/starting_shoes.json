@@ -1,7 +1,7 @@
 {
-    "Categorie": "Tattoes",
-    "Nom": "Sebor-3",
-    "Nom unique": "Sebor-3",
+    "Categorie": "Shoes",
+    "Nom": "starting shoes",
+    "Nom unique": "starting shoes",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -25,7 +25,7 @@
         },
         "Dodge": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "HP": {
             "equip_percent": 0,

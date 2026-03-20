@@ -12,16 +12,16 @@
             "equip_value": 0
         },
         "Berseck": {
-            "equip_percent": 30,
+            "equip_percent": 0,
             "equip_value": 0
         },
         "Berseck rate": {
             "equip_percent": 0,
-            "equip_value": 4
+            "equip_value": 0
         },
         "Critical strike": {
             "equip_percent": 0,
-            "equip_value": 5
+            "equip_value": 0
         },
         "Dodge": {
             "equip_percent": 0,

@@ -25,7 +25,7 @@
         },
         "Dodge": {
             "equip_percent": 0,
-            "equip_value": 5
+            "equip_value": 0
         },
         "HP": {
             "equip_percent": 0,
@@ -41,7 +41,7 @@
         },
         "Magical power": {
             "equip_percent": 0,
-            "equip_value": 80
+            "equip_value": 0
         },
         "Mana": {
             "equip_percent": 0,
@@ -53,7 +53,7 @@
         },
         "Physical armor": {
             "equip_percent": 0,
-            "equip_value": 100
+            "equip_value": 0
         },
         "Physical power": {
             "equip_percent": 0,

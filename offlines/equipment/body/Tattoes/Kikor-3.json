@@ -21,7 +21,7 @@
         },
         "Critical strike": {
             "equip_percent": 0,
-            "equip_value": 4
+            "equip_value": 0
         },
         "Dodge": {
             "equip_percent": 0,
@@ -41,7 +41,7 @@
         },
         "Magical power": {
             "equip_percent": 0,
-            "equip_value": 80
+            "equip_value": 0
         },
         "Mana": {
             "equip_percent": 0,

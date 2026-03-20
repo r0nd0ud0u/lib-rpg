@@ -21,11 +21,11 @@
         },
         "Critical strike": {
             "equip_percent": 0,
-            "equip_value": 8
+            "equip_value": 0
         },
         "Dodge": {
             "equip_percent": 0,
-            "equip_value": 4
+            "equip_value": 0
         },
         "HP": {
             "equip_percent": 0,

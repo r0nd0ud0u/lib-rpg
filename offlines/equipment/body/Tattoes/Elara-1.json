@@ -41,10 +41,10 @@
         },
         "Magical power": {
             "equip_percent": 0,
-            "equip_value": 160
+            "equip_value": 0
         },
         "Mana": {
-            "equip_percent": 15,
+            "equip_percent": 0,
             "equip_value": 0
         },
         "Mana regeneration": {
@@ -57,7 +57,7 @@
         },
         "Physical power": {
             "equip_percent": 0,
-            "equip_value": 80
+            "equip_value": 0
         },
         "Speed": {
             "equip_percent": 0,

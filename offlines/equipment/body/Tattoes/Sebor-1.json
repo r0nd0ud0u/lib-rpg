@@ -21,7 +21,7 @@
         },
         "Critical strike": {
             "equip_percent": 0,
-            "equip_value": 12
+            "equip_value": 0
         },
         "Dodge": {
             "equip_percent": 0,
@@ -57,7 +57,7 @@
         },
         "Physical power": {
             "equip_percent": 0,
-            "equip_value": 80
+            "equip_value": 0
         },
         "Speed": {
             "equip_percent": 0,

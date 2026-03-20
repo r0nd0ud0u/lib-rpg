@@ -17,7 +17,7 @@
         },
         "Berseck rate": {
             "equip_percent": 0,
-            "equip_value": 11
+            "equip_value": 0
         },
         "Critical strike": {
             "equip_percent": 0,
@@ -57,7 +57,7 @@
         },
         "Physical power": {
             "equip_percent": 0,
-            "equip_value": 80
+            "equip_value": 0
         },
         "Speed": {
             "equip_percent": 0,
@@ -65,7 +65,7 @@
         },
         "Speed regeneration": {
             "equip_percent": 0,
-            "equip_value": 6
+            "equip_value": 0
         },
         "Vigor": {
             "equip_percent": 0,
