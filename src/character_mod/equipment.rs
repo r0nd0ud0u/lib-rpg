@@ -22,6 +22,8 @@ pub struct Equipment {
     /// Stats of the equipment
     #[serde(rename = "Stats")]
     pub stats: Stats,
+    #[serde(rename = "Equipped")]
+    pub equipped: bool,
 }
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]

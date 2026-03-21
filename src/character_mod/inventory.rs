@@ -57,4 +57,20 @@ impl Inventory {
     pub fn contains_potion(&self, name: &str) -> bool {
         self.consumables.iter().any(|c| c.name == name)
     }
+
+    pub fn add_equipment(&mut self, equipment: &Equipment) {
+        self.equipments
+            .entry(equipment.category.to_string())
+            .or_default()
+            .push(equipment.clone());
+    }
+
+    pub fn get_equipped_equipment(&self) -> Vec<Equipment> {
+        self.equipments
+            .values()
+            .flatten()
+            .filter(|equipment| equipment.equipped)
+            .cloned()
+            .collect()
+    }
 }

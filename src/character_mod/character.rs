@@ -156,6 +156,7 @@ impl Character {
                         equipment_character_path.display()
                     );
                 };
+                // TODO equipment on should not be Vec<Equipment> but only in inventory? with boolean equiped true ? with a getter on equipped on ?
                 value.equipment_on = decoded_equipment
                     .into_iter()
                     .map(|(k, v)| {
@@ -169,7 +170,7 @@ impl Character {
                         };
 
                         // Lookup the Equipment structs
-                        let equipment_structs: Vec<Equipment> = equipment_names
+                        let mut equipment_structs: Vec<Equipment> = equipment_names
                             .into_iter()
                             .filter_map(|name| {
                                 equipment_table
@@ -190,19 +191,19 @@ impl Character {
                                     })
                             })
                             .collect();
-
+                        // add to inventory
+                        // equipment_structs is a table because of `EquipmentJsonValue::Multiple` (e.g. for tattoes)
+                        equipment_structs.iter_mut().for_each(|equipment_structs| {
+                            equipment_structs.equipped = true;
+                            value.inventory.add_equipment(equipment_structs);
+                        });
                         (key_string, equipment_structs)
                     })
                     .collect::<HashMap<String, Vec<Equipment>>>();
                 // apply equipment on stats
-                value.stats.apply_equipment_on_stats(
-                    &value
-                        .equipment_on
-                        .values()
-                        .flatten()
-                        .cloned()
-                        .collect::<Vec<Equipment>>(),
-                );
+                value
+                    .stats
+                    .apply_equipment_on_stats(&value.inventory.get_equipped_equipment());
             }
 
             Ok(value)
