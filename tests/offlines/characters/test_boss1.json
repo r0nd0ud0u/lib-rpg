@@ -208,19 +208,71 @@
     "nb-actions-in-round": 0,
     "inventory": {
         "equipments": {
-            "Amulet": ["starting amulet"],
-            "Belt": ["starting belt"],
-            "Cape": ["starting cape"],
-            "Chest": ["starting chest"],
-            "Gloves": ["starting gloves"],
-            "Head": ["starting head"],
-            "LeftRing": ["starting left ring"],
-            "RightRing": ["starting right ring"],
-            "Shoes": ["starting shoes"],
-            "LeftWeapon": ["starting left weapon"],
-            "RightWeapon": ["starting right weapon"],
-            "Pants": ["starting pants"],
-            "Tattoes": ["starting tattoo"]
+            "Amulet": [{
+                    "unique_name": "starting amulet",
+                    "is_equipped": true
+                }
+            ],
+            "Belt": [{
+                    "unique_name": "starting belt",
+                    "is_equipped": true
+                }
+            ],
+            "Cape": [{
+                    "unique_name": "starting cape",
+                    "is_equipped": true
+                }
+            ],
+            "Chest": [{
+                    "unique_name": "starting chest",
+                    "is_equipped": true
+                }
+            ],
+            "Gloves": [{
+                    "unique_name": "starting gloves",
+                    "is_equipped": true
+                }
+            ],
+            "Head": [{
+                    "unique_name": "starting head",
+                    "is_equipped": true
+                }
+            ],
+            "LeftRing": [{
+                    "unique_name": "starting left ring",
+                    "is_equipped": true
+                }
+            ],
+            "RightRing": [{
+                    "unique_name": "starting right ring",
+                    "is_equipped": true
+                }
+            ],
+            "Shoes": [{
+                    "unique_name": "starting shoes",
+                    "is_equipped": true
+                }
+            ],
+            "LeftWeapon": [{
+                    "unique_name": "starting left weapon",
+                    "is_equipped": true
+                }
+            ],
+            "RightWeapon": [{
+                    "unique_name": "starting right weapon",
+                    "is_equipped": true
+                }
+            ],
+            "Pants": [{
+                    "unique_name": "starting pants",
+                    "is_equipped": true
+                }
+            ],
+            "Tattoes": [{
+                    "unique_name": "starting tattoo",
+                    "is_equipped": true
+                }
+            ]
 
         },
         "consumables": [],

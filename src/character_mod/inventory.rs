@@ -10,9 +10,16 @@ use crate::character_mod::{
 #[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 #[serde(default)]
 pub struct Inventory {
-    pub equipments: HashMap<String, Vec<String>>, // key: equipment category, value: list of equipment unique name
+    pub equipments: HashMap<String, Vec<EquipmentInventory>>, // key: equipment category, value: list of equipment unique name
     pub consumables: Vec<Consumable>,
     pub money: u64,
+}
+
+#[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+#[serde(default)]
+pub struct EquipmentInventory {
+    pub unique_name: String,
+    pub is_equipped: bool,
 }
 
 #[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -60,16 +67,20 @@ impl Inventory {
         self.consumables.iter().any(|c| c.name == name)
     }
 
-    pub fn add_equipment(&mut self, equipment: &Equipment) {
+    pub fn add_equipment(&mut self, equipment: &Equipment, is_equipped: bool) {
         self.equipments
             .entry(equipment.category.to_string())
             .or_default()
-            .push(equipment.unique_name.clone());
+            .push(EquipmentInventory {
+                unique_name: equipment.unique_name.clone(),
+                is_equipped,
+            });
     }
 
-    pub fn get_equipped_equipment(
+    pub fn get_all_equipments(
         &self,
         all_equipments: &[Equipment],
+        is_equipped_filter: bool,
     ) -> HashMap<String, Vec<Equipment>> {
         let mut equipped_map: HashMap<String, Vec<Equipment>> = HashMap::new();
         for e in EquipmentJsonKey::iter() {
@@ -79,10 +90,11 @@ impl Inventory {
                 .map(|unique_names| {
                     unique_names
                         .iter()
-                        .filter_map(|unique_name| {
-                            all_equipments
-                                .iter()
-                                .find(|equipment| equipment.unique_name == *unique_name)
+                        .filter_map(|equipment_inventory| {
+                            all_equipments.iter().find(|equipment| {
+                                (!is_equipped_filter || equipment_inventory.is_equipped)
+                                    && equipment.unique_name == equipment_inventory.unique_name
+                            })
                         })
                         .cloned()
                         .collect::<Vec<Equipment>>()
@@ -93,9 +105,16 @@ impl Inventory {
         equipped_map
     }
 
+    pub fn get_equipped_equipments(
+        &self,
+        all_equipments: &[Equipment],
+    ) -> HashMap<String, Vec<Equipment>> {
+        self.get_all_equipments(all_equipments, true)
+    }
+
     pub fn remove_equipment(&mut self, equipment_unique_name: &str) {
         for equipments in self.equipments.values_mut() {
-            equipments.retain(|equipment| equipment != equipment_unique_name);
+            equipments.retain(|equipment| equipment.unique_name != equipment_unique_name);
         }
     }
 
@@ -104,17 +123,12 @@ impl Inventory {
         stat_name: &str,
         list_equipments: &[Equipment],
     ) -> (i64, i64) {
-        self.equipments
+        self.get_equipped_equipments(list_equipments)
             .values()
             .flatten()
             .cloned()
-            .collect::<Vec<String>>()
+            .collect::<Vec<Equipment>>()
             .iter()
-            .filter_map(|inv_equipment_unique_name| {
-                list_equipments
-                    .iter()
-                    .find(|e| e.unique_name == *inv_equipment_unique_name)
-            })
             .map(|equipment| {
                 equipment
                     .stats
@@ -161,20 +175,33 @@ mod tests {
             unique_name: "sword_of_testing".to_owned(),
             category: EquipmentJsonKey::LeftWeapon,
             stats: crate::character_mod::stats::Stats::default(),
-            equipped: true,
         };
         let equipment2 = Equipment {
             name: "Shield of Testing".to_owned(),
             unique_name: "shield_of_testing".to_owned(),
             category: EquipmentJsonKey::Chest,
             stats: crate::character_mod::stats::Stats::default(),
-            equipped: false,
         };
-        inventory.add_equipment(&equipment1);
-        inventory.add_equipment(&equipment2);
-        let equipments = inventory.get_equipped_equipment(vec![equipment1.clone()].as_slice());
+        inventory.add_equipment(&equipment1, true);
+        inventory.add_equipment(&equipment2, false);
+        let equipments = inventory.get_all_equipments(vec![equipment1.clone(),equipment2.clone()].as_slice(), false);
         assert_eq!(equipments.len(), 13);
         equipments.iter().for_each(|(category, equipments)| {
+            if category == &EquipmentJsonKey::LeftWeapon.to_string() {
+                assert_eq!(equipments.len(), 1);
+                assert_eq!(equipments[0], equipment1);
+            } else if category == &EquipmentJsonKey::Chest.to_string() {
+                assert_eq!(equipments.len(), 1);
+                assert_eq!(equipments[0], equipment2);
+            } else {
+                assert!(equipments.is_empty());
+            }
+        });
+
+        // test get equipped equipments
+        let equipped_equipments = inventory.get_equipped_equipments(vec![equipment1.clone(), equipment2.clone()].as_slice());
+        assert_eq!(equipped_equipments.len(), 13);
+        equipped_equipments.iter().for_each(|(category, equipments)| {
             if category == &EquipmentJsonKey::LeftWeapon.to_string() {
                 assert_eq!(equipments.len(), 1);
                 assert_eq!(equipments[0], equipment1);
@@ -184,7 +211,7 @@ mod tests {
         });
 
         inventory.remove_equipment("sword_of_testing");
-        let equipments = inventory.get_equipped_equipment(vec![equipment1.clone()].as_slice());
+        let equipments = inventory.get_all_equipments(vec![equipment1.clone()].as_slice(), false);
         assert_eq!(equipments.len(), 13);
         equipments.iter().for_each(|(_category, equipments)| {
             assert!(equipments.is_empty());
@@ -199,7 +226,6 @@ mod tests {
             unique_name: "helmet_of_testing".to_owned(),
             category: EquipmentJsonKey::Head,
             stats: crate::character_mod::stats::Stats::default(),
-            equipped: true,
         };
         equipment1.stats.all_stats.insert(
             HP.to_owned(),
@@ -214,7 +240,6 @@ mod tests {
             unique_name: "armor_of_testing".to_owned(),
             category: EquipmentJsonKey::Chest,
             stats: crate::character_mod::stats::Stats::default(),
-            equipped: true,
         };
         equipment2.stats.all_stats.insert(
             HP.to_owned(),
@@ -224,8 +249,8 @@ mod tests {
                 ..Default::default()
             },
         );
-        inventory.add_equipment(&equipment1);
-        inventory.add_equipment(&equipment2);
+        inventory.add_equipment(&equipment1, true);
+        inventory.add_equipment(&equipment2, true);
         assert_eq!(
             inventory
                 .sum_all_equipped_equipment_stat(HP, &vec![equipment1.clone(), equipment2.clone()]),

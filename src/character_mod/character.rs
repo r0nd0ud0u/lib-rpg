@@ -139,13 +139,14 @@ impl Character {
                     Err(e) => bail!("Files cannot be listed in {:#?}: {}", attack_path_dir, e),
                 };
                 let equipment_on: HashMap<String, Vec<Equipment>> =
-                    value.inventory.get_equipped_equipment(
+                    value.inventory.get_all_equipments(
                         all_equipments
                             .values()
                             .flatten()
                             .cloned()
                             .collect::<Vec<Equipment>>()
                             .as_slice(),
+                        true,
                     );
                 // equipment loading
                 // apply equipment on stats
@@ -789,13 +790,14 @@ mod tests {
         assert_eq!(
             13,
             c.inventory
-                .get_equipped_equipment(
+                .get_all_equipments(
                     equipment
                         .values()
                         .flatten()
                         .cloned()
                         .collect::<Vec<Equipment>>()
-                        .as_slice()
+                        .as_slice(),
+                    true
                 )
                 .len()
         );
