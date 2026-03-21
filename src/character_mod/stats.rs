@@ -522,8 +522,8 @@ mod tests {
         assert_eq!(135, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
         c.stats.set_stats_on_effect(DODGE, 20, false, true);
-        assert_eq!(25, c.stats.all_stats[DODGE].max);
-        assert_eq!(5, c.stats.all_stats[DODGE].current);
+        assert_eq!(45, c.stats.all_stats[DODGE].max);
+        assert_eq!(25, c.stats.all_stats[DODGE].current);
     }
 
     #[test]

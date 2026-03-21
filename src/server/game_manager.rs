@@ -662,13 +662,12 @@ mod tests {
             .all_stats[DODGE]
             .current = 0;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        let old_hp_boss = gm
+        let old_boss = gm
             .pm
             .get_active_boss_character(&target_id_name)
             .unwrap()
-            .stats
-            .all_stats[HP]
-            .current;
+            .clone();
+        let old_hp_boss = old_boss.stats.all_stats[HP].current;
         let old_vigor_hero = gm.pm.current_player.stats.all_stats[VIGOR].current;
 
         // test normal atk
@@ -686,8 +685,19 @@ mod tests {
         // not dead boss : end of game
         assert!(gm.game_state.status != GameStatus::EndOfGame);
         // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
+        let old_hero_sum_phy_power = gm
+            .pm
+            .current_player
+            .inventory
+            .sum_all_equipped_equipment_stat(PHYSICAL_POWER);
+        let old_boss_sum_phy_armor = old_boss
+            .inventory
+            .sum_all_equipped_equipment_stat(PHYSICAL_ARMOR);
+        let dmg = (45 + old_hero_sum_phy_power.0) as f64;
+        let protection = 1000.0 / (1000.0 + old_boss_sum_phy_armor.0 as f64);
+        let atk_amount = dmg * protection;
         assert_eq!(
-            old_hp_boss - 45,
+            std::cmp::max(0, old_hp_boss as i64 - atk_amount as i64) as u64,
             gm.pm
                 .get_active_boss_character(&target_id_name)
                 .unwrap()
@@ -773,13 +783,12 @@ mod tests {
             .all_stats[DODGE]
             .current = 0;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 100;
-        let old_hp_boss = gm
+        let old_boss = gm
             .pm
             .get_active_boss_character(&target_id_name)
             .unwrap()
-            .stats
-            .all_stats[HP]
-            .current;
+            .clone();
+        let old_hp_boss = old_boss.stats.all_stats[HP].current;
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
@@ -791,8 +800,19 @@ mod tests {
         assert!(gm.game_state.status != GameStatus::EndOfGame); // still one boss
         // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
         // at least coeff critical strike = 2.0 (-45 * 2.0 = -90)
+        let old_hero_sum_phy_power = gm
+            .pm
+            .current_player
+            .inventory
+            .sum_all_equipped_equipment_stat(PHYSICAL_POWER);
+        let old_boss_sum_phy_armor = old_boss
+            .inventory
+            .sum_all_equipped_equipment_stat(PHYSICAL_ARMOR);
+        let dmg = (45 + old_hero_sum_phy_power.0) as f64;
+        let protection = 1000.0 / (1000.0 + old_boss_sum_phy_armor.0 as f64);
+        let atk_amount = dmg * COEFF_CRIT_DMG * protection;
         assert_eq!(
-            old_hp_boss - 90,
+            std::cmp::max(0, old_hp_boss as i64 - atk_amount as i64) as u64,
             gm.pm
                 .get_active_boss_character(&target_id_name)
                 .unwrap()
@@ -831,14 +851,21 @@ mod tests {
             .unwrap()
             .class = Class::Berserker;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        let old_hp_boss = gm
+        let old_boss = gm
             .pm
             .get_active_boss_character(&target_id_name)
             .unwrap()
-            .stats
-            .all_stats[HP]
-            .current;
+            .clone();
+        let old_hp_boss = old_boss.stats.all_stats[HP].current;
         let old_vigor_hero = gm.pm.current_player.stats.all_stats[MANA].current;
+        let old_hero_sum_phy_power = gm
+            .pm
+            .current_player
+            .inventory
+            .sum_all_equipped_equipment_stat(PHYSICAL_POWER);
+        let old_boss_sum_phy_armor = old_boss
+            .inventory
+            .sum_all_equipped_equipment_stat(PHYSICAL_ARMOR);
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
@@ -849,8 +876,11 @@ mod tests {
         assert!(gm.game_state.status != GameStatus::EndOfGame);
         // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
         // blocking 10% of the damage is received (10% of 45)
+        let dmg = (45 + old_hero_sum_phy_power.0) as f64;
+        let protection = 1000.0 / (1000.0 + old_boss_sum_phy_armor.0 as f64);
+        let blocking = dmg * protection * 10.0 / 100.0;
         assert_eq!(
-            old_hp_boss - 4,
+            old_hp_boss - blocking as u64,
             gm.pm
                 .get_active_boss_character(&target_id_name)
                 .unwrap()
@@ -904,9 +934,9 @@ mod tests {
                 .all_stats[HP]
                 .current
         );
-        // -10%, mana max = 200
+        // -10% of mana max (see effect param of the atk)
         assert_eq!(
-            old_mana_launcher - 20,
+            old_mana_launcher - (0.1 * old_mana_launcher as f64) as u64,
             gm.pm
                 .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
@@ -988,7 +1018,7 @@ mod tests {
         );
         // -18%, mana max = 200
         assert_eq!(
-            old_mana_launcher - 36,
+            old_mana_launcher - (0.18 * old_mana_launcher as f64) as u64,
             gm.pm
                 .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
@@ -1000,7 +1030,7 @@ mod tests {
         // "up-max-stat-by-percentage" 15
         // +15%, mag power max = 20
         assert_eq!(
-            old_mag_pow_test2 + 3,
+            old_mag_pow_test2 + (0.15 * old_mag_pow_test2 as f64) as u64,
             gm.pm
                 .get_active_hero_character("test2_#1")
                 .unwrap()
@@ -1009,7 +1039,7 @@ mod tests {
                 .max
         );
         assert_eq!(
-            old_mag_pow_test + 3,
+            old_mag_pow_test + (0.15 * old_mag_pow_test as f64) as u64,
             gm.pm
                 .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
@@ -1021,7 +1051,7 @@ mod tests {
         // "up-max-stat-by-percentage" 15
         // +15%, phy power max = 10
         assert_eq!(
-            old_phy_pow_test2 + 1,
+            old_phy_pow_test2 + (0.15 * old_phy_pow_test2 as f64) as u64,
             gm.pm
                 .get_active_hero_character("test2_#1")
                 .unwrap()
@@ -1030,7 +1060,7 @@ mod tests {
                 .max
         );
         assert_eq!(
-            old_phy_pow_test + 1,
+            old_phy_pow_test + (0.15 * old_phy_pow_test as f64) as u64,
             gm.pm
                 .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
@@ -1136,13 +1166,20 @@ mod tests {
         let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
 
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        let old_berserk = gm
+        let old_berserk_current = gm
             .pm
             .get_mut_active_character(&hero_launcher_id_name)
             .unwrap()
             .stats
             .all_stats[BERSERK]
             .current;
+        let old_berserk_max = gm
+            .pm
+            .get_mut_active_character(&hero_launcher_id_name)
+            .unwrap()
+            .stats
+            .all_stats[BERSERK]
+            .max;
         let result = gm.launch_attack(Some("change-current-stat-by-value-berseck"));
         let new_berserk = gm
             .pm
@@ -1152,8 +1189,11 @@ mod tests {
             .all_stats[BERSERK]
             .current;
         assert_eq!(result.outcomes.len(), 1); // target himself
-        // cost: -5% of 200 = -10, effect value +20 => +10
-        assert_eq!(new_berserk, old_berserk + 10);
+        // cost: -5% of berseck max, effect value +20
+        assert_eq!(
+            new_berserk,
+            old_berserk_current - (5 * old_berserk_max / 100) + 20
+        );
     }
 
     #[test]
