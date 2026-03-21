@@ -112,6 +112,17 @@ impl Inventory {
         self.get_all_equipments(all_equipments, true)
     }
 
+    pub fn get_equipment_by_name(
+        &self,
+        unique_name: &str,
+        all_equipments: &[Equipment],
+    ) -> Option<Equipment> {
+        all_equipments
+            .iter()
+            .find(|equipment| equipment.unique_name == unique_name)
+            .cloned()
+    }
+
     pub fn remove_equipment(&mut self, equipment_unique_name: &str) {
         for equipments in self.equipments.values_mut() {
             equipments.retain(|equipment| equipment.unique_name != equipment_unique_name);
@@ -292,5 +303,24 @@ mod tests {
                 ),
             (30, 0)
         );
+    }
+
+    #[test]
+    fn unit_get_equipment_by_name() {
+        let mut inventory = Inventory::default();
+        let equipment1 = Equipment {
+            name: "Amulet of Testing".to_owned(),
+            unique_name: "Amulet".to_owned(),
+            category: EquipmentJsonKey::Amulet,
+            stats: crate::character_mod::stats::Stats::default(),
+        };
+        inventory.add_equipment(&equipment1, true);
+        let all_equipments = vec![equipment1.clone()];
+        let found_equipment = inventory.get_equipment_by_name("Amulet", &all_equipments);
+        assert!(found_equipment.is_some());
+        assert_eq!(found_equipment.unwrap(), equipment1);
+
+        let found_equipment = inventory.get_equipment_by_name("NonExisting", &all_equipments);
+        assert!(found_equipment.is_none());
     }
 }
