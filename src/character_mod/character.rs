@@ -138,17 +138,24 @@ impl Character {
                     }),
                     Err(e) => bail!("Files cannot be listed in {:#?}: {}", attack_path_dir, e),
                 };
-                let equipment_on: Vec<Equipment> = value.inventory.get_equipped_equipment(
-                    all_equipments
+                let equipment_on: HashMap<String, Vec<Equipment>> =
+                    value.inventory.get_equipped_equipment(
+                        all_equipments
+                            .values()
+                            .flatten()
+                            .cloned()
+                            .collect::<Vec<Equipment>>()
+                            .as_slice(),
+                    );
+                // equipment loading
+                // apply equipment on stats
+                value.stats.apply_equipment_on_stats(
+                    &equipment_on
                         .values()
                         .flatten()
                         .cloned()
-                        .collect::<Vec<Equipment>>()
-                        .as_slice(),
+                        .collect::<Vec<Equipment>>(),
                 );
-                // equipment loading
-                // apply equipment on stats
-                value.stats.apply_equipment_on_stats(&equipment_on);
             }
 
             Ok(value)

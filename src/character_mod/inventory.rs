@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
+use strum::IntoEnumIterator;
+
 use crate::character_mod::{
     effect::{EffectParam, build_hp_effect},
-    equipment::Equipment,
+    equipment::{Equipment, EquipmentJsonKey},
 };
 
 #[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -65,17 +67,30 @@ impl Inventory {
             .push(equipment.unique_name.clone());
     }
 
-    pub fn get_equipped_equipment_unique_name(&self) -> Vec<String> {
-        self.equipments.values().flatten().cloned().collect()
-    }
-
-    pub fn get_equipped_equipment(&self, all_equipments: &[Equipment]) -> Vec<Equipment> {
-        let equipped_unique_names = self.get_equipped_equipment_unique_name();
-        all_equipments
-            .iter()
-            .filter(|e| equipped_unique_names.contains(&e.unique_name))
-            .cloned()
-            .collect()
+    pub fn get_equipped_equipment(
+        &self,
+        all_equipments: &[Equipment],
+    ) -> HashMap<String, Vec<Equipment>> {
+        let mut equipped_map: HashMap<String, Vec<Equipment>> = HashMap::new();
+        for e in EquipmentJsonKey::iter() {
+            let equipped_equipments = self
+                .equipments
+                .get(&e.to_string())
+                .map(|unique_names| {
+                    unique_names
+                        .iter()
+                        .filter_map(|unique_name| {
+                            all_equipments
+                                .iter()
+                                .find(|equipment| equipment.unique_name == *unique_name)
+                        })
+                        .cloned()
+                        .collect::<Vec<Equipment>>()
+                })
+                .unwrap_or_default();
+            equipped_map.insert(e.to_string(), equipped_equipments);
+        }
+        equipped_map
     }
 
     pub fn remove_equipment(&mut self, equipment_unique_name: &str) {
@@ -87,12 +102,16 @@ impl Inventory {
     pub fn sum_all_equipped_equipment_stat(
         &self,
         stat_name: &str,
-        equipments: &[Equipment],
+        list_equipments: &[Equipment],
     ) -> (i64, i64) {
-        self.get_equipped_equipment_unique_name()
+        self.equipments
+            .values()
+            .flatten()
+            .cloned()
+            .collect::<Vec<String>>()
             .iter()
             .filter_map(|inv_equipment_unique_name| {
-                equipments
+                list_equipments
                     .iter()
                     .find(|e| e.unique_name == *inv_equipment_unique_name)
             })
