@@ -532,6 +532,7 @@ impl GameManager {
 mod tests {
     use crate::character_mod::character::CharacterKind;
     use crate::character_mod::class::Class;
+    use crate::character_mod::equipment::Equipment;
     use crate::common::constants::attak_const::COEFF_CRIT_DMG;
     use crate::common::constants::effect_const::EFFECT_NB_COOL_DOWN;
     use crate::common::log_data::const_colors::DARK_RED;
@@ -689,10 +690,24 @@ mod tests {
             .pm
             .current_player
             .inventory
-            .sum_all_equipped_equipment_stat(PHYSICAL_POWER);
-        let old_boss_sum_phy_armor = old_boss
-            .inventory
-            .sum_all_equipped_equipment_stat(PHYSICAL_ARMOR);
+            .sum_all_equipped_equipment_stat(
+                PHYSICAL_POWER,
+                &gm.pm
+                    .equipment_table
+                    .values()
+                    .flatten()
+                    .cloned()
+                    .collect::<Vec<Equipment>>(),
+            );
+        let old_boss_sum_phy_armor = old_boss.inventory.sum_all_equipped_equipment_stat(
+            PHYSICAL_ARMOR,
+            &gm.pm
+                .equipment_table
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
         let dmg = (45 + old_hero_sum_phy_power.0) as f64;
         let protection = 1000.0 / (1000.0 + old_boss_sum_phy_armor.0 as f64);
         let atk_amount = dmg * protection;
@@ -804,10 +819,24 @@ mod tests {
             .pm
             .current_player
             .inventory
-            .sum_all_equipped_equipment_stat(PHYSICAL_POWER);
-        let old_boss_sum_phy_armor = old_boss
-            .inventory
-            .sum_all_equipped_equipment_stat(PHYSICAL_ARMOR);
+            .sum_all_equipped_equipment_stat(
+                PHYSICAL_POWER,
+                &gm.pm
+                    .equipment_table
+                    .values()
+                    .flatten()
+                    .cloned()
+                    .collect::<Vec<Equipment>>(),
+            );
+        let old_boss_sum_phy_armor = old_boss.inventory.sum_all_equipped_equipment_stat(
+            PHYSICAL_ARMOR,
+            &gm.pm
+                .equipment_table
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
         let dmg = (45 + old_hero_sum_phy_power.0) as f64;
         let protection = 1000.0 / (1000.0 + old_boss_sum_phy_armor.0 as f64);
         let atk_amount = dmg * COEFF_CRIT_DMG * protection;
@@ -862,10 +891,24 @@ mod tests {
             .pm
             .current_player
             .inventory
-            .sum_all_equipped_equipment_stat(PHYSICAL_POWER);
-        let old_boss_sum_phy_armor = old_boss
-            .inventory
-            .sum_all_equipped_equipment_stat(PHYSICAL_ARMOR);
+            .sum_all_equipped_equipment_stat(
+                PHYSICAL_POWER,
+                &gm.pm
+                    .equipment_table
+                    .values()
+                    .flatten()
+                    .cloned()
+                    .collect::<Vec<Equipment>>(),
+            );
+        let old_boss_sum_phy_armor = old_boss.inventory.sum_all_equipped_equipment_stat(
+            PHYSICAL_ARMOR,
+            &gm.pm
+                .equipment_table
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()

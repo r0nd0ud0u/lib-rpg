@@ -8,7 +8,7 @@ use crate::character_mod::{
 #[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 #[serde(default)]
 pub struct Inventory {
-    pub equipments: HashMap<String, Vec<Equipment>>,
+    pub equipments: HashMap<String, Vec<String>>, // key: equipment category, value: list of equipment unique name
     pub consumables: Vec<Consumable>,
     pub money: u64,
 }
@@ -62,27 +62,31 @@ impl Inventory {
         self.equipments
             .entry(equipment.category.to_string())
             .or_default()
-            .push(equipment.clone());
+            .push(equipment.unique_name.clone());
     }
 
-    pub fn get_equipped_equipment(&self) -> Vec<Equipment> {
-        self.equipments
-            .values()
-            .flatten()
-            .filter(|equipment| equipment.equipped)
-            .cloned()
-            .collect()
+    pub fn get_equipped_equipment(&self) -> Vec<String> {
+        self.equipments.values().flatten().cloned().collect()
     }
 
-    pub fn remove_equipment(&mut self, equipment_name: &str) {
+    pub fn remove_equipment(&mut self, equipment_unique_name: &str) {
         for equipments in self.equipments.values_mut() {
-            equipments.retain(|equipment| equipment.unique_name != equipment_name);
+            equipments.retain(|equipment| equipment != equipment_unique_name);
         }
     }
 
-    pub fn sum_all_equipped_equipment_stat(&self, stat_name: &str) -> (i64, i64) {
+    pub fn sum_all_equipped_equipment_stat(
+        &self,
+        stat_name: &str,
+        equipments: &[Equipment],
+    ) -> (i64, i64) {
         self.get_equipped_equipment()
             .iter()
+            .filter_map(|inv_equipment_unique_name| {
+                equipments
+                    .iter()
+                    .find(|e| e.unique_name == *inv_equipment_unique_name)
+            })
             .map(|equipment| {
                 equipment
                     .stats
@@ -141,10 +145,7 @@ mod tests {
         inventory.add_equipment(&equipment1);
         inventory.add_equipment(&equipment2);
         assert_eq!(inventory.get_equipped_equipment().len(), 1);
-        assert_eq!(
-            inventory.get_equipped_equipment()[0].name,
-            "Sword of Testing"
-        );
+        assert_eq!(inventory.get_equipped_equipment()[0], "sword_of_testing");
 
         inventory.remove_equipment("sword_of_testing");
         assert!(inventory.get_equipped_equipment().is_empty());
@@ -185,19 +186,39 @@ mod tests {
         );
         inventory.add_equipment(&equipment1);
         inventory.add_equipment(&equipment2);
-        assert_eq!(inventory.sum_all_equipped_equipment_stat(HP), (30, 30));
+        assert_eq!(
+            inventory
+                .sum_all_equipped_equipment_stat(HP, &vec![equipment1.clone(), equipment2.clone()]),
+            (30, 30)
+        );
 
         // test with character
         let (gm, _hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
         gm.pm
             .current_player
             .inventory
-            .sum_all_equipped_equipment_stat(PHYSICAL_POWER);
+            .sum_all_equipped_equipment_stat(
+                PHYSICAL_POWER,
+                &gm.pm
+                    .equipment_table
+                    .values()
+                    .flatten()
+                    .cloned()
+                    .collect::<Vec<Equipment>>(),
+            );
         assert_eq!(
             gm.pm
                 .current_player
                 .inventory
-                .sum_all_equipped_equipment_stat(PHYSICAL_POWER),
+                .sum_all_equipped_equipment_stat(
+                    PHYSICAL_POWER,
+                    &gm.pm
+                        .equipment_table
+                        .values()
+                        .flatten()
+                        .cloned()
+                        .collect::<Vec<Equipment>>()
+                ),
             (30, 0)
         );
     }

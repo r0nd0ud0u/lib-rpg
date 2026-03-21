@@ -110,7 +110,7 @@ impl Character {
         path: P1,
         root_path: P2,
         load_from_saved_game: bool,
-        equipment_table: &HashMap<EquipmentJsonKey, Vec<Equipment>>,
+        all_equipments: &HashMap<EquipmentJsonKey, Vec<Equipment>>,
     ) -> Result<Character> {
         if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
             // init stats
@@ -138,11 +138,21 @@ impl Character {
                     }),
                     Err(e) => bail!("Files cannot be listed in {:#?}: {}", attack_path_dir, e),
                 };
+                let equipment_on: Vec<Equipment> = value
+                    .inventory
+                    .get_equipped_equipment()
+                    .iter()
+                    .filter_map(|equipment_unique_name| {
+                        all_equipments
+                            .values()
+                            .flatten()
+                            .find(|equipment| equipment.unique_name == *equipment_unique_name)
+                    })
+                    .cloned()
+                    .collect();
                 // equipment loading
                 // apply equipment on stats
-                value
-                    .stats
-                    .apply_equipment_on_stats(&value.inventory.get_equipped_equipment());
+                value.stats.apply_equipment_on_stats(&equipment_on);
             }
 
             Ok(value)
