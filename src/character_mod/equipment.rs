@@ -101,6 +101,21 @@ impl fmt::Display for EquipmentJsonKey {
     }
 }
 
+impl PartialOrd for EquipmentJsonKey {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for EquipmentJsonKey {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        // Compare les noms des variantes sous forme de chaînes de caractères
+        let self_str = self.to_string(); // "Weapon", "Armor", etc.
+        let other_str = other.to_string();
+        self_str.cmp(&other_str)
+    }
+}
+
 impl Equipment {
     pub fn try_new_from_json<P: AsRef<Path>>(path: P) -> Result<Equipment> {
         if let Ok(mut value) = utils::read_from_json::<_, Equipment>(&path) {

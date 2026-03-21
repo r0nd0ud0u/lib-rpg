@@ -184,7 +184,10 @@ mod tests {
         };
         inventory.add_equipment(&equipment1, true);
         inventory.add_equipment(&equipment2, false);
-        let equipments = inventory.get_all_equipments(vec![equipment1.clone(),equipment2.clone()].as_slice(), false);
+        let equipments = inventory.get_all_equipments(
+            vec![equipment1.clone(), equipment2.clone()].as_slice(),
+            false,
+        );
         assert_eq!(equipments.len(), 13);
         equipments.iter().for_each(|(category, equipments)| {
             if category == &EquipmentJsonKey::LeftWeapon.to_string() {
@@ -199,16 +202,19 @@ mod tests {
         });
 
         // test get equipped equipments
-        let equipped_equipments = inventory.get_equipped_equipments(vec![equipment1.clone(), equipment2.clone()].as_slice());
+        let equipped_equipments = inventory
+            .get_equipped_equipments(vec![equipment1.clone(), equipment2.clone()].as_slice());
         assert_eq!(equipped_equipments.len(), 13);
-        equipped_equipments.iter().for_each(|(category, equipments)| {
-            if category == &EquipmentJsonKey::LeftWeapon.to_string() {
-                assert_eq!(equipments.len(), 1);
-                assert_eq!(equipments[0], equipment1);
-            } else {
-                assert!(equipments.is_empty());
-            }
-        });
+        equipped_equipments
+            .iter()
+            .for_each(|(category, equipments)| {
+                if category == &EquipmentJsonKey::LeftWeapon.to_string() {
+                    assert_eq!(equipments.len(), 1);
+                    assert_eq!(equipments[0], equipment1);
+                } else {
+                    assert!(equipments.is_empty());
+                }
+            });
 
         inventory.remove_equipment("sword_of_testing");
         let equipments = inventory.get_all_equipments(vec![equipment1.clone()].as_slice(), false);
