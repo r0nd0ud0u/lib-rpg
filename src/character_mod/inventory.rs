@@ -65,8 +65,17 @@ impl Inventory {
             .push(equipment.unique_name.clone());
     }
 
-    pub fn get_equipped_equipment(&self) -> Vec<String> {
+    pub fn get_equipped_equipment_unique_name(&self) -> Vec<String> {
         self.equipments.values().flatten().cloned().collect()
+    }
+
+    pub fn get_equipped_equipment(&self, all_equipments: &[Equipment]) -> Vec<Equipment> {
+        let equipped_unique_names = self.get_equipped_equipment_unique_name();
+        all_equipments
+            .iter()
+            .filter(|e| equipped_unique_names.contains(&e.unique_name))
+            .cloned()
+            .collect()
     }
 
     pub fn remove_equipment(&mut self, equipment_unique_name: &str) {
@@ -80,7 +89,7 @@ impl Inventory {
         stat_name: &str,
         equipments: &[Equipment],
     ) -> (i64, i64) {
-        self.get_equipped_equipment()
+        self.get_equipped_equipment_unique_name()
             .iter()
             .filter_map(|inv_equipment_unique_name| {
                 equipments
@@ -144,11 +153,14 @@ mod tests {
         };
         inventory.add_equipment(&equipment1);
         inventory.add_equipment(&equipment2);
-        assert_eq!(inventory.get_equipped_equipment().len(), 1);
-        assert_eq!(inventory.get_equipped_equipment()[0], "sword_of_testing");
+        assert_eq!(inventory.get_equipped_equipment_unique_name().len(), 1);
+        assert_eq!(
+            inventory.get_equipped_equipment_unique_name()[0],
+            "sword_of_testing"
+        );
 
         inventory.remove_equipment("sword_of_testing");
-        assert!(inventory.get_equipped_equipment().is_empty());
+        assert!(inventory.get_equipped_equipment_unique_name().is_empty());
     }
 
     #[test]

@@ -138,18 +138,14 @@ impl Character {
                     }),
                     Err(e) => bail!("Files cannot be listed in {:#?}: {}", attack_path_dir, e),
                 };
-                let equipment_on: Vec<Equipment> = value
-                    .inventory
-                    .get_equipped_equipment()
-                    .iter()
-                    .filter_map(|equipment_unique_name| {
-                        all_equipments
-                            .values()
-                            .flatten()
-                            .find(|equipment| equipment.unique_name == *equipment_unique_name)
-                    })
-                    .cloned()
-                    .collect();
+                let equipment_on: Vec<Equipment> = value.inventory.get_equipped_equipment(
+                    all_equipments
+                        .values()
+                        .flatten()
+                        .cloned()
+                        .collect::<Vec<Equipment>>()
+                        .as_slice(),
+                );
                 // equipment loading
                 // apply equipment on stats
                 value.stats.apply_equipment_on_stats(&equipment_on);
@@ -783,7 +779,7 @@ mod tests {
         // atk
         assert_eq!(16, c.attacks_list.len());
         // equipment
-        assert_eq!(13, c.inventory.get_equipped_equipment().len());
+        assert_eq!(13, c.inventory.get_equipped_equipment_unique_name().len());
 
         let file_path = "./tests/offlines/characters/wrong.json";
         assert!(
