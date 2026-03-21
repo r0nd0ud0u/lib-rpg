@@ -521,9 +521,12 @@ mod tests {
         c.stats.all_stats[HP].max_raw = 0;
         assert_eq!(135, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
-        c.stats.set_stats_on_effect(DODGE, 20, false, true);
-        assert_eq!(45, c.stats.all_stats[DODGE].max);
-        assert_eq!(25, c.stats.all_stats[DODGE].current);
+        c.stats.set_stats_on_effect(DODGE, 0, false, true);
+        assert_eq!(29, c.stats.all_stats[DODGE].max);
+        assert_eq!(29, c.stats.all_stats[DODGE].current);
+        c.stats.set_stats_on_effect(DODGE, 10, false, true);
+        assert_eq!(39, c.stats.all_stats[DODGE].max);
+        assert_eq!(29, c.stats.all_stats[DODGE].current);
     }
 
     #[test]

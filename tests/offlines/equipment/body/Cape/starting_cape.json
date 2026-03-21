@@ -1,7 +1,7 @@
 {
-    "Categorie": "Shoes",
-    "Nom": "shoes",
-    "Nom unique": "shoes_unique",
+    "Categorie": "Cape",
+    "Nom": "starting cape",
+    "Nom unique": "starting cape",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -25,7 +25,7 @@
         },
         "Dodge": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "HP": {
             "equip_percent": 0,

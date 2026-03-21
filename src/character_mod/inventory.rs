@@ -172,14 +172,23 @@ mod tests {
         };
         inventory.add_equipment(&equipment1);
         inventory.add_equipment(&equipment2);
-        assert_eq!(inventory.get_equipped_equipment_unique_name().len(), 1);
-        assert_eq!(
-            inventory.get_equipped_equipment_unique_name()[0],
-            "sword_of_testing"
-        );
+        let equipments = inventory.get_equipped_equipment(vec![equipment1.clone()].as_slice());
+        assert_eq!(equipments.len(), 13);
+        equipments.iter().for_each(|(category, equipments)| {
+            if category == &EquipmentJsonKey::LeftWeapon.to_string() {
+                assert_eq!(equipments.len(), 1);
+                assert_eq!(equipments[0], equipment1);
+            } else {
+                assert!(equipments.is_empty());
+            }
+        });
 
         inventory.remove_equipment("sword_of_testing");
-        assert!(inventory.get_equipped_equipment_unique_name().is_empty());
+        let equipments = inventory.get_equipped_equipment(vec![equipment1.clone()].as_slice());
+        assert_eq!(equipments.len(), 13);
+        equipments.iter().for_each(|(_category, equipments)| {
+            assert!(equipments.is_empty());
+        });
     }
 
     #[test]

@@ -664,7 +664,7 @@ mod tests {
     use crate::character_mod::attack_type::AttackType;
     use crate::character_mod::character::AmountType;
     use crate::character_mod::effect::EffectOutcome;
-    use crate::character_mod::equipment::EquipmentJsonKey;
+    use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::testing::testing_all_characters::{self, testing_all_equipment, testing_character};
     use crate::{
@@ -737,8 +737,8 @@ mod tests {
         assert_eq!(10, c.stats.all_stats[CRITICAL_STRIKE].current);
         assert_eq!(10, c.stats.all_stats[CRITICAL_STRIKE].max);
         // stats - dodge
-        assert_eq!(25, c.stats.all_stats[DODGE].current);
-        assert_eq!(25, c.stats.all_stats[DODGE].max);
+        assert_eq!(29, c.stats.all_stats[DODGE].current);
+        assert_eq!(29, c.stats.all_stats[DODGE].max);
         // stats - hp
         assert_eq!(1, c.stats.all_stats[HP].current);
         assert_eq!(135, c.stats.all_stats[HP].max);
@@ -786,7 +786,19 @@ mod tests {
         // atk
         assert_eq!(16, c.attacks_list.len());
         // equipment
-        assert_eq!(13, c.inventory.get_equipped_equipment_unique_name().len());
+        assert_eq!(
+            13,
+            c.inventory
+                .get_equipped_equipment(
+                    equipment
+                        .values()
+                        .flatten()
+                        .cloned()
+                        .collect::<Vec<Equipment>>()
+                        .as_slice()
+                )
+                .len()
+        );
 
         let file_path = "./tests/offlines/characters/wrong.json";
         assert!(

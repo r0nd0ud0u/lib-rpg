@@ -1,7 +1,7 @@
 {
-    "Categorie": "Gloves",
-    "Nom": "gloves",
-    "Nom unique": "gloves_unique",
+    "Categorie": "RightWeapon",
+    "Nom": "starting right weapon",
+    "Nom unique": "starting right weapon",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -57,7 +57,7 @@
         },
         "Physical power": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "Speed": {
             "equip_percent": 0,

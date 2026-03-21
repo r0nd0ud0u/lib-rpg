@@ -1,7 +1,7 @@
 {
-    "Categorie": "Tattoes",
-    "Nom": "tattoo1",
-    "Nom unique": "tattoo1_unique",
+    "Categorie": "Belt",
+    "Nom": "starting belt",
+    "Nom unique": "starting belt",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -57,7 +57,7 @@
         },
         "Physical power": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "Speed": {
             "equip_percent": 0,

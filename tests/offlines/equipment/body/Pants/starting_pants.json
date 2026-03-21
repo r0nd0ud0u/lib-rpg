@@ -1,7 +1,7 @@
 {
-    "Categorie": "Amulet",
-    "Nom": "amulet",
-    "Nom unique": "amulet_unique",
+    "Categorie": "Pants",
+    "Nom": "starting pants",
+    "Nom unique": "starting pants",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -53,7 +53,7 @@
         },
         "Physical armor": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "Physical power": {
             "equip_percent": 0,
@@ -64,7 +64,7 @@
             "equip_value": 0
         },
         "Speed regeneration": {
-            "equip_percent": 10,
+            "equip_percent": 0,
             "equip_value": 0
         },
         "Vigor": {

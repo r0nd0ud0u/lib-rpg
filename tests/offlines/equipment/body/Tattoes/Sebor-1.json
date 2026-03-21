@@ -1,7 +1,7 @@
 {
-    "Categorie": "RightRing",
-    "Nom": "right_ring",
-    "Nom unique": "right_ring_unique",
+    "Categorie": "Tattoes",
+    "Nom": "Sebor-1",
+    "Nom unique": "Sebor-1",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -13,11 +13,11 @@
         },
         "Berseck": {
             "equip_percent": 0,
-            "equip_value": 10
+            "equip_value": 0
         },
         "Berseck rate": {
             "equip_percent": 0,
-            "equip_value": 4
+            "equip_value": 0
         },
         "Critical strike": {
             "equip_percent": 0,

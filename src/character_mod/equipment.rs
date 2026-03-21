@@ -128,20 +128,20 @@ mod tests {
 
     #[test]
     fn unit_try_new_from_json() {
-        let file_path = "./tests/offlines/equipment/body/RightRing/right_ring_unique.json"; // Path to the JSON file
+        let file_path = "./tests/offlines/equipment/body/RightRing/starting_right_ring.json"; // Path to the JSON file
         let equipment = Equipment::try_new_from_json(file_path);
         assert!(equipment.is_ok());
         let equipment = equipment.unwrap();
-        assert_eq!(equipment.name, "right_ring");
+        assert_eq!(equipment.name, "starting right ring");
         assert_eq!(equipment.category, EquipmentJsonKey::RightRing);
-        assert_eq!(equipment.unique_name, "right_ring_unique");
+        assert_eq!(equipment.unique_name, "starting right ring");
         // stats
         // stats - aggro
         assert_eq!(0, equipment.stats.all_stats[AGGRO].buf_equip_percent);
         assert_eq!(0, equipment.stats.all_stats[AGGRO].buf_equip_value);
         // berseck rate
-        assert_eq!(4, equipment.stats.all_stats[BERSECK_RATE].buf_equip_value);
-        assert_eq!(0, equipment.stats.all_stats[BERSECK_RATE].buf_equip_percent);
+        assert_eq!(10, equipment.stats.all_stats[VIGOR].buf_equip_value);
+        assert_eq!(0, equipment.stats.all_stats[VIGOR].buf_equip_percent);
 
         // wrong file
         let file_path = "./hehe.json"; // Path to the JSON file
