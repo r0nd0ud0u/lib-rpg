@@ -150,6 +150,20 @@ impl Inventory {
             })
             .fold((0, 0), |acc, x| (acc.0 + x.0, acc.1 + x.1))
     }
+
+    pub fn toggle_equipment(&mut self, equipment_unique_name: &str) {
+        if equipment_unique_name.is_empty() {
+            return;
+        }
+        for equipments in self.equipments.values_mut() {
+            for equipment in equipments.iter_mut() {
+                if equipment.unique_name == equipment_unique_name {
+                    equipment.is_equipped = !equipment.is_equipped;
+                    return;
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -322,5 +336,22 @@ mod tests {
 
         let found_equipment = inventory.get_equipment_by_name("NonExisting", &all_equipments);
         assert!(found_equipment.is_none());
+    }
+
+    #[test]
+    fn unit_toggle_equipment() {
+        let mut inventory = Inventory::default();
+        let equipment1 = Equipment {
+            name: "Boots of Testing".to_owned(),
+            unique_name: "Boots".to_owned(),
+            category: EquipmentJsonKey::Shoes,
+            stats: crate::character_mod::stats::Stats::default(),
+        };
+        inventory.add_equipment(&equipment1, false);
+        assert!(!inventory.equipments[&EquipmentJsonKey::Shoes.to_string()][0].is_equipped);
+        inventory.toggle_equipment("Boots");
+        assert!(inventory.equipments[&EquipmentJsonKey::Shoes.to_string()][0].is_equipped);
+        inventory.toggle_equipment("Boots");
+        assert!(!inventory.equipments[&EquipmentJsonKey::Shoes.to_string()][0].is_equipped);
     }
 }

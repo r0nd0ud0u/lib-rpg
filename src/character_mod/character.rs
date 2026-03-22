@@ -653,12 +653,62 @@ impl Character {
             Err(e) => Err(e),
         }
     }
+
+    pub fn toggle_equipment(
+        &mut self,
+        new_equipment_unique_name: Option<&str>,
+        previous_equipment_unique_name: Option<&str>,
+        all_equipments: &HashMap<EquipmentJsonKey, Vec<Equipment>>,
+    ) {
+        // downdate stats of previous equipment if exist
+        let equipment_off: HashMap<String, Vec<Equipment>> = self.inventory.get_all_equipments(
+            all_equipments
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>()
+                .as_slice(),
+            true,
+        );
+        self.stats.remove_equipment_on_stats(
+            &equipment_off
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+
+        // toggle equipment
+        if let Some(new_equipment) = new_equipment_unique_name {
+            self.inventory.toggle_equipment(new_equipment);
+        }
+        if let Some(previous_equipment) = previous_equipment_unique_name {
+            self.inventory.toggle_equipment(previous_equipment);
+        }
+
+        // update stats of new equipment
+        let equipment_on: HashMap<String, Vec<Equipment>> = self.inventory.get_all_equipments(
+            all_equipments
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>()
+                .as_slice(),
+            true,
+        );
+        self.stats.apply_equipment_on_stats(
+            &equipment_on
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-
     use strum::IntoEnumIterator;
 
     use super::Character;
@@ -1378,5 +1428,80 @@ mod tests {
 
         pl.current_player.apply_hot_or_dot(0, -30);
         assert_eq!(70, pl.current_player.stats.all_stats[HP].current);
+    }
+
+    #[test]
+    fn unit_toggle_equipment() {
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+
+        // eval mana max - 200 raw + 10 by starting amulet
+        assert_eq!(210, c.stats.all_stats[MANA].max);
+        assert_eq!(210, c.stats.all_stats[MANA].current);
+        assert_eq!(200, c.stats.all_stats[MANA].max_raw);
+        // toggle off the same equipment
+        let equip = c.inventory.get_equipped_equipments(
+            &testing_all_equipment()
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+        // eval that the starting amulet is equipped and gives 10 mana
+        assert!(
+            equip
+                .iter()
+                .any(|(_, equips)| equips.iter().any(|e| e.unique_name == "starting amulet"))
+        );
+        assert_eq!(10, c.stats.all_stats[MANA].buf_equip_value);
+        c.toggle_equipment(None, Some("starting amulet"), &testing_all_equipment());
+        // eval that the starting amulet is not equipped
+        let equip = c.inventory.get_equipped_equipments(
+            &testing_all_equipment()
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+        assert!(
+            equip
+                .iter()
+                .any(|(_, equips)| equips.iter().any(|e| e.unique_name != "starting amulet"))
+        );
+        // eval mana update
+        assert_eq!(0, c.stats.all_stats[MANA].buf_equip_value);
+        assert_eq!(
+            210 - 10, // ratio = 1 because mana-current = mana-max
+            c.stats.all_stats[MANA].current
+        );
+        assert_eq!(210 - 10, c.stats.all_stats[MANA].max);
+
+        // toggle on
+        c.toggle_equipment(Some("starting amulet"), None, &testing_all_equipment());
+        // eval that the starting amulet is equipped
+        let equip = c.inventory.get_equipped_equipments(
+            &testing_all_equipment()
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+        assert!(
+            equip
+                .iter()
+                .any(|(_, equips)| equips.iter().any(|e| e.unique_name == "starting amulet"))
+        );
+        // eval mana update
+        assert_eq!(10, c.stats.all_stats[MANA].buf_equip_value);
+        assert_eq!(
+            210, // ratio = 1 because mana-current = mana-max
+            c.stats.all_stats[MANA].current
+        );
+        assert_eq!(210, c.stats.all_stats[MANA].max);
     }
 }

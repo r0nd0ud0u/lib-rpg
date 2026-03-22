@@ -273,16 +273,22 @@ impl Stats {
         stat.current = (stat.max as f64 * ratio).round() as u64;
     }
 
-    pub fn apply_equipment_on_stats(&mut self, equipment_on: &Vec<Equipment>) {
-        for equipment in equipment_on {
+    pub fn update_equipment_on_stats(
+        &mut self,
+        equipment_list: &Vec<Equipment>,
+        is_equipping: bool,
+    ) {
+        let multiplier = if is_equipping { 1 } else { -1 };
+
+        for equipment in equipment_list {
             for (stat_name, stat_effect) in &equipment.stats.all_stats {
                 if stat_effect.buf_equip_percent == 0 && stat_effect.buf_equip_value == 0 {
                     continue;
                 }
 
                 let attr = self.get_mut_value(stat_name);
-                attr.buf_equip_value += stat_effect.buf_equip_value;
-                attr.buf_equip_percent += stat_effect.buf_equip_percent;
+                attr.buf_equip_value += multiplier * stat_effect.buf_equip_value;
+                attr.buf_equip_percent += multiplier * stat_effect.buf_equip_percent;
 
                 let ratio = utils::calc_ratio(attr.current as i64, attr.max as i64);
                 attr.max = attr.max_raw
@@ -292,6 +298,15 @@ impl Stats {
                 attr.current = (attr.max as f64 * ratio).round() as u64;
             }
         }
+    }
+
+    // Usage:
+    pub fn apply_equipment_on_stats(&mut self, equipment_on: &Vec<Equipment>) {
+        self.update_equipment_on_stats(equipment_on, true);
+    }
+
+    pub fn remove_equipment_on_stats(&mut self, equipment_off: &Vec<Equipment>) {
+        self.update_equipment_on_stats(equipment_off, false);
     }
 
     pub fn init_aggro_on_turn(&mut self, turn_nb: usize, all_aggro: &HashMap<u64, i64>) {

@@ -39,7 +39,7 @@ impl PlayersData {
     pub fn get_first_character_name(&self, player_name: &str) -> Option<String> {
         self.players_info
             .get(player_name)
-            .and_then(|info| info.character_names.first().cloned())
+            .and_then(|info| info.character_id_names.first().cloned())
     }
 }
 
@@ -57,7 +57,7 @@ impl ServerData {
 
 #[derive(Default, Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct PlayerInfo {
-    pub character_names: Vec<String>,
+    pub character_id_names: Vec<String>,
     pub player_ids: Vec<u32>,
 }
 
@@ -117,7 +117,7 @@ impl ServerManager {
                     .players_info
                     .entry(player_name.to_string())
                     .or_default()
-                    .character_names
+                    .character_id_names
                     .push(character_name.clone());
             }
         }
@@ -146,7 +146,9 @@ pub enum GamePhase {
     Ended,
 }
 
+#[cfg(test)]
 mod tests {
+    use crate::server::server_manager::{PlayerInfo, PlayersData};
 
     #[test]
     fn test_get_first_character_name() {
@@ -154,7 +156,7 @@ mod tests {
         players_data.players_info.insert(
             "player1".to_string(),
             PlayerInfo {
-                character_names: vec!["character1".to_string(), "character2".to_string()],
+                character_id_names: vec!["character1".to_string(), "character2".to_string()],
                 player_ids: vec![1, 2],
             },
         );
