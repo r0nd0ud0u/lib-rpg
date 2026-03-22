@@ -8,7 +8,8 @@ use crate::{
         attack_type::{AttackType, LauncherAtkInfo},
         class::Class,
         effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
-        equipment::{Equipment, EquipmentJsonKey, EquipmentJsonValue},
+        equipment::{Equipment, EquipmentJsonKey},
+        inventory::{Consumable, Inventory},
         powers::Powers,
         rounds_information::{AmountType, CharacterRoundsInfo},
         stats::Stats,
@@ -56,8 +57,6 @@ pub struct Character {
     /// Level of the character, start 1
     #[serde(rename = "Level")]
     pub level: u64,
-    /// key: body, value: equipmentName
-    pub equipment_on: HashMap<String, Vec<Equipment>>,
     /// key: attak name, value: AttakType struct
     pub attacks_list: IndexMap<String, AttackType>,
     /// Main color theme of the character
@@ -70,8 +69,9 @@ pub struct Character {
     #[serde(rename = "CharacterRoundsInfo")]
     pub character_rounds_info: CharacterRoundsInfo,
     /// stats_in_game
-    #[serde(default)]
     pub stats_in_game: StatsInGame,
+    /// Inventory
+    pub inventory: Inventory,
 }
 
 impl Default for Character {
@@ -83,7 +83,6 @@ impl Default for Character {
             photo_name: String::from("default"),
             stats: Stats::default(),
             kind: CharacterKind::Hero,
-            equipment_on: HashMap::new(),
             attacks_list: IndexMap::new(),
             level: 1,
             color_theme: "dark".to_owned(),
@@ -91,6 +90,7 @@ impl Default for Character {
             character_rounds_info: CharacterRoundsInfo::default(),
             class: Class::Standard,
             stats_in_game: StatsInGame::default(),
+            inventory: Inventory::default(),
         }
     }
 }
@@ -110,7 +110,7 @@ impl Character {
         path: P1,
         root_path: P2,
         load_from_saved_game: bool,
-        equipment_table: &HashMap<EquipmentJsonKey, Vec<Equipment>>,
+        all_equipments: &HashMap<EquipmentJsonKey, Vec<Equipment>>,
     ) -> Result<Character> {
         if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
             // init stats
@@ -138,63 +138,20 @@ impl Character {
                     }),
                     Err(e) => bail!("Files cannot be listed in {:#?}: {}", attack_path_dir, e),
                 };
-                // equipment loading
-                let equipment_character_path = root_path
-                    .as_ref()
-                    .join(*OFFLINE_EQUIPMENT)
-                    .join("characters")
-                    .join(&value.db_full_name)
-                    .with_extension("json");
-                let Ok(decoded_equipment) =
-                    Equipment::decode_characters_equipment(&equipment_character_path)
-                else {
-                    bail!(
-                        "Equipment for character cannot be decoded: {:?}",
-                        equipment_character_path.display()
+                let equipment_on: HashMap<EquipmentJsonKey, Vec<Equipment>> =
+                    value.inventory.get_all_equipments(
+                        all_equipments
+                            .values()
+                            .flatten()
+                            .cloned()
+                            .collect::<Vec<Equipment>>()
+                            .as_slice(),
+                        true,
                     );
-                };
-                value.equipment_on = decoded_equipment
-                    .into_iter()
-                    .map(|(k, v)| {
-                        // Convert enum key to string for HashMap<String, Vec<Equipment>>
-                        let key_string = k.to_string(); // <- requires Display impl on EquipmentJsonKey
-
-                        // Turn EquipmentJsonValue into Vec<String>
-                        let equipment_names: Vec<String> = match v {
-                            EquipmentJsonValue::Single(name) => vec![name],
-                            EquipmentJsonValue::Multiple(names) => names,
-                        };
-
-                        // Lookup the Equipment structs
-                        let equipment_structs: Vec<Equipment> = equipment_names
-                            .into_iter()
-                            .filter_map(|name| {
-                                equipment_table
-                                    .get(&k) // still use enum key here
-                                    .and_then(|equipments| {
-                                        equipments.iter().find(|e| e.unique_name == name)
-                                    })
-                                    .cloned()
-                                    .or_else(|| {
-                                        if !name.is_empty() {
-                                            tracing::error!(
-                                                "Equipment {} cannot be found for character {}",
-                                                name,
-                                                value.db_full_name
-                                            );
-                                        }
-                                        None
-                                    })
-                            })
-                            .collect();
-
-                        (key_string, equipment_structs)
-                    })
-                    .collect::<HashMap<String, Vec<Equipment>>>();
+                // equipment loading
                 // apply equipment on stats
                 value.stats.apply_equipment_on_stats(
-                    &value
-                        .equipment_on
+                    &equipment_on
                         .values()
                         .flatten()
                         .cloned()
@@ -286,7 +243,7 @@ impl Character {
             .process_critical_strike(atk, self.stats.all_stats[CRITICAL_STRIKE].current as i64)
     }
 
-    pub fn apply_effect_outcome(
+    pub fn apply_processed_effect_param(
         &mut self,
         processed_ep: &ProcessedEffectParam,
         launcher_stats: &Stats,
@@ -383,27 +340,8 @@ impl Character {
             .stats
             .update_hp_process_real_amount(&processed_ep.input_effect_param, full_amount);
 
-        // Process non-stats `HP`
-        // Otherwise update the max value of the stats
-        if processed_ep.input_effect_param.stats_name != HP
-            && (processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
-                || processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
-        {
-            self.stats.set_stats_on_effect(
-                &processed_ep.input_effect_param.stats_name,
-                full_amount,
-                processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
-                true,
-            );
-        }
-        // apply change current stats for non HP stats
-        if processed_ep.input_effect_param.stats_name != HP
-            && processed_ep.input_effect_param.effect_type == EFFECT_VALUE_CHANGE
-        {
-            let _ = self
-                .stats
-                .modify_stat_current(&processed_ep.input_effect_param.stats_name, full_amount);
-        }
+        // Apply the effect on the target
+        self.apply_effect_full_amount(processed_ep, full_amount);
 
         // process aggro for `HP` and `non-HP` stats
         if processed_ep.input_effect_param.effect_type != EFFECT_IMPROVE_MAX_STAT_BY_VALUE
@@ -431,18 +369,55 @@ impl Character {
         eo
     }
 
+    /// Apply the effect on the target and return the real amount of hp change if the effect is on hp, otherwise return None
+    fn apply_effect_full_amount(&mut self, processed_ep: &ProcessedEffectParam, full_amount: i64) {
+        // Process non-stats `HP`
+        // Otherwise update the max value of the stats
+        if processed_ep.input_effect_param.stats_name != HP
+            && (processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
+                || processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
+        {
+            self.stats.set_stats_on_effect(
+                &processed_ep.input_effect_param.stats_name,
+                full_amount,
+                processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
+                true,
+            );
+        }
+        // apply change current stats for non HP stats
+        if processed_ep.input_effect_param.stats_name != HP
+            && processed_ep.input_effect_param.effect_type == EFFECT_VALUE_CHANGE
+        {
+            let _ = self
+                .stats
+                .modify_stat_current(&processed_ep.input_effect_param.stats_name, full_amount);
+        }
+    }
+
     pub fn process_atk(
         &mut self,
         game_state: &GameState,
         is_crit: bool,
         atk: &AttackType,
     ) -> Result<Vec<ProcessedEffectParam>> {
+        self.process_all_effects(game_state, is_crit, &atk.name, &atk.all_effects)
+    }
+
+    fn process_all_effects(
+        &mut self,
+        game_state: &GameState,
+        is_crit: bool,
+        action_name: &str,
+        all_effects: &[EffectParam],
+    ) -> Result<Vec<ProcessedEffectParam>> {
         let mut processed_effect_param_list: Vec<ProcessedEffectParam> = vec![];
-        for effect in atk.all_effects.clone() {
-            processed_effect_param_list.push(
-                self.character_rounds_info
-                    .process_one_effect(&effect, atk, game_state, is_crit)?,
-            );
+        for effect in all_effects {
+            processed_effect_param_list.push(self.character_rounds_info.process_one_effect(
+                effect,
+                action_name,
+                game_state,
+                is_crit,
+            )?);
         }
         Ok(processed_effect_param_list)
     }
@@ -481,7 +456,7 @@ impl Character {
         is_crit: bool,
         launcher_info: &LauncherAtkInfo,
     ) -> (Option<EffectOutcome>, Option<Vec<DodgeInfo>>) {
-        let mut eo: Option<EffectOutcome> = None;
+        let mut option_eo: Option<EffectOutcome> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
         if self.stats.is_dead() == Some(true) {
             tracing::info!("is_receiving_atk: {} is already dead.", self.id_name);
@@ -498,7 +473,7 @@ impl Character {
 
         // check if the effect is applied on the target
         if self.character_rounds_info.is_effect_applied(&target_data) {
-            eo = Some(self.apply_effect_outcome(
+            option_eo = Some(self.apply_processed_effect_param(
                 processed_ep,
                 &launcher_info.stats,
                 is_crit,
@@ -518,6 +493,7 @@ impl Character {
                 launcher: launcher_info.id_name.clone(),
                 target: "".to_owned(),
                 launching_turn: current_turn,
+                effect_outcome: option_eo.clone(),
             });
         } else {
             tracing::info!(
@@ -544,7 +520,7 @@ impl Character {
         }
 
         let all_dodging = (!di.is_empty()).then_some(di);
-        (eo, all_dodging)
+        (option_eo, all_dodging)
     }
 
     /// The attak can be launched if the character has enough mana, vigor and
@@ -657,19 +633,116 @@ impl Character {
     pub fn is_boss_atk(&self) -> bool {
         self.kind == CharacterKind::Boss
     }
+
+    pub fn use_consumable(
+        &mut self,
+        consumable: Consumable,
+        game_state: &GameState,
+        launcher_stats: &Stats,
+    ) -> Result<Vec<EffectOutcome>> {
+        if !self.inventory.contains_potion(&consumable.name) {
+            bail!("no {} is in the inventory", consumable.name)
+        }
+        match self.process_all_effects(game_state, false, &consumable.name, &consumable.effects) {
+            Ok(all_processed_ep) => {
+                let mut all_eo: Vec<EffectOutcome> = vec![];
+                for processed_ep in all_processed_ep {
+                    all_eo.push(self.apply_processed_effect_param(
+                        &processed_ep,
+                        launcher_stats,
+                        false,
+                        game_state.current_turn_nb,
+                    ));
+                }
+                self.inventory.remove_potion(&consumable.name);
+                Ok(all_eo)
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn toggle_equipment(
+        &mut self,
+        new_equipment_unique_name: &str,
+        all_equipments: &HashMap<EquipmentJsonKey, Vec<Equipment>>,
+    ) {
+        // downdate stats of previous equipment if exist
+        let equipment_off: HashMap<EquipmentJsonKey, Vec<Equipment>> =
+            self.inventory.get_all_equipments(
+                all_equipments
+                    .values()
+                    .flatten()
+                    .cloned()
+                    .collect::<Vec<Equipment>>()
+                    .as_slice(),
+                true,
+            );
+        self.stats.remove_equipment_on_stats(
+            &equipment_off
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+
+        // toggle equipment
+        self.inventory.toggle_equipment(new_equipment_unique_name);
+
+        // update stats of new equipment
+        let equipment_on: HashMap<EquipmentJsonKey, Vec<Equipment>> =
+            self.inventory.get_all_equipments(
+                all_equipments
+                    .values()
+                    .flatten()
+                    .cloned()
+                    .collect::<Vec<Equipment>>()
+                    .as_slice(),
+                true,
+            );
+        self.stats.apply_equipment_on_stats(
+            &equipment_on
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+        // apply the effects
+        self.apply_effects_on_stats(false);
+    }
+
+    fn apply_effects_on_stats(&mut self, update_effect_stats: bool) {
+        self.character_rounds_info
+            .all_effects
+            .iter_mut()
+            .for_each(|gae| {
+                if let Some(eo) = gae.effect_outcome.as_ref()
+                    && (eo.processed_effect_param.input_effect_param.effect_type
+                        == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
+                        || eo.processed_effect_param.input_effect_param.effect_type
+                            == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
+                {
+                    self.stats.set_stats_on_effect(
+                        &eo.processed_effect_param.input_effect_param.stats_name,
+                        eo.full_atk_amount_tx,
+                        eo.processed_effect_param.input_effect_param.effect_type
+                            == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
+                        update_effect_stats,
+                    );
+                }
+            });
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-
     use strum::IntoEnumIterator;
 
     use super::Character;
     use crate::character_mod::attack_type::AttackType;
     use crate::character_mod::character::AmountType;
     use crate::character_mod::effect::EffectOutcome;
-    use crate::character_mod::equipment::EquipmentJsonKey;
+    use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::testing::testing_all_characters::{self, testing_all_equipment, testing_character};
     use crate::{
@@ -734,16 +807,16 @@ mod tests {
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].max);
         // stats - berseck
         assert_eq!(105, c.stats.all_stats[BERSERK].current);
-        assert_eq!(210, c.stats.all_stats[BERSERK].max); // right ring + 10 to max berseck (ratio -> update current 100 -> 105)
+        assert_eq!(210, c.stats.all_stats[BERSERK].max); // left ring + 20 to max berseck (ratio -> update current 100 -> 110)
         // stats - berseck_rate
-        assert_eq!(5, c.stats.all_stats[BERSECK_RATE].current); // +4 right ring
-        assert_eq!(5, c.stats.all_stats[BERSECK_RATE].max);
+        assert_eq!(1, c.stats.all_stats[BERSECK_RATE].current); // +4 right ring
+        assert_eq!(1, c.stats.all_stats[BERSECK_RATE].max);
         // stats - critical_strike
         assert_eq!(10, c.stats.all_stats[CRITICAL_STRIKE].current);
         assert_eq!(10, c.stats.all_stats[CRITICAL_STRIKE].max);
         // stats - dodge
-        assert_eq!(5, c.stats.all_stats[DODGE].current);
-        assert_eq!(5, c.stats.all_stats[DODGE].max);
+        assert_eq!(29, c.stats.all_stats[DODGE].current);
+        assert_eq!(29, c.stats.all_stats[DODGE].max);
         // stats - hp
         assert_eq!(1, c.stats.all_stats[HP].current);
         assert_eq!(135, c.stats.all_stats[HP].max);
@@ -753,32 +826,32 @@ mod tests {
         assert_eq!(7, c.stats.all_stats[HP_REGEN].current);
         assert_eq!(7, c.stats.all_stats[HP_REGEN].max);
         // stats - magic_armor
-        assert_eq!(10, c.stats.all_stats[MAGICAL_ARMOR].current);
-        assert_eq!(10, c.stats.all_stats[MAGICAL_ARMOR].max);
+        assert_eq!(15, c.stats.all_stats[MAGICAL_ARMOR].current);
+        assert_eq!(15, c.stats.all_stats[MAGICAL_ARMOR].max);
         // stats - magic_power
-        assert_eq!(20, c.stats.all_stats[MAGICAL_POWER].current);
-        assert_eq!(20, c.stats.all_stats[MAGICAL_POWER].max);
+        assert_eq!(30, c.stats.all_stats[MAGICAL_POWER].current);
+        assert_eq!(30, c.stats.all_stats[MAGICAL_POWER].max);
         // stats - mana
-        assert_eq!(200, c.stats.all_stats[MANA].current);
-        assert_eq!(200, c.stats.all_stats[MANA].max);
+        assert_eq!(210, c.stats.all_stats[MANA].current);
+        assert_eq!(210, c.stats.all_stats[MANA].max);
         // stats - mana_regeneration
         assert_eq!(7, c.stats.all_stats[MANA_REGEN].current);
         assert_eq!(7, c.stats.all_stats[MANA_REGEN].max);
         // stats - physical_armor
-        assert_eq!(5, c.stats.all_stats[PHYSICAL_ARMOR].current);
-        assert_eq!(5, c.stats.all_stats[PHYSICAL_ARMOR].max);
+        assert_eq!(30, c.stats.all_stats[PHYSICAL_ARMOR].current);
+        assert_eq!(30, c.stats.all_stats[PHYSICAL_ARMOR].max);
         // stats - physical_power
-        assert_eq!(10, c.stats.all_stats[PHYSICAL_POWER].current);
-        assert_eq!(10, c.stats.all_stats[PHYSICAL_POWER].max);
+        assert_eq!(40, c.stats.all_stats[PHYSICAL_POWER].current);
+        assert_eq!(40, c.stats.all_stats[PHYSICAL_POWER].max);
         // stats - speed
         assert_eq!(212, c.stats.all_stats[SPEED].current);
         assert_eq!(212, c.stats.all_stats[SPEED].max);
         // stats - speed_regeneration
-        assert_eq!(13, c.stats.all_stats[SPEED_REGEN].current);
-        assert_eq!(13, c.stats.all_stats[SPEED_REGEN].max); // + 10% by amulet
+        assert_eq!(12, c.stats.all_stats[SPEED_REGEN].current);
+        assert_eq!(12, c.stats.all_stats[SPEED_REGEN].max); // + 10% by amulet
         // stats - vigor
-        assert_eq!(200, c.stats.all_stats[VIGOR].current);
-        assert_eq!(200, c.stats.all_stats[VIGOR].max);
+        assert_eq!(210, c.stats.all_stats[VIGOR].current);
+        assert_eq!(210, c.stats.all_stats[VIGOR].max);
         // stats - vigor_regeneration
         assert_eq!(5, c.stats.all_stats[VIGOR_REGEN].current);
         assert_eq!(5, c.stats.all_stats[VIGOR_REGEN].max);
@@ -791,7 +864,20 @@ mod tests {
         // atk
         assert_eq!(16, c.attacks_list.len());
         // equipment
-        assert_eq!(13, c.equipment_on.len());
+        assert_eq!(
+            13,
+            c.inventory
+                .get_all_equipments(
+                    equipment
+                        .values()
+                        .flatten()
+                        .cloned()
+                        .collect::<Vec<Equipment>>()
+                        .as_slice(),
+                    true
+                )
+                .len()
+        );
 
         let file_path = "./tests/offlines/characters/wrong.json";
         assert!(
@@ -959,12 +1045,11 @@ mod tests {
             target_kind: c.id_name.clone(),
             ..Default::default()
         };
-        let atk = Default::default();
         let mut game_state = Default::default();
         // target is himself
         let processed_effect_param = c
             .character_rounds_info
-            .process_one_effect(&ep, &atk, &game_state, false)
+            .process_one_effect(&ep, "", &game_state, false)
             .unwrap();
         assert_eq!(
             EFFECT_NB_COOL_DOWN,
@@ -991,7 +1076,7 @@ mod tests {
         ep.value = 10;
         let processed_effect_param = c
             .character_rounds_info
-            .process_one_effect(&ep, &atk, &game_state, true)
+            .process_one_effect(&ep, "", &game_state, true)
             .unwrap();
         assert_eq!(
             EFFECT_IMPROVE_MAX_STAT_BY_VALUE,
@@ -1020,7 +1105,7 @@ mod tests {
         ep.value = 0;
         let processed_effect_param = c
             .character_rounds_info
-            .process_one_effect(&ep, &atk, &game_state, false)
+            .process_one_effect(&ep, "", &game_state, false)
             .unwrap();
         // focus on effect_type
         assert_eq!(
@@ -1158,7 +1243,7 @@ mod tests {
         let mut processed_ep = build_cooldown_effect();
         let launcher_stats = c.stats.clone();
         // target is himself
-        let eo = c.apply_effect_outcome(&processed_ep, &launcher_stats, false, 0);
+        let eo = c.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
         assert_eq!(
             eo,
             EffectOutcome {
@@ -1170,11 +1255,11 @@ mod tests {
         // target is other ally
         processed_ep = build_hot_effect_individual();
         let old_hp = c2.stats.all_stats[HP].current;
-        let eo = c2.apply_effect_outcome(&processed_ep, &launcher_stats, false, 0);
-        assert_eq!(eo.full_atk_amount_tx, 20);
-        assert_eq!(eo.real_hp_amount_tx, 20);
-        assert_eq!(eo.processed_effect_param.input_effect_param.value, 20);
-        assert_eq!(old_hp + 20, c2.stats.all_stats[HP].current);
+        let eo = c2.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
+        assert_eq!(eo.full_atk_amount_tx, 35);
+        assert_eq!(eo.real_hp_amount_tx, 35);
+        assert_eq!(eo.processed_effect_param.input_effect_param.value, 35);
+        assert_eq!(old_hp + 35, c2.stats.all_stats[HP].current);
         assert_eq!(
             eo.processed_effect_param.input_effect_param.effect_type,
             EFFECT_VALUE_CHANGE
@@ -1196,17 +1281,20 @@ mod tests {
             &testing_all_equipment(),
         )
         .unwrap();
+        // dmg: -30(dmg) - 10(phy pow stats character) -10*7(phy pow equipment) 0 -70
+        // * 1000/1000+ [5(def phy armor) + 25] = 0.97
+        // => -70 * 0.97 = -67.9 ~ -68
         processed_ep = build_dmg_effect_individual();
         let old_hp = boss1.stats.all_stats[HP].current;
-        let eo = boss1.apply_effect_outcome(&processed_ep, &launcher_stats, false, 0);
-        assert_eq!(eo.full_atk_amount_tx, -40);
-        assert_eq!(eo.real_hp_amount_tx, -40);
-        assert_eq!(eo.processed_effect_param.input_effect_param.value, -40);
-        assert_eq!(old_hp - 40, boss1.stats.all_stats[HP].current);
+        let eo = boss1.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
+        assert_eq!(eo.full_atk_amount_tx, -68);
+        assert_eq!(eo.real_hp_amount_tx, -68);
+        assert_eq!(eo.processed_effect_param.input_effect_param.value, -68);
+        assert_eq!(old_hp - 68, boss1.stats.all_stats[HP].current);
 
         processed_ep = build_buf_effect_individual_speed_regen();
         let launcher_stats = c.stats.clone();
-        let eo = c.apply_effect_outcome(&processed_ep, &launcher_stats, false, 0);
+        let eo = c.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, 60);
         assert_eq!(eo.real_hp_amount_tx, 0);
         assert_eq!(
@@ -1255,6 +1343,7 @@ mod tests {
             launcher: "".to_owned(),
             target: "".to_owned(),
             launching_turn: 0,
+            effect_outcome: None,
         });
         let effect_value = c.character_rounds_info.all_effects[0]
             .all_atk_effects
@@ -1266,18 +1355,6 @@ mod tests {
             c.stats.all_stats[HP].max as i64
         );
         assert!(c.character_rounds_info.all_effects.is_empty());
-    }
-
-    #[test]
-    fn unit_apply_equipment_on_stats() {
-        let c = Character::try_new_from_json(
-            "./tests/offlines/characters/test.json",
-            *TEST_OFFLINE_ROOT,
-            false,
-            &testing_all_equipment(),
-        )
-        .unwrap();
-        assert_eq!(12 + 10 * 12 / 100, c.stats.all_stats[SPEED_REGEN].current);
     }
 
     #[test]
@@ -1379,5 +1456,97 @@ mod tests {
 
         pl.current_player.apply_hot_or_dot(0, -30);
         assert_eq!(70, pl.current_player.stats.all_stats[HP].current);
+    }
+
+    #[test]
+    fn unit_toggle_equipment() {
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+
+        assert_eq!(12, c.stats.all_stats[SPEED_REGEN].max);
+        // add one effect on vigor
+        c.character_rounds_info
+            .add_effect_on_player(GameAtkEffects {
+                effect_outcome: Some(EffectOutcome {
+                    processed_effect_param: build_buf_effect_individual_speed_regen(),
+                    full_atk_amount_tx: 20,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            });
+        c.apply_effects_on_stats(true);
+        assert_eq!(32, c.stats.all_stats[SPEED_REGEN].max);
+
+        // eval mana max - 200 raw + 10 by starting amulet
+        assert_eq!(210, c.stats.all_stats[MANA].max);
+        assert_eq!(210, c.stats.all_stats[MANA].current);
+        assert_eq!(200, c.stats.all_stats[MANA].max_raw);
+        // toggle off the same equipment
+        let equip = c.inventory.get_equipped_equipments(
+            &testing_all_equipment()
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+        // eval that the starting amulet is equipped and gives 10 mana
+        assert!(
+            equip
+                .iter()
+                .any(|(_, equips)| equips.iter().any(|e| e.unique_name == "starting amulet"))
+        );
+        assert_eq!(10, c.stats.all_stats[MANA].buf_equip_value);
+        c.toggle_equipment("starting amulet", &testing_all_equipment());
+        // eval that the starting amulet is not equipped
+        let equip = c.inventory.get_equipped_equipments(
+            &testing_all_equipment()
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+        assert!(
+            equip
+                .iter()
+                .any(|(_, equips)| equips.iter().any(|e| e.unique_name != "starting amulet"))
+        );
+        // eval mana update
+        assert_eq!(0, c.stats.all_stats[MANA].buf_equip_value);
+        assert_eq!(
+            210 - 10, // ratio = 1 because mana-current = mana-max
+            c.stats.all_stats[MANA].current
+        );
+        assert_eq!(210 - 10, c.stats.all_stats[MANA].max);
+
+        // toggle on
+        c.toggle_equipment("starting amulet", &testing_all_equipment());
+        // eval that the starting amulet is equipped
+        let equip = c.inventory.get_equipped_equipments(
+            &testing_all_equipment()
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+        assert!(
+            equip
+                .iter()
+                .any(|(_, equips)| equips.iter().any(|e| e.unique_name == "starting amulet"))
+        );
+        // eval mana update
+        assert_eq!(10, c.stats.all_stats[MANA].buf_equip_value);
+        assert_eq!(
+            210, // ratio = 1 because mana-current = mana-max
+            c.stats.all_stats[MANA].current
+        );
+        assert_eq!(210, c.stats.all_stats[MANA].max);
+
+        // effect still the same
+        assert_eq!(32, c.stats.all_stats[SPEED_REGEN].max);
     }
 }

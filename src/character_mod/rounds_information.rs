@@ -269,7 +269,7 @@ impl CharacterRoundsInfo {
     pub fn process_effect_type(
         &mut self,
         ep: &EffectParam,
-        atk: &AttackType,
+        atk_name: &str,
     ) -> Result<ProcessedEffectParam> {
         let mut processed_effect_param = ProcessedEffectParam {
             input_effect_param: ep.clone(),
@@ -284,7 +284,7 @@ impl CharacterRoundsInfo {
         match ep.effect_type.as_str() {
             EFFECT_NB_COOL_DOWN => {
                 processed_effect_param.log = LogData {
-                    message: format!("Cooldown actif sur {} de {} tours.", atk.name, ep.nb_turns),
+                    message: format!("Cooldown actif sur {} de {} tours.", atk_name, ep.nb_turns),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
@@ -369,7 +369,7 @@ impl CharacterRoundsInfo {
     pub fn process_one_effect(
         &mut self,
         ep: &EffectParam,
-        atk: &AttackType,
+        atk_name: &str,
         game_state: &GameState,
         is_crit: bool,
     ) -> Result<ProcessedEffectParam> {
@@ -392,7 +392,7 @@ impl CharacterRoundsInfo {
         }
 
         // Process and return the new effect param
-        self.process_effect_type(&effect_param_mutable, atk)
+        self.process_effect_type(&effect_param_mutable, atk_name)
     }
 
     pub fn process_dodging(
@@ -539,6 +539,10 @@ impl CharacterRoundsInfo {
             }
         }
         (logs, hot_and_dot)
+    }
+
+    pub fn add_effect_on_player(&mut self, gae: GameAtkEffects) {
+        self.all_effects.push(gae);
     }
 }
 

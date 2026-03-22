@@ -4,7 +4,12 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 use crate::common::{
-    constants::{effect_const::*, stats_const::HP},
+    constants::{
+        all_target_const::TARGET_ENNEMY,
+        effect_const::*,
+        reach_const::{INDIVIDUAL, ZONE},
+        stats_const::HP,
+    },
     log_data::LogData,
 };
 
@@ -136,6 +141,22 @@ pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
     nb_of_applies
 }
 
+pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
+    EffectParam {
+        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
+        nb_turns: 1,
+        target_kind: TARGET_ENNEMY.to_owned(),
+        reach: if is_zone {
+            ZONE.to_owned()
+        } else {
+            INDIVIDUAL.to_owned()
+        },
+        stats_name: HP.to_owned(),
+        value,
+        ..Default::default()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
@@ -145,7 +166,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn tunit_is_effet_hot_or_dot() {
+    fn unit_is_effet_hot_or_dot() {
         assert!(is_effet_hot_or_dot(EFFECT_VALUE_CHANGE));
         assert!(!is_effet_hot_or_dot("hehe"));
     }

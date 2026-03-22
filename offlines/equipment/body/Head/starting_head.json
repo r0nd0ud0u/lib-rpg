@@ -1,7 +1,7 @@
 {
-    "Categorie": "Tattoes",
-    "Nom": "Sebor-3",
-    "Nom unique": "Sebor-3",
+    "Categorie": "Head",
+    "Nom": "starting head",
+    "Nom unique": "starting head",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -53,7 +53,7 @@
         },
         "Physical armor": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "Physical power": {
             "equip_percent": 0,

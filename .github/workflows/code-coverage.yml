@@ -42,10 +42,10 @@ jobs:
           grcov . --keep-only 'src/**' --keep-only 'src/**/*' --ignore 'src/bin/*' --binary-path ./target/debug/deps/ --source-dir . --output-types lcov,html --branch --ignore-not-existing --output-path target/coverage/
 
       - name: Report code coverage in Pull Request
-        uses: zgosalvez/github-actions-report-lcov@v7.0.3
+        uses: zgosalvez/github-actions-report-lcov@v7.0.2
         with:
           coverage-files: target/coverage/lcov*
           artifact-name: code-coverage-report
-          minimum-coverage: 30
+          minimum-coverage: 80
           github-token: ${{ secrets.GITHUB_TOKEN }}
           update-comment: true
