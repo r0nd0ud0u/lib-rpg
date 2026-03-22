@@ -7,12 +7,33 @@ use crate::character_mod::{
     equipment::{Equipment, EquipmentJsonKey},
 };
 
-#[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 #[serde(default)]
 pub struct Inventory {
-    pub equipments: HashMap<String, Vec<EquipmentInventory>>, // key: equipment category, value: list of equipment unique name
+    pub equipments: HashMap<EquipmentJsonKey, Vec<EquipmentInventory>>, // key: equipment category, value: list of equipment unique name
+    pub limits: Vec<EquipmentLimit>,
     pub consumables: Vec<Consumable>,
     pub money: u64,
+}
+
+impl Default for Inventory {
+    fn default() -> Self {
+        let mut inventory = Inventory {
+            equipments: HashMap::new(),
+            limits: Vec::new(),
+            consumables: Vec::new(),
+            money: 0,
+        };
+        inventory.set_default_limits();
+        inventory
+    }
+}
+
+#[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+#[serde(default)]
+pub struct EquipmentLimit {
+    pub category: EquipmentJsonKey,
+    pub limit: usize,
 }
 
 #[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -38,6 +59,27 @@ pub enum ConsumableKind {
 }
 
 impl Inventory {
+    pub fn set_default_limits(&mut self) {
+        // limit of 1 equipment per category by default
+        let mut limits = Vec::new();
+        for category in EquipmentJsonKey::iter() {
+            if category == EquipmentJsonKey::Tattoes {
+                limits.push(EquipmentLimit { category, limit: 3 });
+                continue;
+            }
+            limits.push(EquipmentLimit { category, limit: 1 });
+        }
+        self.limits = limits;
+    }
+
+    pub fn get_limit_for_category(&self, category: &EquipmentJsonKey) -> usize {
+        self.limits
+            .iter()
+            .find(|limit| &limit.category == category)
+            .map(|limit| limit.limit)
+            .unwrap_or(0)
+    }
+
     pub fn add_potion(&mut self, name: &str, hp_amount: i64) {
         self.consumables.push(Consumable {
             name: name.to_owned(),
@@ -69,7 +111,7 @@ impl Inventory {
 
     pub fn add_equipment(&mut self, equipment: &Equipment, is_equipped: bool) {
         self.equipments
-            .entry(equipment.category.to_string())
+            .entry(equipment.category.clone())
             .or_default()
             .push(EquipmentInventory {
                 unique_name: equipment.unique_name.clone(),
@@ -81,12 +123,12 @@ impl Inventory {
         &self,
         all_equipments: &[Equipment],
         is_equipped_filter: bool,
-    ) -> HashMap<String, Vec<Equipment>> {
-        let mut equipped_map: HashMap<String, Vec<Equipment>> = HashMap::new();
+    ) -> HashMap<EquipmentJsonKey, Vec<Equipment>> {
+        let mut equipped_map: HashMap<EquipmentJsonKey, Vec<Equipment>> = HashMap::new();
         for e in EquipmentJsonKey::iter() {
             let equipped_equipments = self
                 .equipments
-                .get(&e.to_string())
+                .get(&e)
                 .map(|unique_names| {
                     unique_names
                         .iter()
@@ -100,7 +142,7 @@ impl Inventory {
                         .collect::<Vec<Equipment>>()
                 })
                 .unwrap_or_default();
-            equipped_map.insert(e.to_string(), equipped_equipments);
+            equipped_map.insert(e, equipped_equipments);
         }
         equipped_map
     }
@@ -108,7 +150,7 @@ impl Inventory {
     pub fn get_equipped_equipments(
         &self,
         all_equipments: &[Equipment],
-    ) -> HashMap<String, Vec<Equipment>> {
+    ) -> HashMap<EquipmentJsonKey, Vec<Equipment>> {
         self.get_all_equipments(all_equipments, true)
     }
 
@@ -155,14 +197,75 @@ impl Inventory {
         if equipment_unique_name.is_empty() {
             return;
         }
-        for equipments in self.equipments.values_mut() {
-            for equipment in equipments.iter_mut() {
-                if equipment.unique_name == equipment_unique_name {
-                    equipment.is_equipped = !equipment.is_equipped;
-                    return;
+
+        let category = self.get_category(equipment_unique_name);
+        let limit = self.get_limit_for_category(&category);
+
+        // Count how many are equipped in the category
+        let nb_equipped_in_category = self
+            .equipments
+            .get(&category)
+            .map(|equipments| equipments.iter().filter(|e| e.is_equipped).count())
+            .unwrap_or(0);
+
+        // Get mutable access to the equipments in the category
+        if let Some(equipments_in_category) = self.equipments.get_mut(&category) {
+            // Find the index of the equipment to toggle
+            if let Some(index_to_toggle) = equipments_in_category
+                .iter()
+                .position(|e| e.unique_name == equipment_unique_name)
+            {
+                if equipments_in_category[index_to_toggle].is_equipped {
+                    // If already equipped, just unequip it
+                    equipments_in_category[index_to_toggle].is_equipped = false;
+                } else if nb_equipped_in_category < limit {
+                    // If not equipped and under limit, equip it
+                    equipments_in_category[index_to_toggle].is_equipped = true;
+                } else {
+                    // If not equipped and at limit, unequip the first equipped in the category
+                    // (except the one we want to equip)
+                    if let Some(index_to_unequip) = equipments_in_category
+                        .iter()
+                        .position(|e| e.is_equipped && e.unique_name != equipment_unique_name)
+                    {
+                        equipments_in_category[index_to_unequip].is_equipped = false;
+                        equipments_in_category[index_to_toggle].is_equipped = true;
+                    } else {
+                        tracing::error!(
+                            "No equipment to unequip in category '{}' to make room for '{}'",
+                            category,
+                            equipment_unique_name
+                        );
+                    }
                 }
+            } else {
+                tracing::error!(
+                    "Equipment with unique name '{}' not found in inventory",
+                    equipment_unique_name
+                );
             }
         }
+    }
+
+    fn get_category(&self, equipment_unique_name: &str) -> EquipmentJsonKey {
+        self.equipments
+            .iter()
+            .find_map(|(category, equipments)| {
+                if equipments
+                    .iter()
+                    .any(|e| e.unique_name == equipment_unique_name)
+                {
+                    Some(category.clone())
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_else(|| {
+                panic!(
+                    "Equipment with unique name '{}' not found in inventory",
+                    equipment_unique_name
+                )
+            })
     }
 }
 
@@ -170,11 +273,15 @@ impl Inventory {
 mod tests {
     use crate::{
         character_mod::{
+            character::Character,
             equipment::{Equipment, EquipmentJsonKey},
             inventory::Inventory,
         },
-        common::constants::stats_const::{HP, PHYSICAL_POWER},
-        testing::testing_all_characters::testing_test_ally1_vs_test_boss1,
+        common::constants::{
+            paths_const::TEST_OFFLINE_ROOT,
+            stats_const::{HP, PHYSICAL_POWER},
+        },
+        testing::testing_all_characters::testing_all_equipment,
     };
 
     #[test]
@@ -215,10 +322,10 @@ mod tests {
         );
         assert_eq!(equipments.len(), 13);
         equipments.iter().for_each(|(category, equipments)| {
-            if category == &EquipmentJsonKey::LeftWeapon.to_string() {
+            if category == &EquipmentJsonKey::LeftWeapon {
                 assert_eq!(equipments.len(), 1);
                 assert_eq!(equipments[0], equipment1);
-            } else if category == &EquipmentJsonKey::Chest.to_string() {
+            } else if category == &EquipmentJsonKey::Chest {
                 assert_eq!(equipments.len(), 1);
                 assert_eq!(equipments[0], equipment2);
             } else {
@@ -233,7 +340,7 @@ mod tests {
         equipped_equipments
             .iter()
             .for_each(|(category, equipments)| {
-                if category == &EquipmentJsonKey::LeftWeapon.to_string() {
+                if category == &EquipmentJsonKey::LeftWeapon {
                     assert_eq!(equipments.len(), 1);
                     assert_eq!(equipments[0], equipment1);
                 } else {
@@ -288,33 +395,31 @@ mod tests {
             (30, 30)
         );
 
-        // test with character
-        let (gm, _hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
-        gm.pm
-            .current_player
-            .inventory
-            .sum_all_equipped_equipment_stat(
+        // test with character loaded from json (inventory kept from file)
+        let c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            true,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        c.inventory.sum_all_equipped_equipment_stat(
+            PHYSICAL_POWER,
+            &testing_all_equipment()
+                .values()
+                .flatten()
+                .cloned()
+                .collect::<Vec<Equipment>>(),
+        );
+        assert_eq!(
+            c.inventory.sum_all_equipped_equipment_stat(
                 PHYSICAL_POWER,
-                &gm.pm
-                    .equipment_table
+                &testing_all_equipment()
                     .values()
                     .flatten()
                     .cloned()
-                    .collect::<Vec<Equipment>>(),
-            );
-        assert_eq!(
-            gm.pm
-                .current_player
-                .inventory
-                .sum_all_equipped_equipment_stat(
-                    PHYSICAL_POWER,
-                    &gm.pm
-                        .equipment_table
-                        .values()
-                        .flatten()
-                        .cloned()
-                        .collect::<Vec<Equipment>>()
-                ),
+                    .collect::<Vec<Equipment>>()
+            ),
             (30, 0)
         );
     }
@@ -348,10 +453,55 @@ mod tests {
             stats: crate::character_mod::stats::Stats::default(),
         };
         inventory.add_equipment(&equipment1, false);
-        assert!(!inventory.equipments[&EquipmentJsonKey::Shoes.to_string()][0].is_equipped);
+        assert!(!inventory.equipments[&EquipmentJsonKey::Shoes][0].is_equipped);
         inventory.toggle_equipment("Boots");
-        assert!(inventory.equipments[&EquipmentJsonKey::Shoes.to_string()][0].is_equipped);
+        assert!(inventory.equipments[&EquipmentJsonKey::Shoes][0].is_equipped);
         inventory.toggle_equipment("Boots");
-        assert!(!inventory.equipments[&EquipmentJsonKey::Shoes.to_string()][0].is_equipped);
+        assert!(!inventory.equipments[&EquipmentJsonKey::Shoes][0].is_equipped);
+    }
+
+    #[test]
+    fn unit_toggle_equipment_with_limit() {
+        let mut inventory = Inventory::default();
+        let equipment1 = Equipment {
+            name: "Tattoes of Testing 1".to_owned(),
+            unique_name: "Tattoes1".to_owned(),
+            category: EquipmentJsonKey::Tattoes,
+            stats: crate::character_mod::stats::Stats::default(),
+        };
+        let equipment2 = Equipment {
+            name: "Tattoes of Testing 2".to_owned(),
+            unique_name: "Tattoes2".to_owned(),
+            category: EquipmentJsonKey::Tattoes,
+            stats: crate::character_mod::stats::Stats::default(),
+        };
+        let equipment3 = Equipment {
+            name: "Tattoes of Testing 3".to_owned(),
+            unique_name: "Tattoes3".to_owned(),
+            category: EquipmentJsonKey::Tattoes,
+            stats: crate::character_mod::stats::Stats::default(),
+        };
+        let equipment4 = Equipment {
+            name: "Tattoes of Testing 4".to_owned(),
+            unique_name: "Tattoes4".to_owned(),
+            category: EquipmentJsonKey::Tattoes,
+            stats: crate::character_mod::stats::Stats::default(),
+        };
+        inventory.add_equipment(&equipment1, false);
+        inventory.add_equipment(&equipment2, false);
+        inventory.add_equipment(&equipment3, false);
+        inventory.add_equipment(&equipment4, false);
+        inventory.toggle_equipment("Tattoes1");
+        inventory.toggle_equipment("Tattoes2");
+        inventory.toggle_equipment("Tattoes3");
+        assert!(inventory.equipments[&EquipmentJsonKey::Tattoes][0].is_equipped);
+        assert!(inventory.equipments[&EquipmentJsonKey::Tattoes][1].is_equipped);
+        assert!(inventory.equipments[&EquipmentJsonKey::Tattoes][2].is_equipped);
+        assert!(!inventory.equipments[&EquipmentJsonKey::Tattoes][3].is_equipped);
+        inventory.toggle_equipment("Tattoes4");
+        assert!(!inventory.equipments[&EquipmentJsonKey::Tattoes][0].is_equipped);
+        assert!(inventory.equipments[&EquipmentJsonKey::Tattoes][1].is_equipped);
+        assert!(inventory.equipments[&EquipmentJsonKey::Tattoes][2].is_equipped);
+        assert!(inventory.equipments[&EquipmentJsonKey::Tattoes][3].is_equipped);
     }
 }

@@ -24,43 +24,6 @@ pub struct Equipment {
     pub stats: Stats,
 }
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
-#[serde(default)]
-pub struct EquipmentOnCharacterJson {
-    #[serde(rename = "Head")]
-    pub head: String,
-    #[serde(rename = "Chest")]
-    pub chest: String,
-    #[serde(rename = "Shoes")]
-    pub shoes: String,
-    #[serde(rename = "LeftRing")]
-    pub left_ring: String,
-    #[serde(rename = "RightRing")]
-    pub right_ring: String,
-    #[serde(rename = "LeftWeapon")]
-    pub left_weapon: String,
-    #[serde(rename = "RightWeapon")]
-    pub right_weapon: String,
-    #[serde(rename = "Amulet")]
-    pub amulet: String,
-    #[serde(rename = "Belt")]
-    pub belt: String,
-    #[serde(rename = "Cape")]
-    pub cape: String,
-    #[serde(rename = "Pants")]
-    pub pants: String,
-    #[serde(default, rename = "Tattoes")]
-    pub tattoes: Vec<String>,
-    #[serde(rename = "Gloves")]
-    pub gloves: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub enum EquipmentJsonValue {
-    Single(String),
-    Multiple(Vec<String>),
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash, Default, EnumIter)]
 #[serde(rename_all = "PascalCase")]
 pub enum EquipmentJsonKey {

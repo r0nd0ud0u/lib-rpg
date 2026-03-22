@@ -138,7 +138,7 @@ impl Character {
                     }),
                     Err(e) => bail!("Files cannot be listed in {:#?}: {}", attack_path_dir, e),
                 };
-                let equipment_on: HashMap<String, Vec<Equipment>> =
+                let equipment_on: HashMap<EquipmentJsonKey, Vec<Equipment>> =
                     value.inventory.get_all_equipments(
                         all_equipments
                             .values()
@@ -663,20 +663,20 @@ impl Character {
 
     pub fn toggle_equipment(
         &mut self,
-        new_equipment_unique_name: Option<&str>,
-        previous_equipment_unique_name: Option<&str>,
+        new_equipment_unique_name: &str,
         all_equipments: &HashMap<EquipmentJsonKey, Vec<Equipment>>,
     ) {
         // downdate stats of previous equipment if exist
-        let equipment_off: HashMap<String, Vec<Equipment>> = self.inventory.get_all_equipments(
-            all_equipments
-                .values()
-                .flatten()
-                .cloned()
-                .collect::<Vec<Equipment>>()
-                .as_slice(),
-            true,
-        );
+        let equipment_off: HashMap<EquipmentJsonKey, Vec<Equipment>> =
+            self.inventory.get_all_equipments(
+                all_equipments
+                    .values()
+                    .flatten()
+                    .cloned()
+                    .collect::<Vec<Equipment>>()
+                    .as_slice(),
+                true,
+            );
         self.stats.remove_equipment_on_stats(
             &equipment_off
                 .values()
@@ -686,23 +686,19 @@ impl Character {
         );
 
         // toggle equipment
-        if let Some(new_equipment) = new_equipment_unique_name {
-            self.inventory.toggle_equipment(new_equipment);
-        }
-        if let Some(previous_equipment) = previous_equipment_unique_name {
-            self.inventory.toggle_equipment(previous_equipment);
-        }
+        self.inventory.toggle_equipment(new_equipment_unique_name);
 
         // update stats of new equipment
-        let equipment_on: HashMap<String, Vec<Equipment>> = self.inventory.get_all_equipments(
-            all_equipments
-                .values()
-                .flatten()
-                .cloned()
-                .collect::<Vec<Equipment>>()
-                .as_slice(),
-            true,
-        );
+        let equipment_on: HashMap<EquipmentJsonKey, Vec<Equipment>> =
+            self.inventory.get_all_equipments(
+                all_equipments
+                    .values()
+                    .flatten()
+                    .cloned()
+                    .collect::<Vec<Equipment>>()
+                    .as_slice(),
+                true,
+            );
         self.stats.apply_equipment_on_stats(
             &equipment_on
                 .values()
@@ -1505,7 +1501,7 @@ mod tests {
                 .any(|(_, equips)| equips.iter().any(|e| e.unique_name == "starting amulet"))
         );
         assert_eq!(10, c.stats.all_stats[MANA].buf_equip_value);
-        c.toggle_equipment(None, Some("starting amulet"), &testing_all_equipment());
+        c.toggle_equipment("starting amulet", &testing_all_equipment());
         // eval that the starting amulet is not equipped
         let equip = c.inventory.get_equipped_equipments(
             &testing_all_equipment()
@@ -1528,7 +1524,7 @@ mod tests {
         assert_eq!(210 - 10, c.stats.all_stats[MANA].max);
 
         // toggle on
-        c.toggle_equipment(Some("starting amulet"), None, &testing_all_equipment());
+        c.toggle_equipment("starting amulet", &testing_all_equipment());
         // eval that the starting amulet is equipped
         let equip = c.inventory.get_equipped_equipments(
             &testing_all_equipment()
