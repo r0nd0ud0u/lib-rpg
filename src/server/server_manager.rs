@@ -35,6 +35,14 @@ pub struct PlayersData {
     pub owner_player_name: String,
 }
 
+impl PlayersData {
+    pub fn get_first_character_name(&self, player_name: &str) -> Option<String> {
+        self.players_info
+            .get(player_name)
+            .and_then(|info| info.character_names.first().cloned())
+    }
+}
+
 impl ServerData {
     pub fn reset(game_phase: GamePhase) -> ServerData {
         ServerData {
@@ -136,4 +144,25 @@ pub enum GamePhase {
     Loading,
     Running,
     Ended,
+}
+
+mod tests {
+
+    #[test]
+    fn test_get_first_character_name() {
+        let mut players_data = PlayersData::default();
+        players_data.players_info.insert(
+            "player1".to_string(),
+            PlayerInfo {
+                character_names: vec!["character1".to_string(), "character2".to_string()],
+                player_ids: vec![1, 2],
+            },
+        );
+
+        assert_eq!(
+            players_data.get_first_character_name("player1"),
+            Some("character1".to_string())
+        );
+        assert_eq!(players_data.get_first_character_name("player2"), None);
+    }
 }
