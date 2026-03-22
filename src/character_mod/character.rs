@@ -340,27 +340,8 @@ impl Character {
             .stats
             .update_hp_process_real_amount(&processed_ep.input_effect_param, full_amount);
 
-        // Process non-stats `HP`
-        // Otherwise update the max value of the stats
-        if processed_ep.input_effect_param.stats_name != HP
-            && (processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
-                || processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
-        {
-            self.stats.set_stats_on_effect(
-                &processed_ep.input_effect_param.stats_name,
-                full_amount,
-                processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
-                true,
-            );
-        }
-        // apply change current stats for non HP stats
-        if processed_ep.input_effect_param.stats_name != HP
-            && processed_ep.input_effect_param.effect_type == EFFECT_VALUE_CHANGE
-        {
-            let _ = self
-                .stats
-                .modify_stat_current(&processed_ep.input_effect_param.stats_name, full_amount);
-        }
+        // Apply the effect on the target
+        self.apply_effect_full_amount(processed_ep, full_amount);
 
         // process aggro for `HP` and `non-HP` stats
         if processed_ep.input_effect_param.effect_type != EFFECT_IMPROVE_MAX_STAT_BY_VALUE
@@ -386,6 +367,31 @@ impl Character {
         self.stats_in_game.update_by_effectoutcome(&eo);
 
         eo
+    }
+
+    /// Apply the effect on the target and return the real amount of hp change if the effect is on hp, otherwise return None
+    fn apply_effect_full_amount(&mut self, processed_ep: &ProcessedEffectParam, full_amount: i64) {
+        // Process non-stats `HP`
+        // Otherwise update the max value of the stats
+        if processed_ep.input_effect_param.stats_name != HP
+            && (processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
+                || processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
+        {
+            self.stats.set_stats_on_effect(
+                &processed_ep.input_effect_param.stats_name,
+                full_amount,
+                processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
+                true,
+            );
+        }
+        // apply change current stats for non HP stats
+        if processed_ep.input_effect_param.stats_name != HP
+            && processed_ep.input_effect_param.effect_type == EFFECT_VALUE_CHANGE
+        {
+            let _ = self
+                .stats
+                .modify_stat_current(&processed_ep.input_effect_param.stats_name, full_amount);
+        }
     }
 
     pub fn process_atk(
@@ -450,7 +456,7 @@ impl Character {
         is_crit: bool,
         launcher_info: &LauncherAtkInfo,
     ) -> (Option<EffectOutcome>, Option<Vec<DodgeInfo>>) {
-        let mut eo: Option<EffectOutcome> = None;
+        let mut option_eo: Option<EffectOutcome> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
         if self.stats.is_dead() == Some(true) {
             tracing::info!("is_receiving_atk: {} is already dead.", self.id_name);
@@ -467,7 +473,7 @@ impl Character {
 
         // check if the effect is applied on the target
         if self.character_rounds_info.is_effect_applied(&target_data) {
-            eo = Some(self.apply_processed_effect_param(
+            option_eo = Some(self.apply_processed_effect_param(
                 processed_ep,
                 &launcher_info.stats,
                 is_crit,
@@ -487,6 +493,7 @@ impl Character {
                 launcher: launcher_info.id_name.clone(),
                 target: "".to_owned(),
                 launching_turn: current_turn,
+                effect_outcome: option_eo.clone(),
             });
         } else {
             tracing::info!(
@@ -513,7 +520,7 @@ impl Character {
         }
 
         let all_dodging = (!di.is_empty()).then_some(di);
-        (eo, all_dodging)
+        (option_eo, all_dodging)
     }
 
     /// The attak can be launched if the character has enough mana, vigor and
@@ -703,6 +710,30 @@ impl Character {
                 .cloned()
                 .collect::<Vec<Equipment>>(),
         );
+        // apply the effects
+        self.apply_effects_on_stats(false);
+    }
+
+    fn apply_effects_on_stats(&mut self, update_effect_stats: bool) {
+        self.character_rounds_info
+            .all_effects
+            .iter_mut()
+            .for_each(|gae| {
+                if let Some(eo) = gae.effect_outcome.as_ref()
+                    && (eo.processed_effect_param.input_effect_param.effect_type
+                        == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
+                        || eo.processed_effect_param.input_effect_param.effect_type
+                            == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
+                {
+                    self.stats.set_stats_on_effect(
+                        &eo.processed_effect_param.input_effect_param.stats_name,
+                        eo.full_atk_amount_tx,
+                        eo.processed_effect_param.input_effect_param.effect_type
+                            == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
+                        update_effect_stats,
+                    );
+                }
+            });
     }
 }
 
@@ -1316,6 +1347,7 @@ mod tests {
             launcher: "".to_owned(),
             target: "".to_owned(),
             launching_turn: 0,
+            effect_outcome: None,
         });
         let effect_value = c.character_rounds_info.all_effects[0]
             .all_atk_effects
@@ -1440,6 +1472,20 @@ mod tests {
         )
         .unwrap();
 
+        assert_eq!(12, c.stats.all_stats[SPEED_REGEN].max);
+        // add one effect on vigor
+        c.character_rounds_info
+            .add_effect_on_player(GameAtkEffects {
+                effect_outcome: Some(EffectOutcome {
+                    processed_effect_param: build_buf_effect_individual_speed_regen(),
+                    full_atk_amount_tx: 20,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            });
+        c.apply_effects_on_stats(true);
+        assert_eq!(32, c.stats.all_stats[SPEED_REGEN].max);
+
         // eval mana max - 200 raw + 10 by starting amulet
         assert_eq!(210, c.stats.all_stats[MANA].max);
         assert_eq!(210, c.stats.all_stats[MANA].current);
@@ -1503,5 +1549,8 @@ mod tests {
             c.stats.all_stats[MANA].current
         );
         assert_eq!(210, c.stats.all_stats[MANA].max);
+
+        // effect still the same
+        assert_eq!(32, c.stats.all_stats[SPEED_REGEN].max);
     }
 }

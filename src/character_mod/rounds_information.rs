@@ -540,6 +540,10 @@ impl CharacterRoundsInfo {
         }
         (logs, hot_and_dot)
     }
+
+    pub fn add_effect_on_player(&mut self, gae: GameAtkEffects) {
+        self.all_effects.push(gae);
+    }
 }
 
 #[cfg(test)]

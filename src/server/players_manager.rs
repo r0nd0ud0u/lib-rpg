@@ -7,7 +7,7 @@ use crate::{
     character_mod::{
         attack_type::AttackType,
         character::{Character, CharacterKind},
-        effect::ProcessedEffectParam,
+        effect::{EffectOutcome, ProcessedEffectParam},
         equipment::{Equipment, EquipmentJsonKey},
     },
     common::{
@@ -29,6 +29,7 @@ pub struct GameAtkEffects {
     pub launcher: String,
     pub target: String,
     pub launching_turn: usize,
+    pub effect_outcome: Option<EffectOutcome>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

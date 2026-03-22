@@ -240,7 +240,7 @@ impl Stats {
     }
 
     /// stat.m_RawMaxValue of a stat cannot be equal to 0.
-    /// updateEffect: false -> enable to update current value et max value only with equipments buf
+    /// updateEffect: false -> update current value et max value while considering equipments buf (without adding another time the effect buf to `buf_effect_percent` and `buf_effect_value`)
     pub fn set_stats_on_effect(
         &mut self,
         attribute_name: &str,
