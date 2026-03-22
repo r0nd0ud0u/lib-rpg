@@ -1,7 +1,7 @@
 {
     "Categorie": "Tattoes",
-    "Nom": "Sebor-3",
-    "Nom unique": "Sebor-3",
+    "Nom": "starting_tattoo",
+    "Nom unique": "starting tattoo",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,

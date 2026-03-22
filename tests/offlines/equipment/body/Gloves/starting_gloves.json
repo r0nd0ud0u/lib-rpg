@@ -1,7 +1,7 @@
 {
-    "Categorie": "Tattoes",
-    "Nom": "Sebor-3",
-    "Nom unique": "Sebor-3",
+    "Categorie": "Gloves",
+    "Nom": "starting gloves",
+    "Nom unique": "starting gloves",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -41,7 +41,7 @@
         },
         "Magical power": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "Mana": {
             "equip_percent": 0,

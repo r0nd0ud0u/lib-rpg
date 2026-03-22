@@ -1,17 +1,16 @@
 {
-    "RightRing": "Anneau de Boromir-4-2024-05-11-12-36-16",
-    "LeftRing": "Sceau des Berserkers du Mordor-4-2024-05-10-16-54-17",
-    "RightWeapon": "Arc des Veilleurs du Mordor-4-2024-05-11-12-35-28",
-    "LeftWeapon": "Cimeterre des Guerriers de Rhûn-4.1.5-2024-05-11-12-35-28",
-    "Gloves": "Manchette des Hommes de Dale-3.1.5-2024-05-10-18-22-48",
-    "Shoes": "Shoes des Hommes de Dale-9-2024-05-12-19-26-04",
-    "Amulet": "Amulette des Hommes de Dale-3.1.5-2024-05-10-19-32-25",
-    "Name": "",
-    "Pants": "Jambières des Guerriers de Rhûn-8-2024-05-11-12-35-28",
-    "Tattoes": ["Sebor-1", "Sebor-2", "Sebor-3"],
-    "Head": "Heaume des Guerriers de Rhûn-4.1.5-2024-05-12-19-30-14",
-    "Chest": "Gilet des Hobbits-9",
-    "Belt": "belt_unique",
-	"Cape": "cape_unique"
+    "RightRing": "starting right ring",
+    "LeftRing": "starting left ring",
+    "RightWeapon": "starting right weapon",
+    "LeftWeapon": "starting left weapon",
+    "Gloves": "starting gloves",
+    "Shoes": "starting shoes",
+    "Amulet": "starting amulet",
+    "Pants": "starting pants",
+    "Tattoes": ["Sebor-1"],
+    "Head": "starting head",
+    "Chest": "starting chest",
+    "Belt": "starting belt",
+	"Cape": "starting cape"
 }
 

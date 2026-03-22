@@ -1,7 +1,7 @@
 {
-    "Categorie": "Tattoes",
-    "Nom": "Sebor-3",
-    "Nom unique": "Sebor-3",
+    "Categorie": "RightRing",
+    "Nom": "starting right ring",
+    "Nom unique": "starting right ring",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -69,7 +69,7 @@
         },
         "Vigor": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "Vigor regeneration": {
             "equip_percent": 0,

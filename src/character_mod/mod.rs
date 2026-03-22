@@ -4,6 +4,7 @@ pub mod character;
 pub mod class;
 pub mod effect;
 pub mod equipment;
+pub mod inventory;
 pub mod powers;
 pub mod rounds_information;
 pub mod stats;

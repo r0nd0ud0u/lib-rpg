@@ -1,7 +1,7 @@
 {
-    "Categorie": "Tattoes",
-    "Nom": "Sebor-3",
-    "Nom unique": "Sebor-3",
+    "Categorie": "LeftWeapon",
+    "Nom": "starting left weapon",
+    "Nom unique": "starting left weapon",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -57,7 +57,7 @@
         },
         "Physical power": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "Speed": {
             "equip_percent": 0,
