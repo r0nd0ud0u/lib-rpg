@@ -25,7 +25,7 @@ use crate::{
     },
     server::{
         game_state::GameState,
-        players_manager::{DodgeInfo, GameAtkEffects},
+        players_manager::{DodgeInfo, GameAtkEffect},
     },
     utils::{self, list_files_in_dir},
 };
@@ -195,21 +195,21 @@ impl Character {
     pub fn remove_terminated_effect_on_player(&mut self) -> Result<Vec<EffectParam>> {
         let mut ended_effects: Vec<EffectParam> = Vec::new();
         for gae in self.character_rounds_info.all_effects.clone() {
-            if gae.all_atk_effects.counter_turn == gae.all_atk_effects.input_effect_param.nb_turns {
-                self.remove_malus_effect(&gae.all_atk_effects.input_effect_param)?;
-                ended_effects.push(gae.all_atk_effects.input_effect_param.clone());
+            if gae.processed_effect_param.counter_turn == gae.processed_effect_param.input_effect_param.nb_turns {
+                self.remove_malus_effect(&gae.processed_effect_param.input_effect_param)?;
+                ended_effects.push(gae.processed_effect_param.input_effect_param.clone());
             }
         }
         self.character_rounds_info.all_effects.retain(|element| {
-            element.all_atk_effects.input_effect_param.nb_turns
-                != element.all_atk_effects.counter_turn
+            element.processed_effect_param.input_effect_param.nb_turns
+                != element.processed_effect_param.counter_turn
         });
         Ok(ended_effects)
     }
 
     pub fn reset_all_effects_on_player(&mut self) -> Result<()> {
         for gae in self.character_rounds_info.all_effects.clone() {
-            self.remove_malus_effect(&gae.all_atk_effects.input_effect_param)?;
+            self.remove_malus_effect(&gae.processed_effect_param.input_effect_param)?;
         }
         self.character_rounds_info.all_effects.clear();
         Ok(())
@@ -357,16 +357,13 @@ impl Character {
         }
 
         // update stats in game
-        let eo = EffectOutcome {
+        EffectOutcome {
             full_atk_amount_tx: full_amount,
             real_hp_amount_tx: real_hp_amount,
             processed_effect_param,
             target_kind: self.id_name.clone(),
-            ..Default::default()
-        };
-        self.stats_in_game.update_by_effectoutcome(&eo);
-
-        eo
+            is_critical: is_crit,
+        }
     }
 
     /// Apply the effect on the target and return the real amount of hp change if the effect is on hp, otherwise return None
@@ -473,12 +470,13 @@ impl Character {
 
         // check if the effect is applied on the target
         if self.character_rounds_info.is_effect_applied(&target_data) {
-            option_eo = Some(self.apply_processed_effect_param(
+            let effect_outcome = self.apply_processed_effect_param(
                 processed_ep,
                 &launcher_info.stats,
                 is_crit,
                 current_turn,
-            ));
+            );
+            option_eo = Some(effect_outcome.clone());
             // assess the blocking
             if self
                 .character_rounds_info
@@ -487,14 +485,16 @@ impl Character {
                 di.push(self.character_rounds_info.dodge_info.clone());
             }
             // update all effects
-            self.character_rounds_info.all_effects.push(GameAtkEffects {
-                all_atk_effects: processed_ep.clone(),
-                atk: launcher_info.atk_type.clone(),
-                launcher: launcher_info.id_name.clone(),
-                target: "".to_owned(),
+            let gae = GameAtkEffect {
+                processed_effect_param: processed_ep.clone(),
+                atk_type: launcher_info.atk_type.clone(),
                 launching_turn: current_turn,
-                effect_outcome: option_eo.clone(),
-            });
+                effect_outcome: effect_outcome.clone(),
+            };
+            // update character table of effects
+            self.character_rounds_info.all_effects.push(gae.clone());
+            // update stats table
+            self.stats_in_game.update_by_game_atk_effect(&gae);
         } else {
             tracing::info!(
                 "is_receiving_atk: effect is not applied on:{} current_turn:{}, kind:{:?}, launcher_info.id_name:{}, effect.target: {:?}, launcher_kind: {:?}, effect.type: {:?}, effect.stats_name: {}.",
@@ -536,9 +536,9 @@ impl Character {
         for atk_effect in &atk_type.all_effects {
             if atk_effect.effect_type == EFFECT_NB_COOL_DOWN {
                 for e in &self.character_rounds_info.all_effects {
-                    if e.atk.name == atk_type.name
-                        && e.all_atk_effects.input_effect_param.nb_turns
-                            - e.all_atk_effects.counter_turn
+                    if e.atk_type.name == atk_type.name
+                        && e.processed_effect_param.input_effect_param.nb_turns
+                            - e.processed_effect_param.counter_turn
                             > 0
                     {
                         return false;
@@ -715,16 +715,29 @@ impl Character {
             .all_effects
             .iter_mut()
             .for_each(|gae| {
-                if let Some(eo) = gae.effect_outcome.as_ref()
-                    && (eo.processed_effect_param.input_effect_param.effect_type
-                        == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
-                        || eo.processed_effect_param.input_effect_param.effect_type
-                            == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
+                if gae
+                    .effect_outcome
+                    .processed_effect_param
+                    .input_effect_param
+                    .effect_type
+                    == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
+                    || gae
+                        .effect_outcome
+                        .processed_effect_param
+                        .input_effect_param
+                        .effect_type
+                        == EFFECT_IMPROVE_MAX_STAT_BY_VALUE
                 {
                     self.stats.set_stats_on_effect(
-                        &eo.processed_effect_param.input_effect_param.stats_name,
-                        eo.full_atk_amount_tx,
-                        eo.processed_effect_param.input_effect_param.effect_type
+                        &gae.effect_outcome
+                            .processed_effect_param
+                            .input_effect_param
+                            .stats_name,
+                        gae.effect_outcome.full_atk_amount_tx,
+                        gae.effect_outcome
+                            .processed_effect_param
+                            .input_effect_param
+                            .effect_type
                             == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
                         update_effect_stats,
                     );
@@ -750,7 +763,7 @@ mod tests {
         character_mod::character::{CharacterKind, Class},
         character_mod::effect::EffectParam,
         common::constants::{all_target_const::TARGET_ALLY, effect_const::*, stats_const::*},
-        server::players_manager::GameAtkEffects,
+        server::players_manager::GameAtkEffect,
         testing::testing_effect::*,
     };
 
@@ -1134,7 +1147,7 @@ mod tests {
         let mut c = testing_character();
         c.character_rounds_info
             .all_effects
-            .push(GameAtkEffects::default());
+            .push(GameAtkEffect::default());
         c.remove_terminated_effect_on_player().unwrap();
         assert_eq!(0, c.character_rounds_info.all_effects.len());
     }
@@ -1337,16 +1350,14 @@ mod tests {
         )
         .unwrap();
         let hp_without_malus = c.stats.all_stats[HP].max as i64;
-        c.character_rounds_info.all_effects.push(GameAtkEffects {
-            all_atk_effects: build_effect_max_stats(),
-            atk: AttackType::default(),
-            launcher: "".to_owned(),
-            target: "".to_owned(),
+        c.character_rounds_info.all_effects.push(GameAtkEffect {
+            processed_effect_param: build_effect_max_stats(),
+            atk_type: AttackType::default(),
             launching_turn: 0,
-            effect_outcome: None,
+            effect_outcome: EffectOutcome::default()
         });
         let effect_value = c.character_rounds_info.all_effects[0]
-            .all_atk_effects
+            .processed_effect_param
             .input_effect_param
             .value;
         c.reset_all_effects_on_player().unwrap();
@@ -1399,9 +1410,9 @@ mod tests {
         atk_type
             .all_effects
             .push(build_cooldown_effect().input_effect_param);
-        c1.character_rounds_info.all_effects.push(GameAtkEffects {
-            all_atk_effects: build_cooldown_effect(),
-            atk: atk_type.clone(),
+        c1.character_rounds_info.all_effects.push(GameAtkEffect {
+            processed_effect_param: build_cooldown_effect(),
+            atk_type: atk_type.clone(),
             ..Default::default()
         });
         let result = c1.can_be_launched(&atk_type);
@@ -1414,9 +1425,9 @@ mod tests {
         let mut processed_ep = build_cooldown_effect();
         processed_ep.counter_turn = processed_ep.input_effect_param.nb_turns;
         c1.character_rounds_info.all_effects.clear();
-        c1.character_rounds_info.all_effects.push(GameAtkEffects {
-            all_atk_effects: processed_ep.clone(),
-            atk: atk_type.clone(),
+        c1.character_rounds_info.all_effects.push(GameAtkEffect {
+            processed_effect_param: processed_ep.clone(),
+            atk_type: atk_type.clone(),
             ..Default::default()
         });
         let result = c1.can_be_launched(&atk_type);
@@ -1471,12 +1482,12 @@ mod tests {
         assert_eq!(12, c.stats.all_stats[SPEED_REGEN].max);
         // add one effect on vigor
         c.character_rounds_info
-            .add_effect_on_player(GameAtkEffects {
-                effect_outcome: Some(EffectOutcome {
+            .add_effect_on_player(GameAtkEffect {
+                effect_outcome: EffectOutcome {
                     processed_effect_param: build_buf_effect_individual_speed_regen(),
                     full_atk_amount_tx: 20,
                     ..Default::default()
-                }),
+                },
                 ..Default::default()
             });
         c.apply_effects_on_stats(true);

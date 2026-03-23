@@ -71,7 +71,6 @@ pub struct EffectOutcome {
     pub full_atk_amount_tx: i64,
     pub real_hp_amount_tx: i64,
     pub target_kind: String,
-    pub atk: String,
     pub is_critical: bool,
     /// Updated effect param after apply on the target
     pub processed_effect_param: ProcessedEffectParam,
