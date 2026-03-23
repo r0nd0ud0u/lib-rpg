@@ -4,7 +4,6 @@ use crate::{
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
         character::CharacterKind,
-        effect::EffectOutcome,
         equipment::{Equipment, EquipmentJsonKey},
         rounds_information::AmountType,
     },
@@ -18,7 +17,7 @@ use crate::{
     server::{
         game_paths::GamePaths,
         game_state::{GameState, GameStatus},
-        players_manager::{DodgeInfo, PlayerManager},
+        players_manager::{DodgeInfo, GameAtkEffect, PlayerManager},
     },
     utils,
 };
@@ -27,7 +26,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResultLaunchAttack {
     pub launcher_id_name: String,
-    pub outcomes: Vec<EffectOutcome>,
+    pub new_game_atk_effects: Vec<GameAtkEffect>,
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
     pub is_boss_atk: bool,
@@ -192,7 +191,7 @@ impl GameManager {
             return self.process_no_atk_launched();
         };
         // output
-        let mut output: Vec<EffectOutcome> = vec![];
+        let mut new_game_atk_effects: Vec<GameAtkEffect> = vec![];
         // update action done in round
         self.pm
             .current_player
@@ -272,32 +271,36 @@ impl GameManager {
         };
         for processed_effect in &all_effects_param {
             for target_id_name in &all_players {
-                let mut o: Option<EffectOutcome> = None;
+                let mut gae: Option<GameAtkEffect> = None;
                 let mut all_di: Option<Vec<DodgeInfo>> = None;
                 if id_name == *target_id_name {
-                    (o, all_di) = self.pm.current_player.is_receiving_atk(
+                    (gae, all_di) = self.pm.current_player.is_receiving_atk(
                         processed_effect,
                         self.game_state.current_turn_nb,
                         is_crit,
                         &launcher_info,
                     );
-                    tracing::trace!("Effect outcome for self target {}: {:?}", target_id_name, o);
+                    tracing::trace!(
+                        "Effect outcome for self target {}: {:?}",
+                        target_id_name,
+                        gae
+                    );
                 } else if let Some(c) = self.pm.get_mut_active_character(target_id_name) {
-                    (o, all_di) = c.is_receiving_atk(
+                    (gae, all_di) = c.is_receiving_atk(
                         processed_effect,
                         self.game_state.current_turn_nb,
                         is_crit,
                         &launcher_info,
                     );
-                    tracing::trace!("Effect outcome for target {}: {:?}", target_id_name, o);
+                    tracing::trace!("Effect outcome for target {}: {:?}", target_id_name, gae);
                 } else {
                     tracing::trace!("Effect outcome for unknown target {}", target_id_name);
                 }
                 if let Some(mut di) = all_di {
                     all_dodging.append(&mut di);
                 };
-                if let Some(eo) = o {
-                    output.push(eo);
+                if let Some(new_gae) = gae {
+                    new_game_atk_effects.push(new_gae);
                 };
             }
         }
@@ -329,11 +332,11 @@ impl GameManager {
         let mut result_attack = ResultLaunchAttack {
             launcher_id_name: self.pm.current_player.id_name.clone(),
             is_crit,
-            outcomes: output.clone(),
+            new_game_atk_effects: new_game_atk_effects.clone(),
             all_dodging: all_dodging.clone(),
             is_boss_atk: self.pm.current_player.is_boss_atk(),
             logs_end_of_round: Vec::new(),
-            logs_atk: self.build_logs_atk(&all_dodging, &output, is_crit),
+            logs_atk: self.build_logs_atk(&all_dodging, &new_game_atk_effects, is_crit),
         };
 
         // eval next step of the game
@@ -399,7 +402,7 @@ impl GameManager {
     pub fn build_logs_atk(
         &self,
         all_dodging: &Vec<DodgeInfo>,
-        effects_outcomes: &Vec<EffectOutcome>,
+        all_gae: &Vec<GameAtkEffect>,
         is_crit: bool,
     ) -> Vec<LogData> {
         let mut logs: Vec<LogData> = vec![];
@@ -419,7 +422,7 @@ impl GameManager {
             }
         }
         // logs for the atk
-        if !effects_outcomes.is_empty() {
+        if !all_gae.is_empty() {
             logs.push(LogData {
                 message: utils::format_string_with_timestamp("Last attack"),
                 color: "".to_string(),
@@ -431,39 +434,40 @@ impl GameManager {
                 });
             }
 
-            for eo in effects_outcomes {
+            for gae in all_gae {
                 // log for the processed effect param
-                if !eo.processed_effect_param.log.message.is_empty() {
-                    logs.push(eo.processed_effect_param.log.clone());
+                if !gae.processed_effect_param.log.message.is_empty() {
+                    logs.push(gae.processed_effect_param.log.clone());
                 }
                 // log for the effect outcome
                 let mut colortext = LIGHT_GREEN;
-                if eo.processed_effect_param.input_effect_param.stats_name == HP
-                    && eo.real_hp_amount_tx < 0
-                    || eo.full_atk_amount_tx < 0
+                if gae.processed_effect_param.input_effect_param.stats_name == HP
+                    && gae.effect_outcome.real_hp_amount_tx < 0
+                    || gae.effect_outcome.full_atk_amount_tx < 0
                 {
                     colortext = DARK_RED;
                 }
-                if eo.processed_effect_param.input_effect_param.effect_type == EFFECT_NB_COOL_DOWN {
+                if gae.processed_effect_param.input_effect_param.effect_type == EFFECT_NB_COOL_DOWN
+                {
                     logs.push(LogData {
                         color: colortext.to_string(),
                         message: format!(
                             "{} is applying {} on {} for {} turns",
-                            eo.target_kind,
-                            eo.processed_effect_param.input_effect_param.effect_type,
-                            eo.processed_effect_param.input_effect_param.stats_name,
-                            eo.processed_effect_param.input_effect_param.nb_turns
+                            gae.effect_outcome.target_id_name,
+                            gae.processed_effect_param.input_effect_param.effect_type,
+                            gae.processed_effect_param.input_effect_param.stats_name,
+                            gae.processed_effect_param.input_effect_param.nb_turns
                         ),
                     });
-                } else if eo.processed_effect_param.input_effect_param.stats_name == HP {
+                } else if gae.processed_effect_param.input_effect_param.stats_name == HP {
                     logs.push(LogData {
                         color: colortext.to_string(),
                         message: format!(
                             "{} is applying {} on {} for {} HP",
-                            eo.target_kind,
-                            eo.processed_effect_param.input_effect_param.effect_type,
-                            eo.processed_effect_param.input_effect_param.stats_name,
-                            eo.full_atk_amount_tx
+                            gae.effect_outcome.target_id_name,
+                            gae.processed_effect_param.input_effect_param.effect_type,
+                            gae.processed_effect_param.input_effect_param.stats_name,
+                            gae.effect_outcome.full_atk_amount_tx
                         ),
                     });
                 } else {
@@ -471,11 +475,11 @@ impl GameManager {
                         color: colortext.to_string(),
                         message: format!(
                             "{} is applying {} on {} for {} {}",
-                            eo.target_kind,
-                            eo.processed_effect_param.input_effect_param.effect_type,
-                            eo.processed_effect_param.input_effect_param.stats_name,
-                            eo.full_atk_amount_tx,
-                            eo.processed_effect_param.input_effect_param.stats_name
+                            gae.effect_outcome.target_id_name,
+                            gae.processed_effect_param.input_effect_param.effect_type,
+                            gae.processed_effect_param.input_effect_param.stats_name,
+                            gae.effect_outcome.full_atk_amount_tx,
+                            gae.processed_effect_param.input_effect_param.stats_name
                         ),
                     });
                 }
@@ -680,7 +684,7 @@ mod tests {
             .is_current_target = true;
         let ra = gm.launch_attack(Some("SimpleAtk"));
 
-        assert_eq!(1, ra.outcomes.len());
+        assert_eq!(1, ra.new_game_atk_effects.len());
         assert!(ra.all_dodging.is_empty());
         assert!(ra.logs_atk.len() > 0);
         // not dead boss : end of game
@@ -1200,7 +1204,7 @@ mod tests {
             .stats
             .all_stats[DODGE]
             .max;
-        assert_eq!(result.outcomes.len(), 1);
+        assert_eq!(result.new_game_atk_effects.len(), 1);
         assert_eq!(new_dodge, old_dodge + 20);
     }
 
@@ -1231,7 +1235,7 @@ mod tests {
             .stats
             .all_stats[BERSERK]
             .current;
-        assert_eq!(result.outcomes.len(), 1); // target himself
+        assert_eq!(result.new_game_atk_effects.len(), 1); // target himself
         // cost: -5% of berseck max, effect value +20
         assert_eq!(
             new_berserk,
@@ -1246,10 +1250,10 @@ mod tests {
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let result = gm.launch_attack(Some("cooldown"));
         assert!(gm.game_state.status != GameStatus::EndOfGame);
-        assert_eq!(result.outcomes.len(), 1);
+        assert_eq!(result.new_game_atk_effects.len(), 1);
         assert_eq!(
             result
-                .outcomes
+                .new_game_atk_effects
                 .first()
                 .unwrap()
                 .processed_effect_param
