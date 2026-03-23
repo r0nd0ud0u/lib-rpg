@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::{character_mod::{attack_type::AtksInfo}, server::players_manager::GameAtkEffect};
+use crate::{character_mod::attack_type::AtksInfo, server::players_manager::GameAtkEffect};
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct StatsInGame {
@@ -22,12 +22,15 @@ impl StatsInGame {
             // Update damage for this target (insert if missing)
             *atk_info
                 .all_damages_by_target
-                .entry(gae.effect_outcome.target_kind.clone())
+                .entry(gae.effect_outcome.target_id_name.clone())
                 .or_default() += gae.effect_outcome.real_hp_amount_tx;
         } else {
             // First time this attack appears
             let mut damages = IndexMap::new();
-            damages.insert(gae.effect_outcome.target_kind.clone(), gae.effect_outcome.real_hp_amount_tx);
+            damages.insert(
+                gae.effect_outcome.target_id_name.clone(),
+                gae.effect_outcome.real_hp_amount_tx,
+            );
 
             self.all_atk_info.push(AtksInfo {
                 atk_name: gae.atk_type.name.clone(),
@@ -52,7 +55,7 @@ mod tests {
                 ..Default::default()
             },
             effect_outcome: EffectOutcome {
-                target_kind: "Goblin".to_owned(),
+                target_id_name: "Goblin".to_owned(),
                 real_hp_amount_tx: -30,
                 ..Default::default()
             },

@@ -195,7 +195,9 @@ impl Character {
     pub fn remove_terminated_effect_on_player(&mut self) -> Result<Vec<EffectParam>> {
         let mut ended_effects: Vec<EffectParam> = Vec::new();
         for gae in self.character_rounds_info.all_effects.clone() {
-            if gae.processed_effect_param.counter_turn == gae.processed_effect_param.input_effect_param.nb_turns {
+            if gae.processed_effect_param.counter_turn
+                == gae.processed_effect_param.input_effect_param.nb_turns
+            {
                 self.remove_malus_effect(&gae.processed_effect_param.input_effect_param)?;
                 ended_effects.push(gae.processed_effect_param.input_effect_param.clone());
             }
@@ -264,7 +266,7 @@ impl Character {
                 processed_ep.input_effect_param.stats_name
             );
             return EffectOutcome {
-                processed_effect_param: processed_ep.clone(),
+                target_id_name: self.id_name.clone(),
                 ..Default::default()
             };
         }
@@ -344,15 +346,17 @@ impl Character {
         self.apply_effect_full_amount(processed_ep, full_amount);
 
         // process aggro for `HP` and `non-HP` stats
+        let mut aggro_generated: u64 = 0;
         if processed_ep.input_effect_param.effect_type != EFFECT_IMPROVE_MAX_STAT_BY_VALUE
             && processed_ep.input_effect_param.effect_type != EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
         {
             if processed_ep.input_effect_param.stats_name == HP {
                 // process aggro for the launcher
-                self.process_aggro(real_hp_amount, 0, current_turn);
+                aggro_generated = self.process_aggro(real_hp_amount, 0, current_turn);
             } else {
                 // Add aggro to a target
-                self.process_aggro(0, processed_ep.input_effect_param.value, current_turn);
+                aggro_generated =
+                    self.process_aggro(0, processed_ep.input_effect_param.value, current_turn);
             }
         }
 
@@ -360,9 +364,9 @@ impl Character {
         EffectOutcome {
             full_atk_amount_tx: full_amount,
             real_hp_amount_tx: real_hp_amount,
-            processed_effect_param,
-            target_kind: self.id_name.clone(),
+            target_id_name: self.id_name.clone(),
             is_critical: is_crit,
+            aggro_generated,
         }
     }
 
@@ -419,7 +423,8 @@ impl Character {
         Ok(processed_effect_param_list)
     }
 
-    pub fn process_aggro(&mut self, atk_value: i64, aggro_value: i64, turn_nb: usize) {
+    /// Update the aggro of the character by the atkValue or the input aggro value and return the generated aggro
+    pub fn process_aggro(&mut self, atk_value: i64, aggro_value: i64, turn_nb: usize) -> u64 {
         let aggro_norm = 20.0;
         let mut local_aggro = aggro_value as f64;
         // Aggro filled by atkValue or input aggro value ?
@@ -428,7 +433,7 @@ impl Character {
         }
         // case null aggro
         if local_aggro == 0.0 {
-            return;
+            return 0;
         }
 
         // Update aggro
@@ -444,6 +449,7 @@ impl Character {
             // update stats aggro of character
             aggro_stat.current = aggro_stat.current.saturating_add(*aggro as u64);
         }
+        local_aggro as u64
     }
 
     pub fn is_receiving_atk(
@@ -452,8 +458,8 @@ impl Character {
         current_turn: usize,
         is_crit: bool,
         launcher_info: &LauncherAtkInfo,
-    ) -> (Option<EffectOutcome>, Option<Vec<DodgeInfo>>) {
-        let mut option_eo: Option<EffectOutcome> = None;
+    ) -> (Option<GameAtkEffect>, Option<Vec<DodgeInfo>>) {
+        let mut option_gae: Option<GameAtkEffect> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
         if self.stats.is_dead() == Some(true) {
             tracing::info!("is_receiving_atk: {} is already dead.", self.id_name);
@@ -476,7 +482,6 @@ impl Character {
                 is_crit,
                 current_turn,
             );
-            option_eo = Some(effect_outcome.clone());
             // assess the blocking
             if self
                 .character_rounds_info
@@ -491,10 +496,11 @@ impl Character {
                 launching_turn: current_turn,
                 effect_outcome: effect_outcome.clone(),
             };
-            // update character table of effects
+            // update character table of effects when the effect takes place
             self.character_rounds_info.all_effects.push(gae.clone());
             // update stats table
             self.stats_in_game.update_by_game_atk_effect(&gae);
+            option_gae = Some(gae.clone());
         } else {
             tracing::info!(
                 "is_receiving_atk: effect is not applied on:{} current_turn:{}, kind:{:?}, launcher_info.id_name:{}, effect.target: {:?}, launcher_kind: {:?}, effect.type: {:?}, effect.stats_name: {}.",
@@ -520,7 +526,7 @@ impl Character {
         }
 
         let all_dodging = (!di.is_empty()).then_some(di);
-        (option_eo, all_dodging)
+        (option_gae, all_dodging)
     }
 
     /// The attak can be launched if the character has enough mana, vigor and
@@ -715,29 +721,15 @@ impl Character {
             .all_effects
             .iter_mut()
             .for_each(|gae| {
-                if gae
-                    .effect_outcome
-                    .processed_effect_param
-                    .input_effect_param
-                    .effect_type
+                if gae.processed_effect_param.input_effect_param.effect_type
                     == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
-                    || gae
-                        .effect_outcome
-                        .processed_effect_param
-                        .input_effect_param
-                        .effect_type
+                    || gae.processed_effect_param.input_effect_param.effect_type
                         == EFFECT_IMPROVE_MAX_STAT_BY_VALUE
                 {
                     self.stats.set_stats_on_effect(
-                        &gae.effect_outcome
-                            .processed_effect_param
-                            .input_effect_param
-                            .stats_name,
+                        &gae.processed_effect_param.input_effect_param.stats_name,
                         gae.effect_outcome.full_atk_amount_tx,
-                        gae.effect_outcome
-                            .processed_effect_param
-                            .input_effect_param
-                            .effect_type
+                        gae.processed_effect_param.input_effect_param.effect_type
                             == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
                         update_effect_stats,
                     );
@@ -762,7 +754,7 @@ mod tests {
         character_mod::buffers::BufTypes,
         character_mod::character::{CharacterKind, Class},
         character_mod::effect::EffectParam,
-        common::constants::{all_target_const::TARGET_ALLY, effect_const::*, stats_const::*},
+        common::constants::{effect_const::*, stats_const::*},
         server::players_manager::GameAtkEffect,
         testing::testing_effect::*,
     };
@@ -1260,8 +1252,11 @@ mod tests {
         assert_eq!(
             eo,
             EffectOutcome {
-                processed_effect_param: processed_ep,
-                ..Default::default()
+                full_atk_amount_tx: 0,
+                real_hp_amount_tx: 0,
+                target_id_name: c.id_name.clone(),
+                is_critical: false,
+                aggro_generated: 0,
             }
         );
 
@@ -1271,20 +1266,7 @@ mod tests {
         let eo = c2.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, 35);
         assert_eq!(eo.real_hp_amount_tx, 35);
-        assert_eq!(eo.processed_effect_param.input_effect_param.value, 35);
         assert_eq!(old_hp + 35, c2.stats.all_stats[HP].current);
-        assert_eq!(
-            eo.processed_effect_param.input_effect_param.effect_type,
-            EFFECT_VALUE_CHANGE
-        );
-        assert_eq!(eo.processed_effect_param.input_effect_param.stats_name, HP);
-        assert_eq!(eo.processed_effect_param.input_effect_param.nb_turns, 2);
-        assert_eq!(eo.processed_effect_param.number_of_applies, 1);
-        assert!(!eo.processed_effect_param.input_effect_param.is_magic_atk);
-        assert_eq!(
-            eo.processed_effect_param.input_effect_param.target_kind,
-            TARGET_ALLY
-        );
 
         // target is ennemy
         let mut boss1 = Character::try_new_from_json(
@@ -1302,7 +1284,6 @@ mod tests {
         let eo = boss1.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, -68);
         assert_eq!(eo.real_hp_amount_tx, -68);
-        assert_eq!(eo.processed_effect_param.input_effect_param.value, -68);
         assert_eq!(old_hp - 68, boss1.stats.all_stats[HP].current);
 
         processed_ep = build_buf_effect_individual_speed_regen();
@@ -1310,15 +1291,11 @@ mod tests {
         let eo = c.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
         assert_eq!(eo.full_atk_amount_tx, 60);
         assert_eq!(eo.real_hp_amount_tx, 0);
-        assert_eq!(
-            eo.processed_effect_param.input_effect_param.stats_name,
-            SPEED_REGEN
-        );
-        assert_eq!(eo.processed_effect_param.input_effect_param.value, 10);
+        assert_eq!(eo.aggro_generated, 0);
     }
 
     #[test]
-    fn unit_proces_aggro() {
+    fn unit_process_aggro() {
         let mut c = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",
             *TEST_OFFLINE_ROOT,
@@ -1327,17 +1304,19 @@ mod tests {
         )
         .unwrap();
         c.init_aggro_on_turn(0);
-        c.process_aggro(0, 0, 0);
+        let aggro_generated = c.process_aggro(0, 0, 0);
         assert_eq!(
             0,
             c.character_rounds_info.tx_rx[AmountType::Aggro as usize][&0]
         );
+        assert_eq!(0, aggro_generated);
 
-        c.process_aggro(20, 0, 0);
+        let aggro_generated = c.process_aggro(20, 0, 0);
         assert_eq!(
             1,
             c.character_rounds_info.tx_rx[AmountType::Aggro as usize][&0]
         );
+        assert_eq!(1, aggro_generated);
     }
 
     #[test]
@@ -1354,7 +1333,7 @@ mod tests {
             processed_effect_param: build_effect_max_stats(),
             atk_type: AttackType::default(),
             launching_turn: 0,
-            effect_outcome: EffectOutcome::default()
+            effect_outcome: EffectOutcome::default(),
         });
         let effect_value = c.character_rounds_info.all_effects[0]
             .processed_effect_param
@@ -1481,15 +1460,14 @@ mod tests {
 
         assert_eq!(12, c.stats.all_stats[SPEED_REGEN].max);
         // add one effect on vigor
-        c.character_rounds_info
-            .add_effect_on_player(GameAtkEffect {
-                effect_outcome: EffectOutcome {
-                    processed_effect_param: build_buf_effect_individual_speed_regen(),
-                    full_atk_amount_tx: 20,
-                    ..Default::default()
-                },
+        c.character_rounds_info.add_effect_on_player(GameAtkEffect {
+            processed_effect_param: build_buf_effect_individual_speed_regen(),
+            effect_outcome: EffectOutcome {
+                full_atk_amount_tx: 20,
                 ..Default::default()
-            });
+            },
+            ..Default::default()
+        });
         c.apply_effects_on_stats(true);
         assert_eq!(32, c.stats.all_stats[SPEED_REGEN].max);
 

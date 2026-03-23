@@ -67,13 +67,13 @@ pub struct ProcessedEffectParam {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct EffectOutcome {
     pub full_atk_amount_tx: i64,
     pub real_hp_amount_tx: i64,
-    pub target_kind: String,
+    pub target_id_name: String,
     pub is_critical: bool,
-    /// Updated effect param after apply on the target
-    pub processed_effect_param: ProcessedEffectParam,
+    pub aggro_generated: u64,
 }
 
 pub fn is_effet_hot_or_dot(effect_name: &str) -> bool {
