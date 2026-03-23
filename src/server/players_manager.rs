@@ -23,13 +23,11 @@ use crate::{
 };
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct GameAtkEffects {
-    pub all_atk_effects: ProcessedEffectParam,
-    pub atk: AttackType,
-    pub launcher: String,
-    pub target: String,
+pub struct GameAtkEffect {
+    pub processed_effect_param: ProcessedEffectParam,
+    pub atk_type: AttackType,
     pub launching_turn: usize,
-    pub effect_outcome: Option<EffectOutcome>,
+    pub effect_outcome: EffectOutcome,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -542,7 +540,7 @@ mod tests {
         character_mod::equipment::EquipmentJsonKey,
         common::constants::stats_const::*,
         server::game_state::GameState,
-        server::players_manager::GameAtkEffects,
+        server::players_manager::GameAtkEffect,
         testing::testing_all_characters::{self, testing_pm},
         testing::testing_effect::*,
     };
@@ -562,17 +560,17 @@ mod tests {
         pl.active_heroes[0]
             .character_rounds_info
             .all_effects
-            .push(GameAtkEffects {
-                all_atk_effects: build_cooldown_effect(),
+            .push(GameAtkEffect {
+                processed_effect_param: build_cooldown_effect(),
                 ..Default::default()
             });
         let old_counter_turn = pl.active_heroes[0].character_rounds_info.all_effects[0]
-            .all_atk_effects
+            .processed_effect_param
             .counter_turn;
         pl.increment_counter_effect();
         assert_eq!(
             pl.active_heroes[0].character_rounds_info.all_effects[0]
-                .all_atk_effects
+                .processed_effect_param
                 .counter_turn,
             old_counter_turn + 1
         );
@@ -688,7 +686,7 @@ mod tests {
         pl.current_player
             .character_rounds_info
             .all_effects
-            .push(GameAtkEffects::default());
+            .push(GameAtkEffect::default());
         let mut gs = GameState::new();
         let (logs, hot_and_dot) = pl
             .current_player
@@ -700,8 +698,8 @@ mod tests {
         pl.current_player
             .character_rounds_info
             .all_effects
-            .push(GameAtkEffects {
-                all_atk_effects: build_cooldown_effect(),
+            .push(GameAtkEffect {
+                processed_effect_param: build_cooldown_effect(),
                 ..Default::default()
             });
         let (logs, hot_and_dot) = pl
@@ -714,8 +712,8 @@ mod tests {
         pl.current_player
             .character_rounds_info
             .all_effects
-            .push(GameAtkEffects {
-                all_atk_effects: build_hot_effect_individual(),
+            .push(GameAtkEffect {
+                processed_effect_param: build_hot_effect_individual(),
                 ..Default::default()
             });
         let (logs, hot_and_dot) = pl
@@ -736,8 +734,8 @@ mod tests {
         pl.current_player
             .character_rounds_info
             .all_effects
-            .push(GameAtkEffects {
-                all_atk_effects: build_dot_effect_individual(),
+            .push(GameAtkEffect {
+                processed_effect_param: build_dot_effect_individual(),
                 ..Default::default()
             });
         let (logs, hot_and_dot) = pl

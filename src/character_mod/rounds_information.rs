@@ -24,7 +24,7 @@ use crate::{
     },
     server::{
         game_state::GameState,
-        players_manager::{DodgeInfo, GameAtkEffects},
+        players_manager::{DodgeInfo, GameAtkEffect},
     },
     utils::get_random_nb,
 };
@@ -81,7 +81,7 @@ pub struct CharacterRoundsInfo {
     #[serde(default, rename = "is-potential-target")]
     pub is_potential_target: bool,
     #[serde(default, rename = "Effects")]
-    pub all_effects: Vec<GameAtkEffects>,
+    pub all_effects: Vec<GameAtkEffect>,
 }
 
 impl Default for CharacterRoundsInfo {
@@ -135,24 +135,24 @@ impl CharacterRoundsInfo {
     }
 
     /// Output: hot, dot, buf, debuf
-    pub fn get_hot_and_buf_nbs_txts(all_effects: &Vec<GameAtkEffects>) -> HotsBufs {
+    pub fn get_hot_and_buf_nbs_txts(all_effects: &Vec<GameAtkEffect>) -> HotsBufs {
         let mut hots_bufs = HotsBufs::default();
         for e in all_effects {
-            if e.all_atk_effects.input_effect_param.nb_turns < 2 {
+            if e.processed_effect_param.input_effect_param.nb_turns < 2 {
                 continue;
             }
-            let txt = Self::get_hot_and_buf_texts(&e.all_atk_effects.input_effect_param);
+            let txt = Self::get_hot_and_buf_texts(&e.processed_effect_param.input_effect_param);
             if effect::is_hot(
-                &e.all_atk_effects.input_effect_param.effect_type,
-                &e.all_atk_effects.input_effect_param.stats_name,
-                e.all_atk_effects.input_effect_param.value,
+                &e.processed_effect_param.input_effect_param.effect_type,
+                &e.processed_effect_param.input_effect_param.stats_name,
+                e.processed_effect_param.input_effect_param.value,
             ) {
                 hots_bufs.hot_nb += 1;
                 hots_bufs.hot_txt.push(txt);
-            } else if e.all_atk_effects.input_effect_param.stats_name == HP {
+            } else if e.processed_effect_param.input_effect_param.stats_name == HP {
                 hots_bufs.dot_nb += 1;
                 hots_bufs.dot_txt.push(txt);
-            } else if e.all_atk_effects.input_effect_param.value > 0 {
+            } else if e.processed_effect_param.input_effect_param.value > 0 {
                 hots_bufs.buf_nb += 1;
                 hots_bufs.buf_txt.push(txt);
             } else {
@@ -261,7 +261,7 @@ impl CharacterRoundsInfo {
 
     pub fn increment_counter_effect(&mut self) {
         for gae in self.all_effects.iter_mut() {
-            gae.all_atk_effects.counter_turn += 1;
+            gae.processed_effect_param.counter_turn += 1;
         }
     }
 
@@ -506,10 +506,10 @@ impl CharacterRoundsInfo {
     fn process_hot_or_dot(
         local_log: &mut Vec<LogData>,
         hot_and_dot: &mut i64,
-        gae: &GameAtkEffects,
+        gae: &GameAtkEffect,
     ) {
-        *hot_and_dot += gae.all_atk_effects.input_effect_param.value;
-        let effect_type = if gae.all_atk_effects.input_effect_param.value > 0 {
+        *hot_and_dot += gae.processed_effect_param.input_effect_param.value;
+        let effect_type = if gae.processed_effect_param.input_effect_param.value > 0 {
             "HOT->"
         } else {
             "DOT->"
@@ -517,7 +517,7 @@ impl CharacterRoundsInfo {
         local_log.push(LogData {
             message: format!(
                 "{} valeur: {}, atk: {}",
-                effect_type, gae.all_atk_effects.input_effect_param.value, gae.atk.name
+                effect_type, gae.processed_effect_param.input_effect_param.value, gae.atk_type.name
             ),
             ..Default::default()
         });
@@ -532,8 +532,8 @@ impl CharacterRoundsInfo {
                 continue;
             }
             // Process hot or dot
-            if gae.all_atk_effects.input_effect_param.stats_name == HP
-                && is_effet_hot_or_dot(&gae.all_atk_effects.input_effect_param.effect_type)
+            if gae.processed_effect_param.input_effect_param.stats_name == HP
+                && is_effet_hot_or_dot(&gae.processed_effect_param.input_effect_param.effect_type)
             {
                 Self::process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
             }
@@ -541,7 +541,7 @@ impl CharacterRoundsInfo {
         (logs, hot_and_dot)
     }
 
-    pub fn add_effect_on_player(&mut self, gae: GameAtkEffects) {
+    pub fn add_effect_on_player(&mut self, gae: GameAtkEffect) {
         self.all_effects.push(gae);
     }
 }
@@ -561,7 +561,7 @@ mod tests {
             paths_const::TEST_OFFLINE_ROOT,
             stats_const::*,
         },
-        server::players_manager::GameAtkEffects,
+        server::players_manager::GameAtkEffect,
         testing::{
             testing_all_characters::testing_all_equipment,
             testing_effect::{
@@ -576,17 +576,17 @@ mod tests {
     fn unit_get_hot_and_buf_nbs() {
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![]);
         assert_eq!(result, HotsBufs::default());
-        let mut all_effects: Vec<GameAtkEffects> = vec![];
+        let mut all_effects: Vec<GameAtkEffect> = vec![];
         // add a 1-turn-effect
-        all_effects.push(GameAtkEffects {
-            all_atk_effects: build_dmg_effect_individual(),
+        all_effects.push(GameAtkEffect {
+            processed_effect_param: build_dmg_effect_individual(),
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(result, HotsBufs::default());
         // add a 2-turn-effect HOT
-        all_effects.push(GameAtkEffects {
-            all_atk_effects: build_hot_effect_individual(),
+        all_effects.push(GameAtkEffect {
+            processed_effect_param: build_hot_effect_individual(),
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -604,8 +604,8 @@ mod tests {
             }
         );
         // add a 3-turn-effect DOT
-        all_effects.push(GameAtkEffects {
-            all_atk_effects: build_dot_effect_individual(),
+        all_effects.push(GameAtkEffect {
+            processed_effect_param: build_dot_effect_individual(),
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -623,8 +623,8 @@ mod tests {
             }
         );
         // add a 3-turn-effect DOT
-        all_effects.push(GameAtkEffects {
-            all_atk_effects: build_buf_effect_individual(),
+        all_effects.push(GameAtkEffect {
+            processed_effect_param: build_buf_effect_individual(),
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -642,8 +642,8 @@ mod tests {
             }
         );
         // add a 3-turn-effect DOT
-        all_effects.push(GameAtkEffects {
-            all_atk_effects: build_debuf_effect_individual(),
+        all_effects.push(GameAtkEffect {
+            processed_effect_param: build_debuf_effect_individual(),
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
