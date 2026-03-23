@@ -32,6 +32,8 @@ pub struct ResultLaunchAttack {
     pub is_boss_atk: bool,
     pub logs_end_of_round: Vec<LogData>,
     pub logs_atk: Vec<LogData>,
+    pub turn_nb: usize,
+    pub round_nb: usize,
 }
 
 /// The entry of the library.
@@ -337,6 +339,8 @@ impl GameManager {
             is_boss_atk: self.pm.current_player.is_boss_atk(),
             logs_end_of_round: Vec::new(),
             logs_atk: self.build_logs_atk(&all_dodging, &new_game_atk_effects, is_crit),
+            turn_nb: self.game_state.current_turn_nb,
+            round_nb: self.game_state.current_round,
         };
 
         // eval next step of the game
@@ -366,6 +370,8 @@ impl GameManager {
             is_boss_atk: self.pm.current_player.is_boss_atk(),
             logs_end_of_round,
             logs_atk,
+            turn_nb: self.game_state.current_turn_nb,
+            round_nb: self.game_state.current_round,
             ..Default::default()
         }
     }
