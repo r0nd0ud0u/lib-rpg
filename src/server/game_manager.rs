@@ -276,7 +276,7 @@ impl GameManager {
                 if id_name == *target_id_name {
                     (gae, all_di) = self.pm.current_player.is_receiving_atk(
                         processed_effect,
-                        self.game_state.current_turn_nb,
+                        &self.game_state,
                         is_crit,
                         &launcher_info,
                     );
@@ -288,7 +288,7 @@ impl GameManager {
                 } else if let Some(c) = self.pm.get_mut_active_character(target_id_name) {
                     (gae, all_di) = c.is_receiving_atk(
                         processed_effect,
-                        self.game_state.current_turn_nb,
+                        &self.game_state,
                         is_crit,
                         &launcher_info,
                     );
