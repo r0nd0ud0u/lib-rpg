@@ -1243,7 +1243,7 @@ mod tests {
             .stats
             .all_stats[BERSERK]
             .max;
-        let result = gm.launch_attack(Some("change-current-stat-by-value-berseck"));
+        let result = gm.launch_attack(Some("change-current-stat-by-value-berserk"));
         let new_berserk = gm
             .pm
             .get_mut_active_character(&hero_launcher_id_name)
@@ -1252,7 +1252,7 @@ mod tests {
             .all_stats[BERSERK]
             .current;
         assert_eq!(result.new_game_atk_effects.len(), 1); // target himself
-        // cost: -5% of berseck max, effect value +20
+        // cost: -5% of berserk max, effect value +20
         assert_eq!(
             new_berserk,
             old_berserk_current - (5 * old_berserk_max / 100) + 20

@@ -113,11 +113,11 @@
             "Current": 1,
             "Max": 1
         },
-        "Berseck": {
+        "Berserk": {
             "Current": 200,
             "Max": 200
         },
-        "Berseck rate": {
+        "Berserk rate": {
             "Current": 1,
             "Max": 1
         },
@@ -277,5 +277,13 @@
         },
         "consumables": [],
         "money": 100
-    }
+    },
+    "energies": [
+        {
+            "kind": "Mana"
+        },
+        {
+            "kind": "Vigor"
+        }
+    ]
 }

@@ -113,11 +113,11 @@
             "Current": 0,
             "Max": 0
         },
-        "Berseck": {
+        "Berserk": {
             "Current": 0,
             "Max": 0
         },
-        "Berseck rate": {
+        "Berserk rate": {
             "Current": 0,
             "Max": 0
         },
@@ -195,6 +195,14 @@
     "Type": "Boss",
     "is-blocking-atk": false,
     "max-actions-by-round": 1,
-    "nb-actions-in-round": 0
+    "nb-actions-in-round": 0,
+    "energies": [
+        {
+            "kind": "Mana"
+        },
+        {
+            "kind": "Vigor"
+        }
+    ]
 }
 
