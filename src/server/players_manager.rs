@@ -266,6 +266,9 @@ impl PlayerManager {
         Ok(())
     }
 
+    /// Process the boss target at the start of the turn by setting the hero with the highest aggro as current target.
+    /// If all heroes are dead, no target is set.
+    /// If the current player is a hero, no target is set.
     pub fn process_boss_target(&mut self) {
         if self.current_player.kind == CharacterKind::Hero {
             return;
