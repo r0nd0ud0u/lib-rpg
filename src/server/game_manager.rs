@@ -271,6 +271,8 @@ impl GameManager {
             stats: launcher_stats,
             atk_type: atk.clone(),
         };
+
+        let mut new_gaes: Vec<GameAtkEffect> = Vec::new();
         for processed_effect in &all_effects_param {
             for target_id_name in &all_players {
                 let mut gae: Option<GameAtkEffect> = None;
@@ -302,7 +304,8 @@ impl GameManager {
                     all_dodging.append(&mut di);
                 };
                 if let Some(new_gae) = gae {
-                    new_game_atk_effects.push(new_gae);
+                    new_game_atk_effects.push(new_gae.clone());
+                    new_gaes.push(new_gae.clone());
                 };
             }
         }
@@ -329,6 +332,13 @@ impl GameManager {
         // update active character for cost atk and buf received.
         self.pm
             .modify_active_character(&self.pm.current_player.id_name.clone());
+
+        // process stats
+        self.game_state.process_game_stats(
+            &new_gaes,
+            &self.pm.current_player.id_name.clone(),
+            atk_name,
+        );
 
         // process end of attack
         let mut result_attack = ResultLaunchAttack {
@@ -448,8 +458,8 @@ impl GameManager {
                 // log for the effect outcome
                 let mut colortext = LIGHT_GREEN;
                 if gae.processed_effect_param.input_effect_param.stats_name == HP
-                    && gae.effect_outcome.real_hp_amount_tx < 0
-                    || gae.effect_outcome.full_atk_amount_tx < 0
+                    && gae.effect_outcome.real_amount_tx < 0
+                    || gae.effect_outcome.full_amount_tx < 0
                 {
                     colortext = DARK_RED;
                 }
@@ -473,7 +483,7 @@ impl GameManager {
                             gae.effect_outcome.target_id_name,
                             gae.processed_effect_param.input_effect_param.effect_type,
                             gae.processed_effect_param.input_effect_param.stats_name,
-                            gae.effect_outcome.full_atk_amount_tx
+                            gae.effect_outcome.full_amount_tx
                         ),
                     });
                 } else {
@@ -484,7 +494,7 @@ impl GameManager {
                             gae.effect_outcome.target_id_name,
                             gae.processed_effect_param.input_effect_param.effect_type,
                             gae.processed_effect_param.input_effect_param.stats_name,
-                            gae.effect_outcome.full_atk_amount_tx,
+                            gae.effect_outcome.full_amount_tx,
                             gae.processed_effect_param.input_effect_param.stats_name
                         ),
                     });
