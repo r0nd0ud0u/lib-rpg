@@ -27,6 +27,7 @@ pub struct GameAtkEffect {
     pub processed_effect_param: ProcessedEffectParam,
     pub atk_type: AttackType,
     pub launching_turn: usize,
+    pub launching_round: usize,
     pub effect_outcome: EffectOutcome,
 }
 
