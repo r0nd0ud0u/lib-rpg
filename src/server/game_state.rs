@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::{character_mod::attack_type::AttackType, server::game_manager::ResultLaunchAttack};
+use crate::{
+    character_mod::stats_in_game::StatsInGame,
+    server::{game_manager::ResultLaunchAttack, players_manager::GameAtkEffect},
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum GameStatus {
@@ -34,10 +37,10 @@ pub struct GameState {
     pub game_name: String,
     /// Game Status
     pub status: GameStatus,
-    /// Current atk selected
-    pub current_atk: AttackType,
     /// Information about the last result attacks
     pub last_result_atk: ResultLaunchAttack,
+    /// Stats in game, to display in the stats sheet
+    pub stats_in_game: HashMap<String, StatsInGame>,
 }
 
 impl GameState {
@@ -62,6 +65,18 @@ impl GameState {
 
     pub fn new_round(&mut self) {
         self.current_round += 1;
+    }
+
+    pub fn process_game_stats(
+        &mut self,
+        new_gaes: &Vec<GameAtkEffect>,
+        player_name: &str,
+        atk_name: &str,
+    ) {
+        self.stats_in_game
+            .entry(player_name.to_owned())
+            .or_default()
+            .process_all_game_stats(new_gaes, atk_name);
     }
 }
 
