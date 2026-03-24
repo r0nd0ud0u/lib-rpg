@@ -13,15 +13,15 @@ pub struct StatsInGame {
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, EnumIter)]
 pub enum StatsInfoKind {
     #[default]
-    Atk,
-    Others,
+    AtksCount,
+    AtksAmount,
 }
 
 impl fmt::Display for StatsInfoKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
-            StatsInfoKind::Atk => "Atk",
-            StatsInfoKind::Others => "Others",
+            StatsInfoKind::AtksCount => "Count",
+            StatsInfoKind::AtksAmount => "Amount",
         };
         write!(f, "{}", s)
     }
