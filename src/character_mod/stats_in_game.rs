@@ -2,6 +2,7 @@ use std::fmt;
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use strum_macros::EnumIter;
 
 use crate::{character_mod::attack_type::AtksInfo, server::players_manager::GameAtkEffect};
 
@@ -10,7 +11,7 @@ pub struct StatsInGame {
     pub all_atk_info: Vec<AtksInfo>,
 }
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq, EnumIter)]
 pub enum StatsInfoKind {
     #[default]
     Atk,
