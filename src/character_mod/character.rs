@@ -13,7 +13,6 @@ use crate::{
         powers::Powers,
         rounds_information::{AmountType, CharacterRoundsInfo},
         stats::Stats,
-        stats_in_game::StatsInGame,
         target::TargetData,
     },
     common::{
@@ -68,8 +67,6 @@ pub struct Character {
     /// CharacterRoundsInfo
     #[serde(rename = "CharacterRoundsInfo")]
     pub character_rounds_info: CharacterRoundsInfo,
-    /// stats_in_game
-    pub stats_in_game: StatsInGame,
     /// Inventory
     pub inventory: Inventory,
 }
@@ -89,7 +86,6 @@ impl Default for Character {
             power: Powers::default(),
             character_rounds_info: CharacterRoundsInfo::default(),
             class: Class::Standard,
-            stats_in_game: StatsInGame::default(),
             inventory: Inventory::default(),
         }
     }
@@ -343,7 +339,14 @@ impl Character {
             .update_hp_process_real_amount(&processed_ep.input_effect_param, full_amount);
 
         // Apply the effect on the target
-        self.apply_effect_full_amount(processed_ep, full_amount);
+        let real_dmg_amount = self.apply_effect_full_amount(processed_ep, full_amount);
+
+        // output real dmg amount for dmg and heal
+        let real_dmg_amount = if real_dmg_amount < 0 {
+            real_dmg_amount
+        } else {
+            real_hp_amount
+        };
 
         // process aggro for `HP` and `non-HP` stats
         let mut aggro_generated: u64 = 0;
@@ -362,16 +365,20 @@ impl Character {
 
         // update stats in game
         EffectOutcome {
-            full_atk_amount_tx: full_amount,
-            real_hp_amount_tx: real_hp_amount,
+            full_amount_tx: full_amount,
+            real_amount_tx: real_dmg_amount,
             target_id_name: self.id_name.clone(),
             is_critical: is_crit,
             aggro_generated,
         }
     }
 
-    /// Apply the effect on the target and return the real amount of hp change if the effect is on hp, otherwise return None
-    fn apply_effect_full_amount(&mut self, processed_ep: &ProcessedEffectParam, full_amount: i64) {
+    /// Apply the effect on the target and return the real amount of dmg change if the effect is on hp, otherwise return None
+    fn apply_effect_full_amount(
+        &mut self,
+        processed_ep: &ProcessedEffectParam,
+        full_amount: i64,
+    ) -> i64 {
         // Process non-stats `HP`
         // Otherwise update the max value of the stats
         if processed_ep.input_effect_param.stats_name != HP
@@ -386,13 +393,15 @@ impl Character {
             );
         }
         // apply change current stats for non HP stats
+        let mut overhead_dmg = 0;
         if processed_ep.input_effect_param.stats_name != HP
             && processed_ep.input_effect_param.effect_type == EFFECT_VALUE_CHANGE
         {
-            let _ = self
+            overhead_dmg = self
                 .stats
                 .modify_stat_current(&processed_ep.input_effect_param.stats_name, full_amount);
         }
+        full_amount - overhead_dmg
     }
 
     pub fn process_atk(
@@ -499,7 +508,6 @@ impl Character {
             // update character table of effects when the effect takes place
             self.character_rounds_info.all_effects.push(gae.clone());
             // update stats table
-            self.stats_in_game.update_by_game_atk_effect(&gae);
             option_gae = Some(gae.clone());
         } else {
             tracing::info!(
@@ -728,7 +736,7 @@ impl Character {
                 {
                     self.stats.set_stats_on_effect(
                         &gae.processed_effect_param.input_effect_param.stats_name,
-                        gae.effect_outcome.full_atk_amount_tx,
+                        gae.effect_outcome.full_amount_tx,
                         gae.processed_effect_param.input_effect_param.effect_type
                             == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
                         update_effect_stats,
@@ -1252,8 +1260,8 @@ mod tests {
         assert_eq!(
             eo,
             EffectOutcome {
-                full_atk_amount_tx: 0,
-                real_hp_amount_tx: 0,
+                full_amount_tx: 0,
+                real_amount_tx: 0,
                 target_id_name: c.id_name.clone(),
                 is_critical: false,
                 aggro_generated: 0,
@@ -1264,8 +1272,8 @@ mod tests {
         processed_ep = build_hot_effect_individual();
         let old_hp = c2.stats.all_stats[HP].current;
         let eo = c2.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
-        assert_eq!(eo.full_atk_amount_tx, 35);
-        assert_eq!(eo.real_hp_amount_tx, 35);
+        assert_eq!(eo.full_amount_tx, 35);
+        assert_eq!(eo.real_amount_tx, 35);
         assert_eq!(old_hp + 35, c2.stats.all_stats[HP].current);
 
         // target is ennemy
@@ -1282,15 +1290,15 @@ mod tests {
         processed_ep = build_dmg_effect_individual();
         let old_hp = boss1.stats.all_stats[HP].current;
         let eo = boss1.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
-        assert_eq!(eo.full_atk_amount_tx, -68);
-        assert_eq!(eo.real_hp_amount_tx, -68);
+        assert_eq!(eo.full_amount_tx, -68);
+        assert_eq!(eo.real_amount_tx, -68);
         assert_eq!(old_hp - 68, boss1.stats.all_stats[HP].current);
 
         processed_ep = build_buf_effect_individual_speed_regen();
         let launcher_stats = c.stats.clone();
         let eo = c.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
-        assert_eq!(eo.full_atk_amount_tx, 60);
-        assert_eq!(eo.real_hp_amount_tx, 0);
+        assert_eq!(eo.full_amount_tx, 60);
+        assert_eq!(eo.real_amount_tx, 0);
         assert_eq!(eo.aggro_generated, 0);
     }
 
@@ -1463,7 +1471,7 @@ mod tests {
         c.character_rounds_info.add_effect_on_player(GameAtkEffect {
             processed_effect_param: build_buf_effect_individual_speed_regen(),
             effect_outcome: EffectOutcome {
-                full_atk_amount_tx: 20,
+                full_amount_tx: 20,
                 ..Default::default()
             },
             ..Default::default()

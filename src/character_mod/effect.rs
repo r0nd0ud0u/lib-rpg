@@ -69,8 +69,8 @@ pub struct ProcessedEffectParam {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct EffectOutcome {
-    pub full_atk_amount_tx: i64,
-    pub real_hp_amount_tx: i64,
+    pub full_amount_tx: i64,
+    pub real_amount_tx: i64,
     pub target_id_name: String,
     pub is_critical: bool,
     pub aggro_generated: u64,
