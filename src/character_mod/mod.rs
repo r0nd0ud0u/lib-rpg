@@ -3,6 +3,7 @@ pub mod buffers;
 pub mod character;
 pub mod class;
 pub mod effect;
+pub mod energy;
 pub mod equipment;
 pub mod inventory;
 pub mod powers;

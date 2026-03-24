@@ -266,6 +266,9 @@ impl PlayerManager {
         Ok(())
     }
 
+    /// Process the boss target at the start of the turn by setting the hero with the highest aggro as current target.
+    /// If all heroes are dead, no target is set.
+    /// If the current player is a hero, no target is set.
     pub fn process_boss_target(&mut self) {
         if self.current_player.kind == CharacterKind::Hero {
             return;
@@ -1234,9 +1237,7 @@ mod tests {
         // no problem of is_heal_atk_blocked
         pl.current_player.character_rounds_info.is_heal_atk_blocked = false;
         let launchable_atks = pl.process_launchable_atks();
-        // print launcgable atks for debug
-        //println!("Launchable attacks: {:?}", launchable_atks);
-        assert_eq!(pl.current_player.attacks_list.len(), launchable_atks.len());
+        assert_eq!(pl.current_player.attacks_list.len(), launchable_atks.len()); // in the list, one is berserk atk type and test.json has not the berserk energy!!
 
         // case level under
         pl.current_player.level = 1;
