@@ -88,10 +88,10 @@ pub struct Stats {
     #[serde(rename = "Vigor")]
     vigor: Attribute,
 
-    #[serde(rename = "Berseck")]
-    berseck: Attribute,
+    #[serde(rename = "Berserk")]
+    berserk: Attribute,
 
-    #[serde(rename = "Berseck rate")]
+    #[serde(rename = "Berserk rate")]
     berseck_rate: Attribute,
 
     #[serde(rename = "Speed")]
@@ -129,7 +129,7 @@ impl Stats {
         self.hp.sync_raw_values();
         self.mana.sync_raw_values();
         self.vigor.sync_raw_values();
-        self.berseck.sync_raw_values();
+        self.berserk.sync_raw_values();
         self.berseck_rate.sync_raw_values();
         self.speed.sync_raw_values();
         self.critical_strike.sync_raw_values();
@@ -154,7 +154,7 @@ impl Stats {
         self.all_stats.insert(MANA.to_string(), self.mana.clone());
         self.all_stats.insert(VIGOR.to_string(), self.vigor.clone());
         self.all_stats
-            .insert(BERSERK.to_string(), self.berseck.clone());
+            .insert(BERSERK.to_string(), self.berserk.clone());
         self.all_stats
             .insert(BERSECK_RATE.to_string(), self.berseck_rate.clone());
         self.all_stats.insert(SPEED.to_string(), self.speed.clone());
@@ -363,10 +363,10 @@ impl Stats {
     pub fn apply_regen(&mut self) {
         let mut hp = self.all_stats.swap_remove(HP).expect("hp is missing");
         let mut mana = self.all_stats.swap_remove(MANA).expect("mana is missing");
-        let mut berseck = self
+        let mut berserk = self
             .all_stats
             .swap_remove(BERSERK)
-            .expect("berseck is missing");
+            .expect("berserk is missing");
         let mut vigor = self.all_stats.swap_remove(VIGOR).expect("vigor is missing");
         let mut speed = self.all_stats.swap_remove(SPEED).expect("speed is missing");
 
@@ -389,9 +389,9 @@ impl Stats {
             vigor.current_raw = vigor.max_raw * (vigor.current / vigor.max);
         }
 
-        berseck.current = std::cmp::min(berseck.max, berseck.current + regen_berseck.current);
-        if berseck.max > 0 {
-            berseck.max_raw = berseck.current_raw * (berseck.current / berseck.max);
+        berserk.current = std::cmp::min(berserk.max, berserk.current + regen_berseck.current);
+        if berserk.max > 0 {
+            berserk.max_raw = berserk.current_raw * (berserk.current / berserk.max);
         }
 
         speed.current += regen_speed.current;
@@ -406,7 +406,7 @@ impl Stats {
         self.all_stats.insert(MANA.to_owned(), mana);
         self.all_stats.insert(VIGOR.to_owned(), vigor);
         self.all_stats.insert(SPEED.to_owned(), speed);
-        self.all_stats.insert(BERSERK.to_owned(), berseck);
+        self.all_stats.insert(BERSERK.to_owned(), berserk);
     }
 }
 

@@ -55,7 +55,7 @@ pub struct AttackType {
     /// Vigor cost of the attack
     #[serde(rename = "Coût de vigueur")]
     pub vigor_cost: u64,
-    /// Berseck cost of the attack
+    /// Berserk cost of the attack
     #[serde(rename = "Coût de rage")]
     pub berseck_cost: u64,
     /// Target of the attack, can be TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF, TARGET_ONLY_ALLY

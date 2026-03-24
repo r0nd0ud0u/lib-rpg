@@ -115,7 +115,7 @@ mod tests {
         // stats - aggro
         assert_eq!(0, equipment.stats.all_stats[AGGRO].buf_equip_percent);
         assert_eq!(0, equipment.stats.all_stats[AGGRO].buf_equip_value);
-        // berseck rate
+        // berserk rate
         assert_eq!(10, equipment.stats.all_stats[VIGOR].buf_equip_value);
         assert_eq!(0, equipment.stats.all_stats[VIGOR].buf_equip_percent);
 

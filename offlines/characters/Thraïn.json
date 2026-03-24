@@ -113,11 +113,11 @@
             "Current": 3,
             "Max": 3
         },
-        "Berseck": {
+        "Berserk": {
             "Current": 20,
             "Max": 100
         },
-        "Berseck rate": {
+        "Berserk rate": {
             "Current": 0,
             "Max": 0
         },
@@ -270,7 +270,7 @@
     },
     "energies": [
         {
-            "kind": "Berseck"
+            "kind": "Berserk"
         }
     ]
 }

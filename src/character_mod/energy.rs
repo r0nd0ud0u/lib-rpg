@@ -8,5 +8,5 @@ pub enum EnergyKind {
     #[default]
     Mana,
     Vigor,
-    Berseck,
+    Berserk,
 }
