@@ -32,6 +32,8 @@ pub struct ResultLaunchAttack {
     pub is_boss_atk: bool,
     pub logs_end_of_round: Vec<LogData>,
     pub logs_atk: Vec<LogData>,
+    pub turn_nb: usize,
+    pub round_nb: usize,
 }
 
 /// The entry of the library.
@@ -276,7 +278,7 @@ impl GameManager {
                 if id_name == *target_id_name {
                     (gae, all_di) = self.pm.current_player.is_receiving_atk(
                         processed_effect,
-                        self.game_state.current_turn_nb,
+                        &self.game_state,
                         is_crit,
                         &launcher_info,
                     );
@@ -288,7 +290,7 @@ impl GameManager {
                 } else if let Some(c) = self.pm.get_mut_active_character(target_id_name) {
                     (gae, all_di) = c.is_receiving_atk(
                         processed_effect,
-                        self.game_state.current_turn_nb,
+                        &self.game_state,
                         is_crit,
                         &launcher_info,
                     );
@@ -337,6 +339,8 @@ impl GameManager {
             is_boss_atk: self.pm.current_player.is_boss_atk(),
             logs_end_of_round: Vec::new(),
             logs_atk: self.build_logs_atk(&all_dodging, &new_game_atk_effects, is_crit),
+            turn_nb: self.game_state.current_turn_nb,
+            round_nb: self.game_state.current_round,
         };
 
         // eval next step of the game
@@ -366,6 +370,8 @@ impl GameManager {
             is_boss_atk: self.pm.current_player.is_boss_atk(),
             logs_end_of_round,
             logs_atk,
+            turn_nb: self.game_state.current_turn_nb,
+            round_nb: self.game_state.current_round,
             ..Default::default()
         }
     }

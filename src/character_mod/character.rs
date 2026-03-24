@@ -455,7 +455,7 @@ impl Character {
     pub fn is_receiving_atk(
         &mut self,
         processed_ep: &ProcessedEffectParam,
-        current_turn: usize,
+        game_state: &GameState,
         is_crit: bool,
         launcher_info: &LauncherAtkInfo,
     ) -> (Option<GameAtkEffect>, Option<Vec<DodgeInfo>>) {
@@ -480,7 +480,7 @@ impl Character {
                 processed_ep,
                 &launcher_info.stats,
                 is_crit,
-                current_turn,
+                game_state.current_turn_nb,
             );
             // assess the blocking
             if self
@@ -493,7 +493,8 @@ impl Character {
             let gae = GameAtkEffect {
                 processed_effect_param: processed_ep.clone(),
                 atk_type: launcher_info.atk_type.clone(),
-                launching_turn: current_turn,
+                launching_turn: game_state.current_turn_nb,
+                launching_round: game_state.current_round,
                 effect_outcome: effect_outcome.clone(),
             };
             // update character table of effects when the effect takes place
@@ -503,9 +504,10 @@ impl Character {
             option_gae = Some(gae.clone());
         } else {
             tracing::info!(
-                "is_receiving_atk: effect is not applied on:{} current_turn:{}, kind:{:?}, launcher_info.id_name:{}, effect.target: {:?}, launcher_kind: {:?}, effect.type: {:?}, effect.stats_name: {}.",
+                "is_receiving_atk: effect is not applied on:{} current_turn:{}, current_round:{}, kind:{:?}, launcher_info.id_name:{}, effect.target: {:?}, launcher_kind: {:?}, effect.type: {:?}, effect.stats_name: {}.",
                 self.id_name,
-                current_turn,
+                game_state.current_turn_nb,
+                game_state.current_round,
                 self.kind,
                 launcher_info.id_name,
                 processed_ep.input_effect_param.target_kind,
@@ -1333,6 +1335,7 @@ mod tests {
             processed_effect_param: build_effect_max_stats(),
             atk_type: AttackType::default(),
             launching_turn: 0,
+            launching_round: 0,
             effect_outcome: EffectOutcome::default(),
         });
         let effect_value = c.character_rounds_info.all_effects[0]
