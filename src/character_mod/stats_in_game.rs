@@ -1,3 +1,5 @@
+use std::fmt;
+
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
@@ -6,6 +8,23 @@ use crate::{character_mod::attack_type::AtksInfo, server::players_manager::GameA
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct StatsInGame {
     pub all_atk_info: Vec<AtksInfo>,
+}
+
+#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum StatsInfoKind {
+    #[default]
+    Atk,
+    Others,
+}
+
+impl fmt::Display for StatsInfoKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            StatsInfoKind::Atk => "Atk",
+            StatsInfoKind::Others => "Others",
+        };
+        write!(f, "{}", s)
+    }
 }
 
 impl StatsInGame {
