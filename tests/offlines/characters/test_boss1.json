@@ -277,5 +277,13 @@
         },
         "consumables": [],
         "money": 100
-    }
+    },
+    "energies": [
+        {
+            "kind": "Mana"
+        },
+        {
+            "kind": "Vigor"
+        }
+    ]
 }

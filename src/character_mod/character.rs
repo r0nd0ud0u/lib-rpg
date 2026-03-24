@@ -8,6 +8,7 @@ use crate::{
         attack_type::{AttackType, LauncherAtkInfo},
         class::Class,
         effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
+        energy::{Energy, EnergyKind},
         equipment::{Equipment, EquipmentJsonKey},
         inventory::{Consumable, Inventory},
         powers::Powers,
@@ -69,6 +70,8 @@ pub struct Character {
     pub character_rounds_info: CharacterRoundsInfo,
     /// Inventory
     pub inventory: Inventory,
+    /// Energy
+    pub energies: Vec<Energy>,
 }
 
 impl Default for Character {
@@ -87,6 +90,7 @@ impl Default for Character {
             character_rounds_info: CharacterRoundsInfo::default(),
             class: Class::Standard,
             inventory: Inventory::default(),
+            energies: Vec::new(),
         }
     }
 }
@@ -577,6 +581,13 @@ impl Character {
         let vigor = &self.stats.all_stats[VIGOR];
         let berserk = &self.stats.all_stats[BERSERK];
 
+        if (atk_type.mana_cost > 0 && !self.has_energy_kind(&EnergyKind::Mana))
+            || (atk_type.vigor_cost > 0 && !self.has_energy_kind(&EnergyKind::Vigor))
+            || (atk_type.berseck_cost > 0 && !self.has_energy_kind(&EnergyKind::Berseck))
+        {
+            return false;
+        }
+
         atk_type.mana_cost * mana.max / 100 <= mana.current
             && atk_type.vigor_cost * vigor.max / 100 <= vigor.current
             && atk_type.berseck_cost <= berserk.current
@@ -746,6 +757,10 @@ impl Character {
                 }
             });
     }
+
+    pub fn has_energy_kind(&self, energy_kind: &EnergyKind) -> bool {
+        self.energies.iter().any(|e| &e.kind == energy_kind)
+    }
 }
 
 #[cfg(test)]
@@ -757,6 +772,7 @@ mod tests {
     use crate::character_mod::attack_type::AttackType;
     use crate::character_mod::character::AmountType;
     use crate::character_mod::effect::EffectOutcome;
+    use crate::character_mod::energy::EnergyKind;
     use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::testing::testing_all_characters::{self, testing_all_equipment, testing_character};
@@ -893,6 +909,11 @@ mod tests {
                 )
                 .len()
         );
+        // energy
+        assert_eq!(3, c.energies.len());
+        assert_eq!(c.energies[0].kind, EnergyKind::Mana.to_owned());
+        assert_eq!(c.energies[1].kind, EnergyKind::Vigor.to_owned());
+        assert_eq!(c.energies[2].kind, EnergyKind::Berseck.to_owned());
 
         let file_path = "./tests/offlines/characters/wrong.json";
         assert!(
@@ -1442,6 +1463,18 @@ mod tests {
         atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
         let result = c1.can_be_launched(&atk_type);
         assert!(result);
+
+        // no berseck energy and berseck cost > 0
+        atk_type.berseck_cost = 100;
+        let c2 = Character::try_new_from_json(
+            "./tests/offlines/characters/test2.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let result = c2.can_be_launched(&atk_type);
+        assert!(!result);
     }
 
     #[test]

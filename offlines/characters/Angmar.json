@@ -195,6 +195,14 @@
     "Type": "Boss",
     "is-blocking-atk": false,
     "max-actions-by-round": 1,
-    "nb-actions-in-round": 0
+    "nb-actions-in-round": 0,
+    "energies": [
+        {
+            "kind": "Mana"
+        },
+        {
+            "kind": "Vigor"
+        }
+    ]
 }
 

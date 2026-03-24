@@ -1237,9 +1237,7 @@ mod tests {
         // no problem of is_heal_atk_blocked
         pl.current_player.character_rounds_info.is_heal_atk_blocked = false;
         let launchable_atks = pl.process_launchable_atks();
-        // print launcgable atks for debug
-        //println!("Launchable attacks: {:?}", launchable_atks);
-        assert_eq!(pl.current_player.attacks_list.len(), launchable_atks.len());
+        assert_eq!(pl.current_player.attacks_list.len(), launchable_atks.len()); // in the list, one is berseck atk type and test.json has not the berseck energy!!
 
         // case level under
         pl.current_player.level = 1;

@@ -267,6 +267,11 @@
         },
         "consumables": [],
         "money": 100
-    }
+    },
+    "energies": [
+        {
+            "kind": "Mana"
+        }
+    ]
 }
 
