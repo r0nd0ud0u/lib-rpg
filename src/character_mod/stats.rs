@@ -19,7 +19,7 @@ pub struct Attribute {
     /// Current value of the stat, with equipment and buf/debuf included
     #[serde(rename = "Current")]
     pub current: u64,
-    /// Current raw value of the stat, WITHOUT equipment and buf/debuf included
+    /// Current raw value of the stat, WITHOUT equipment and buf/debuf included, seems useless
     pub current_raw: u64,
     /// Max value of the stat, with equipment and buf/debuf included
     #[serde(rename = "Max")]
@@ -391,13 +391,12 @@ impl Stats {
 
         berserk.current = std::cmp::min(berserk.max, berserk.current + regen_berseck.current);
         if berserk.max > 0 {
-            berserk.max_raw = berserk.current_raw * (berserk.current / berserk.max);
+            berserk.current_raw = berserk.max_raw * (berserk.current / berserk.max);
         }
 
         speed.current += regen_speed.current;
         speed.max += regen_speed.current;
         speed.max_raw += regen_speed.current;
-        // TODO change current raw calculation
         if speed.max > 0 {
             speed.current_raw = speed.max_raw * (speed.current / speed.max);
         }
