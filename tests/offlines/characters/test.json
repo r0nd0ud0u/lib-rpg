@@ -27,13 +27,6 @@
     "Name": "test",
     "IdName": "test_#1",
     "Photo": "phototest",
-    "Powers": [
-        {
-            "kind": "IsDamageTxHealNeedyAlly",
-            "is_passive": false,
-            "all_effects": []
-        }
-    ],
     "Rank": 4,
     "Shape": "",
     "Short name": "test",

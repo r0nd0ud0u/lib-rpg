@@ -11,7 +11,6 @@ use crate::{
         energy::{Energy, EnergyKind},
         equipment::{Equipment, EquipmentJsonKey},
         inventory::{Consumable, Inventory},
-        power::Power,
         rounds_information::{AmountType, CharacterRoundsInfo},
         stats::Stats,
         target::TargetData,
@@ -62,9 +61,6 @@ pub struct Character {
     /// Main color theme of the character
     #[serde(rename = "Color")]
     pub color_theme: String,
-    /// Powers
-    #[serde(rename = "Powers")]
-    pub powers: Vec<Power>,
     /// CharacterRoundsInfo
     #[serde(rename = "CharacterRoundsInfo")]
     pub character_rounds_info: CharacterRoundsInfo,
@@ -86,7 +82,6 @@ impl Default for Character {
             attacks_list: IndexMap::new(),
             level: 1,
             color_theme: "dark".to_owned(),
-            powers: Vec::new(),
             character_rounds_info: CharacterRoundsInfo::default(),
             class: Class::Standard,
             inventory: Inventory::default(),
@@ -774,7 +769,6 @@ mod tests {
     use crate::character_mod::effect::EffectOutcome;
     use crate::character_mod::energy::EnergyKind;
     use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
-    use crate::character_mod::power::PowerKind;
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::testing::testing_all_characters::{self, testing_all_equipment, testing_character};
     use crate::{
@@ -828,11 +822,6 @@ mod tests {
         assert_eq!(1, c.level);
         // photo
         assert_eq!("phototest", c.photo_name);
-        // powers
-        assert_eq!(1, c.powers.len());
-        assert_eq!(PowerKind::IsDamageTxHealNeedyAlly, c.powers[0].kind);
-        assert!(!c.powers[0].is_passive);
-        assert!(c.powers[0].all_effects.is_empty());
 
         // stats
         // stats - aggro

@@ -251,7 +251,9 @@ impl CharacterRoundsInfo {
         };
         processed_effect_param.number_of_applies = 1;
         let bug_apply_init = self.get_buffer_by_type(&BufTypes::ApplyEffectInit);
-        if let Some(buf) = bug_apply_init && buf.value > 0 {
+        if let Some(buf) = bug_apply_init
+            && buf.value > 0
+        {
             processed_effect_param.number_of_applies = buf.value;
         }
 

@@ -6,7 +6,6 @@ pub mod effect;
 pub mod energy;
 pub mod equipment;
 pub mod inventory;
-pub mod power;
 pub mod rounds_information;
 pub mod stats;
 pub mod stats_in_game;
