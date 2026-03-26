@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-#[repr(usize)]
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum BufTypes {
+    #[default]
     DefaultBuf = 0,
     DamageRxPercent,
     DamageTxPercent,
@@ -15,6 +15,10 @@ pub enum BufTypes {
     ApplyEffectInit,
     ChangeByHealValue,
     BoostedByHots,
+    /// Enables the critical of the next heal atk after a critical on damage atk
+    IsCritHealAfterCrit,
+    /// Enables the power to heal the most needy ally using damage tx of previous turn
+    IsDamageTxHealNeedyAlly,
     EnumSize,
 }
 
@@ -55,7 +59,7 @@ pub struct Buffers {
     pub all_stats_name: Vec<String>,
     /// buf-type
     #[serde(rename = "Buf-type")]
-    pub buf_type: usize,
+    pub buf_type: BufTypes,
 }
 
 impl Buffers {
@@ -73,7 +77,7 @@ impl Buffers {
 
 #[cfg(test)]
 mod tests {
-    use crate::character_mod::buffers::{Buffers, update_heal_by_multi};
+    use crate::character_mod::buffers::{BufTypes, Buffers, update_heal_by_multi};
 
     use super::update_damage_by_buf;
 
@@ -120,14 +124,14 @@ mod tests {
         let mut buff = Buffers::default();
         buff.set_buffers(10, false);
         assert!(!buff.is_percent);
-        assert_eq!(buff.buf_type, 0);
+        assert_eq!(buff.buf_type, BufTypes::DefaultBuf);
         assert!(buff.all_stats_name.is_empty());
         assert!(!buff.is_passive_enabled);
         assert_eq!(buff.value, 10);
 
         buff.set_buffers(20, true);
         assert!(buff.is_percent);
-        assert_eq!(buff.buf_type, 0);
+        assert_eq!(buff.buf_type, BufTypes::DefaultBuf);
         assert!(buff.all_stats_name.is_empty());
         assert!(!buff.is_passive_enabled);
         assert_eq!(buff.value, 20);

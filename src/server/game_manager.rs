@@ -987,7 +987,7 @@ mod tests {
         let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack(Some(&atk.clone().name));
         assert!(gm.game_state.status != GameStatus::EndOfGame);
-        // + 30  of max HP:135 = 40.5
+        // + 30  of max HP:135 = 40
         assert_eq!(
             old_hp_test2 + 40,
             gm.pm
@@ -1012,7 +1012,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case_eclat_despoir() {
         let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
-
+        // no crit
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_test = gm
             .pm
@@ -1060,7 +1060,7 @@ mod tests {
         gm.launch_attack(Some("Eclat d'espoir"));
         assert!(gm.game_state.status != GameStatus::EndOfGame);
         // "up-current-stat-by-percentage"
-        // + 30 % of max HP:135 = 40.5
+        // + 30 % of max HP:135 = 40.5 + NextAtkHealIsCrit x2 = 80 on test2 and test1
         assert_eq!(
             old_hp_test2 + 40,
             gm.pm
@@ -1114,7 +1114,7 @@ mod tests {
         // "up-max-stat-by-percentage" 15
         // +15%, phy power max = 10
         assert_eq!(
-            old_phy_pow_test2 + (0.15 * old_phy_pow_test2 as f64) as u64,
+            old_phy_pow_test2 + (0.15 * old_phy_pow_test2 as f64).round() as u64,
             gm.pm
                 .get_active_hero_character("test2_#1")
                 .unwrap()

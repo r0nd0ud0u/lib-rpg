@@ -8,87 +8,17 @@
         "Experience": 50,
         "Buf-debuf": [
         {
-            "Buf-all-stats": ["hp","mana"],
+            "Buf-all-stats": [],
             "Buf-is-percent": true,
             "Buf-passive-enabled": false,
-            "Buf-type": 3,
+            "Buf-type": "DamageRxPercent",
             "Buf-value": 100
         },
         {
-            "Buf-all-stats": [],
+            "Buf-all-stats": [""],
             "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 1,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 2,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 3,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 4,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 5,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 6,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 7,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 8,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 9,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 10,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 11,
+            "Buf-passive-enabled": true,
+            "Buf-type": "NextHealAtkIsCrit",
             "Buf-value": 0
         }
     ]
@@ -97,10 +27,13 @@
     "Name": "test",
     "IdName": "test_#1",
     "Photo": "phototest",
-    "Powers": {
-        "is_crit_heal_after_crit": false,
-        "is_damage_tx_heal_needy_ally": true
-    },
+    "Powers": [
+        {
+            "kind": "IsDamageTxHealNeedyAlly",
+            "is_passive": false,
+            "all_effects": []
+        }
+    ],
     "Rank": 4,
     "Shape": "",
     "Short name": "test",

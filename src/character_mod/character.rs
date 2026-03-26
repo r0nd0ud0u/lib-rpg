@@ -11,7 +11,7 @@ use crate::{
         energy::{Energy, EnergyKind},
         equipment::{Equipment, EquipmentJsonKey},
         inventory::{Consumable, Inventory},
-        powers::Powers,
+        power::Power,
         rounds_information::{AmountType, CharacterRoundsInfo},
         stats::Stats,
         target::TargetData,
@@ -64,7 +64,7 @@ pub struct Character {
     pub color_theme: String,
     /// Powers
     #[serde(rename = "Powers")]
-    pub power: Powers,
+    pub powers: Vec<Power>,
     /// CharacterRoundsInfo
     #[serde(rename = "CharacterRoundsInfo")]
     pub character_rounds_info: CharacterRoundsInfo,
@@ -86,7 +86,7 @@ impl Default for Character {
             attacks_list: IndexMap::new(),
             level: 1,
             color_theme: "dark".to_owned(),
-            power: Powers::default(),
+            powers: Vec::new(),
             character_rounds_info: CharacterRoundsInfo::default(),
             class: Class::Standard,
             inventory: Inventory::default(),
@@ -774,6 +774,7 @@ mod tests {
     use crate::character_mod::effect::EffectOutcome;
     use crate::character_mod::energy::EnergyKind;
     use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
+    use crate::character_mod::power::PowerKind;
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::testing::testing_all_characters::{self, testing_all_equipment, testing_character};
     use crate::{
@@ -798,11 +799,21 @@ mod tests {
         assert_eq!("test", c.short_name);
         assert_eq!("test_#1", c.id_name);
         // buf-debuf
-        assert_eq!(12, c.character_rounds_info.all_buffers.len());
-        assert_eq!(3, c.character_rounds_info.all_buffers[0].buf_type);
+        assert_eq!(2, c.character_rounds_info.all_buffers.len());
+        assert_eq!(
+            BufTypes::DamageRxPercent,
+            c.character_rounds_info.all_buffers[0].buf_type
+        );
         assert!(!c.character_rounds_info.all_buffers[0].is_passive_enabled);
         assert!(c.character_rounds_info.all_buffers[0].is_percent);
         assert_eq!(100, c.character_rounds_info.all_buffers[0].value);
+        assert_eq!(
+            BufTypes::NextHealAtkIsCrit,
+            c.character_rounds_info.all_buffers[1].buf_type
+        );
+        assert!(c.character_rounds_info.all_buffers[1].is_passive_enabled);
+        assert!(!c.character_rounds_info.all_buffers[1].is_percent);
+        assert_eq!(0, c.character_rounds_info.all_buffers[1].value);
         // Class
         assert_eq!(Class::Standard, c.class);
         // Color
@@ -818,8 +829,11 @@ mod tests {
         // photo
         assert_eq!("phototest", c.photo_name);
         // powers
-        assert!(!c.power.is_crit_heal_after_crit);
-        assert!(c.power.is_damage_tx_heal_needy_ally);
+        assert_eq!(1, c.powers.len());
+        assert_eq!(PowerKind::IsDamageTxHealNeedyAlly, c.powers[0].kind);
+        assert!(!c.powers[0].is_passive);
+        assert!(c.powers[0].all_effects.is_empty());
+
         // stats
         // stats - aggro
         assert_eq!(0, c.stats.all_stats[AGGRO].current);
@@ -980,7 +994,7 @@ mod tests {
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
-            effect_type: EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE.to_string(),
+            effect_type: EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE.to_owned(),
             stats_name: HP.to_string(),
             value: -10,
             ..Default::default()
@@ -989,8 +1003,8 @@ mod tests {
         assert_eq!(148, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
         let ep = EffectParam {
-            effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_string(),
-            stats_name: HP.to_string(),
+            effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned(),
+            stats_name: HP.to_owned(),
             value: -10,
             ..Default::default()
         };
@@ -1001,66 +1015,87 @@ mod tests {
         assert_eq!(158, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
         let ep = EffectParam {
-            effect_type: EFFECT_BLOCK_HEAL_ATK.to_string(),
-            stats_name: HP.to_string(),
+            effect_type: EFFECT_BLOCK_HEAL_ATK.to_owned(),
+            stats_name: HP.to_owned(),
             value: 10,
             ..Default::default()
         };
 
         let result = c.remove_malus_effect(&ep);
+        assert!(result.is_ok());
         assert!(!c.character_rounds_info.is_heal_atk_blocked);
+
+        // remove EFFECT_CHANGE_RX_DAMAGES_BY_PERCENT
         let ep = EffectParam {
-            effect_type: EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT.to_string(),
-            stats_name: HP.to_string(),
+            effect_type: EFFECT_CHANGE_TX_DAMAGES_BY_PERCENT.to_owned(),
+            stats_name: HP.to_owned(),
             value: 10,
             ..Default::default()
         };
-        assert!(result.is_ok());
 
         let result = c.remove_malus_effect(&ep);
         assert!(result.is_ok());
         assert_eq!(
             -10,
-            c.character_rounds_info.all_buffers[BufTypes::DamageTxPercent as usize].value
+            c.character_rounds_info
+                .get_buffer_by_type(&BufTypes::DamageTxPercent)
+                .as_ref()
+                .unwrap()
+                .value
         );
+
+        // remove EFFECT_CHANGE_RX_DAMAGES_BY_PERCENT
         let ep = EffectParam {
-            effect_type: EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT.to_string(),
-            stats_name: HP.to_string(),
+            effect_type: EFFECT_CHANGE_RX_DAMAGES_BY_PERCENT.to_owned(),
+            stats_name: HP.to_owned(),
             value: 10,
             ..Default::default()
         };
-
         let result = c.remove_malus_effect(&ep);
         assert!(result.is_ok());
         assert_eq!(
-            -10,
-            c.character_rounds_info.all_buffers[BufTypes::DamageRxPercent as usize].value
+            90, // from 100 in test.json
+            c.character_rounds_info
+                .get_buffer_by_type(&BufTypes::DamageRxPercent)
+                .as_ref()
+                .unwrap()
+                .value
         );
+
+        // remove EFFECT_CHANGE_HEAL_RX_BY_PERCENT
         let ep = EffectParam {
-            effect_type: EFFECT_CHANGE_HEAL_RX_BY_PERCENT.to_string(),
-            stats_name: HP.to_string(),
+            effect_type: EFFECT_CHANGE_HEAL_RX_BY_PERCENT.to_owned(),
+            stats_name: HP.to_owned(),
             value: 10,
             ..Default::default()
         };
-
         let result = c.remove_malus_effect(&ep);
         assert!(result.is_ok());
         assert_eq!(
             -10,
-            c.character_rounds_info.all_buffers[BufTypes::HealRxPercent as usize].value
+            c.character_rounds_info
+                .get_buffer_by_type(&BufTypes::HealRxPercent)
+                .as_ref()
+                .unwrap()
+                .value
         );
+
+        // heal tx by percent
         let ep = EffectParam {
-            effect_type: EFFECT_CHANGE_HEAL_TX_BY_PERCENT.to_string(),
-            stats_name: HP.to_string(),
+            effect_type: EFFECT_CHANGE_HEAL_TX_BY_PERCENT.to_owned(),
+            stats_name: HP.to_owned(),
             value: 10,
             ..Default::default()
         };
-
         let result = c.remove_malus_effect(&ep);
         assert!(result.is_ok());
         assert_eq!(
             -10,
-            c.character_rounds_info.all_buffers[BufTypes::HealTxPercent as usize].value
+            c.character_rounds_info
+                .get_buffer_by_type(&BufTypes::HealTxPercent)
+                .as_ref()
+                .unwrap()
+                .value
         );
     }
 
@@ -1249,13 +1284,28 @@ mod tests {
 
     #[test]
     fn unit_process_critical_strike() {
+        // no critical strike buff
         let mut c = testing_character();
         c.stats.all_stats[CRITICAL_STRIKE].current = 0;
         assert!(!c.process_critical_strike("atk1").unwrap());
+        // ensure critical strike
         c.stats.all_stats[CRITICAL_STRIKE].current = 100;
         assert!(c.process_critical_strike("atk1").unwrap());
         assert!(
-            !c.character_rounds_info.all_buffers[BufTypes::NextHealAtkIsCrit as usize]
+            c.character_rounds_info
+                .get_buffer_by_type(&BufTypes::NextHealAtkIsCrit)
+                .as_ref()
+                .unwrap()
+                .is_passive_enabled
+        );
+
+        // critical strike is processed only on atk with heal effect
+        assert!(c.process_critical_strike("atk_heal1_indiv").unwrap());
+        assert!(
+            !c.character_rounds_info
+                .get_buffer_by_type(&BufTypes::NextHealAtkIsCrit)
+                .as_ref()
+                .unwrap()
                 .is_passive_enabled
         );
     }

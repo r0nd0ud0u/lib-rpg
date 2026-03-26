@@ -1,13 +1,20 @@
 use serde::{Deserialize, Serialize};
 
+use crate::character_mod::effect::EffectParam;
+
 /// Define all the parameters of a Power.
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
-#[serde(default)]
-pub struct Powers {
+pub enum PowerKind {
     /// Enables the critical of the next heal atk after a critical on damage atk
-    #[serde(rename = "is_crit_heal_after_crit")]
-    pub is_crit_heal_after_crit: bool,
+    #[default]
+    IsCritHealAfterCrit,
     /// Enables the power to heal the most needy ally using damage tx of previous turn
-    #[serde(rename = "is_damage_tx_heal_needy_ally")]
-    pub is_damage_tx_heal_needy_ally: bool,
+    IsDamageTxHealNeedyAlly,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
+pub struct Power {
+    pub kind: PowerKind,
+    pub all_effects: Vec<EffectParam>,
+    pub is_passive: bool,
 }

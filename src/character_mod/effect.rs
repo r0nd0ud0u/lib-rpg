@@ -97,8 +97,8 @@ pub fn is_boosted_by_crit(effect_name: &str) -> bool {
     let boosted_effects_by_crit: HashSet<&str> = [
         EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
         EFFECT_IMPROVE_MAX_STAT_BY_VALUE,
-        EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT,
-        EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT,
+        EFFECT_CHANGE_TX_DAMAGES_BY_PERCENT,
+        EFFECT_CHANGE_RX_DAMAGES_BY_PERCENT,
         EFFECT_CHANGE_HEAL_RX_BY_PERCENT,
         EFFECT_CHANGE_HEAL_TX_BY_PERCENT,
         EFFECT_INTO_DAMAGE,
