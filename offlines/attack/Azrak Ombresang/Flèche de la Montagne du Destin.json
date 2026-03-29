@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -120,
             "IsMagicEffect": false
@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 4,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -40,
             "IsMagicEffect": false
@@ -39,7 +39,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 1,
-            "Type": "Up/down degats en %",
+            "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
             "Value": 100,
             "IsMagicEffect": false
@@ -49,7 +49,7 @@
             "Portée": "Individuel",
             "Stat": "Magic power",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 65,
             "IsMagicEffect": false

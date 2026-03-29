@@ -61,27 +61,6 @@ pub mod character_const {
 }
 
 pub mod effect_const {
-    /// Effect to improve max value of a stat by percent (current value is updated by ratio)
-    pub const EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE: &str = "up-max-stat-by-percentage";
-    /// Effect to improve max value of a stat by value (current value is updated by ratio)
-    pub const EFFECT_IMPROVE_MAX_STAT_BY_VALUE: &str = "change-max-stat-by-value";
-    pub const EFFECT_BLOCK_HEAL_ATK: &str = "Bloque attaque de soin";
-    pub const EFFECT_CHANGE_TX_DAMAGES_BY_PERCENT: &str = "Up/down degats en %";
-    pub const EFFECT_CHANGE_RX_DAMAGES_BY_PERCENT: &str = "Up/down degats RX en %";
-    pub const EFFECT_CHANGE_HEAL_RX_BY_PERCENT: &str = "Up/down heal RX en %";
-    pub const EFFECT_CHANGE_HEAL_TX_BY_PERCENT: &str = "Up/down heal TX en %";
-
-    /// Effect to improve current value of a stat by value
-    pub const EFFECT_VALUE_CHANGE: &str = "change-current-stat-by-value";
-    /// Effect to improve current value of a stat by percent
-    pub const EFFECT_PERCENT_CHANGE: &str = "up-current-stat-by-percentage";
-    /// Assess the amount of applies for a stat
-    pub const EFFECT_REPEAT_AS_MANY_AS: &str = "Répète tant que possible";
-    /// Effect to execute an atk with a decreasing success rate defined by a step on effect value
-    pub const EFFECT_NB_DECREASE_ON_TURN: &str = "decreasing-rate-on-turn";
-    pub const EFFECT_NB_DECREASE_BY_TURN: &str = "Decroissement par tour";
-    pub const CONDITION_ENNEMIES_DIED: &str = "Ennemis morts tours précédents";
-
     pub const EFFECT_NB_COOL_DOWN: &str = "cooldown-turns-nb";
     pub const EFFECT_REINIT: &str = "Reinit";
     pub const EFFECT_DELETE_BAD: &str = "Supprime effet néfaste";

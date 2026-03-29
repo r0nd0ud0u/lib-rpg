@@ -1,25 +1,66 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum BufTypes {
     #[default]
-    DefaultBuf = 0,
+    DefaultBuf,
     DamageRxPercent,
     DamageTxPercent,
     HealTxPercent,
     HealRxPercent,
     DamageCritCapped,
-    PowPhyBuf,
     NextHealAtkIsCrit,
     MultiValue,
     ApplyEffectInit,
     ChangeByHealValue,
     BoostedByHots,
-    /// Enables the critical of the next heal atk after a critical on damage atk
-    IsCritHealAfterCrit,
+    /// Effect to improve max value of a stat by percent (current value is updated by ratio)
+    UpMaxStatByPercentage,
+    /// Effect to improve max value of a stat by value (current value is updated by ratio)
+    ChangeMaxStatByValue,
+    BlockHealAtk,
+    /// Effect to improve current value of a stat by value
+    ChangeCurrentStatByValue,
+    /// Effect to improve current value of a stat by percent
+    UpCurrentStatByPercentage,
+    /// Assess the amount of applies for a stat
+    RepeatAsManyAsPossible,
+    /// Effect to execute an atk with a decreasing success rate defined by a step on effect value
+    DecreasingRateOnTurn,
+    NbDecreasingByTurn,
     /// Enables the power to heal the most needy ally using damage tx of previous turn
     IsDamageTxHealNeedyAlly,
     EnumSize,
+}
+
+impl fmt::Display for BufTypes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            BufTypes::DefaultBuf => "DefaultBuf",
+            BufTypes::DamageRxPercent => "DamageRxPercent",
+            BufTypes::DamageTxPercent => "DamageTxPercent",
+            BufTypes::HealTxPercent => "HealTxPercent",
+            BufTypes::HealRxPercent => "HealRxPercent",
+            BufTypes::DamageCritCapped => "DamageCritCapped",
+            BufTypes::NextHealAtkIsCrit => "NextHealAtkIsCrit",
+            BufTypes::MultiValue => "MultiValue",
+            BufTypes::ApplyEffectInit => "ApplyEffectInit",
+            BufTypes::ChangeByHealValue => "ChangeByHealValue",
+            BufTypes::BoostedByHots => "BoostedByHots",
+            BufTypes::UpMaxStatByPercentage => "UpMaxStatByPercentage",
+            BufTypes::ChangeMaxStatByValue => "ChangeMaxStatByValue",
+            BufTypes::BlockHealAtk => "BlockHealAtk",
+            BufTypes::ChangeCurrentStatByValue => "ChangeCurrentStatByValue",
+            BufTypes::UpCurrentStatByPercentage => "UpCurrentStatByPercentage",
+            BufTypes::RepeatAsManyAsPossible => "RepeatAsManyAsPossible",
+            BufTypes::DecreasingRateOnTurn => "DecreasingRateOnTurn",  
+            BufTypes::NbDecreasingByTurn => "NbDecreasingByTurn",    
+            BufTypes::EnumSize => "EnumSize",
+        };
+        write!(f, "{}", s)
+    }
 }
 
 /// Returns: i64

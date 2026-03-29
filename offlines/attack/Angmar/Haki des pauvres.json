@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "Dodge",
             "Tours actifs": 4,
-            "Type": "change-max-stat-by-value",
+            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": -10,
             "IsMagicEffect": true
@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "Magic power",
             "Tours actifs": 4,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -30,
             "IsMagicEffect": true
@@ -29,7 +29,7 @@
             "Portée": "Individuel",
             "Stat": "Physical power",
             "Tours actifs": 4,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -30,
             "IsMagicEffect": true

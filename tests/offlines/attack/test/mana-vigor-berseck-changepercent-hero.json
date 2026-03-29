@@ -9,7 +9,7 @@
             "Portée": "Zone",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-percentage",
+            "Type": "UpCurrentStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -20,
             "IsMagicEffect": true
@@ -19,7 +19,7 @@
             "Portée": "Zone",
             "Stat": "Vigueur",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-percentage",
+            "Type": "UpCurrentStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -20,
             "IsMagicEffect": true
@@ -29,7 +29,7 @@
             "Portée": "Zone",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-percentage",
+            "Type": "UpCurrentStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -20,
             "IsMagicEffect": true

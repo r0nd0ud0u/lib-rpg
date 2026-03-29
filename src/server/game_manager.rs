@@ -4,6 +4,7 @@ use crate::{
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
         character::CharacterKind,
+        effect::EffectOutcome,
         equipment::{Equipment, EquipmentJsonKey},
         rounds_information::AmountType,
     },
@@ -1090,7 +1091,7 @@ mod tests {
                 .current
         );
         // "Magic power"
-        // "up-max-stat-by-percentage" 15
+        // "UpMaxStatByPercentage" 15
         // +15%, mag power max = 20
         assert_eq!(
             old_mag_pow_test2 + (0.15 * old_mag_pow_test2 as f64) as u64,
@@ -1111,7 +1112,7 @@ mod tests {
                 .max
         );
         // "Physical power"
-        // "up-max-stat-by-percentage" 15
+        // "UpMaxStatByPercentage" 15
         // +15%, phy power max = 10
         assert_eq!(
             old_phy_pow_test2 + (0.15 * old_phy_pow_test2 as f64).round() as u64,
@@ -1243,7 +1244,7 @@ mod tests {
             .stats
             .all_stats[BERSERK]
             .max;
-        let result = gm.launch_attack(Some("change-current-stat-by-value-berserk"));
+        let result = gm.launch_attack(Some("ChangeCurrentStatByValue-berseck"));
         let new_berserk = gm
             .pm
             .get_mut_active_character(&hero_launcher_id_name)

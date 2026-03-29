@@ -9,7 +9,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -150,
             "IsMagicEffect": true
@@ -19,7 +19,7 @@
             "Portée": "Zone",
             "Stat": "Speed regeneration",
             "Tours actifs": 2,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -12,
             "IsMagicEffect": true

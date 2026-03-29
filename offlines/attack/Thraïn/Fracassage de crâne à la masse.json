@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -150,
             "IsMagicEffect": false
@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "Dodge",
             "Tours actifs": 2,
-            "Type": "change-max-stat-by-value",
+            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 65,
             "IsMagicEffect": false
@@ -29,7 +29,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 2,
-            "Type": "Up/down degats en %",
+            "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
             "Value": -20,
             "IsMagicEffect": false
@@ -49,7 +49,7 @@
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 25
         }

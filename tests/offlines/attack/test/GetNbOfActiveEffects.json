@@ -12,7 +12,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 35,
             "IsMagicEffect": true
@@ -22,7 +22,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 35,
             "IsMagicEffect": true
@@ -32,7 +32,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "change-max-stat-by-value",
+            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 35,
             "IsMagicEffect": true
@@ -42,7 +42,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 35,
             "IsMagicEffect": true
@@ -52,7 +52,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -35,
             "IsMagicEffect": true
@@ -62,7 +62,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -35,
             "IsMagicEffect": true
@@ -72,7 +72,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "change-max-stat-by-value",
+            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": -35,
             "IsMagicEffect": true
@@ -82,17 +82,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "up-max-stat-by-percentage",
-            "Valeur de l'effet": 0,
-            "Value": -35,
-            "IsMagicEffect": true
-        },
-		{
-            "Cible": "Allié",
-            "Portée": "Individuel",
-            "Stat": "HP",
-            "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -35,
             "IsMagicEffect": true
@@ -102,7 +92,17 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
+            "Valeur de l'effet": 0,
+            "Value": -35,
+            "IsMagicEffect": true
+        },
+		{
+            "Cible": "Allié",
+            "Portée": "Individuel",
+            "Stat": "HP",
+            "Tours actifs": 1,
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 35,
             "IsMagicEffect": true
@@ -112,7 +112,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -35,
             "IsMagicEffect": true
@@ -122,7 +122,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 35,
             "IsMagicEffect": true

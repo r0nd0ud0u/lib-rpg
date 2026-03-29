@@ -8,8 +8,12 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Ennemis morts tours précédents",
-            "Valeur de l'effet": 20,
+            "Type": "UpMaxStatByPercentage",
+            "Conditions": [{
+                "condition_type": "NbEnnemiesDied",
+                "value": 20
+            }],
+            "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": false
         }, {
@@ -17,8 +21,12 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "Ennemis morts tours précédents",
-            "Valeur de l'effet": 20,
+            "Type": "UpMaxStatByPercentage",
+            "Conditions": [{
+                "condition_type": "NbEnnemiesDied",
+                "value": 20
+            }],
+            "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": false
         }, {
@@ -26,17 +34,12 @@
             "Portée": "Individuel",
             "Stat": "Vigueur",
             "Tours actifs": 1,
-            "Type": "Ennemis morts tours précédents",
-            "Valeur de l'effet": 20,
-            "Value": 0,
-            "IsMagicEffect": false
-        }, {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
-            "Stat": "Up/down degats en %",
-            "Tours actifs": 1,
-            "Type": "Ennemis morts tours précédents",
-            "Valeur de l'effet": 20,
+            "Type": "UpMaxStatByPercentage",
+            "Conditions": [{
+                "condition_type": "NbEnnemiesDied",
+                "value": 20
+            }],
+            "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": false
         }

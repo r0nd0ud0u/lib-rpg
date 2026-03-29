@@ -9,7 +9,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -50,
             "IsMagicEffect": false
@@ -19,7 +19,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 3,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -30,
             "IsMagicEffect": false
@@ -29,7 +29,7 @@
             "Portée": "Zone",
             "Stat": "Critical strike",
             "Tours actifs": 3,
-            "Type": "change-max-stat-by-value",
+            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": -10,
             "IsMagicEffect": false

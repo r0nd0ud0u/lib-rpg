@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 2,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 20,
             "IsMagicEffect": false
@@ -17,7 +17,7 @@
     ],
     "Forme": "Standard",
     "Niveau": 2,
-    "Nom": "change-current-stat-by-value-berserk",
+    "Nom": "ChangeCurrentStatByValue-berseck",
     "Photo": "Thraïn.png",
     "Portée": "Individuel"
 }

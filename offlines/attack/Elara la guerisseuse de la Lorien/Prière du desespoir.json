@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-percentage",
+            "Type": "UpCurrentStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -49,
             "IsMagicEffect": true
@@ -19,7 +19,7 @@
             "Portée": "Zone",
             "Stat": "Magic armor",
             "Tours actifs": 3,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 100,
             "IsMagicEffect": true
@@ -29,7 +29,7 @@
             "Portée": "Zone",
             "Stat": "Physical armor",
             "Tours actifs": 3,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 100,
             "IsMagicEffect": true
@@ -39,7 +39,7 @@
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 3,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 100,
             "IsMagicEffect": true
@@ -49,7 +49,7 @@
             "Portée": "Zone",
             "Stat": "Physical power",
             "Tours actifs": 3,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 100,
             "IsMagicEffect": true

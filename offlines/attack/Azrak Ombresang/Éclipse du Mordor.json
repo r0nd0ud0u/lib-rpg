@@ -9,7 +9,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -400,
             "IsMagicEffect": false
@@ -19,7 +19,7 @@
             "Portée": "Zone",
             "Stat": "",
             "Tours actifs": 3,
-            "Type": "Up/down degats en %",
+            "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
             "Value": 25,
             "IsMagicEffect": false

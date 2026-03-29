@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Répète tant que possible",
+            "Type": "RepeatAsManyAsPossible",
             "Valeur de l'effet": 0,
             "Value": -50,
             "IsMagicEffect": false

@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -35,
             "IsMagicEffect": false
@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "Speed regeneration",
             "Tours actifs": 6,
-            "Type": "change-max-stat-by-value",
+            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 10,
             "IsMagicEffect": false

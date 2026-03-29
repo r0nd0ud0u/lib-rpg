@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 4,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 60,
             "IsMagicEffect": true
@@ -19,7 +19,7 @@
             "Portée": "Zone",
             "Stat": "Regeneration Mana",
             "Tours actifs": 4,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 50,
             "IsMagicEffect": true
@@ -29,7 +29,7 @@
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 4,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 10,
             "IsMagicEffect": true

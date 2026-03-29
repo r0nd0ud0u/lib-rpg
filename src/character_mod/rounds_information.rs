@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, bail};
 
 use crate::{
     character_mod::{
@@ -6,8 +6,7 @@ use crate::{
         buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
         class::Class,
         effect::{
-            self, EffectParam, ProcessedEffectParam, is_boosted_by_crit, is_effet_hot_or_dot,
-            process_decrease_on_turn,
+            self, ConditionKind, EffectParam, ProcessedEffectParam, is_boosted_by_crit, is_effet_hot_or_dot, process_decrease_on_turn
         },
         target::{TargetData, is_target_ally},
     },
@@ -202,6 +201,16 @@ impl CharacterRoundsInfo {
         }
         // buf debuf damage
         if full_amount < 0 && !is_target_ally(target) {
+            // Launcher TX: BufTypes::DamageTxPercent
+            if let Some(buf_dmg_tx) = self.all_buffers.get(BufTypes::DamageTxPercent as usize) {
+                buf_debuf +=
+                    update_damage_by_buf(buf_dmg_tx.value, buf_dmg_tx.is_percent, real_amount);
+            }
+            // Receiver RX: BufTypes::DamageRx
+            if let Some(buf_dmg_rx) = self.all_buffers.get(BufTypes::DamageRxPercent as usize) {
+                buf_debuf +=
+                    update_damage_by_buf(buf_dmg_rx.value, buf_dmg_rx.is_percent, real_amount);
+            }
             // Receiver RX: BufTypes::DamageCritCapped
             if let Some(buf_dmg_crit) = self.get_buffer_by_type(&BufTypes::DamageCritCapped) {
                 // improve crit coeff
@@ -257,7 +266,7 @@ impl CharacterRoundsInfo {
             processed_effect_param.number_of_applies = buf.value;
         }
 
-        match ep.effect_type.as_str() {
+        match ep.effect_type {
             EFFECT_NB_COOL_DOWN => {
                 processed_effect_param.log = LogData {
                     message: format!("Cooldown actif sur {} de {} tours.", atk_name, ep.nb_turns),
@@ -265,14 +274,14 @@ impl CharacterRoundsInfo {
                 };
                 return Ok(processed_effect_param);
             }
-            EFFECT_NB_DECREASE_ON_TURN => {
+            BufTypes::DecreasingRateOnTurn => {
                 processed_effect_param.number_of_applies = process_decrease_on_turn(ep);
-                self.update_buffer(
+                self.update_buf(
                     &BufTypes::ApplyEffectInit,
                     processed_effect_param.number_of_applies,
                     false,
                     "",
-                );
+                )?;
                 processed_effect_param.log = LogData {
                     message: format!(
                         "L'attaque sera effectuée {} fois.",
@@ -301,37 +310,37 @@ impl CharacterRoundsInfo {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_CHANGE_TX_DAMAGES_BY_PERCENT {
+        if ep.effect_type == BufTypes::DamageTxPercent {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_CHANGE_RX_DAMAGES_BY_PERCENT {
+        if ep.effect_type == BufTypes::DamageRxPercent {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_CHANGE_HEAL_RX_BY_PERCENT {
+        if ep.effect_type == BufTypes::HealRxPercent {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_CHANGE_HEAL_TX_BY_PERCENT {
+        if ep.effect_type == BufTypes::HealTxPercent {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
+        if ep.effect_type == BufTypes::UpMaxStatByPercentage {
             processed_effect_param.log = LogData {
                 message: format!("Max stat of {} is up by {}%", ep.stats_name, ep.value),
                 color: "".to_owned(),
             };
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE {
+        if ep.effect_type == BufTypes::ChangeMaxStatByValue {
             processed_effect_param.log = LogData {
                 message: format!("Max stat of {} is up by value:{}", ep.stats_name, ep.value),
                 color: "".to_owned(),
             };
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_REPEAT_AS_MANY_AS {
+        if ep.effect_type == BufTypes::RepeatAsManyAsPossible {
             // TODO
             return Ok(processed_effect_param);
         }
@@ -360,11 +369,13 @@ impl CharacterRoundsInfo {
         }
         // conditions
         // TODO use condition in effect param object
-        if ep.effect_type == CONDITION_ENNEMIES_DIED {
-            effect_param_mutable.value +=
+        match ep.conditions.iter().find(|c|c.kind == ConditionKind::NbEnnemiesDied)  {
+            Some(cond) => {
+                effect_param_mutable.value +=
                 game_state.died_ennemies[&(game_state.current_turn_nb - 1)].len() as i64
-                    * effect_param_mutable.sub_value_effect;
-            effect_param_mutable.effect_type = EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE.to_owned();
+                    * cond.value;
+            },
+            _ => {}
         }
 
         // Process and return the new effect param
@@ -398,20 +409,10 @@ impl CharacterRoundsInfo {
     }
 
     pub fn remove_malus_effect(&mut self, ep: &EffectParam) -> Result<()> {
-        if ep.effect_type == EFFECT_BLOCK_HEAL_ATK {
-            self.is_heal_atk_blocked = false;
-        }
-        if ep.effect_type == EFFECT_CHANGE_TX_DAMAGES_BY_PERCENT {
-            self.update_buffer(&BufTypes::DamageTxPercent, -ep.value, true, "");
-        }
-        if ep.effect_type == EFFECT_CHANGE_RX_DAMAGES_BY_PERCENT {
-            self.update_buffer(&BufTypes::DamageRxPercent, -ep.value, true, "");
-        }
-        if ep.effect_type == EFFECT_CHANGE_HEAL_RX_BY_PERCENT {
-            self.update_buffer(&BufTypes::HealRxPercent, -ep.value, true, "");
-        }
-        if ep.effect_type == EFFECT_CHANGE_HEAL_TX_BY_PERCENT {
-            self.update_buffer(&BufTypes::HealTxPercent, -ep.value, true, "");
+        match ep.effect_type{
+            BufTypes::BlockHealAtk => self.is_heal_atk_blocked = false,
+            BufTypes::DamageRxPercent | BufTypes::DamageTxPercent | BufTypes::HealRxPercent | BufTypes::HealTxPercent => self.update_buffer(&BufTypes::DamageTxPercent, -ep.value, true, "")?,
+            _ => {}
         }
         Ok(())
     }
@@ -616,7 +617,7 @@ mod tests {
                 dot_nb: 0,
                 buf_nb: 0,
                 debuf_nb: 0,
-                hot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, 30)],
+                hot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, 30)],
                 dot_txt: vec![],
                 buf_txt: vec![],
                 debuf_txt: vec![]
@@ -635,8 +636,8 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 0,
                 debuf_nb: 0,
-                hot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, 30)],
-                dot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, -20)],
+                hot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, 30)],
+                dot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, -20)],
                 buf_txt: vec![],
                 debuf_txt: vec![]
             }
@@ -654,9 +655,9 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 1,
                 debuf_nb: 0,
-                hot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, 30)],
-                dot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, -20)],
-                buf_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, MAGICAL_ARMOR, 20)],
+                hot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, 30)],
+                dot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, -20)],
+                buf_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, MAGICAL_ARMOR, 20)],
                 debuf_txt: vec![]
             }
         );
@@ -673,12 +674,12 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 1,
                 debuf_nb: 1,
-                hot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, 30)],
-                dot_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, HP, -20)],
-                buf_txt: vec![format!("{}-{}: {}", EFFECT_VALUE_CHANGE, MAGICAL_ARMOR, 20)],
+                hot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, 30)],
+                dot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, -20)],
+                buf_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, MAGICAL_ARMOR, 20)],
                 debuf_txt: vec![format!(
                     "{}-{}: {}",
-                    EFFECT_VALUE_CHANGE, MAGICAL_ARMOR, -20
+                    BufTypes::ChangeCurrentStatByValue, MAGICAL_ARMOR, -20
                 )]
             }
         );

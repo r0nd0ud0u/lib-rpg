@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 12,
             "IsMagicEffect": false
@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "Aggro",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 10,
             "IsMagicEffect": false
@@ -39,7 +39,7 @@
             "Portée": "Individuel",
             "Stat": "Critical strike",
             "Tours actifs": 3,
-            "Type": "change-max-stat-by-value",
+            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 40,
             "IsMagicEffect": false

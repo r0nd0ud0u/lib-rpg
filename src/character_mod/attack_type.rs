@@ -155,7 +155,7 @@ mod tests {
         character_mod::attack_type::AttackType,
         character_mod::stats::Stats,
         common::constants::{
-            all_target_const::TARGET_ENNEMY, effect_const::EFFECT_VALUE_CHANGE,
+            all_target_const::TARGET_ENNEMY, effect_const::ChangeCurrentStatByValue,
             reach_const::INDIVIDUAL, stats_const::*,
         },
         testing::testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
@@ -187,7 +187,7 @@ mod tests {
         assert_eq!(atk_type.all_effects[0].value, -35);
         assert_eq!(atk_type.all_effects[0].target_kind, TARGET_ENNEMY);
         assert_eq!(atk_type.all_effects[0].reach, INDIVIDUAL);
-        assert_eq!(atk_type.all_effects[0].effect_type, EFFECT_VALUE_CHANGE);
+        assert_eq!(atk_type.all_effects[0].effect_type, ChangeCurrentStatByValue);
         assert_eq!(atk_type.all_effects[0].sub_value_effect, 0);
     }
 

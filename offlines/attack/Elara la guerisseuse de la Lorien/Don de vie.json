@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 1,
-            "Type": "decreasing-rate-on-turn",
+            "Type": "DecreasingRateOnTurn",
             "Valeur de l'effet": 3,
             "Value": 0,
             "IsMagicEffect": true
@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-percentage",
+            "Type": "UpCurrentStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 30,
             "IsMagicEffect": true
@@ -29,7 +29,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-percentage",
+            "Type": "UpCurrentStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -15,
             "IsMagicEffect": true
@@ -39,7 +39,7 @@
             "Portée": "Individuel",
             "Stat": "Magic power",
             "Tours actifs": 3,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 25,
             "IsMagicEffect": true
@@ -49,7 +49,7 @@
             "Portée": "Individuel",
             "Stat": "Physical power",
             "Tours actifs": 3,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "UpMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 25,
             "IsMagicEffect": true
