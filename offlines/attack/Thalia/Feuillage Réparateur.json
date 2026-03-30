@@ -19,7 +19,7 @@
             "Portée": "Zone",
             "Stat": "Regeneration Mana",
             "Tours actifs": 4,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 50,
             "IsMagicEffect": true
@@ -29,7 +29,7 @@
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 4,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 10,
             "IsMagicEffect": true

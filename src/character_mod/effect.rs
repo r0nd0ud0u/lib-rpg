@@ -1,17 +1,17 @@
-use std::collections::HashSet;
-
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::{character_mod::buffers::BufTypes, common::{
-    constants::{
-        all_target_const::TARGET_ENNEMY,
-        effect_const::*,
-        reach_const::{INDIVIDUAL, ZONE},
-        stats_const::HP,
+use crate::{
+    character_mod::buffers::BufTypes,
+    common::{
+        constants::{
+            all_target_const::TARGET_ENNEMY,
+            reach_const::{INDIVIDUAL, ZONE},
+            stats_const::HP,
+        },
+        log_data::LogData,
     },
-    log_data::LogData,
-}};
+};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
@@ -89,9 +89,7 @@ pub fn is_effet_hot_or_dot(buf_types: &BufTypes) -> bool {
         BufTypes::UpCurrentStatByPercentage,
         BufTypes::DecreasingRateOnTurn,
     ]
-    .iter()
-    .cloned()
-    .collect();
+    .to_vec();
     effects_hot_or_dot.contains(buf_types)
 }
 
@@ -100,30 +98,26 @@ pub fn is_hot(buf_types: &BufTypes, stats: &str, value: i64) -> bool {
 }
 
 pub fn is_boosted_by_crit(buf_types: &BufTypes) -> bool {
-    let boosted_effects_by_crit: HashSet<BufTypes> = [
-        BufTypes::UpMaxStatByPercentage,
+    let boosted_effects_by_crit: Vec<BufTypes> = [
+        BufTypes::ChangeMaxStatByPercentage,
         BufTypes::ChangeMaxStatByValue,
         BufTypes::DamageRxPercent,
-        BufTypes::ChangeDamagesRxByPercent,
-        EFFECT_CHANGE_HEAL_RX_BY_PERCENT,
-        EFFECT_CHANGE_HEAL_TX_BY_PERCENT,
-        EFFECT_INTO_DAMAGE,
+        BufTypes::DamageTxPercent,
+        BufTypes::HealRxPercent,
+        BufTypes::HealTxPercent,
+        BufTypes::PercentageIntoDamages,
     ]
-    .iter()
-    .cloned()
-    .collect();
+    .to_vec();
     boosted_effects_by_crit.contains(buf_types)
 }
 
 pub fn is_effect_only_at_atk_launch(buf_types: &BufTypes) -> bool {
     let effects: Vec<BufTypes> = [
-        BufTypes::UpMaxStatByPercentage,
+        BufTypes::ChangeMaxStatByPercentage,
         BufTypes::ChangeMaxStatByValue,
-        EFFECT_BUF_VALUE_AS_MUCH_AS_HEAL,
+        BufTypes::AddAsMuchAsHp,
     ]
-    .iter()
-    .cloned()
-    .collect();
+    .to_vec();
     effects.contains(buf_types)
 }
 
@@ -178,8 +172,8 @@ mod tests {
 
     #[test]
     fn unit_is_boosted_by_crit() {
-        assert!(is_boosted_by_crit(&BufTypes::UpMaxStatByPercentage));
-        assert!(!is_effet_hot_or_dot(&BufTypes::DefaultBuf));
+        assert!(is_boosted_by_crit(&BufTypes::ChangeMaxStatByPercentage));
+        assert!(!is_boosted_by_crit(&BufTypes::DefaultBuf));
     }
 
     #[test]
@@ -195,9 +189,9 @@ mod tests {
     #[test]
     fn unit_is_effect_only_at_atk_launch() {
         assert!(is_effect_only_at_atk_launch(
-            BufTypes::UpMaxStatByPercentage
+            &BufTypes::ChangeMaxStatByPercentage
         ));
-        assert!(!is_effect_only_at_atk_launch("hehe"));
+        assert!(!is_effect_only_at_atk_launch(&BufTypes::DefaultBuf));
     }
 
     #[test]

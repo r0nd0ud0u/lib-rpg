@@ -1,15 +1,16 @@
 #![allow(dead_code)]
 #[cfg(not(tarpaulin_include))]
-use crate::character_mod::{buffers::BufTypes, effect::{EffectParam, ProcessedEffectParam}};
-use crate::common::constants::{
-    all_target_const::*, effect_const::*, reach_const::*, stats_const::*,
+use crate::character_mod::{
+    buffers::BufTypes,
+    effect::{EffectParam, ProcessedEffectParam},
 };
+use crate::common::constants::{all_target_const::*, reach_const::*, stats_const::*};
 
 #[cfg(not(tarpaulin_include))]
 pub fn build_cooldown_effect() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: EFFECT_NB_COOL_DOWN.to_owned(),
+            effect_type: BufTypes::CooldownTurnsNumber,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_HIMSELF.to_owned(),
@@ -27,7 +28,7 @@ pub fn build_cooldown_effect() -> ProcessedEffectParam {
 pub fn build_heal_atk_blocked() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: "".to_owned(),
+            effect_type: BufTypes::BlockHealAtk,
             nb_turns: 1,
             sub_value_effect: 0,
             target_kind: TARGET_ALL_ALLIES.to_owned(),
@@ -138,7 +139,7 @@ pub fn build_hot_effect_individual() -> ProcessedEffectParam {
 pub fn build_hot_effect_zone() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: UpCurrentStatByPercentage.to_owned(),
+            effect_type: BufTypes::UpCurrentStatByPercentage,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_ALLY.to_owned(),

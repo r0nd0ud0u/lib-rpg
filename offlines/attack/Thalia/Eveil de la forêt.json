@@ -9,7 +9,7 @@
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 4,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 10,
             "IsMagicEffect": true
@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 1,
-            "Type": "Boost l'effet par nb HOTS presents en %",
+            "Type": "BoostBufByHotsNumberInPercentage",
             "Valeur de l'effet": 0,
             "Value": 20,
             "IsMagicEffect": true
@@ -29,7 +29,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Reinit",
+            "Type": "ReinitBuf",
             "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": true
@@ -49,7 +49,7 @@
             "Portée": "Zone",
             "Stat": "",
             "Tours actifs": 1,
-            "Type": "Supprime effet néfaste",
+            "Type": "RemoveOneDebuf",
             "Valeur de l'effet": 1000,
             "Value": 0,
             "IsMagicEffect": true
@@ -59,7 +59,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 10,
-            "Type": "cooldown-turns-nb",
+            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 1000,
             "Value": 10,
             "IsMagicEffect": true
@@ -69,7 +69,7 @@
             "Portée": "Zone",
             "Stat": "",
             "Tours actifs": 1,
-            "Type": "Boost chaque HOT de .. %",
+            "Type": "BoostHotsByPercentage",
             "Valeur de l'effet": 0,
             "Value": 33,
             "IsMagicEffect": true

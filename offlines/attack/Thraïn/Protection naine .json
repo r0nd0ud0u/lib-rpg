@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "Physical armor",
             "Tours actifs": 2,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 150,
             "IsMagicEffect": false
@@ -29,7 +29,7 @@
             "Portée": "Individuel",
             "Stat": "Magic armor",
             "Tours actifs": 2,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 150,
             "IsMagicEffect": false

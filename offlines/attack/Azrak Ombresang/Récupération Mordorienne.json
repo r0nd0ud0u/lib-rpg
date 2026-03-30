@@ -8,7 +8,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Conditions": [{
                 "condition_type": "NbEnnemiesDied",
                 "value": 20
@@ -21,7 +21,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Conditions": [{
                 "condition_type": "NbEnnemiesDied",
                 "value": 20
@@ -34,7 +34,7 @@
             "Portée": "Individuel",
             "Stat": "Vigueur",
             "Tours actifs": 1,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Conditions": [{
                 "condition_type": "NbEnnemiesDied",
                 "value": 20

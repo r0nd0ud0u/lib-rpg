@@ -39,7 +39,7 @@
             "Portée": "Individuel",
             "Stat": "Magic power",
             "Tours actifs": 3,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 25,
             "IsMagicEffect": true
@@ -49,7 +49,7 @@
             "Portée": "Individuel",
             "Stat": "Physical power",
             "Tours actifs": 3,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 25,
             "IsMagicEffect": true
@@ -59,7 +59,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 6,
-            "Type": "cooldown-turns-nb",
+            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": true

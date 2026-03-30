@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "Reinit",
+            "Type": "ReinitBuf",
             "Valeur de l'effet": 3,
             "Value": 0,
             "IsMagicEffect": true

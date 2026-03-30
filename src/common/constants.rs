@@ -60,18 +60,6 @@ pub mod character_const {
     pub const ULTIMATE_LEVEL: u64 = 13;
 }
 
-pub mod effect_const {
-    pub const EFFECT_NB_COOL_DOWN: &str = "cooldown-turns-nb";
-    pub const EFFECT_REINIT: &str = "Reinit";
-    pub const EFFECT_DELETE_BAD: &str = "Supprime effet néfaste";
-    pub const EFFECT_IMPROVE_HOTS: &str = "Boost chaque HOT de .. %";
-    pub const EFFECT_BOOSTED_BY_HOTS: &str = "Boost l'effet par nb HOTS presents en %";
-    pub const EFFECT_INTO_DAMAGE: &str = "% (stats) en dégâts";
-    pub const EFFECT_NEXT_HEAL_IS_CRIT: &str = "Prochaine attaque heal est crit";
-    pub const EFFECT_BUF_MULTI: &str = "Buf multi";
-    pub const EFFECT_BUF_VALUE_AS_MUCH_AS_HEAL: &str = "Buf par valeur d'autant de PV";
-}
-
 pub mod paths_const {
     use lazy_static::lazy_static;
     use std::path::{Path, PathBuf};

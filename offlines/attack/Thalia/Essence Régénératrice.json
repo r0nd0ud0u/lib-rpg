@@ -29,7 +29,7 @@
             "Portée": "Individuel",
             "Stat": "Magic power",
             "Tours actifs": 5,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 10,
             "IsMagicEffect": true

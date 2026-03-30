@@ -19,7 +19,7 @@
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 2,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 15,
             "IsMagicEffect": true
@@ -29,7 +29,7 @@
             "Portée": "Zone",
             "Stat": "Physical power",
             "Tours actifs": 2,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 15,
             "IsMagicEffect": true

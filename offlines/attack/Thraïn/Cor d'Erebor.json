@@ -22,7 +22,7 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 25,
             "IsMagicEffect": false
@@ -32,7 +32,7 @@
             "Portée": "Zone",
             "Stat": "Magic armor",
             "Tours actifs": 2,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 25,
             "IsMagicEffect": false
@@ -42,7 +42,7 @@
             "Portée": "Zone",
             "Stat": "Physical armor",
             "Tours actifs": 2,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 25,
             "IsMagicEffect": false
@@ -52,7 +52,7 @@
             "Portée": "Soi-même",
             "Stat": "",
             "Tours actifs": 5,
-            "Type": "cooldown-turns-nb",
+            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": false

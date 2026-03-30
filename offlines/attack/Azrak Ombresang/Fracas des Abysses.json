@@ -32,7 +32,7 @@
             "Portée": "Individuel",
             "Stat": "Regeneration vigueur",
             "Tours actifs": 3,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 200,
             "IsMagicEffect": false

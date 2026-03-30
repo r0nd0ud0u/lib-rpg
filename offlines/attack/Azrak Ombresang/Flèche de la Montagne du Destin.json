@@ -29,7 +29,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 4,
-            "Type": "cooldown-turns-nb",
+            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": false

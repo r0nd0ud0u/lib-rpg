@@ -29,7 +29,7 @@
             "Portée": "Individuel",
             "Stat": "Taux rage",
             "Tours actifs": 4,
-            "Type": "UpMaxStatByPercentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 100,
             "IsMagicEffect": false

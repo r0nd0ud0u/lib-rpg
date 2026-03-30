@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::Result;
 
 use crate::{
     character_mod::{
@@ -6,7 +6,8 @@ use crate::{
         buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
         class::Class,
         effect::{
-            self, ConditionKind, EffectParam, ProcessedEffectParam, is_boosted_by_crit, is_effet_hot_or_dot, process_decrease_on_turn
+            self, ConditionKind, EffectParam, ProcessedEffectParam, is_boosted_by_crit,
+            is_effet_hot_or_dot, process_decrease_on_turn,
         },
         target::{TargetData, is_target_ally},
     },
@@ -15,7 +16,6 @@ use crate::{
             all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
             attak_const::{COEFF_CRIT_DMG, COEFF_CRIT_STATS},
             character_const::ULTIMATE_LEVEL,
-            effect_const::*,
             reach_const::INDIVIDUAL,
             stats_const::HP,
         },
@@ -201,16 +201,6 @@ impl CharacterRoundsInfo {
         }
         // buf debuf damage
         if full_amount < 0 && !is_target_ally(target) {
-            // Launcher TX: BufTypes::DamageTxPercent
-            if let Some(buf_dmg_tx) = self.all_buffers.get(BufTypes::DamageTxPercent as usize) {
-                buf_debuf +=
-                    update_damage_by_buf(buf_dmg_tx.value, buf_dmg_tx.is_percent, real_amount);
-            }
-            // Receiver RX: BufTypes::DamageRx
-            if let Some(buf_dmg_rx) = self.all_buffers.get(BufTypes::DamageRxPercent as usize) {
-                buf_debuf +=
-                    update_damage_by_buf(buf_dmg_rx.value, buf_dmg_rx.is_percent, real_amount);
-            }
             // Receiver RX: BufTypes::DamageCritCapped
             if let Some(buf_dmg_crit) = self.get_buffer_by_type(&BufTypes::DamageCritCapped) {
                 // improve crit coeff
@@ -267,7 +257,7 @@ impl CharacterRoundsInfo {
         }
 
         match ep.effect_type {
-            EFFECT_NB_COOL_DOWN => {
+            BufTypes::CooldownTurnsNumber => {
                 processed_effect_param.log = LogData {
                     message: format!("Cooldown actif sur {} de {} tours.", atk_name, ep.nb_turns),
                     color: "".to_owned(),
@@ -276,12 +266,12 @@ impl CharacterRoundsInfo {
             }
             BufTypes::DecreasingRateOnTurn => {
                 processed_effect_param.number_of_applies = process_decrease_on_turn(ep);
-                self.update_buf(
+                self.update_buffer(
                     &BufTypes::ApplyEffectInit,
                     processed_effect_param.number_of_applies,
                     false,
                     "",
-                )?;
+                );
                 processed_effect_param.log = LogData {
                     message: format!(
                         "L'attaque sera effectuée {} fois.",
@@ -290,23 +280,23 @@ impl CharacterRoundsInfo {
                     color: "".to_owned(),
                 };
             }
-            EFFECT_REINIT => {}
+            BufTypes::ReinitBuf => {}
             _ => {}
         }
         // Must be filled before changing value of nbTurns
-        if ep.effect_type == EFFECT_REINIT {
+        if ep.effect_type == BufTypes::ReinitBuf {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_DELETE_BAD {
+        if ep.effect_type == BufTypes::RemoveOneDebuf {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_IMPROVE_HOTS {
+        if ep.effect_type == BufTypes::BoostHotsByPercentage {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_BOOSTED_BY_HOTS {
+        if ep.effect_type == BufTypes::BoostBufByHotsNumberInPercentage {
             // TODO
             return Ok(processed_effect_param);
         }
@@ -326,7 +316,7 @@ impl CharacterRoundsInfo {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::UpMaxStatByPercentage {
+        if ep.effect_type == BufTypes::ChangeMaxStatByPercentage {
             processed_effect_param.log = LogData {
                 message: format!("Max stat of {} is up by {}%", ep.stats_name, ep.value),
                 color: "".to_owned(),
@@ -344,7 +334,7 @@ impl CharacterRoundsInfo {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == EFFECT_INTO_DAMAGE {
+        if ep.effect_type == BufTypes::PercentageIntoDamages {
             // TODO
             return Ok(processed_effect_param);
         }
@@ -368,14 +358,14 @@ impl CharacterRoundsInfo {
             effect_param_mutable.value = (COEFF_CRIT_STATS * ep.value as f64) as i64;
         }
         // conditions
-        // TODO use condition in effect param object
-        match ep.conditions.iter().find(|c|c.kind == ConditionKind::NbEnnemiesDied)  {
-            Some(cond) => {
-                effect_param_mutable.value +=
+        if let Some(cond) = ep
+            .conditions
+            .iter()
+            .find(|c| c.kind == ConditionKind::NbEnnemiesDied)
+        {
+            effect_param_mutable.value +=
                 game_state.died_ennemies[&(game_state.current_turn_nb - 1)].len() as i64
                     * cond.value;
-            },
-            _ => {}
         }
 
         // Process and return the new effect param
@@ -409,9 +399,12 @@ impl CharacterRoundsInfo {
     }
 
     pub fn remove_malus_effect(&mut self, ep: &EffectParam) -> Result<()> {
-        match ep.effect_type{
+        match ep.effect_type {
             BufTypes::BlockHealAtk => self.is_heal_atk_blocked = false,
-            BufTypes::DamageRxPercent | BufTypes::DamageTxPercent | BufTypes::HealRxPercent | BufTypes::HealTxPercent => self.update_buffer(&BufTypes::DamageTxPercent, -ep.value, true, "")?,
+            BufTypes::DamageRxPercent
+            | BufTypes::DamageTxPercent
+            | BufTypes::HealRxPercent
+            | BufTypes::HealTxPercent => self.update_buffer(&ep.effect_type, -ep.value, true, ""),
             _ => {}
         }
         Ok(())
@@ -577,7 +570,6 @@ mod tests {
         },
         common::constants::{
             all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
-            effect_const::*,
             paths_const::TEST_OFFLINE_ROOT,
             stats_const::*,
         },
@@ -617,7 +609,12 @@ mod tests {
                 dot_nb: 0,
                 buf_nb: 0,
                 debuf_nb: 0,
-                hot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, 30)],
+                hot_txt: vec![format!(
+                    "{}-{}: {}",
+                    BufTypes::ChangeCurrentStatByValue,
+                    HP,
+                    30
+                )],
                 dot_txt: vec![],
                 buf_txt: vec![],
                 debuf_txt: vec![]
@@ -636,8 +633,18 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 0,
                 debuf_nb: 0,
-                hot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, 30)],
-                dot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, -20)],
+                hot_txt: vec![format!(
+                    "{}-{}: {}",
+                    BufTypes::ChangeCurrentStatByValue,
+                    HP,
+                    30
+                )],
+                dot_txt: vec![format!(
+                    "{}-{}: {}",
+                    BufTypes::ChangeCurrentStatByValue,
+                    HP,
+                    -20
+                )],
                 buf_txt: vec![],
                 debuf_txt: vec![]
             }
@@ -655,9 +662,24 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 1,
                 debuf_nb: 0,
-                hot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, 30)],
-                dot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, -20)],
-                buf_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, MAGICAL_ARMOR, 20)],
+                hot_txt: vec![format!(
+                    "{}-{}: {}",
+                    BufTypes::ChangeCurrentStatByValue,
+                    HP,
+                    30
+                )],
+                dot_txt: vec![format!(
+                    "{}-{}: {}",
+                    BufTypes::ChangeCurrentStatByValue,
+                    HP,
+                    -20
+                )],
+                buf_txt: vec![format!(
+                    "{}-{}: {}",
+                    BufTypes::ChangeCurrentStatByValue,
+                    MAGICAL_ARMOR,
+                    20
+                )],
                 debuf_txt: vec![]
             }
         );
@@ -674,12 +696,29 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 1,
                 debuf_nb: 1,
-                hot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, 30)],
-                dot_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, HP, -20)],
-                buf_txt: vec![format!("{}-{}: {}", BufTypes::ChangeCurrentStatByValue, MAGICAL_ARMOR, 20)],
+                hot_txt: vec![format!(
+                    "{}-{}: {}",
+                    BufTypes::ChangeCurrentStatByValue,
+                    HP,
+                    30
+                )],
+                dot_txt: vec![format!(
+                    "{}-{}: {}",
+                    BufTypes::ChangeCurrentStatByValue,
+                    HP,
+                    -20
+                )],
+                buf_txt: vec![format!(
+                    "{}-{}: {}",
+                    BufTypes::ChangeCurrentStatByValue,
+                    MAGICAL_ARMOR,
+                    20
+                )],
                 debuf_txt: vec![format!(
                     "{}-{}: {}",
-                    BufTypes::ChangeCurrentStatByValue, MAGICAL_ARMOR, -20
+                    BufTypes::ChangeCurrentStatByValue,
+                    MAGICAL_ARMOR,
+                    -20
                 )]
             }
         );
@@ -720,7 +759,7 @@ mod tests {
         // -100 * 4 = -400
         assert_eq!(result, -400);
 
-        // it can be accunulated with damage buf
+        // it can be accumulated with damage buf
         cri.update_buffer(&BufTypes::DamageTxPercent, 20, false, "");
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
         // -100 -20 = -120* 4 = -480

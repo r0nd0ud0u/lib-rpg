@@ -29,7 +29,7 @@
             "Portée": "Zone",
             "Stat": "Aggro",
             "Tours actifs": 1,
-            "Type": "Reinit",
+            "Type": "ReinitBuf",
             "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": false
@@ -49,7 +49,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 5,
-            "Type": "cooldown-turns-nb",
+            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": false

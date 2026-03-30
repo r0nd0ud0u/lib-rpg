@@ -3,13 +3,13 @@ use std::{collections::HashMap, path::Path};
 use crate::{
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
+        buffers::BufTypes,
         character::CharacterKind,
-        effect::EffectOutcome,
         equipment::{Equipment, EquipmentJsonKey},
         rounds_information::AmountType,
     },
     common::{
-        constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
+        constants::{paths_const::*, stats_const::*},
         log_data::{
             LogData,
             const_colors::{DARK_RED, LIGHT_BLUE, LIGHT_GREEN},
@@ -464,7 +464,8 @@ impl GameManager {
                 {
                     colortext = DARK_RED;
                 }
-                if gae.processed_effect_param.input_effect_param.effect_type == EFFECT_NB_COOL_DOWN
+                if gae.processed_effect_param.input_effect_param.effect_type
+                    == BufTypes::CooldownTurnsNumber
                 {
                     logs.push(LogData {
                         color: colortext.to_string(),
@@ -551,11 +552,11 @@ impl GameManager {
 
 #[cfg(test)]
 mod tests {
+    use crate::character_mod::buffers::BufTypes;
     use crate::character_mod::character::CharacterKind;
     use crate::character_mod::class::Class;
     use crate::character_mod::equipment::Equipment;
     use crate::common::constants::attak_const::COEFF_CRIT_DMG;
-    use crate::common::constants::effect_const::EFFECT_NB_COOL_DOWN;
     use crate::common::log_data::const_colors::DARK_RED;
     use crate::server::game_manager::LogData;
     use crate::server::game_state::GameStatus;
@@ -1091,7 +1092,7 @@ mod tests {
                 .current
         );
         // "Magic power"
-        // "UpMaxStatByPercentage" 15
+        // "ChangeMaxStatByPercentage" 15
         // +15%, mag power max = 20
         assert_eq!(
             old_mag_pow_test2 + (0.15 * old_mag_pow_test2 as f64) as u64,
@@ -1112,7 +1113,7 @@ mod tests {
                 .max
         );
         // "Physical power"
-        // "UpMaxStatByPercentage" 15
+        // "ChangeMaxStatByPercentage" 15
         // +15%, phy power max = 10
         assert_eq!(
             old_phy_pow_test2 + (0.15 * old_phy_pow_test2 as f64).round() as u64,
@@ -1276,7 +1277,7 @@ mod tests {
                 .processed_effect_param
                 .input_effect_param
                 .effect_type,
-            EFFECT_NB_COOL_DOWN
+            BufTypes::CooldownTurnsNumber
         );
     }
 

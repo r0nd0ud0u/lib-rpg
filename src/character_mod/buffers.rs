@@ -17,7 +17,7 @@ pub enum BufTypes {
     ChangeByHealValue,
     BoostedByHots,
     /// Effect to improve max value of a stat by percent (current value is updated by ratio)
-    UpMaxStatByPercentage,
+    ChangeMaxStatByPercentage,
     /// Effect to improve max value of a stat by value (current value is updated by ratio)
     ChangeMaxStatByValue,
     BlockHealAtk,
@@ -32,6 +32,15 @@ pub enum BufTypes {
     NbDecreasingByTurn,
     /// Enables the power to heal the most needy ally using damage tx of previous turn
     IsDamageTxHealNeedyAlly,
+    ///
+    CooldownTurnsNumber,
+    ReinitBuf,
+    RemoveOneDebuf,
+    BoostHotsByPercentage,
+    BoostBufByHotsNumberInPercentage,
+    PercentageIntoDamages,
+    NextHealAtkIsCritical,
+    AddAsMuchAsHp,
     EnumSize,
 }
 
@@ -49,14 +58,23 @@ impl fmt::Display for BufTypes {
             BufTypes::ApplyEffectInit => "ApplyEffectInit",
             BufTypes::ChangeByHealValue => "ChangeByHealValue",
             BufTypes::BoostedByHots => "BoostedByHots",
-            BufTypes::UpMaxStatByPercentage => "UpMaxStatByPercentage",
+            BufTypes::ChangeMaxStatByPercentage => "ChangeMaxStatByPercentage",
             BufTypes::ChangeMaxStatByValue => "ChangeMaxStatByValue",
             BufTypes::BlockHealAtk => "BlockHealAtk",
             BufTypes::ChangeCurrentStatByValue => "ChangeCurrentStatByValue",
             BufTypes::UpCurrentStatByPercentage => "UpCurrentStatByPercentage",
             BufTypes::RepeatAsManyAsPossible => "RepeatAsManyAsPossible",
-            BufTypes::DecreasingRateOnTurn => "DecreasingRateOnTurn",  
-            BufTypes::NbDecreasingByTurn => "NbDecreasingByTurn",    
+            BufTypes::DecreasingRateOnTurn => "DecreasingRateOnTurn",
+            BufTypes::NbDecreasingByTurn => "NbDecreasingByTurn",
+            BufTypes::IsDamageTxHealNeedyAlly => "IsDamageTxHealNeedyAlly",
+            BufTypes::CooldownTurnsNumber => "CooldownTurnsNumber",
+            BufTypes::ReinitBuf => "ReinitBuf",
+            BufTypes::RemoveOneDebuf => "RemoveOneDebuf",
+            BufTypes::BoostHotsByPercentage => "BoostHotsByPercentage",
+            BufTypes::BoostBufByHotsNumberInPercentage => "BoostBufByHotsNumberInPercentage",
+            BufTypes::PercentageIntoDamages => "PercentageIntoDamages",
+            BufTypes::NextHealAtkIsCritical => "NextHealAtkIsCritical",
+            BufTypes::AddAsMuchAsHp => "AddAsMuchAsHp",
             BufTypes::EnumSize => "EnumSize",
         };
         write!(f, "{}", s)
