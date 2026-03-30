@@ -3,7 +3,7 @@ use anyhow::Result;
 use crate::{
     character_mod::{
         attack_type::AttackType,
-        buffers::{BufTypes, Buffers, update_damage_by_buf, update_heal_by_multi},
+        buffers::{BufTypes, Buffer, update_damage_by_buf, update_heal_by_multi},
         class::Class,
         effect::{
             self, ConditionKind, EffectParam, ProcessedEffectParam, is_boosted_by_crit,
@@ -69,7 +69,7 @@ pub struct CharacterRoundsInfo {
     pub tx_rx: Vec<HashMap<u64, i64>>,
     /// Fight information: Enabled buf/debuf acquired through the fight
     #[serde(default, rename = "Buf-debuf")]
-    pub all_buffers: Vec<Buffers>,
+    pub all_buffers: Vec<Buffer>,
     #[serde(default, rename = "ExpToNextLevel")]
     /// Experience to acquire to upgrade to next level
     pub exp_to_next_level: u64,
@@ -125,7 +125,7 @@ impl CharacterRoundsInfo {
     /// Init all buffers with default values
     pub fn new_buffers(&mut self) {
         for _ in 0..BufTypes::EnumSize as usize {
-            self.all_buffers.push(Buffers::default());
+            self.all_buffers.push(Buffer::default());
         }
     }
 
@@ -138,7 +138,7 @@ impl CharacterRoundsInfo {
             }
             let txt = Self::get_hot_and_buf_texts(&e.processed_effect_param.input_effect_param);
             if effect::is_hot(
-                &e.processed_effect_param.input_effect_param.effect_type,
+                &e.processed_effect_param.input_effect_param.buf_type,
                 &e.processed_effect_param.input_effect_param.stats_name,
                 e.processed_effect_param.input_effect_param.value,
             ) {
@@ -160,9 +160,9 @@ impl CharacterRoundsInfo {
 
     fn get_hot_and_buf_texts(ep: &EffectParam) -> String {
         if ep.stats_name.is_empty() {
-            format!("{}: {}", ep.effect_type, ep.value)
+            format!("{}: {}", ep.buf_type, ep.value)
         } else {
-            format!("{}-{}: {}", ep.effect_type, ep.stats_name, ep.value)
+            format!("{}-{}: {}", ep.buf_type, ep.stats_name, ep.value)
         }
     }
 
@@ -256,7 +256,7 @@ impl CharacterRoundsInfo {
             processed_effect_param.number_of_applies = buf.value;
         }
 
-        match ep.effect_type {
+        match ep.buf_type {
             BufTypes::CooldownTurnsNumber => {
                 processed_effect_param.log = LogData {
                     message: format!("Cooldown actif sur {} de {} tours.", atk_name, ep.nb_turns),
@@ -266,12 +266,12 @@ impl CharacterRoundsInfo {
             }
             BufTypes::DecreasingRateOnTurn => {
                 processed_effect_param.number_of_applies = process_decrease_on_turn(ep);
-                self.update_buffer(
-                    &BufTypes::ApplyEffectInit,
-                    processed_effect_param.number_of_applies,
-                    false,
-                    "",
-                );
+                self.update_buffer(&Buffer {
+                    value: processed_effect_param.number_of_applies,
+                    is_percent: false,
+                    buf_type: BufTypes::ApplyEffectInit,
+                    ..Default::default()
+                });
                 processed_effect_param.log = LogData {
                     message: format!(
                         "L'attaque sera effectuée {} fois.",
@@ -284,57 +284,57 @@ impl CharacterRoundsInfo {
             _ => {}
         }
         // Must be filled before changing value of nbTurns
-        if ep.effect_type == BufTypes::ReinitBuf {
+        if ep.buf_type == BufTypes::ReinitBuf {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::RemoveOneDebuf {
+        if ep.buf_type == BufTypes::RemoveOneDebuf {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::BoostHotsByPercentage {
+        if ep.buf_type == BufTypes::BoostHotsByPercentage {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::BoostBufByHotsNumberInPercentage {
+        if ep.buf_type == BufTypes::BoostBufByHotsNumberInPercentage {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::DamageTxPercent {
+        if ep.buf_type == BufTypes::DamageTxPercent {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::DamageRxPercent {
+        if ep.buf_type == BufTypes::DamageRxPercent {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::HealRxPercent {
+        if ep.buf_type == BufTypes::HealRxPercent {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::HealTxPercent {
+        if ep.buf_type == BufTypes::HealTxPercent {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::ChangeMaxStatByPercentage {
+        if ep.buf_type == BufTypes::ChangeMaxStatByPercentage {
             processed_effect_param.log = LogData {
                 message: format!("Max stat of {} is up by {}%", ep.stats_name, ep.value),
                 color: "".to_owned(),
             };
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::ChangeMaxStatByValue {
+        if ep.buf_type == BufTypes::ChangeMaxStatByValue {
             processed_effect_param.log = LogData {
                 message: format!("Max stat of {} is up by value:{}", ep.stats_name, ep.value),
                 color: "".to_owned(),
             };
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::RepeatAsManyAsPossible {
+        if ep.buf_type == BufTypes::RepeatAsManyAsPossible {
             // TODO
             return Ok(processed_effect_param);
         }
-        if ep.effect_type == BufTypes::PercentageIntoDamages {
+        if ep.buf_type == BufTypes::PercentageIntoDamages {
             // TODO
             return Ok(processed_effect_param);
         }
@@ -352,7 +352,7 @@ impl CharacterRoundsInfo {
 
         // Preprocess effectParam before applying it
         // update effectParam -> only used on in case of atk launched
-        if is_crit && is_boosted_by_crit(&ep.effect_type) {
+        if is_crit && is_boosted_by_crit(&ep.buf_type) {
             effect_param_mutable.sub_value_effect =
                 (COEFF_CRIT_STATS * ep.sub_value_effect as f64) as i64;
             effect_param_mutable.value = (COEFF_CRIT_STATS * ep.value as f64) as i64;
@@ -399,12 +399,17 @@ impl CharacterRoundsInfo {
     }
 
     pub fn remove_malus_effect(&mut self, ep: &EffectParam) -> Result<()> {
-        match ep.effect_type {
+        match ep.buf_type {
             BufTypes::BlockHealAtk => self.is_heal_atk_blocked = false,
             BufTypes::DamageRxPercent
             | BufTypes::DamageTxPercent
             | BufTypes::HealRxPercent
-            | BufTypes::HealTxPercent => self.update_buffer(&ep.effect_type, -ep.value, true, ""),
+            | BufTypes::HealTxPercent => self.update_buffer(&Buffer {
+                value: -ep.value,
+                is_percent: true,
+                buf_type: ep.buf_type.clone(),
+                ..Default::default()
+            }),
             _ => {}
         }
         Ok(())
@@ -414,37 +419,27 @@ impl CharacterRoundsInfo {
         self.all_buffers.iter().any(|b| b.buf_type == *buf_type)
     }
 
-    pub fn get_buffer_by_type(&self, buf_type: &BufTypes) -> Option<&Buffers> {
+    pub fn get_buffer_by_type(&self, buf_type: &BufTypes) -> Option<&Buffer> {
         self.all_buffers.iter().find(|b| b.buf_type == *buf_type)
     }
 
-    pub fn get_mut_buffer_by_type(&mut self, buf_type: &BufTypes) -> Option<&mut Buffers> {
+    pub fn get_mut_buffer_by_type(&mut self, buf_type: &BufTypes) -> Option<&mut Buffer> {
         self.all_buffers
             .iter_mut()
             .find(|b| b.buf_type == *buf_type)
     }
 
-    pub fn update_buffer(&mut self, buf_type: &BufTypes, value: i64, is_percent: bool, stat: &str) {
+    pub fn update_buffer(&mut self, buffer: &Buffer) {
         // find if the buffer already exists
         if let Some(buf) = self
             .all_buffers
             .iter_mut()
-            .find(|b| b.buf_type == *buf_type)
+            .find(|b| b.buf_type == buffer.buf_type)
         {
-            buf.update_buf(value, is_percent, stat);
+            buf.update_buf(buffer.value, buffer.is_percent, "");
         } else {
             // else push new buffer
-            self.all_buffers.push(Buffers {
-                buf_type: buf_type.clone(),
-                value,
-                is_percent,
-                all_stats_name: if stat.is_empty() {
-                    vec![]
-                } else {
-                    vec![stat.to_owned()]
-                },
-                ..Default::default()
-            });
+            self.all_buffers.push(buffer.clone());
         }
     }
 
@@ -468,7 +463,13 @@ impl CharacterRoundsInfo {
         let delta_capped = std::cmp::max(0, current_critical - crit_capped);
         if is_crit && !is_crit_by_passive {
             if delta_capped > 0 {
-                self.update_buffer(&BufTypes::DamageCritCapped, delta_capped, false, "");
+                self.update_buffer(&Buffer {
+                    is_passive_enabled: false,
+                    value: delta_capped,
+                    is_percent: false,
+                    all_stats_name: vec![],
+                    buf_type: BufTypes::DamageCritCapped,
+                });
             }
             Ok(true)
         } else if is_crit && is_crit_by_passive {
@@ -495,7 +496,7 @@ impl CharacterRoundsInfo {
         {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is {} but not current target.",
-                target_data.effect_param.effect_type,
+                target_data.effect_param.buf_type,
                 target_data.target_id_name,
                 target_data.effect_param.target_kind
             );
@@ -507,7 +508,7 @@ impl CharacterRoundsInfo {
         {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is dodging.",
-                target_data.effect_param.effect_type,
+                target_data.effect_param.buf_type,
                 target_data.target_id_name
             );
             return false;
@@ -546,7 +547,7 @@ impl CharacterRoundsInfo {
             }
             // Process hot or dot
             if gae.processed_effect_param.input_effect_param.stats_name == HP
-                && is_effet_hot_or_dot(&gae.processed_effect_param.input_effect_param.effect_type)
+                && is_effet_hot_or_dot(&gae.processed_effect_param.input_effect_param.buf_type)
             {
                 Self::process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
             }
@@ -563,7 +564,7 @@ impl CharacterRoundsInfo {
 mod tests {
     use crate::{
         character_mod::{
-            buffers::BufTypes,
+            buffers::{BufTypes, Buffer},
             character::Character,
             rounds_information::{CharacterRoundsInfo, HotsBufs},
             target::TargetData,
@@ -735,7 +736,13 @@ mod tests {
 
         // Launcher TX: BufTypes::DamageTxPercent
         // damage buf aigainst ennemy
-        cri.update_buffer(&BufTypes::DamageTxPercent, 20, false, "");
+        cri.update_buffer(&Buffer {
+            buf_type: BufTypes::DamageTxPercent,
+            value: 20,
+            is_percent: false,
+            all_stats_name: vec![],
+            is_passive_enabled: false,
+        });
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
         // -100 -20 = -120
         assert_eq!(result, -120);
@@ -746,21 +753,39 @@ mod tests {
         cri.reset_all_buffers();
 
         //Receiver RX: BufTypes::DamageRx
-        cri.update_buffer(&BufTypes::DamageRxPercent, 20, false, "");
+        cri.update_buffer(&Buffer {
+            is_passive_enabled: false,
+            value: 20,
+            is_percent: false,
+            all_stats_name: vec![],
+            buf_type: BufTypes::DamageRxPercent,
+        });
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
         // -100 -20 = -120
         assert_eq!(result, -120);
         cri.reset_all_buffers();
 
         //Receiver RX: BufTypes::DamageCritCapped
-        cri.update_buffer(&BufTypes::DamageCritCapped, 2, false, "");
+        cri.update_buffer(&Buffer {
+            is_passive_enabled: false,
+            value: 2,
+            is_percent: false,
+            all_stats_name: vec![],
+            buf_type: BufTypes::DamageCritCapped,
+        });
         // crit is doubled init:2 -> 2 + 2 = 4
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
         // -100 * 4 = -400
         assert_eq!(result, -400);
 
         // it can be accumulated with damage buf
-        cri.update_buffer(&BufTypes::DamageTxPercent, 20, false, "");
+        cri.update_buffer(&Buffer {
+            is_passive_enabled: false,
+            value: 20,
+            is_percent: false,
+            all_stats_name: vec![],
+            buf_type: BufTypes::DamageTxPercent,
+        });
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
         // -100 -20 = -120* 4 = -480
         assert_eq!(result, -480);
@@ -769,26 +794,50 @@ mod tests {
         // buf debuf heal against ally
 
         // Launcher TX: BufTypes::MultiValue
-        cri.update_buffer(&BufTypes::MultiValue, 3, false, "");
+        cri.update_buffer(&Buffer {
+            is_passive_enabled: false,
+            value: 3,
+            is_percent: false,
+            all_stats_name: vec![],
+            buf_type: BufTypes::MultiValue,
+        });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 * 3 = 300
         assert_eq!(result, 300);
         cri.reset_all_buffers();
 
         // BufTypes::HealTx
-        cri.update_buffer(&BufTypes::HealTxPercent, 20, false, "");
+        cri.update_buffer(&Buffer {
+            is_passive_enabled: false,
+            value: 20,
+            is_percent: false,
+            all_stats_name: vec![],
+            buf_type: BufTypes::HealTxPercent,
+        });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 + 20 = 120
         assert_eq!(result, 120);
         cri.reset_all_buffers();
         // BufTypes::HealRx
-        cri.update_buffer(&BufTypes::HealRxPercent, 20, false, "");
+        cri.update_buffer(&Buffer {
+            is_passive_enabled: false,
+            value: 20,
+            is_percent: false,
+            all_stats_name: vec![],
+            buf_type: BufTypes::HealRxPercent,
+        });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 + 20 = 120
         assert_eq!(result, 120);
         cri.reset_all_buffers();
         // BufTypes::BoostedByHots
-        cri.update_buffer(&BufTypes::BoostedByHots, 20, false, "");
+        cri.update_buffer(&Buffer {
+            is_passive_enabled: false,
+            value: 20,
+            is_percent: false,
+            all_stats_name: vec![],
+            buf_type: BufTypes::BoostedByHots,
+        });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 + 20 = 120
         assert_eq!(result, 120);
@@ -798,7 +847,13 @@ mod tests {
     #[test]
     fn unit_reset_all_buffers() {
         let mut cri = CharacterRoundsInfo::default();
-        cri.update_buffer(&BufTypes::DamageTxPercent, 20, false, "");
+        cri.update_buffer(&Buffer {
+            is_passive_enabled: false,
+            value: 20,
+            is_percent: false,
+            all_stats_name: vec![],
+            buf_type: BufTypes::DamageTxPercent,
+        });
         cri.reset_all_buffers();
         assert!(cri.all_buffers.is_empty());
     }
@@ -806,7 +861,13 @@ mod tests {
     #[test]
     fn unit_update_buf() {
         let mut cri = CharacterRoundsInfo::default();
-        cri.update_buffer(&BufTypes::DamageTxPercent, 20, false, HP);
+        cri.update_buffer(&Buffer {
+            is_passive_enabled: false,
+            value: 20,
+            is_percent: false,
+            all_stats_name: vec![HP.to_owned()],
+            buf_type: BufTypes::DamageTxPercent,
+        });
         assert_eq!(
             20,
             cri.get_buffer_by_type(&BufTypes::DamageTxPercent)

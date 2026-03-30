@@ -464,7 +464,7 @@ impl GameManager {
                 {
                     colortext = DARK_RED;
                 }
-                if gae.processed_effect_param.input_effect_param.effect_type
+                if gae.processed_effect_param.input_effect_param.buf_type
                     == BufTypes::CooldownTurnsNumber
                 {
                     logs.push(LogData {
@@ -472,7 +472,7 @@ impl GameManager {
                         message: format!(
                             "{} is applying {} on {} for {} turns",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.effect_type,
+                            gae.processed_effect_param.input_effect_param.buf_type,
                             gae.processed_effect_param.input_effect_param.stats_name,
                             gae.processed_effect_param.input_effect_param.nb_turns
                         ),
@@ -483,7 +483,7 @@ impl GameManager {
                         message: format!(
                             "{} is applying {} on {} for {} HP",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.effect_type,
+                            gae.processed_effect_param.input_effect_param.buf_type,
                             gae.processed_effect_param.input_effect_param.stats_name,
                             gae.effect_outcome.full_amount_tx
                         ),
@@ -494,7 +494,7 @@ impl GameManager {
                         message: format!(
                             "{} is applying {} on {} for {} {}",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.effect_type,
+                            gae.processed_effect_param.input_effect_param.buf_type,
                             gae.processed_effect_param.input_effect_param.stats_name,
                             gae.effect_outcome.full_amount_tx,
                             gae.processed_effect_param.input_effect_param.stats_name
@@ -1276,7 +1276,7 @@ mod tests {
                 .unwrap()
                 .processed_effect_param
                 .input_effect_param
-                .effect_type,
+                .buf_type,
             BufTypes::CooldownTurnsNumber
         );
     }

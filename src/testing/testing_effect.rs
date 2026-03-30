@@ -10,7 +10,7 @@ use crate::common::constants::{all_target_const::*, reach_const::*, stats_const:
 pub fn build_cooldown_effect() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::CooldownTurnsNumber,
+            buf_type: BufTypes::CooldownTurnsNumber,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_HIMSELF.to_owned(),
@@ -28,7 +28,7 @@ pub fn build_cooldown_effect() -> ProcessedEffectParam {
 pub fn build_heal_atk_blocked() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::BlockHealAtk,
+            buf_type: BufTypes::BlockHealAtk,
             nb_turns: 1,
             sub_value_effect: 0,
             target_kind: TARGET_ALL_ALLIES.to_owned(),
@@ -46,7 +46,7 @@ pub fn build_heal_atk_blocked() -> ProcessedEffectParam {
 pub fn build_dot_effect_individual() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::ChangeCurrentStatByValue,
+            buf_type: BufTypes::ChangeCurrentStatByValue,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_ENNEMY.to_owned(),
@@ -64,7 +64,7 @@ pub fn build_dot_effect_individual() -> ProcessedEffectParam {
 pub fn build_dot_effect_zone() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::ChangeCurrentStatByValue,
+            buf_type: BufTypes::ChangeCurrentStatByValue,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_ENNEMY.to_owned(),
@@ -82,7 +82,7 @@ pub fn build_dot_effect_zone() -> ProcessedEffectParam {
 pub fn build_dmg_effect_individual() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::ChangeCurrentStatByValue,
+            buf_type: BufTypes::ChangeCurrentStatByValue,
             nb_turns: 1,
             sub_value_effect: 0,
             target_kind: TARGET_ENNEMY.to_owned(),
@@ -101,7 +101,7 @@ pub fn build_dmg_effect_individual() -> ProcessedEffectParam {
 pub fn build_dmg_effect_zone() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::ChangeCurrentStatByValue,
+            buf_type: BufTypes::ChangeCurrentStatByValue,
             nb_turns: 1,
             sub_value_effect: 0,
             target_kind: TARGET_ENNEMY.to_owned(),
@@ -120,7 +120,7 @@ pub fn build_dmg_effect_zone() -> ProcessedEffectParam {
 pub fn build_hot_effect_individual() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::ChangeCurrentStatByValue,
+            buf_type: BufTypes::ChangeCurrentStatByValue,
             nb_turns: 2,
             sub_value_effect: 0,
             target_kind: TARGET_ALLY.to_owned(),
@@ -139,7 +139,7 @@ pub fn build_hot_effect_individual() -> ProcessedEffectParam {
 pub fn build_hot_effect_zone() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::UpCurrentStatByPercentage,
+            buf_type: BufTypes::UpCurrentStatByPercentage,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_ALLY.to_owned(),
@@ -157,7 +157,7 @@ pub fn build_hot_effect_zone() -> ProcessedEffectParam {
 pub fn build_hot_effect_all() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::ChangeCurrentStatByValue,
+            buf_type: BufTypes::ChangeCurrentStatByValue,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_ALL_ALLIES.to_owned(),
@@ -175,7 +175,7 @@ pub fn build_hot_effect_all() -> ProcessedEffectParam {
 pub fn build_effect_max_stats() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::ChangeMaxStatByValue,
+            buf_type: BufTypes::ChangeMaxStatByValue,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_ENNEMY.to_owned(),
@@ -193,7 +193,7 @@ pub fn build_effect_max_stats() -> ProcessedEffectParam {
 pub fn build_debuf_effect_individual() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::ChangeCurrentStatByValue,
+            buf_type: BufTypes::ChangeCurrentStatByValue,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_ENNEMY.to_owned(),
@@ -211,7 +211,7 @@ pub fn build_debuf_effect_individual() -> ProcessedEffectParam {
 pub fn build_buf_effect_individual() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::ChangeCurrentStatByValue,
+            buf_type: BufTypes::ChangeCurrentStatByValue,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_ENNEMY.to_owned(),
@@ -229,7 +229,7 @@ pub fn build_buf_effect_individual() -> ProcessedEffectParam {
 pub fn build_buf_effect_individual_speed_regen() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            effect_type: BufTypes::ChangeMaxStatByValue,
+            buf_type: BufTypes::ChangeMaxStatByValue,
             nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_HIMSELF.to_owned(),

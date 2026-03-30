@@ -186,7 +186,7 @@ mod tests {
         assert_eq!(atk_type.all_effects[0].target_kind, TARGET_ENNEMY);
         assert_eq!(atk_type.all_effects[0].reach, INDIVIDUAL);
         assert_eq!(
-            atk_type.all_effects[0].effect_type,
+            atk_type.all_effects[0].buf_type,
             BufTypes::ChangeCurrentStatByValue
         );
         assert_eq!(atk_type.all_effects[0].sub_value_effect, 0);

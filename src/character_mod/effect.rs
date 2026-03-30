@@ -34,7 +34,7 @@ pub struct EffectParam {
     /// Received
     /// Name of the effect
     #[serde(rename = "Type")]
-    pub effect_type: BufTypes,
+    pub buf_type: BufTypes,
     /// Duration of the effect
     #[serde(rename = "Tours actifs")]
     pub nb_turns: i64,
@@ -142,7 +142,7 @@ pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
 
 pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
     EffectParam {
-        effect_type: BufTypes::ChangeCurrentStatByValue,
+        buf_type: BufTypes::ChangeCurrentStatByValue,
         nb_turns: 1,
         target_kind: TARGET_ENNEMY.to_owned(),
         reach: if is_zone {

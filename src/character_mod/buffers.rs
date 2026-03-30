@@ -102,7 +102,7 @@ pub fn update_heal_by_multi(cur_value: i64, coeff_multi: i64) -> i64 {
 /// Define the different state of a buf
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
-pub struct Buffers {
+pub struct Buffer {
     /// A buf can be passive, that is without being a change of value
     #[serde(rename = "Buf-passive-enabled")]
     pub is_passive_enabled: bool,
@@ -120,7 +120,7 @@ pub struct Buffers {
     pub buf_type: BufTypes,
 }
 
-impl Buffers {
+impl Buffer {
     pub fn set_buffers(&mut self, value: i64, is_percent: bool) {
         self.value = value;
         self.is_percent = is_percent;
@@ -135,7 +135,7 @@ impl Buffers {
 
 #[cfg(test)]
 mod tests {
-    use crate::character_mod::buffers::{BufTypes, Buffers, update_heal_by_multi};
+    use crate::character_mod::buffers::{BufTypes, Buffer, update_heal_by_multi};
 
     use super::update_damage_by_buf;
 
@@ -179,7 +179,7 @@ mod tests {
 
     #[test]
     fn unit_set_buffers() {
-        let mut buff = Buffers::default();
+        let mut buff = Buffer::default();
         buff.set_buffers(10, false);
         assert!(!buff.is_percent);
         assert_eq!(buff.buf_type, BufTypes::DefaultBuf);
