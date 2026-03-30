@@ -144,8 +144,6 @@ impl Character {
                             .as_slice(),
                         true,
                     );
-                // equipment loading
-
                 // apply equipment on stats
                 value.stats.apply_equipment_on_stats(
                     &equipment_on
@@ -154,6 +152,7 @@ impl Character {
                         .cloned()
                         .collect::<Vec<Equipment>>(),
                 );
+                // apply buf debuf on stats
             }
 
             Ok(value)

@@ -8,7 +8,7 @@
         "is_random_target": true,
         "Buf-debuf": [
         {
-            "Buf-all-stats": ["hp","mana"],
+            "Buf-all-stats": "",
             "Buf-is-percent": true,
             "Buf-passive-enabled": false,
             "Buf-type": "DamageRxPercent",

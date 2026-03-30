@@ -35,6 +35,7 @@ pub struct EffectParam {
     /// Name of the effect
     #[serde(rename = "Type")]
     pub buf_type: BufTypes,
+
     /// Duration of the effect
     #[serde(rename = "Tours actifs")]
     pub nb_turns: i64,
@@ -59,6 +60,21 @@ pub struct EffectParam {
     /// Conditions for the effect
     #[serde(rename = "Conditions")]
     pub conditions: Vec<Condition>,
+    /*     /// A buf can be passive, that is without being a change of value
+    #[serde(rename = "Buf-passive-enabled")]
+    pub is_passive_enabled: bool,
+    /// If it is active, it changes the value
+    #[serde(rename = "Buf-value")]
+    pub value: i64,
+    /// Buf can be in percentage or in value
+    #[serde(rename = "Buf-is-percent")]
+    pub is_percent: bool,
+    /// Potentially, a buffer can be applied on a stat, otherwise empty
+    #[serde(rename = "Buf-all-stats")]
+    pub all_stats_name: Vec<String>,
+    /// buf-type
+    #[serde(rename = "Buf-type")]
+    pub buf_type: BufTypes, */
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

@@ -1,7 +1,7 @@
 {
     "Buf-debuf": [
         {
-            "Buf-all-stats": ["hp","mana"],
+            "Buf-all-stats": "hp",
             "Buf-is-percent": true,
             "Buf-passive-enabled": false,
             "Buf-type": "DamageRxPercent",

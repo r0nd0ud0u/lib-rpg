@@ -114,7 +114,7 @@ pub struct Buffer {
     pub is_percent: bool,
     /// Potentially, a buffer can be applied on a stat, otherwise empty
     #[serde(rename = "Buf-all-stats")]
-    pub all_stats_name: Vec<String>,
+    pub stats_name: String,
     /// buf-type
     #[serde(rename = "Buf-type")]
     pub buf_type: BufTypes,
@@ -129,7 +129,7 @@ impl Buffer {
     pub fn update_buf(&mut self, value: i64, is_percent: bool, stat: &str) {
         self.value += value;
         self.is_percent = is_percent;
-        self.all_stats_name.push(stat.to_string());
+        self.stats_name = stat.to_owned();
     }
 }
 
@@ -183,14 +183,14 @@ mod tests {
         buff.set_buffers(10, false);
         assert!(!buff.is_percent);
         assert_eq!(buff.buf_type, BufTypes::DefaultBuf);
-        assert!(buff.all_stats_name.is_empty());
+        assert!(buff.stats_name.is_empty());
         assert!(!buff.is_passive_enabled);
         assert_eq!(buff.value, 10);
 
         buff.set_buffers(20, true);
         assert!(buff.is_percent);
         assert_eq!(buff.buf_type, BufTypes::DefaultBuf);
-        assert!(buff.all_stats_name.is_empty());
+        assert!(buff.stats_name.is_empty());
         assert!(!buff.is_passive_enabled);
         assert_eq!(buff.value, 20);
     }

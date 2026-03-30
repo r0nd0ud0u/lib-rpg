@@ -467,7 +467,7 @@ impl CharacterRoundsInfo {
                     is_passive_enabled: false,
                     value: delta_capped,
                     is_percent: false,
-                    all_stats_name: vec![],
+                    stats_name: String::new(),
                     buf_type: BufTypes::DamageCritCapped,
                 });
             }
@@ -740,7 +740,7 @@ mod tests {
             buf_type: BufTypes::DamageTxPercent,
             value: 20,
             is_percent: false,
-            all_stats_name: vec![],
+            stats_name: String::new(),
             is_passive_enabled: false,
         });
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
@@ -757,7 +757,7 @@ mod tests {
             is_passive_enabled: false,
             value: 20,
             is_percent: false,
-            all_stats_name: vec![],
+            stats_name: String::new(),
             buf_type: BufTypes::DamageRxPercent,
         });
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
@@ -770,7 +770,7 @@ mod tests {
             is_passive_enabled: false,
             value: 2,
             is_percent: false,
-            all_stats_name: vec![],
+            stats_name: String::new(),
             buf_type: BufTypes::DamageCritCapped,
         });
         // crit is doubled init:2 -> 2 + 2 = 4
@@ -783,7 +783,7 @@ mod tests {
             is_passive_enabled: false,
             value: 20,
             is_percent: false,
-            all_stats_name: vec![],
+            stats_name: String::new(),
             buf_type: BufTypes::DamageTxPercent,
         });
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
@@ -798,7 +798,7 @@ mod tests {
             is_passive_enabled: false,
             value: 3,
             is_percent: false,
-            all_stats_name: vec![],
+            stats_name: String::new(),
             buf_type: BufTypes::MultiValue,
         });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
@@ -811,7 +811,7 @@ mod tests {
             is_passive_enabled: false,
             value: 20,
             is_percent: false,
-            all_stats_name: vec![],
+            stats_name: String::new(),
             buf_type: BufTypes::HealTxPercent,
         });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
@@ -823,7 +823,7 @@ mod tests {
             is_passive_enabled: false,
             value: 20,
             is_percent: false,
-            all_stats_name: vec![],
+            stats_name: String::new(),
             buf_type: BufTypes::HealRxPercent,
         });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
@@ -835,7 +835,7 @@ mod tests {
             is_passive_enabled: false,
             value: 20,
             is_percent: false,
-            all_stats_name: vec![],
+            stats_name: String::new(),
             buf_type: BufTypes::BoostedByHots,
         });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
@@ -851,7 +851,7 @@ mod tests {
             is_passive_enabled: false,
             value: 20,
             is_percent: false,
-            all_stats_name: vec![],
+            stats_name: String::new(),
             buf_type: BufTypes::DamageTxPercent,
         });
         cri.reset_all_buffers();
@@ -865,7 +865,7 @@ mod tests {
             is_passive_enabled: false,
             value: 20,
             is_percent: false,
-            all_stats_name: vec![HP.to_owned()],
+            stats_name: HP.to_owned(),
             buf_type: BufTypes::DamageTxPercent,
         });
         assert_eq!(
@@ -886,7 +886,7 @@ mod tests {
             cri.get_buffer_by_type(&BufTypes::DamageTxPercent)
                 .as_ref()
                 .unwrap()
-                .all_stats_name[0]
+                .stats_name
         );
     }
 
