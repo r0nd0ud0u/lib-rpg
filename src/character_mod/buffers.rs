@@ -32,7 +32,6 @@ pub enum BufTypes {
     NbDecreasingByTurn,
     /// Enables the power to heal the most needy ally using damage tx of previous turn
     IsDamageTxHealNeedyAlly,
-    ///
     CooldownTurnsNumber,
     ReinitBuf,
     RemoveOneDebuf,
