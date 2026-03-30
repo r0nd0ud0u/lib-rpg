@@ -8,11 +8,11 @@
         "is_random_target": true,
         "Buf-debuf": [
         {
-            "Buf-all-stats": "",
-            "Buf-is-percent": true,
-            "Buf-passive-enabled": false,
-            "Buf-type": "DamageRxPercent",
-            "Buf-value": 100
+            "stats-name": "",
+            "is-percent": true,
+            "passive-enabled": false,
+            "kind": "DamageRxPercent",
+            "value": 100
         }
     ]
     },

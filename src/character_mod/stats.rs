@@ -338,7 +338,7 @@ impl Stats {
 
     /// access the real amount received by the effect on that character
     pub fn update_hp_process_real_amount(&mut self, ep: &EffectParam, full_amount: i64) -> i64 {
-        if ep.stats_name != HP {
+        if ep.buffer.stats_name != HP {
             return 0;
         }
         let real_hp_amount;

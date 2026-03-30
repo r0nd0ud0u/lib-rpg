@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "UpCurrentStatByPercentage",
+            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -15,
             "IsMagicEffect": true

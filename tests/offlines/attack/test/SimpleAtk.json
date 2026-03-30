@@ -14,7 +14,15 @@
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -35,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                    "kind": "ChangeCurrentStatByValue",
+                    "value": -35,
+                    "is-percent": false,
+                    "stats-name": "",
+                    "passive-enabled": false
+            }
+
         }
     ],
     "Forme": "Standard",

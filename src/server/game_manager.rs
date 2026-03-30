@@ -3,7 +3,7 @@ use std::{collections::HashMap, path::Path};
 use crate::{
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
-        buffers::BufTypes,
+        buffers::BufKinds,
         character::CharacterKind,
         equipment::{Equipment, EquipmentJsonKey},
         rounds_information::AmountType,
@@ -458,33 +458,60 @@ impl GameManager {
                 }
                 // log for the effect outcome
                 let mut colortext = LIGHT_GREEN;
-                if gae.processed_effect_param.input_effect_param.stats_name == HP
+                if gae
+                    .processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == HP
                     && gae.effect_outcome.real_amount_tx < 0
                     || gae.effect_outcome.full_amount_tx < 0
                 {
                     colortext = DARK_RED;
                 }
-                if gae.processed_effect_param.input_effect_param.buf_type
-                    == BufTypes::CooldownTurnsNumber
+                if gae
+                    .processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .kind
+                    == BufKinds::CooldownTurnsNumber
                 {
                     logs.push(LogData {
                         color: colortext.to_string(),
                         message: format!(
                             "{} is applying {} on {} for {} turns",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.buf_type,
-                            gae.processed_effect_param.input_effect_param.stats_name,
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .kind,
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .stats_name,
                             gae.processed_effect_param.input_effect_param.nb_turns
                         ),
                     });
-                } else if gae.processed_effect_param.input_effect_param.stats_name == HP {
+                } else if gae
+                    .processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == HP
+                {
                     logs.push(LogData {
                         color: colortext.to_string(),
                         message: format!(
                             "{} is applying {} on {} for {} HP",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.buf_type,
-                            gae.processed_effect_param.input_effect_param.stats_name,
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .kind,
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .stats_name,
                             gae.effect_outcome.full_amount_tx
                         ),
                     });
@@ -494,10 +521,19 @@ impl GameManager {
                         message: format!(
                             "{} is applying {} on {} for {} {}",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.buf_type,
-                            gae.processed_effect_param.input_effect_param.stats_name,
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .kind,
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .stats_name,
                             gae.effect_outcome.full_amount_tx,
-                            gae.processed_effect_param.input_effect_param.stats_name
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .stats_name
                         ),
                     });
                 }
@@ -552,7 +588,7 @@ impl GameManager {
 
 #[cfg(test)]
 mod tests {
-    use crate::character_mod::buffers::BufTypes;
+    use crate::character_mod::buffers::BufKinds;
     use crate::character_mod::character::CharacterKind;
     use crate::character_mod::class::Class;
     use crate::character_mod::equipment::Equipment;
@@ -1276,8 +1312,9 @@ mod tests {
                 .unwrap()
                 .processed_effect_param
                 .input_effect_param
-                .buf_type,
-            BufTypes::CooldownTurnsNumber
+                .buffer
+                .kind,
+            BufKinds::CooldownTurnsNumber
         );
     }
 

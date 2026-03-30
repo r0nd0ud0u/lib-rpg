@@ -24,7 +24,7 @@ impl TargetData {
         {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is himself.",
-                self.effect_param.buf_type,
+                self.effect_param.buffer.kind,
                 self.target_id_name
             );
             return false;
@@ -34,7 +34,7 @@ impl TargetData {
         {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is only ally but launcher is himself.",
-                self.effect_param.buf_type,
+                self.effect_param.buffer.kind,
                 self.target_id_name
             );
             return false;
@@ -42,7 +42,7 @@ impl TargetData {
         if !is_ally && is_target_ally(&self.effect_param.target_kind) {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ally but launcher is ennemy.",
-                self.effect_param.buf_type,
+                self.effect_param.buffer.kind,
                 self.target_id_name
             );
             return false;
@@ -50,7 +50,7 @@ impl TargetData {
         if is_ally && self.effect_param.target_kind == TARGET_ENNEMY {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ennemy but launcher is ally.",
-                self.effect_param.buf_type,
+                self.effect_param.buffer.kind,
                 self.target_id_name
             );
             return false;
@@ -61,7 +61,7 @@ impl TargetData {
         {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the target is ally but launcher is himself.",
-                self.effect_param.buf_type,
+                self.effect_param.buffer.kind,
                 self.target_id_name
             );
             return false;

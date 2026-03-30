@@ -1,13 +1,4 @@
 {
-    "Buf-debuf": [
-        {
-            "Buf-all-stats": ["hp","mana"],
-            "Buf-is-percent": true,
-            "Buf-passive-enabled": false,
-            "Buf-type": "DamageRxPercent",
-            "Buf-value": 100
-        }
-    ],
     "Class": "Standard",
     "Color": "green",
     "Experience": 50,

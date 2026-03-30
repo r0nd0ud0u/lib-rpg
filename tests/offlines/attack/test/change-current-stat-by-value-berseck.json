@@ -7,12 +7,16 @@
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "Berserk",
             "Tours actifs": 2,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 20,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                    "kind": "ChangeCurrentStatByValue",
+                    "value": 20,
+                    "is-percent": false,
+                    "stats-name": "Berserk",
+                    "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

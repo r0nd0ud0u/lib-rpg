@@ -7,12 +7,16 @@
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "",
-            "Tours actifs": 2,
-            "Type": "CooldownTurnsNumber",
+            "Tours actifs": 1,
             "Valeur de l'effet": 0,
-            "Value": 0,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                    "kind": "CooldownTurnsNumber",
+                    "value": 2,
+                    "is-percent": false,
+                    "stats-name": "",
+                    "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

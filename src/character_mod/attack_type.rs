@@ -107,10 +107,10 @@ impl AttackType {
     pub fn has_only_heal_effect(&self) -> bool {
         let mut is_only_heal_effect = false;
         for e in &self.all_effects {
-            if e.stats_name == HP && e.value < 0 {
+            if e.buffer.stats_name == HP && e.buffer.value < 0 {
                 return false;
             }
-            if e.stats_name == HP && e.value > 0 {
+            if e.buffer.stats_name == HP && e.buffer.value > 0 {
                 is_only_heal_effect = true;
             }
         }
@@ -152,7 +152,7 @@ mod tests {
     use indexmap::IndexMap;
 
     use crate::{
-        character_mod::{attack_type::AttackType, buffers::BufTypes, stats::Stats},
+        character_mod::{attack_type::AttackType, buffers::BufKinds, stats::Stats},
         common::constants::{
             all_target_const::TARGET_ENNEMY, reach_const::INDIVIDUAL, stats_const::*,
         },
@@ -181,13 +181,13 @@ mod tests {
         assert_eq!(atk_type.aggro, 0);
         // decode the effect
         assert_eq!(atk_type.all_effects.len(), 1);
-        assert_eq!(atk_type.all_effects[0].stats_name, HP);
-        assert_eq!(atk_type.all_effects[0].value, -35);
+        assert_eq!(atk_type.all_effects[0].buffer.stats_name, HP);
+        assert_eq!(atk_type.all_effects[0].buffer.value, -35);
         assert_eq!(atk_type.all_effects[0].target_kind, TARGET_ENNEMY);
         assert_eq!(atk_type.all_effects[0].reach, INDIVIDUAL);
         assert_eq!(
-            atk_type.all_effects[0].buf_type,
-            BufTypes::ChangeCurrentStatByValue
+            atk_type.all_effects[0].buffer.kind,
+            BufKinds::ChangeCurrentStatByValue
         );
         assert_eq!(atk_type.all_effects[0].sub_value_effect, 0);
     }

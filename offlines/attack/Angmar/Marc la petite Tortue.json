@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "UpCurrentStatByPercentage",
+            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 1,
             "Value": -25,
             "IsMagicEffect": true
@@ -29,7 +29,7 @@
             "Portée": "Individuel",
             "Stat": "Vigueur",
             "Tours actifs": 1,
-            "Type": "UpCurrentStatByPercentage",
+            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 1,
             "Value": -25,
             "IsMagicEffect": true
