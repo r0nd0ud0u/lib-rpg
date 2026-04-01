@@ -153,6 +153,9 @@ impl Character {
                         .collect::<Vec<Equipment>>(),
                 );
                 // apply buf debuf on stats
+                value
+                    .stats
+                    .apply_buf_debuf_on_stats(&value.character_rounds_info.all_buffers);
             }
 
             Ok(value)
@@ -808,7 +811,7 @@ mod tests {
         assert_eq!("test", c.short_name);
         assert_eq!("test_#1", c.id_name);
         // buf-debuf
-        assert_eq!(2, c.character_rounds_info.all_buffers.len());
+        assert_eq!(3, c.character_rounds_info.all_buffers.len());
         assert_eq!(
             BufKinds::DamageRxPercent,
             c.character_rounds_info.all_buffers[0].kind
@@ -823,6 +826,13 @@ mod tests {
         assert!(c.character_rounds_info.all_buffers[1].is_passive_enabled);
         assert!(!c.character_rounds_info.all_buffers[1].is_percent);
         assert_eq!(0, c.character_rounds_info.all_buffers[1].value);
+        assert_eq!(
+            BufKinds::ChangeCurrentStatByValue,
+            c.character_rounds_info.all_buffers[2].kind
+        );
+        assert!(c.character_rounds_info.all_buffers[2].is_passive_enabled);
+        assert!(!c.character_rounds_info.all_buffers[2].is_percent);
+        assert_eq!(10, c.character_rounds_info.all_buffers[2].value);
         // Class
         assert_eq!(Class::Standard, c.class);
         // Color
@@ -840,16 +850,13 @@ mod tests {
         // stats
         // stats - aggro
         assert_eq!(0, c.stats.all_stats[AGGRO].current);
-        assert_eq!(9999, c.stats.all_stats[AGGRO].max);
+        assert_eq!(10009, c.stats.all_stats[AGGRO].max); // buffer on aggro, 9999 -> 10009
         // stats - aggro test init stats only on aggro
         assert_eq!(
             c.stats.all_stats[AGGRO].current_raw,
             c.stats.all_stats[AGGRO].current
         );
-        assert_eq!(
-            c.stats.all_stats[AGGRO].max_raw,
-            c.stats.all_stats[AGGRO].max
-        );
+        assert_eq!(c.stats.all_stats[AGGRO].max_raw, 9999);
         // stats - aggro rate
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].current);
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].max);

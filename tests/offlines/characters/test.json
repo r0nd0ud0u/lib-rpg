@@ -20,6 +20,13 @@
             "passive-enabled": true,
             "kind": "NextHealAtkIsCrit",
             "value": 0
+        },
+        {
+            "stats-name": "Aggro",
+            "is-percent": false,
+            "passive-enabled": true,
+            "kind": "ChangeCurrentStatByValue",
+            "value": 10
         }
     ]
     },

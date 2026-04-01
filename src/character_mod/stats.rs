@@ -4,7 +4,7 @@ use std::{cmp::Ordering, collections::HashMap};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    character_mod::{effect::EffectParam, equipment::Equipment},
+    character_mod::{buffers::Buffer, effect::EffectParam, equipment::Equipment},
     common::constants::{
         character_const::{NB_TURN_SUM_AGGRO, SPEED_THRESHOLD},
         stats_const::*,
@@ -262,6 +262,11 @@ impl Stats {
                 stat.buf_effect_value += value;
             }
         }
+        Self::recompute_stat_max_and_current(stat);
+    }
+
+    /// Helper to recompute max and current values for a stat after buffer changes
+    fn recompute_stat_max_and_current(stat: &mut Attribute) {
         let base_value = stat.max_raw as i64
             + stat.buf_equip_value
             + stat.buf_equip_percent * stat.max_raw as i64 / 100;
@@ -406,6 +411,18 @@ impl Stats {
         self.all_stats.insert(VIGOR.to_owned(), vigor);
         self.all_stats.insert(SPEED.to_owned(), speed);
         self.all_stats.insert(BERSERK.to_owned(), berserk);
+    }
+
+    pub fn apply_buf_debuf_on_stats(&mut self, all_buffers: &Vec<Buffer>) {
+        for buffer in all_buffers {
+            if self.all_stats.get(&buffer.stats_name).is_none() {
+                continue;
+            }
+            if !buffer.is_passive_enabled {
+                continue;
+            }
+            self.set_stats_on_effect(&buffer.stats_name, buffer.value, buffer.is_percent, true);
+        }
     }
 }
 
