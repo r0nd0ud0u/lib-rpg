@@ -52,7 +52,7 @@ pub fn build_atk_berseck_damage1() -> AttackType {
 #[cfg(not(tarpaulin_include))]
 pub fn build_atk_heal1_indiv() -> AttackType {
     AttackType {
-        name: "atk1".to_owned(),
+        name: "atk_heal1_indiv".to_owned(),
         berseck_cost: 2,
         target: TARGET_ALLY.to_owned(),
         reach: INDIVIDUAL.to_owned(),

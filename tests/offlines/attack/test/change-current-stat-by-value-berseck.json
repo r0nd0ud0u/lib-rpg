@@ -7,17 +7,21 @@
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "Berserk",
             "Tours actifs": 2,
-            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 20,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                    "kind": "ChangeCurrentStatByValue",
+                    "value": 20,
+                    "is-percent": false,
+                    "stats-name": "Berserk",
+                    "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",
     "Niveau": 2,
-    "Nom": "change-current-stat-by-value-berserk",
+    "Nom": "ChangeCurrentStatByValue-berseck",
     "Photo": "Thraïn.png",
     "Portée": "Individuel"
 }

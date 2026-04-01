@@ -9,30 +9,51 @@
             "Portée": "Individuel",
             "Stat": "Speed regeneration",
             "Tours actifs": 3,
-            "Type": "change-max-stat-by-value",
+            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 80,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Physical armor",
             "Tours actifs": 3,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 180,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Critical strike",
             "Tours actifs": 3,
-            "Type": "change-max-stat-by-value",
+            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 50,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

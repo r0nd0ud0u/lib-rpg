@@ -1,21 +1,83 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
-#[repr(usize)]
-#[derive(Debug, Clone)]
-pub enum BufTypes {
-    DefaultBuf = 0,
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum BufKinds {
+    #[default]
+    DefaultBuf,
     DamageRxPercent,
     DamageTxPercent,
     HealTxPercent,
     HealRxPercent,
     DamageCritCapped,
-    PowPhyBuf,
     NextHealAtkIsCrit,
     MultiValue,
     ApplyEffectInit,
     ChangeByHealValue,
     BoostedByHots,
+    /// Effect to improve max value of a stat by percent (current value is updated by ratio)
+    ChangeMaxStatByPercentage,
+    /// Effect to improve max value of a stat by value (current value is updated by ratio)
+    ChangeMaxStatByValue,
+    BlockHealAtk,
+    /// Effect to improve current value of a stat by value
+    ChangeCurrentStatByValue,
+    /// Effect to improve current value of a stat by percent
+    ChangeCurrentStatByPercentage,
+    /// Assess the amount of applies for a stat
+    RepeatAsManyAsPossible,
+    /// Effect to execute an atk with a decreasing success rate defined by a step on effect value
+    DecreasingRateOnTurn,
+    NbDecreasingByTurn,
+    /// Enables the power to heal the most needy ally using damage tx of previous turn
+    IsDamageTxHealNeedyAlly,
+    CooldownTurnsNumber,
+    ReinitBuf,
+    RemoveOneDebuf,
+    BoostHotsByPercentage,
+    BoostBufByHotsNumberInPercentage,
+    PercentageIntoDamages,
+    NextHealAtkIsCritical,
+    AddAsMuchAsHp,
     EnumSize,
+}
+
+impl fmt::Display for BufKinds {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            BufKinds::DefaultBuf => "DefaultBuf",
+            BufKinds::DamageRxPercent => "DamageRxPercent",
+            BufKinds::DamageTxPercent => "DamageTxPercent",
+            BufKinds::HealTxPercent => "HealTxPercent",
+            BufKinds::HealRxPercent => "HealRxPercent",
+            BufKinds::DamageCritCapped => "DamageCritCapped",
+            BufKinds::NextHealAtkIsCrit => "NextHealAtkIsCrit",
+            BufKinds::MultiValue => "MultiValue",
+            BufKinds::ApplyEffectInit => "ApplyEffectInit",
+            BufKinds::ChangeByHealValue => "ChangeByHealValue",
+            BufKinds::BoostedByHots => "BoostedByHots",
+            BufKinds::ChangeMaxStatByPercentage => "ChangeMaxStatByPercentage",
+            BufKinds::ChangeMaxStatByValue => "ChangeMaxStatByValue",
+            BufKinds::BlockHealAtk => "BlockHealAtk",
+            BufKinds::ChangeCurrentStatByValue => "ChangeCurrentStatByValue",
+            BufKinds::ChangeCurrentStatByPercentage => "ChangeCurrentStatByPercentage",
+            BufKinds::RepeatAsManyAsPossible => "RepeatAsManyAsPossible",
+            BufKinds::DecreasingRateOnTurn => "DecreasingRateOnTurn",
+            BufKinds::NbDecreasingByTurn => "NbDecreasingByTurn",
+            BufKinds::IsDamageTxHealNeedyAlly => "IsDamageTxHealNeedyAlly",
+            BufKinds::CooldownTurnsNumber => "CooldownTurnsNumber",
+            BufKinds::ReinitBuf => "ReinitBuf",
+            BufKinds::RemoveOneDebuf => "RemoveOneDebuf",
+            BufKinds::BoostHotsByPercentage => "BoostHotsByPercentage",
+            BufKinds::BoostBufByHotsNumberInPercentage => "BoostBufByHotsNumberInPercentage",
+            BufKinds::PercentageIntoDamages => "PercentageIntoDamages",
+            BufKinds::NextHealAtkIsCritical => "NextHealAtkIsCritical",
+            BufKinds::AddAsMuchAsHp => "AddAsMuchAsHp",
+            BufKinds::EnumSize => "EnumSize",
+        };
+        write!(f, "{}", s)
+    }
 }
 
 /// Returns: i64
@@ -40,25 +102,25 @@ pub fn update_heal_by_multi(cur_value: i64, coeff_multi: i64) -> i64 {
 /// Define the different state of a buf
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq)]
 #[serde(default)]
-pub struct Buffers {
+pub struct Buffer {
     /// A buf can be passive, that is without being a change of value
-    #[serde(rename = "Buf-passive-enabled")]
+    #[serde(rename = "passive-enabled")]
     pub is_passive_enabled: bool,
     /// If it is active, it changes the value
-    #[serde(rename = "Buf-value")]
+    #[serde(rename = "value")]
     pub value: i64,
     /// Buf can be in percentage or in value
-    #[serde(rename = "Buf-is-percent")]
+    #[serde(rename = "is-percent")]
     pub is_percent: bool,
     /// Potentially, a buffer can be applied on a stat, otherwise empty
-    #[serde(rename = "Buf-all-stats")]
-    pub all_stats_name: Vec<String>,
+    #[serde(rename = "stats-name")]
+    pub stats_name: String,
     /// buf-type
-    #[serde(rename = "Buf-type")]
-    pub buf_type: usize,
+    #[serde(rename = "kind")]
+    pub kind: BufKinds,
 }
 
-impl Buffers {
+impl Buffer {
     pub fn set_buffers(&mut self, value: i64, is_percent: bool) {
         self.value = value;
         self.is_percent = is_percent;
@@ -67,13 +129,13 @@ impl Buffers {
     pub fn update_buf(&mut self, value: i64, is_percent: bool, stat: &str) {
         self.value += value;
         self.is_percent = is_percent;
-        self.all_stats_name.push(stat.to_string());
+        self.stats_name = stat.to_owned();
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::character_mod::buffers::{Buffers, update_heal_by_multi};
+    use crate::character_mod::buffers::{BufKinds, Buffer, update_heal_by_multi};
 
     use super::update_damage_by_buf;
 
@@ -117,18 +179,18 @@ mod tests {
 
     #[test]
     fn unit_set_buffers() {
-        let mut buff = Buffers::default();
+        let mut buff = Buffer::default();
         buff.set_buffers(10, false);
         assert!(!buff.is_percent);
-        assert_eq!(buff.buf_type, 0);
-        assert!(buff.all_stats_name.is_empty());
+        assert_eq!(buff.kind, BufKinds::DefaultBuf);
+        assert!(buff.stats_name.is_empty());
         assert!(!buff.is_passive_enabled);
         assert_eq!(buff.value, 10);
 
         buff.set_buffers(20, true);
         assert!(buff.is_percent);
-        assert_eq!(buff.buf_type, 0);
-        assert!(buff.all_stats_name.is_empty());
+        assert_eq!(buff.kind, BufKinds::DefaultBuf);
+        assert!(buff.stats_name.is_empty());
         assert!(!buff.is_passive_enabled);
         assert_eq!(buff.value, 20);
     }

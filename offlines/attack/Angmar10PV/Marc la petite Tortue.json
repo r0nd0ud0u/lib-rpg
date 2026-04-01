@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 6,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 3,
             "Value": -150,
             "IsMagicEffect": true
@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-percentage",
+            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 1,
             "Value": -25,
             "IsMagicEffect": true
@@ -27,9 +27,9 @@
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
-            "Stat": "Vigueur",
+            "Stat": "Vigor",
             "Tours actifs": 1,
-            "Type": "up-current-stat-by-percentage",
+            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 1,
             "Value": -25,
             "IsMagicEffect": true

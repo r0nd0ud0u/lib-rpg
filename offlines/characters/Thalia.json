@@ -8,88 +8,11 @@
         "is_random_target": false,
         "Buf-debuf": [
         {
-            "Buf-all-stats": ["hp","mana"],
-            "Buf-is-percent": true,
-            "Buf-passive-enabled": false,
-            "Buf-type": 3,
-            "Buf-value": 100
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 1,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 2,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 3,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 4,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 5,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 6,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 7,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 8,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 9,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 10,
-            "Buf-value": 0
-        },
-        {
-            "Buf-all-stats": [],
-            "Buf-is-percent": false,
-            "Buf-passive-enabled": false,
-            "Buf-type": 11,
-            "Buf-value": 0
+            "stats-name": "",
+            "is-percent": true,
+            "passive-enabled": false,
+            "kind": "DamageRxPercent",
+            "value": 100
         }
     ]
     },
@@ -97,10 +20,6 @@
     "Name": "Thalia",
     "IdName": "Thalia_#1",
     "Photo": "Thalia",
-    "Powers": {
-        "is_crit_heal_after_crit": false,
-        "is_damage_tx_heal_needy_ally": false
-    },
     "Rank": 4,
     "Shape": "",
     "Short name": "Thalia",
