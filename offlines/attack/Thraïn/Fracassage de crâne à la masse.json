@@ -12,7 +12,14 @@
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -150,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
@@ -22,7 +29,14 @@
             "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 65,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Ennemie",
@@ -32,7 +46,14 @@
             "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
             "Value": -20,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
@@ -42,7 +63,14 @@
             "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
             "Value": 10,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
@@ -51,7 +79,14 @@
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 25
+            "Value": 25,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

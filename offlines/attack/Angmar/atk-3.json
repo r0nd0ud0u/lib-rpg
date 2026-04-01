@@ -12,7 +12,14 @@
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 1,
             "Value": -60,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Ennemie",
@@ -22,7 +29,14 @@
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 4,
             "Value": -15,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

@@ -12,7 +12,14 @@
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -75,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Ennemie",
@@ -22,17 +29,14 @@
             "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
             "Value": -300,
-            "IsMagicEffect": true
-        },
-        {
-            "Cible": "",
-            "Portée": "",
-            "Stat": "",
-            "Tours actifs": 0,
-            "Type": "",
-            "Valeur de l'effet": 0,
-            "Value": 0,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

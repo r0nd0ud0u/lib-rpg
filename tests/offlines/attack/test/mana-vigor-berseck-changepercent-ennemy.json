@@ -7,32 +7,44 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -20,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": -20,
+                "is-percent": true,
+                "stats-name": "Mana",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Vigueur",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -20,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": -20,
+                "is-percent": true,
+                "stats-name": "Vigor",
+                "passive-enabled": false
+            }
         },
            {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -20,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": -20,
+                "is-percent": true,
+                "stats-name": "Berserk",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

@@ -12,7 +12,14 @@
             "Type": "DecreasingRateOnTurn",
             "Valeur de l'effet": 3,
             "Value": 32,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Allié",
@@ -22,7 +29,14 @@
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 10,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "",
@@ -32,7 +46,14 @@
             "Type": "",
             "Valeur de l'effet": 0,
             "Value": 0,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

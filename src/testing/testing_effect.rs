@@ -247,7 +247,7 @@ pub fn build_debuf_effect_individual() -> ProcessedEffectParam {
             target_kind: TARGET_ENNEMY.to_owned(),
             reach: INDIVIDUAL.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeMaxStatByValue,
+                kind: BufKinds::ChangeCurrentStatByValue,
                 value: -20,
                 is_percent: false,
                 stats_name: MAGICAL_ARMOR.to_owned(),

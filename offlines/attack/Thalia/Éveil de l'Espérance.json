@@ -15,7 +15,14 @@
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 100,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Allié",
@@ -25,7 +32,14 @@
             "Type": "RemoveOneDebuf",
             "Valeur de l'effet": 0,
             "Value": 0,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Allié",
@@ -35,7 +49,14 @@
             "Type": "ReinitBuf",
             "Valeur de l'effet": 0,
             "Value": 0,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Soi-même",
@@ -45,7 +66,14 @@
             "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 1000,
             "Value": 10,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

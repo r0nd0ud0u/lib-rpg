@@ -12,7 +12,14 @@
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 30,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
@@ -22,7 +29,14 @@
             "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 20,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
@@ -32,7 +46,14 @@
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 40,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

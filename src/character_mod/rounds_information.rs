@@ -445,18 +445,12 @@ impl CharacterRoundsInfo {
     }
 
     pub fn get_mut_buffer_by_type(&mut self, buf_type: &BufKinds) -> Option<&mut Buffer> {
-        self.all_buffers
-            .iter_mut()
-            .find(|b| b.kind == *buf_type)
+        self.all_buffers.iter_mut().find(|b| b.kind == *buf_type)
     }
 
     pub fn update_buffer(&mut self, buffer: &Buffer) {
         // find if the buffer already exists
-        if let Some(buf) = self
-            .all_buffers
-            .iter_mut()
-            .find(|b| b.kind == buffer.kind)
-        {
+        if let Some(buf) = self.all_buffers.iter_mut().find(|b| b.kind == buffer.kind) {
             buf.update_buf(buffer.value, buffer.is_percent, "");
         } else {
             // else push new buffer
@@ -575,12 +569,7 @@ impl CharacterRoundsInfo {
                 .buffer
                 .stats_name
                 == HP
-                && is_effet_hot_or_dot(
-                    &gae.processed_effect_param
-                        .input_effect_param
-                        .buffer
-                        .kind,
-                )
+                && is_effet_hot_or_dot(&gae.processed_effect_param.input_effect_param.buffer.kind)
             {
                 Self::process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
             }

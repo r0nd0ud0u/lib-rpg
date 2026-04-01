@@ -355,8 +355,7 @@ impl Character {
         // process aggro for `HP` and `non-HP` stats
         let mut aggro_generated: u64 = 0;
         if processed_ep.input_effect_param.buffer.kind != BufKinds::ChangeMaxStatByValue
-            && processed_ep.input_effect_param.buffer.kind
-                != BufKinds::ChangeMaxStatByPercentage
+            && processed_ep.input_effect_param.buffer.kind != BufKinds::ChangeMaxStatByPercentage
         {
             if processed_ep.input_effect_param.buffer.stats_name == HP {
                 // process aggro for the launcher
@@ -390,16 +389,13 @@ impl Character {
         // Process non-stats `HP`
         // Otherwise update the max value of the stats
         if processed_ep.input_effect_param.buffer.stats_name != HP
-            && (processed_ep.input_effect_param.buffer.kind
-                == BufKinds::ChangeMaxStatByPercentage
-                || processed_ep.input_effect_param.buffer.kind
-                    == BufKinds::ChangeMaxStatByValue)
+            && (processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByPercentage
+                || processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByValue)
         {
             self.stats.set_stats_on_effect(
                 &processed_ep.input_effect_param.buffer.stats_name,
                 full_amount,
-                processed_ep.input_effect_param.buffer.kind
-                    == BufKinds::ChangeMaxStatByPercentage,
+                processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByPercentage,
                 true,
             );
         }
@@ -750,17 +746,9 @@ impl Character {
             .all_effects
             .iter_mut()
             .for_each(|gae| {
-                if gae
-                    .processed_effect_param
-                    .input_effect_param
-                    .buffer
-                    .kind
+                if gae.processed_effect_param.input_effect_param.buffer.kind
                     == BufKinds::ChangeMaxStatByPercentage
-                    || gae
-                        .processed_effect_param
-                        .input_effect_param
-                        .buffer
-                        .kind
+                    || gae.processed_effect_param.input_effect_param.buffer.kind
                         == BufKinds::ChangeMaxStatByValue
                 {
                     self.stats.set_stats_on_effect(
@@ -769,10 +757,7 @@ impl Character {
                             .buffer
                             .stats_name,
                         gae.effect_outcome.full_amount_tx,
-                        gae.processed_effect_param
-                            .input_effect_param
-                            .buffer
-                            .kind
+                        gae.processed_effect_param.input_effect_param.buffer.kind
                             == BufKinds::ChangeMaxStatByPercentage,
                         update_effect_stats,
                     );
@@ -1013,7 +998,7 @@ mod tests {
         let mut c = c.unwrap();
         let ep = EffectParam {
             buffer: Buffer {
-                kind: BufKinds::ChangeCurrentStatByValue,
+                kind: BufKinds::ChangeMaxStatByValue,
                 stats_name: HP.to_string(),
                 value: -10,
                 ..Default::default()
@@ -1021,11 +1006,11 @@ mod tests {
             ..Default::default()
         };
         let result = c.remove_malus_effect(&ep);
-        assert_eq!(148, c.stats.all_stats[HP].max);
+        assert_eq!(145, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
         let ep = EffectParam {
             buffer: Buffer {
-                kind: BufKinds::ChangeMaxStatByValue,
+                kind: BufKinds::ChangeMaxStatByPercentage,
                 stats_name: HP.to_string(),
                 value: -10,
                 ..Default::default()
@@ -1090,7 +1075,6 @@ mod tests {
         let mut ep = EffectParam {
             buffer: Buffer {
                 kind: BufKinds::CooldownTurnsNumber,
-                stats_name: HP.to_string(),
                 value: 10,
                 ..Default::default()
             },
@@ -1108,7 +1092,7 @@ mod tests {
             BufKinds::CooldownTurnsNumber,
             processed_effect_param.input_effect_param.buffer.kind
         );
-        assert_eq!(1, processed_effect_param.input_effect_param.buffer.value);
+        assert_eq!(10, processed_effect_param.input_effect_param.buffer.value);
         assert_eq!(
             c.id_name,
             processed_effect_param.input_effect_param.target_kind
@@ -1135,12 +1119,13 @@ mod tests {
             BufKinds::ChangeMaxStatByValue,
             processed_effect_param.input_effect_param.buffer.kind
         );
-        assert_eq!(10, processed_effect_param.input_effect_param.nb_turns);
+        assert_eq!(1, processed_effect_param.input_effect_param.nb_turns);
+        // crit : 10 -> 15
+        assert_eq!(15, processed_effect_param.input_effect_param.buffer.value);
         assert_eq!(
             c.id_name,
             processed_effect_param.input_effect_param.target_kind
         );
-        assert_eq!(15, processed_effect_param.input_effect_param.buffer.value);
         assert_eq!(
             0,
             processed_effect_param.input_effect_param.sub_value_effect
@@ -1168,7 +1153,7 @@ mod tests {
             BufKinds::ChangeMaxStatByValue,
             processed_effect_param.input_effect_param.buffer.kind
         );
-        assert_eq!(10, processed_effect_param.input_effect_param.nb_turns);
+        assert_eq!(1, processed_effect_param.input_effect_param.nb_turns);
         assert_eq!(
             c.id_name,
             processed_effect_param.input_effect_param.target_kind
@@ -1470,7 +1455,7 @@ mod tests {
             .all_effects
             .push(build_cooldown_effect().input_effect_param);
         let mut processed_ep = build_cooldown_effect();
-        processed_ep.counter_turn = processed_ep.input_effect_param.nb_turns;
+        processed_ep.counter_turn = processed_ep.input_effect_param.buffer.value;
         c1.character_rounds_info.all_effects.clear();
         c1.character_rounds_info.all_effects.push(GameAtkEffect {
             processed_effect_param: processed_ep.clone(),

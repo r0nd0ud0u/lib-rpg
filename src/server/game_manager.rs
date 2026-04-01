@@ -469,11 +469,7 @@ impl GameManager {
                 {
                     colortext = DARK_RED;
                 }
-                if gae
-                    .processed_effect_param
-                    .input_effect_param
-                    .buffer
-                    .kind
+                if gae.processed_effect_param.input_effect_param.buffer.kind
                     == BufKinds::CooldownTurnsNumber
                 {
                     logs.push(LogData {
@@ -481,10 +477,7 @@ impl GameManager {
                         message: format!(
                             "{} is applying {} on {} for {} turns",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param
-                                .input_effect_param
-                                .buffer
-                                .kind,
+                            gae.processed_effect_param.input_effect_param.buffer.kind,
                             gae.processed_effect_param
                                 .input_effect_param
                                 .buffer
@@ -504,10 +497,7 @@ impl GameManager {
                         message: format!(
                             "{} is applying {} on {} for {} HP",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param
-                                .input_effect_param
-                                .buffer
-                                .kind,
+                            gae.processed_effect_param.input_effect_param.buffer.kind,
                             gae.processed_effect_param
                                 .input_effect_param
                                 .buffer
@@ -521,10 +511,7 @@ impl GameManager {
                         message: format!(
                             "{} is applying {} on {} for {} {}",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param
-                                .input_effect_param
-                                .buffer
-                                .kind,
+                            gae.processed_effect_param.input_effect_param.buffer.kind,
                             gae.processed_effect_param
                                 .input_effect_param
                                 .buffer

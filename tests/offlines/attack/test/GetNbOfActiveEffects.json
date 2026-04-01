@@ -10,42 +10,58 @@
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": 35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": 35,
+                "is-percent": false,
+                "stats-name": "Mana",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByValue",
+                "value": 35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 35,
+                "is-percent": false,
+                "stats-name": "Mana",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
@@ -55,77 +71,112 @@
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "Mana",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Mana",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "Mana",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": 35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "Mana",
+                "passive-enabled": false
+            }
         },
 		{
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": 35,
+                "is-percent": false,
+                "stats-name": "Mana",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

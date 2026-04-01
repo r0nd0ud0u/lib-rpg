@@ -7,52 +7,72 @@
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -15,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": -15,
+                "is-percent": true,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 85,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": 85,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Magic armor",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 50,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 50,
+                "is-percent": true,
+                "stats-name": "Magic armor",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Physical armor",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 50,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 50,
+                "is-percent": true,
+                "stats-name": "Physical armor",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "",
-            "Tours actifs": 2,
-            "Type": "CooldownTurnsNumber",
+            "Tours actifs": 1,
             "Valeur de l'effet": 0,
-            "Value": 0,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "CooldownTurnsNumber",
+                "value": 2,
+                "is-percent": false,
+                "stats-name": "",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

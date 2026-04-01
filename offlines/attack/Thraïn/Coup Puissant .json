@@ -12,7 +12,14 @@
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -80,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
@@ -22,7 +29,14 @@
             "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
             "Value": 0,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Ennemie",
@@ -32,7 +46,14 @@
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -25,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Ennemie",
@@ -42,7 +63,14 @@
             "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": -15,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

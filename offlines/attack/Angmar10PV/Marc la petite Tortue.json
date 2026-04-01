@@ -27,7 +27,7 @@
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
-            "Stat": "Vigueur",
+            "Stat": "Vigor",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 1,
