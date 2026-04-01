@@ -10,6 +10,8 @@ use crate::server::data_manager::DataManager;
 use crate::server::game_manager::GameManager;
 use crate::server::players_manager::PlayerManager;
 use crate::testing::testing_atk::build_atk_damage_indiv;
+#[cfg(not(tarpaulin_include))]
+use crate::testing::testing_atk::build_atk_heal1_indiv;
 
 pub fn testing_dm() -> DataManager {
     DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap()
@@ -60,6 +62,8 @@ pub fn testing_character() -> Character {
     let mut c = c.unwrap();
     let atk = build_atk_damage_indiv();
     c.attacks_list.insert(atk.name.clone(), atk);
+    let atk = build_atk_heal1_indiv();
+    c.attacks_list.insert(atk.name.clone(), atk);
 
     c
 }
@@ -107,13 +111,13 @@ mod tests {
                 .character_rounds_info
                 .all_buffers
                 .len(),
-            12
+            1
         );
     }
 
     #[test]
     fn unit_dxrpg_dm() {
         let dm: DataManager = dxrpg_dm();
-        assert_eq!(dm.all_bosses[0].character_rounds_info.all_buffers.len(), 12);
+        assert_eq!(dm.all_bosses[0].character_rounds_info.all_buffers.len(), 1);
     }
 }

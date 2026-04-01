@@ -7,32 +7,47 @@
         {
             "Cible": "Ennemie",
             "Portée": "Zone",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -60,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -60,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "Aggro",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 5,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": 5,
+                "is-percent": false,
+                "stats-name": "Aggro",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Taux rage",
             "Tours actifs": 4,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 100,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 100,
+                "is-percent": false,
+                "stats-name": "Taux rage",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

@@ -9,7 +9,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -75,
             "IsMagicEffect": true
@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 3,
-            "Type": "Up/down degats en %",
+            "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
             "Value": -300,
             "IsMagicEffect": true

@@ -12,30 +12,51 @@
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -70,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Ennemie",
             "Portée": "Zone",
             "Stat": "Dodge",
             "Tours actifs": 3,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -5,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
           {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Regeneration vigueur",
             "Tours actifs": 3,
-            "Type": "up-max-stat-by-percentage",
+            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 200,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
            }
 
     ],

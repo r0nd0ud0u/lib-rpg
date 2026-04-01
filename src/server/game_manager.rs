@@ -3,12 +3,13 @@ use std::{collections::HashMap, path::Path};
 use crate::{
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
+        buffers::BufKinds,
         character::CharacterKind,
         equipment::{Equipment, EquipmentJsonKey},
         rounds_information::AmountType,
     },
     common::{
-        constants::{effect_const::EFFECT_NB_COOL_DOWN, paths_const::*, stats_const::*},
+        constants::{paths_const::*, stats_const::*},
         log_data::{
             LogData,
             const_colors::{DARK_RED, LIGHT_BLUE, LIGHT_GREEN},
@@ -457,32 +458,50 @@ impl GameManager {
                 }
                 // log for the effect outcome
                 let mut colortext = LIGHT_GREEN;
-                if gae.processed_effect_param.input_effect_param.stats_name == HP
+                if gae
+                    .processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == HP
                     && gae.effect_outcome.real_amount_tx < 0
                     || gae.effect_outcome.full_amount_tx < 0
                 {
                     colortext = DARK_RED;
                 }
-                if gae.processed_effect_param.input_effect_param.effect_type == EFFECT_NB_COOL_DOWN
+                if gae.processed_effect_param.input_effect_param.buffer.kind
+                    == BufKinds::CooldownTurnsNumber
                 {
                     logs.push(LogData {
                         color: colortext.to_string(),
                         message: format!(
                             "{} is applying {} on {} for {} turns",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.effect_type,
-                            gae.processed_effect_param.input_effect_param.stats_name,
+                            gae.processed_effect_param.input_effect_param.buffer.kind,
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .stats_name,
                             gae.processed_effect_param.input_effect_param.nb_turns
                         ),
                     });
-                } else if gae.processed_effect_param.input_effect_param.stats_name == HP {
+                } else if gae
+                    .processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == HP
+                {
                     logs.push(LogData {
                         color: colortext.to_string(),
                         message: format!(
                             "{} is applying {} on {} for {} HP",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.effect_type,
-                            gae.processed_effect_param.input_effect_param.stats_name,
+                            gae.processed_effect_param.input_effect_param.buffer.kind,
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .stats_name,
                             gae.effect_outcome.full_amount_tx
                         ),
                     });
@@ -492,10 +511,16 @@ impl GameManager {
                         message: format!(
                             "{} is applying {} on {} for {} {}",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.effect_type,
-                            gae.processed_effect_param.input_effect_param.stats_name,
+                            gae.processed_effect_param.input_effect_param.buffer.kind,
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .stats_name,
                             gae.effect_outcome.full_amount_tx,
-                            gae.processed_effect_param.input_effect_param.stats_name
+                            gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .stats_name
                         ),
                     });
                 }
@@ -550,11 +575,11 @@ impl GameManager {
 
 #[cfg(test)]
 mod tests {
+    use crate::character_mod::buffers::BufKinds;
     use crate::character_mod::character::CharacterKind;
     use crate::character_mod::class::Class;
     use crate::character_mod::equipment::Equipment;
     use crate::common::constants::attak_const::COEFF_CRIT_DMG;
-    use crate::common::constants::effect_const::EFFECT_NB_COOL_DOWN;
     use crate::common::log_data::const_colors::DARK_RED;
     use crate::server::game_manager::LogData;
     use crate::server::game_state::GameStatus;
@@ -987,7 +1012,7 @@ mod tests {
         let old_mana_launcher = gm.pm.current_player.stats.all_stats[MANA].current;
         gm.launch_attack(Some(&atk.clone().name));
         assert!(gm.game_state.status != GameStatus::EndOfGame);
-        // + 30  of max HP:135 = 40.5
+        // + 30  of max HP:135 = 40
         assert_eq!(
             old_hp_test2 + 40,
             gm.pm
@@ -1012,7 +1037,7 @@ mod tests {
     #[test]
     fn unit_launch_attack_case_eclat_despoir() {
         let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
-
+        // no crit
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_hp_test = gm
             .pm
@@ -1060,7 +1085,7 @@ mod tests {
         gm.launch_attack(Some("Eclat d'espoir"));
         assert!(gm.game_state.status != GameStatus::EndOfGame);
         // "up-current-stat-by-percentage"
-        // + 30 % of max HP:135 = 40.5
+        // + 30 % of max HP:135 = 40.5 + NextAtkHealIsCrit x2 = 80 on test2 and test1
         assert_eq!(
             old_hp_test2 + 40,
             gm.pm
@@ -1090,7 +1115,7 @@ mod tests {
                 .current
         );
         // "Magic power"
-        // "up-max-stat-by-percentage" 15
+        // "ChangeMaxStatByPercentage" 15
         // +15%, mag power max = 20
         assert_eq!(
             old_mag_pow_test2 + (0.15 * old_mag_pow_test2 as f64) as u64,
@@ -1111,10 +1136,10 @@ mod tests {
                 .max
         );
         // "Physical power"
-        // "up-max-stat-by-percentage" 15
+        // "ChangeMaxStatByPercentage" 15
         // +15%, phy power max = 10
         assert_eq!(
-            old_phy_pow_test2 + (0.15 * old_phy_pow_test2 as f64) as u64,
+            old_phy_pow_test2 + (0.15 * old_phy_pow_test2 as f64).round() as u64,
             gm.pm
                 .get_active_hero_character("test2_#1")
                 .unwrap()
@@ -1243,7 +1268,7 @@ mod tests {
             .stats
             .all_stats[BERSERK]
             .max;
-        let result = gm.launch_attack(Some("change-current-stat-by-value-berserk"));
+        let result = gm.launch_attack(Some("ChangeCurrentStatByValue-berseck"));
         let new_berserk = gm
             .pm
             .get_mut_active_character(&hero_launcher_id_name)
@@ -1274,8 +1299,9 @@ mod tests {
                 .unwrap()
                 .processed_effect_param
                 .input_effect_param
-                .effect_type,
-            EFFECT_NB_COOL_DOWN
+                .buffer
+                .kind,
+            BufKinds::CooldownTurnsNumber
         );
     }
 

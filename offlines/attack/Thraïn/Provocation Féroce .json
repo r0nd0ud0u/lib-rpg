@@ -9,50 +9,85 @@
             "Portée": "Individuel",
             "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 12,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Aggro",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 10,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Seulement les alliés",
             "Portée": "Zone",
             "Stat": "Aggro",
             "Tours actifs": 1,
-            "Type": "Reinit",
+            "Type": "ReinitBuf",
             "Valeur de l'effet": 0,
             "Value": 0,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "Critical strike",
             "Tours actifs": 3,
-            "Type": "change-max-stat-by-value",
+            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 40,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
             "Stat": "",
             "Tours actifs": 5,
-            "Type": "cooldown-turns-nb",
+            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
             "Value": 0,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

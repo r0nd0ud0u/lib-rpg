@@ -9,12 +9,16 @@
         {
             "Cible": "Allié",
             "Portée": "Zone",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -35,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

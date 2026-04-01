@@ -9,20 +9,34 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -80,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
             "Stat": "Speed regeneration",
             "Tours actifs": 6,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -10,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "",
@@ -32,7 +46,14 @@
             "Type": "",
             "Valeur de l'effet": 0,
             "Value": 0,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -35,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

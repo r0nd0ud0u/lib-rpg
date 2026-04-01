@@ -6,18 +6,18 @@ use std::{collections::HashMap, path::Path, vec};
 use crate::{
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
+        buffers::BufKinds,
         class::Class,
         effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
         energy::{Energy, EnergyKind},
         equipment::{Equipment, EquipmentJsonKey},
         inventory::{Consumable, Inventory},
-        powers::Powers,
         rounds_information::{AmountType, CharacterRoundsInfo},
         stats::Stats,
         target::TargetData,
     },
     common::{
-        constants::{all_target_const::*, effect_const::*, paths_const::*, stats_const::*},
+        constants::{all_target_const::*, paths_const::*, stats_const::*},
         log_data::{
             LogData,
             const_colors::{DARK_RED, LIGHT_GREEN},
@@ -62,9 +62,6 @@ pub struct Character {
     /// Main color theme of the character
     #[serde(rename = "Color")]
     pub color_theme: String,
-    /// Powers
-    #[serde(rename = "Powers")]
-    pub power: Powers,
     /// CharacterRoundsInfo
     #[serde(rename = "CharacterRoundsInfo")]
     pub character_rounds_info: CharacterRoundsInfo,
@@ -86,7 +83,6 @@ impl Default for Character {
             attacks_list: IndexMap::new(),
             level: 1,
             color_theme: "dark".to_owned(),
-            power: Powers::default(),
             character_rounds_info: CharacterRoundsInfo::default(),
             class: Class::Standard,
             inventory: Inventory::default(),
@@ -148,7 +144,6 @@ impl Character {
                             .as_slice(),
                         true,
                     );
-                // equipment loading
                 // apply equipment on stats
                 value.stats.apply_equipment_on_stats(
                     &equipment_on
@@ -157,6 +152,10 @@ impl Character {
                         .cloned()
                         .collect::<Vec<Equipment>>(),
                 );
+                // apply buf debuf on stats
+                value
+                    .stats
+                    .apply_buf_debuf_on_stats(&value.character_rounds_info.all_buffers);
             }
 
             Ok(value)
@@ -180,13 +179,15 @@ impl Character {
     }
 
     pub fn remove_malus_effect(&mut self, ep: &EffectParam) -> Result<()> {
-        if ep.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE {
-            self.stats
-                .set_stats_on_effect(&ep.stats_name, -ep.value, true, true);
-        }
-        if ep.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE {
-            self.stats
-                .set_stats_on_effect(&ep.stats_name, -ep.value, false, true);
+        if ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage
+            || ep.buffer.kind == BufKinds::ChangeMaxStatByValue
+        {
+            self.stats.set_stats_on_effect(
+                &ep.buffer.stats_name,
+                -ep.buffer.value,
+                ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage,
+                true,
+            );
         }
         self.character_rounds_info.remove_malus_effect(ep)?;
         Ok(())
@@ -253,17 +254,17 @@ impl Character {
         current_turn: usize, // to process aggro
     ) -> EffectOutcome {
         // eval if the effect can be applied on the target
-        if processed_ep.input_effect_param.stats_name.is_empty()
+        if processed_ep.input_effect_param.buffer.stats_name.is_empty()
             || !self
                 .stats
                 .all_stats
-                .contains_key(&processed_ep.input_effect_param.stats_name)
+                .contains_key(&processed_ep.input_effect_param.buffer.stats_name)
         {
             tracing::debug!(
                 "Effect {} cannot be applied on {} because the stat {} does not exist.",
-                processed_ep.input_effect_param.effect_type,
+                processed_ep.input_effect_param.buffer.kind,
                 self.id_name,
-                processed_ep.input_effect_param.stats_name
+                processed_ep.input_effect_param.buffer.stats_name
             );
             return EffectOutcome {
                 target_id_name: self.id_name.clone(),
@@ -276,22 +277,22 @@ impl Character {
         let mut processed_effect_param = processed_ep.clone();
         let pow_current =
             launcher_stats.get_power_stat(processed_ep.input_effect_param.is_magic_atk);
-        if processed_ep.input_effect_param.stats_name == HP
-            && processed_ep.input_effect_param.effect_type == EFFECT_NB_DECREASE_ON_TURN
+        if processed_ep.input_effect_param.buffer.stats_name == HP
+            && processed_ep.input_effect_param.buffer.kind == BufKinds::DecreasingRateOnTurn
         {
             // prepare for HOT
             full_amount = processed_ep.number_of_applies
-                * (processed_ep.input_effect_param.value
+                * (processed_ep.input_effect_param.buffer.value
                     + pow_current / processed_ep.input_effect_param.nb_turns);
             // update effect value
-            processed_effect_param.input_effect_param.value = full_amount;
-        } else if processed_ep.input_effect_param.stats_name == HP
-            && processed_ep.input_effect_param.effect_type == EFFECT_VALUE_CHANGE
+            processed_effect_param.input_effect_param.buffer.value = full_amount;
+        } else if processed_ep.input_effect_param.buffer.stats_name == HP
+            && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
         {
-            if processed_ep.input_effect_param.value > 0 {
+            if processed_ep.input_effect_param.buffer.value > 0 {
                 // HOT
                 full_amount = processed_ep.number_of_applies
-                    * (processed_ep.input_effect_param.value + pow_current)
+                    * (processed_ep.input_effect_param.buffer.value + pow_current)
                     / processed_ep.input_effect_param.nb_turns;
             } else {
                 // DOT
@@ -300,33 +301,35 @@ impl Character {
                         &self.stats,
                         launcher_stats,
                         processed_ep.input_effect_param.is_magic_atk,
-                        processed_ep.input_effect_param.value,
+                        processed_ep.input_effect_param.buffer.value,
                         processed_ep.input_effect_param.nb_turns,
                     );
             }
-        } else if processed_ep.input_effect_param.effect_type == EFFECT_PERCENT_CHANGE
-            && Stats::is_energy_stat(&processed_ep.input_effect_param.stats_name)
+        } else if processed_ep.input_effect_param.buffer.kind
+            == BufKinds::ChangeCurrentStatByPercentage
+            && Stats::is_energy_stat(&processed_ep.input_effect_param.buffer.stats_name)
         {
             full_amount = processed_ep.number_of_applies
                 * self
                     .stats
                     .all_stats
-                    .get(&processed_ep.input_effect_param.stats_name)
+                    .get(&processed_ep.input_effect_param.buffer.stats_name)
                     .unwrap()
                     .max as i64
-                * processed_ep.input_effect_param.value
+                * processed_ep.input_effect_param.buffer.value
                 / 100;
         } else {
-            full_amount = processed_ep.number_of_applies * processed_ep.input_effect_param.value;
+            full_amount =
+                processed_ep.number_of_applies * processed_ep.input_effect_param.buffer.value;
         }
         // Apply buf/debuf, crit, blocking on damages/heal
-        if processed_ep.input_effect_param.stats_name == HP {
+        if processed_ep.input_effect_param.buffer.stats_name == HP {
             full_amount = self.character_rounds_info.apply_buf_debuf(
                 full_amount,
                 &processed_ep.input_effect_param.target_kind,
                 is_crit,
             );
-            processed_effect_param.input_effect_param.value = full_amount;
+            processed_effect_param.input_effect_param.buffer.value = full_amount;
         }
         // blocking the atk
         if self
@@ -354,16 +357,19 @@ impl Character {
 
         // process aggro for `HP` and `non-HP` stats
         let mut aggro_generated: u64 = 0;
-        if processed_ep.input_effect_param.effect_type != EFFECT_IMPROVE_MAX_STAT_BY_VALUE
-            && processed_ep.input_effect_param.effect_type != EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
+        if processed_ep.input_effect_param.buffer.kind != BufKinds::ChangeMaxStatByValue
+            && processed_ep.input_effect_param.buffer.kind != BufKinds::ChangeMaxStatByPercentage
         {
-            if processed_ep.input_effect_param.stats_name == HP {
+            if processed_ep.input_effect_param.buffer.stats_name == HP {
                 // process aggro for the launcher
                 aggro_generated = self.process_aggro(real_hp_amount, 0, current_turn);
             } else {
                 // Add aggro to a target
-                aggro_generated =
-                    self.process_aggro(0, processed_ep.input_effect_param.value, current_turn);
+                aggro_generated = self.process_aggro(
+                    0,
+                    processed_ep.input_effect_param.buffer.value,
+                    current_turn,
+                );
             }
         }
 
@@ -385,25 +391,26 @@ impl Character {
     ) -> i64 {
         // Process non-stats `HP`
         // Otherwise update the max value of the stats
-        if processed_ep.input_effect_param.stats_name != HP
-            && (processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
-                || processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_STAT_BY_VALUE)
+        if processed_ep.input_effect_param.buffer.stats_name != HP
+            && (processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByPercentage
+                || processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByValue)
         {
             self.stats.set_stats_on_effect(
-                &processed_ep.input_effect_param.stats_name,
+                &processed_ep.input_effect_param.buffer.stats_name,
                 full_amount,
-                processed_ep.input_effect_param.effect_type == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
+                processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByPercentage,
                 true,
             );
         }
         // apply change current stats for non HP stats
         let mut overhead_dmg = 0;
-        if processed_ep.input_effect_param.stats_name != HP
-            && processed_ep.input_effect_param.effect_type == EFFECT_VALUE_CHANGE
+        if processed_ep.input_effect_param.buffer.stats_name != HP
+            && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
         {
-            overhead_dmg = self
-                .stats
-                .modify_stat_current(&processed_ep.input_effect_param.stats_name, full_amount);
+            overhead_dmg = self.stats.modify_stat_current(
+                &processed_ep.input_effect_param.buffer.stats_name,
+                full_amount,
+            );
         }
         full_amount - overhead_dmg
     }
@@ -524,8 +531,8 @@ impl Character {
                 launcher_info.id_name,
                 processed_ep.input_effect_param.target_kind,
                 launcher_info.kind,
-                processed_ep.input_effect_param.effect_type,
-                processed_ep.input_effect_param.stats_name
+                processed_ep.input_effect_param.buffer.kind,
+                processed_ep.input_effect_param.buffer.stats_name
             );
         }
         // assess the dodging
@@ -554,10 +561,10 @@ impl Character {
 
         // that attack has a cooldown
         for atk_effect in &atk_type.all_effects {
-            if atk_effect.effect_type == EFFECT_NB_COOL_DOWN {
+            if atk_effect.buffer.kind == BufKinds::CooldownTurnsNumber {
                 for e in &self.character_rounds_info.all_effects {
                     if e.atk_type.name == atk_type.name
-                        && e.processed_effect_param.input_effect_param.nb_turns
+                        && e.processed_effect_param.input_effect_param.buffer.value
                             - e.processed_effect_param.counter_turn
                             > 0
                     {
@@ -566,7 +573,7 @@ impl Character {
                 }
             }
 
-            if atk_effect.stats_name == HP
+            if atk_effect.buffer.stats_name == HP
                 && (atk_effect.target_kind == TARGET_ALLY
                     || atk_effect.target_kind == TARGET_ONLY_ALLY
                     || atk_effect.target_kind == TARGET_ALL_ALLIES)
@@ -627,7 +634,7 @@ impl Character {
             match self.remove_terminated_effect_on_player() {
                 Ok(effects_param_removed) => effects_param_removed.iter().for_each(|e| {
                     output_logs_data.push(LogData {
-                        message: format!("{} on {}", e.effect_type, e.stats_name),
+                        message: format!("{} on {}", e.buffer.kind, e.buffer.stats_name),
                         ..Default::default()
                     })
                 }),
@@ -742,16 +749,19 @@ impl Character {
             .all_effects
             .iter_mut()
             .for_each(|gae| {
-                if gae.processed_effect_param.input_effect_param.effect_type
-                    == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
-                    || gae.processed_effect_param.input_effect_param.effect_type
-                        == EFFECT_IMPROVE_MAX_STAT_BY_VALUE
+                if gae.processed_effect_param.input_effect_param.buffer.kind
+                    == BufKinds::ChangeMaxStatByPercentage
+                    || gae.processed_effect_param.input_effect_param.buffer.kind
+                        == BufKinds::ChangeMaxStatByValue
                 {
                     self.stats.set_stats_on_effect(
-                        &gae.processed_effect_param.input_effect_param.stats_name,
+                        &gae.processed_effect_param
+                            .input_effect_param
+                            .buffer
+                            .stats_name,
                         gae.effect_outcome.full_amount_tx,
-                        gae.processed_effect_param.input_effect_param.effect_type
-                            == EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
+                        gae.processed_effect_param.input_effect_param.buffer.kind
+                            == BufKinds::ChangeMaxStatByPercentage,
                         update_effect_stats,
                     );
                 }
@@ -766,22 +776,25 @@ impl Character {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+
     use strum::IntoEnumIterator;
 
     use super::Character;
     use crate::character_mod::attack_type::AttackType;
+    use crate::character_mod::buffers::Buffer;
     use crate::character_mod::character::AmountType;
     use crate::character_mod::effect::EffectOutcome;
+    use crate::character_mod::effect::{Condition, ConditionKind};
     use crate::character_mod::energy::EnergyKind;
     use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
+    use crate::server::players_manager::GameAtkEffect;
     use crate::testing::testing_all_characters::{self, testing_all_equipment, testing_character};
     use crate::{
-        character_mod::buffers::BufTypes,
+        character_mod::buffers::BufKinds,
         character_mod::character::{CharacterKind, Class},
         character_mod::effect::EffectParam,
-        common::constants::{effect_const::*, stats_const::*},
-        server::players_manager::GameAtkEffect,
+        common::constants::stats_const::*,
         testing::testing_effect::*,
     };
 
@@ -798,11 +811,28 @@ mod tests {
         assert_eq!("test", c.short_name);
         assert_eq!("test_#1", c.id_name);
         // buf-debuf
-        assert_eq!(12, c.character_rounds_info.all_buffers.len());
-        assert_eq!(3, c.character_rounds_info.all_buffers[0].buf_type);
+        assert_eq!(3, c.character_rounds_info.all_buffers.len());
+        assert_eq!(
+            BufKinds::DamageRxPercent,
+            c.character_rounds_info.all_buffers[0].kind
+        );
         assert!(!c.character_rounds_info.all_buffers[0].is_passive_enabled);
         assert!(c.character_rounds_info.all_buffers[0].is_percent);
         assert_eq!(100, c.character_rounds_info.all_buffers[0].value);
+        assert_eq!(
+            BufKinds::NextHealAtkIsCrit,
+            c.character_rounds_info.all_buffers[1].kind
+        );
+        assert!(c.character_rounds_info.all_buffers[1].is_passive_enabled);
+        assert!(!c.character_rounds_info.all_buffers[1].is_percent);
+        assert_eq!(0, c.character_rounds_info.all_buffers[1].value);
+        assert_eq!(
+            BufKinds::ChangeCurrentStatByValue,
+            c.character_rounds_info.all_buffers[2].kind
+        );
+        assert!(c.character_rounds_info.all_buffers[2].is_passive_enabled);
+        assert!(!c.character_rounds_info.all_buffers[2].is_percent);
+        assert_eq!(10, c.character_rounds_info.all_buffers[2].value);
         // Class
         assert_eq!(Class::Standard, c.class);
         // Color
@@ -817,28 +847,22 @@ mod tests {
         assert_eq!(1, c.level);
         // photo
         assert_eq!("phototest", c.photo_name);
-        // powers
-        assert!(!c.power.is_crit_heal_after_crit);
-        assert!(c.power.is_damage_tx_heal_needy_ally);
         // stats
         // stats - aggro
         assert_eq!(0, c.stats.all_stats[AGGRO].current);
-        assert_eq!(9999, c.stats.all_stats[AGGRO].max);
+        assert_eq!(10009, c.stats.all_stats[AGGRO].max); // buffer on aggro, 9999 -> 10009
         // stats - aggro test init stats only on aggro
         assert_eq!(
             c.stats.all_stats[AGGRO].current_raw,
             c.stats.all_stats[AGGRO].current
         );
-        assert_eq!(
-            c.stats.all_stats[AGGRO].max_raw,
-            c.stats.all_stats[AGGRO].max
-        );
+        assert_eq!(c.stats.all_stats[AGGRO].max_raw, 9999);
         // stats - aggro rate
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].current);
         assert_eq!(1, c.stats.all_stats[AGGRO_RATE].max);
-        // stats - berserk
+        // stats - berseck
         assert_eq!(105, c.stats.all_stats[BERSERK].current);
-        assert_eq!(210, c.stats.all_stats[BERSERK].max); // left ring + 20 to max berserk (ratio -> update current 100 -> 110)
+        assert_eq!(210, c.stats.all_stats[BERSERK].max); // right ring + 10 to max berseck (ratio -> update current 100 -> 105)
         // stats - berseck_rate
         assert_eq!(1, c.stats.all_stats[BERSECK_RATE].current); // +4 right ring
         assert_eq!(1, c.stats.all_stats[BERSECK_RATE].max);
@@ -980,18 +1004,24 @@ mod tests {
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let ep = EffectParam {
-            effect_type: EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE.to_string(),
-            stats_name: HP.to_string(),
-            value: -10,
+            buffer: Buffer {
+                kind: BufKinds::ChangeMaxStatByValue,
+                stats_name: HP.to_string(),
+                value: -10,
+                ..Default::default()
+            },
             ..Default::default()
         };
         let result = c.remove_malus_effect(&ep);
-        assert_eq!(148, c.stats.all_stats[HP].max);
+        assert_eq!(145, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
         let ep = EffectParam {
-            effect_type: EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_string(),
-            stats_name: HP.to_string(),
-            value: -10,
+            buffer: Buffer {
+                kind: BufKinds::ChangeMaxStatByPercentage,
+                stats_name: HP.to_string(),
+                value: -10,
+                ..Default::default()
+            },
             ..Default::default()
         };
         assert!(result.is_ok());
@@ -1001,18 +1031,27 @@ mod tests {
         assert_eq!(158, c.stats.all_stats[HP].max);
         assert_eq!(1, c.stats.all_stats[HP].current);
         let ep = EffectParam {
-            effect_type: EFFECT_BLOCK_HEAL_ATK.to_string(),
-            stats_name: HP.to_string(),
-            value: 10,
+            buffer: Buffer {
+                kind: BufKinds::BlockHealAtk,
+                stats_name: HP.to_string(),
+                value: 10,
+                ..Default::default()
+            },
             ..Default::default()
         };
 
         let result = c.remove_malus_effect(&ep);
+        assert!(result.is_ok());
         assert!(!c.character_rounds_info.is_heal_atk_blocked);
+
+        // remove EFFECT_CHANGE_RX_DAMAGES_BY_PERCENT
         let ep = EffectParam {
-            effect_type: EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT.to_string(),
-            stats_name: HP.to_string(),
-            value: 10,
+            buffer: Buffer {
+                kind: BufKinds::DamageRxPercent,
+                stats_name: HP.to_string(),
+                value: 10,
+                ..Default::default()
+            },
             ..Default::default()
         };
         assert!(result.is_ok());
@@ -1020,47 +1059,12 @@ mod tests {
         let result = c.remove_malus_effect(&ep);
         assert!(result.is_ok());
         assert_eq!(
-            -10,
-            c.character_rounds_info.all_buffers[BufTypes::DamageTxPercent as usize].value
-        );
-        let ep = EffectParam {
-            effect_type: EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT.to_string(),
-            stats_name: HP.to_string(),
-            value: 10,
-            ..Default::default()
-        };
-
-        let result = c.remove_malus_effect(&ep);
-        assert!(result.is_ok());
-        assert_eq!(
-            -10,
-            c.character_rounds_info.all_buffers[BufTypes::DamageRxPercent as usize].value
-        );
-        let ep = EffectParam {
-            effect_type: EFFECT_CHANGE_HEAL_RX_BY_PERCENT.to_string(),
-            stats_name: HP.to_string(),
-            value: 10,
-            ..Default::default()
-        };
-
-        let result = c.remove_malus_effect(&ep);
-        assert!(result.is_ok());
-        assert_eq!(
-            -10,
-            c.character_rounds_info.all_buffers[BufTypes::HealRxPercent as usize].value
-        );
-        let ep = EffectParam {
-            effect_type: EFFECT_CHANGE_HEAL_TX_BY_PERCENT.to_string(),
-            stats_name: HP.to_string(),
-            value: 10,
-            ..Default::default()
-        };
-
-        let result = c.remove_malus_effect(&ep);
-        assert!(result.is_ok());
-        assert_eq!(
-            -10,
-            c.character_rounds_info.all_buffers[BufTypes::HealTxPercent as usize].value
+            90, // from 100 in test.json
+            c.character_rounds_info
+                .get_buffer_by_type(&BufKinds::DamageRxPercent)
+                .as_ref()
+                .unwrap()
+                .value
         );
     }
 
@@ -1076,8 +1080,12 @@ mod tests {
         assert!(c.is_ok());
         let mut c = c.unwrap();
         let mut ep = EffectParam {
-            effect_type: EFFECT_NB_COOL_DOWN.to_string(),
-            nb_turns: 10,
+            buffer: Buffer {
+                kind: BufKinds::CooldownTurnsNumber,
+                value: 10,
+                ..Default::default()
+            },
+            nb_turns: 1,
             target_kind: c.id_name.clone(),
             ..Default::default()
         };
@@ -1088,15 +1096,15 @@ mod tests {
             .process_one_effect(&ep, "", &game_state, false)
             .unwrap();
         assert_eq!(
-            EFFECT_NB_COOL_DOWN,
-            processed_effect_param.input_effect_param.effect_type
+            BufKinds::CooldownTurnsNumber,
+            processed_effect_param.input_effect_param.buffer.kind
         );
-        assert_eq!(10, processed_effect_param.input_effect_param.nb_turns);
+        assert_eq!(10, processed_effect_param.input_effect_param.buffer.value);
         assert_eq!(
             c.id_name,
             processed_effect_param.input_effect_param.target_kind
         );
-        assert_eq!(0, processed_effect_param.input_effect_param.value);
+        assert_eq!(10, processed_effect_param.input_effect_param.buffer.value);
         assert_eq!(
             0,
             processed_effect_param.input_effect_param.sub_value_effect
@@ -1107,23 +1115,24 @@ mod tests {
         );
 
         // test - critical
-        ep.stats_name = HP.to_owned();
-        ep.effect_type = EFFECT_IMPROVE_MAX_STAT_BY_VALUE.to_owned();
-        ep.value = 10;
+        ep.buffer.stats_name = HP.to_owned();
+        ep.buffer.kind = BufKinds::ChangeMaxStatByValue;
+        ep.buffer.value = 10;
         let processed_effect_param = c
             .character_rounds_info
             .process_one_effect(&ep, "", &game_state, true)
             .unwrap();
         assert_eq!(
-            EFFECT_IMPROVE_MAX_STAT_BY_VALUE,
-            processed_effect_param.input_effect_param.effect_type
+            BufKinds::ChangeMaxStatByValue,
+            processed_effect_param.input_effect_param.buffer.kind
         );
-        assert_eq!(10, processed_effect_param.input_effect_param.nb_turns);
+        assert_eq!(1, processed_effect_param.input_effect_param.nb_turns);
+        // crit : 10 -> 15
+        assert_eq!(15, processed_effect_param.input_effect_param.buffer.value);
         assert_eq!(
             c.id_name,
             processed_effect_param.input_effect_param.target_kind
         );
-        assert_eq!(15, processed_effect_param.input_effect_param.value);
         assert_eq!(
             0,
             processed_effect_param.input_effect_param.sub_value_effect
@@ -1136,31 +1145,34 @@ mod tests {
         // conditions - number of died ennemies
         game_state.current_turn_nb = 1;
         game_state.died_ennemies.insert(0, vec!["".to_owned()]);
-        ep.effect_type = CONDITION_ENNEMIES_DIED.to_owned();
+        ep.conditions.push(Condition {
+            kind: ConditionKind::NbEnnemiesDied,
+            ..Default::default()
+        });
         ep.sub_value_effect = 10;
-        ep.value = 0;
+        ep.buffer.value = 0;
         let processed_effect_param = c
             .character_rounds_info
             .process_one_effect(&ep, "", &game_state, false)
             .unwrap();
         // focus on effect_type
         assert_eq!(
-            EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
-            processed_effect_param.input_effect_param.effect_type
+            BufKinds::ChangeMaxStatByValue,
+            processed_effect_param.input_effect_param.buffer.kind
         );
-        assert_eq!(10, processed_effect_param.input_effect_param.nb_turns);
+        assert_eq!(1, processed_effect_param.input_effect_param.nb_turns);
         assert_eq!(
             c.id_name,
             processed_effect_param.input_effect_param.target_kind
         );
         // focus on value
-        assert_eq!(10, processed_effect_param.input_effect_param.value);
+        assert_eq!(0, processed_effect_param.input_effect_param.buffer.value);
         assert_eq!(
             10,
             processed_effect_param.input_effect_param.sub_value_effect
         );
         assert_eq!(
-            "Max stat of HP is up by 10%",
+            "Max stat of HP is up by value:0",
             processed_effect_param.log.message
         );
     }
@@ -1249,13 +1261,28 @@ mod tests {
 
     #[test]
     fn unit_process_critical_strike() {
+        // no critical strike buff
         let mut c = testing_character();
         c.stats.all_stats[CRITICAL_STRIKE].current = 0;
         assert!(!c.process_critical_strike("atk1").unwrap());
+        // ensure critical strike
         c.stats.all_stats[CRITICAL_STRIKE].current = 100;
         assert!(c.process_critical_strike("atk1").unwrap());
         assert!(
-            !c.character_rounds_info.all_buffers[BufTypes::NextHealAtkIsCrit as usize]
+            c.character_rounds_info
+                .get_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
+                .as_ref()
+                .unwrap()
+                .is_passive_enabled
+        );
+
+        // critical strike is processed only on atk with heal effect
+        assert!(c.process_critical_strike("atk_heal1_indiv").unwrap());
+        assert!(
+            !c.character_rounds_info
+                .get_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
+                .as_ref()
+                .unwrap()
                 .is_passive_enabled
         );
     }
@@ -1370,6 +1397,7 @@ mod tests {
         let effect_value = c.character_rounds_info.all_effects[0]
             .processed_effect_param
             .input_effect_param
+            .buffer
             .value;
         c.reset_all_effects_on_player().unwrap();
         assert_eq!(
@@ -1434,7 +1462,7 @@ mod tests {
             .all_effects
             .push(build_cooldown_effect().input_effect_param);
         let mut processed_ep = build_cooldown_effect();
-        processed_ep.counter_turn = processed_ep.input_effect_param.nb_turns;
+        processed_ep.counter_turn = processed_ep.input_effect_param.buffer.value;
         c1.character_rounds_info.all_effects.clear();
         c1.character_rounds_info.all_effects.push(GameAtkEffect {
             processed_effect_param: processed_ep.clone(),

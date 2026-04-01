@@ -9,7 +9,7 @@
             "Portée": "Zone",
             "Stat": "Aggro",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": 50,
             "IsMagicEffect": true
@@ -19,7 +19,7 @@
             "Portée": "Individuel",
             "Stat": "Aggro",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -100,
             "IsMagicEffect": true
@@ -29,7 +29,7 @@
             "Portée": "Individuel",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
             "Value": -100,
             "IsMagicEffect": true

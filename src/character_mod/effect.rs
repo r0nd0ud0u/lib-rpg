@@ -1,23 +1,29 @@
-use std::collections::HashSet;
-
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::common::{
-    constants::{
-        all_target_const::TARGET_ENNEMY,
-        effect_const::*,
-        reach_const::{INDIVIDUAL, ZONE},
-        stats_const::HP,
+use crate::{
+    character_mod::buffers::{BufKinds, Buffer},
+    common::{
+        constants::{
+            all_target_const::TARGET_ENNEMY,
+            reach_const::{INDIVIDUAL, ZONE},
+            stats_const::HP,
+        },
+        log_data::LogData,
     },
-    log_data::LogData,
 };
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Condition {
-    pub condition_type: String,
-    pub condition_value: i64,
+    pub kind: ConditionKind,
+    pub value: i64,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum ConditionKind {
+    #[default]
+    NbEnnemiesDied,
 }
 
 /// Define the parameters of an effect.
@@ -25,10 +31,6 @@ pub struct Condition {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct EffectParam {
-    /// Received
-    /// Name of the effect
-    #[serde(rename = "Type")]
-    pub effect_type: String,
     /// Duration of the effect
     #[serde(rename = "Tours actifs")]
     pub nb_turns: i64,
@@ -41,18 +43,16 @@ pub struct EffectParam {
     /// reach of the effect, zone or individual
     #[serde(rename = "Portée")]
     pub reach: String,
-    /// Name of the targeted stat
-    #[serde(rename = "Stat")]
-    pub stats_name: String,
-    /// Value of the effect
-    #[serde(rename = "Value")]
-    pub value: i64,
     /// from a magical attack ?or is magical effect ?
     #[serde(rename = "IsMagicEffect")]
     pub is_magic_atk: bool,
     /// Conditions for the effect
     #[serde(rename = "Conditions")]
     pub conditions: Vec<Condition>,
+    #[serde(rename = "Buffer")]
+    pub buffer: Buffer,
+    #[serde(rename = "is_passive")]
+    pub is_passive: bool,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -76,49 +76,43 @@ pub struct EffectOutcome {
     pub aggro_generated: u64,
 }
 
-pub fn is_effet_hot_or_dot(effect_name: &str) -> bool {
-    let effects_hot_or_dot: HashSet<&str> = [
-        EFFECT_VALUE_CHANGE,
-        EFFECT_REPEAT_AS_MANY_AS,
-        EFFECT_PERCENT_CHANGE,
-        EFFECT_NB_DECREASE_ON_TURN,
+pub fn is_effet_hot_or_dot(buf_types: &BufKinds) -> bool {
+    let effects_hot_or_dot: Vec<BufKinds> = [
+        BufKinds::ChangeCurrentStatByValue,
+        BufKinds::RepeatAsManyAsPossible,
+        BufKinds::ChangeCurrentStatByPercentage,
+        BufKinds::DecreasingRateOnTurn,
     ]
-    .iter()
-    .cloned()
-    .collect();
-    effects_hot_or_dot.contains(effect_name)
+    .to_vec();
+    effects_hot_or_dot.contains(buf_types)
 }
 
-pub fn is_hot(effect_name: &str, stats: &str, value: i64) -> bool {
-    is_effet_hot_or_dot(effect_name) && stats == HP && value > 0
+pub fn is_hot(buf_types: &BufKinds, stats: &str, value: i64) -> bool {
+    is_effet_hot_or_dot(buf_types) && stats == HP && value > 0
 }
 
-pub fn is_boosted_by_crit(effect_name: &str) -> bool {
-    let boosted_effects_by_crit: HashSet<&str> = [
-        EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
-        EFFECT_IMPROVE_MAX_STAT_BY_VALUE,
-        EFFECT_CHANGE_MAX_DAMAGES_BY_PERCENT,
-        EFFECT_CHANGE_DAMAGES_RX_BY_PERCENT,
-        EFFECT_CHANGE_HEAL_RX_BY_PERCENT,
-        EFFECT_CHANGE_HEAL_TX_BY_PERCENT,
-        EFFECT_INTO_DAMAGE,
+pub fn is_boosted_by_crit(buf_types: &BufKinds) -> bool {
+    let boosted_effects_by_crit: Vec<BufKinds> = [
+        BufKinds::ChangeMaxStatByPercentage,
+        BufKinds::ChangeMaxStatByValue,
+        BufKinds::DamageRxPercent,
+        BufKinds::DamageTxPercent,
+        BufKinds::HealRxPercent,
+        BufKinds::HealTxPercent,
+        BufKinds::PercentageIntoDamages,
     ]
-    .iter()
-    .cloned()
-    .collect();
-    boosted_effects_by_crit.contains(effect_name)
+    .to_vec();
+    boosted_effects_by_crit.contains(buf_types)
 }
 
-pub fn is_effect_only_at_atk_launch(effect_name: &str) -> bool {
-    let effects: HashSet<&str> = [
-        EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE,
-        EFFECT_IMPROVE_MAX_STAT_BY_VALUE,
-        EFFECT_BUF_VALUE_AS_MUCH_AS_HEAL,
+pub fn is_effect_only_at_atk_launch(buf_types: &BufKinds) -> bool {
+    let effects: Vec<BufKinds> = [
+        BufKinds::ChangeMaxStatByPercentage,
+        BufKinds::ChangeMaxStatByValue,
+        BufKinds::AddAsMuchAsHp,
     ]
-    .iter()
-    .cloned()
-    .collect();
-    effects.contains(effect_name)
+    .to_vec();
+    effects.contains(buf_types)
 }
 
 pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
@@ -142,7 +136,6 @@ pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
 
 pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
     EffectParam {
-        effect_type: EFFECT_VALUE_CHANGE.to_owned(),
         nb_turns: 1,
         target_kind: TARGET_ENNEMY.to_owned(),
         reach: if is_zone {
@@ -150,8 +143,12 @@ pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
         } else {
             INDIVIDUAL.to_owned()
         },
-        stats_name: HP.to_owned(),
-        value,
+        buffer: Buffer {
+            kind: BufKinds::ChangeCurrentStatByValue,
+            value,
+            stats_name: HP.to_owned(),
+            ..Default::default()
+        },
         ..Default::default()
     }
 }
@@ -166,14 +163,14 @@ mod tests {
 
     #[test]
     fn unit_is_effet_hot_or_dot() {
-        assert!(is_effet_hot_or_dot(EFFECT_VALUE_CHANGE));
-        assert!(!is_effet_hot_or_dot("hehe"));
+        assert!(is_effet_hot_or_dot(&BufKinds::ChangeCurrentStatByValue));
+        assert!(!is_effet_hot_or_dot(&BufKinds::DefaultBuf));
     }
 
     #[test]
     fn unit_is_boosted_by_crit() {
-        assert!(is_boosted_by_crit(EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE));
-        assert!(!is_effet_hot_or_dot("hehe"));
+        assert!(is_boosted_by_crit(&BufKinds::ChangeMaxStatByPercentage));
+        assert!(!is_boosted_by_crit(&BufKinds::DefaultBuf));
     }
 
     #[test]
@@ -189,9 +186,9 @@ mod tests {
     #[test]
     fn unit_is_effect_only_at_atk_launch() {
         assert!(is_effect_only_at_atk_launch(
-            EFFECT_IMPROVE_MAX_BY_PERCENT_CHANGE
+            &BufKinds::ChangeMaxStatByPercentage
         ));
-        assert!(!is_effect_only_at_atk_launch("hehe"));
+        assert!(!is_effect_only_at_atk_launch(&BufKinds::DefaultBuf));
     }
 
     #[test]
@@ -202,13 +199,13 @@ mod tests {
 
     #[test]
     fn unit_is_hot() {
-        let result = is_hot(EFFECT_BLOCK_HEAL_ATK, HP, 0);
+        let result = is_hot(&BufKinds::BlockHealAtk, HP, 0);
         assert!(!result);
-        let result = is_hot(EFFECT_VALUE_CHANGE, HP, 0);
+        let result = is_hot(&BufKinds::ChangeCurrentStatByValue, HP, 0);
         assert!(!result);
-        let result = is_hot(EFFECT_VALUE_CHANGE, HP, 10);
+        let result = is_hot(&BufKinds::ChangeCurrentStatByValue, HP, 10);
         assert!(result);
-        let result = is_hot(EFFECT_VALUE_CHANGE, HP, -10);
+        let result = is_hot(&BufKinds::ChangeCurrentStatByValue, HP, -10);
         assert!(!result);
     }
 }

@@ -3,18 +3,22 @@
     "Cible": "Ennemie",
     "Coût de mana": 0,
     "Coût de rage": 0,
-    "Coût de vigueur": 8,
+    "Coût de vigueur": 9,
     "Durée": 1,
     "Effet": [
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "change-current-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": -35,
-            "IsMagicEffect": false
+            "IsMagicEffect": false,
+            "Buffer": {
+                    "kind": "ChangeCurrentStatByValue",
+                    "value": -35,
+                    "is-percent": false,
+                    "stats-name": "HP",
+                    "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

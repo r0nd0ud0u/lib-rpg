@@ -7,12 +7,16 @@
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "Dodge",
             "Tours actifs": 2,
-            "Type": "change-max-stat-by-value",
             "Valeur de l'effet": 0,
-            "Value": 20,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByValue",
+                "value": 20,
+                "is-percent": false,
+                "stats-name": "Dodge",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",
