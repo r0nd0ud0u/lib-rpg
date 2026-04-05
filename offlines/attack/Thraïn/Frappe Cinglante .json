@@ -10,11 +10,8 @@
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -35,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
@@ -27,32 +24,26 @@
         {
             "Cible": "Soi-même",
             "Portée": "Individuel",
-            "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 5,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 5,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Berserk",
                 "passive-enabled": false
             }
         },
         {
             "Cible": "Ennemie",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 3,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -10,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -10,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
