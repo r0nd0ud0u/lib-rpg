@@ -7,15 +7,12 @@
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "HP",
             "Tours actifs": 5,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 20,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 20,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -24,34 +21,28 @@
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Speed regeneration",
             "Tours actifs": 5,
-            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 10,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "ChangeMaxStatByValue",
+                "value": 10,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Speed regeneration",
                 "passive-enabled": false
             }
         },
         {
             "Cible": "Allié",
             "Portée": "Individuel",
-            "Stat": "Magic power",
             "Tours actifs": 5,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 10,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 10,
+                "is-percent": true,
+                "stats-name": "Magic power",
                 "passive-enabled": false
             }
         }
