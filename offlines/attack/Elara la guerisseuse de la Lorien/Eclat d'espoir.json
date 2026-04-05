@@ -7,16 +7,13 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 30,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": 30,
+                "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
             }
@@ -24,34 +21,28 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Magic power",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 15,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 15,
+                "is-percent": true,
+                "stats-name": "Magic power",
                 "passive-enabled": false
             }
         },
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Physical power",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 15,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 15,
+                "is-percent": true,
+                "stats-name": "Physical power",
                 "passive-enabled": false
             }
         }
