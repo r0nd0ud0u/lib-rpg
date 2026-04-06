@@ -4,7 +4,8 @@ use strum::IntoEnumIterator;
 
 use crate::character_mod::{
     effect::{EffectParam, build_hp_effect},
-    equipment::{Equipment, EquipmentJsonKey}, rank::Rank,
+    equipment::{Equipment, EquipmentJsonKey},
+    rank::Rank,
 };
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
