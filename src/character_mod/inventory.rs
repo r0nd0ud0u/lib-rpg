@@ -4,7 +4,7 @@ use strum::IntoEnumIterator;
 
 use crate::character_mod::{
     effect::{EffectParam, build_hp_effect},
-    equipment::{Equipment, EquipmentJsonKey},
+    equipment::{Equipment, EquipmentJsonKey}, rank::Rank,
 };
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -49,6 +49,7 @@ pub struct Consumable {
     pub name: String,
     pub effects: Vec<EffectParam>,
     pub consumable_kind: ConsumableKind,
+    pub rank: Rank,
 }
 
 #[repr(usize)]
@@ -80,24 +81,25 @@ impl Inventory {
             .unwrap_or(0)
     }
 
-    pub fn add_potion(&mut self, name: &str, hp_amount: i64) {
+    pub fn add_potion(&mut self, name: &str, hp_amount: i64, rank: Rank) {
         self.consumables.push(Consumable {
             name: name.to_owned(),
             effects: vec![build_hp_effect(hp_amount, false)],
             consumable_kind: ConsumableKind::Potion,
+            rank,
         });
     }
 
     pub fn add_small_potion(&mut self) {
-        self.add_potion("potion", 20);
+        self.add_potion("potion", 20, Rank::Beginner);
     }
 
     pub fn add_super_potion(&mut self) {
-        self.add_potion("super potion", 60);
+        self.add_potion("super potion", 60, Rank::Intermediate);
     }
 
     pub fn add_hyper_potion(&mut self) {
-        self.add_potion("hyper potion", 120);
+        self.add_potion("hyper potion", 120, Rank::Advanced);
     }
 
     pub fn remove_potion(&mut self, name: &str) {
