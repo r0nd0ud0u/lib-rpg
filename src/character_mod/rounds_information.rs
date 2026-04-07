@@ -124,7 +124,7 @@ impl CharacterRoundsInfo {
     pub fn add_exp(&mut self, exp_gained: u64) -> bool {
         self.exp += exp_gained;
         if self.exp >= self.exp_to_next_level {
-            self.exp = self.exp - self.exp_to_next_level;
+            self.exp -= self.exp_to_next_level;
             return true;
         }
         false
