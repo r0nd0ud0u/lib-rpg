@@ -103,12 +103,6 @@ impl Default for CharacterRoundsInfo {
     }
 }
 
-impl CharacterRoundsInfo {
-    pub fn apply_launchable_atks(&mut self, launchable_atks: Vec<AttackType>) {
-        self.launchable_atks = launchable_atks;
-    }
-}
-
 /// CharacterRoundsInfo
 #[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct HotsBufs {
@@ -122,6 +116,20 @@ pub struct HotsBufs {
     pub debuf_txt: Vec<String>,
 }
 impl CharacterRoundsInfo {
+    pub fn apply_launchable_atks(&mut self, launchable_atks: Vec<AttackType>) {
+        self.launchable_atks = launchable_atks;
+    }
+
+    /// Add exp and return true if the character can level up
+    pub fn add_exp(&mut self, exp_gained: u64) -> bool {
+        self.exp += exp_gained;
+        if self.exp >= self.exp_to_next_level {
+            self.exp = self.exp - self.exp_to_next_level;
+            return true;
+        }
+        false
+    }
+
     /// Init all buffers with default values
     pub fn new_buffers(&mut self) {
         for _ in 0..BufKinds::EnumSize as usize {
@@ -1076,5 +1084,16 @@ mod tests {
                 .character_rounds_info
                 .is_effect_applied(&target_data_3)
         );
+    }
+
+    #[test]
+    fn unit_add_exp() {
+        let mut cri = CharacterRoundsInfo::default();
+        let level_up = cri.add_exp(98);
+        assert_eq!(cri.exp, 98);
+        assert!(!level_up);
+        let level_up = cri.add_exp(5);
+        assert_eq!(cri.exp, 3);
+        assert!(level_up);
     }
 }
