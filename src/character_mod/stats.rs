@@ -262,19 +262,23 @@ impl Stats {
                 stat.buf_effect_value += value;
             }
         }
-        Self::recompute_stat_max_and_current(stat);
+        Self::recompute_stat_max_and_current(stat, None);
     }
 
     /// Helper to recompute max and current values for a stat after buffer changes
-    fn recompute_stat_max_and_current(stat: &mut Attribute) {
+    /// If ratio is None, calculates ratio from current state (used for buffs/debuffs)
+    /// If ratio is Some, uses the provided ratio (used for level-up to preserve ratio)
+    fn recompute_stat_max_and_current(stat: &mut Attribute, ratio: Option<f64>) {
         let base_value = stat.max_raw as i64
             + stat.buf_equip_value
             + stat.buf_equip_percent * stat.max_raw as i64 / 100;
         let new_base =
             base_value + stat.buf_effect_value + stat.buf_effect_percent * base_value / 100;
         stat.max = new_base.max(0) as u64;
-        // stats current
-        let ratio = utils::calc_ratio(stat.current as i64, stat.max as i64);
+
+        // Use provided ratio or calculate from current state
+        let ratio =
+            ratio.unwrap_or_else(|| utils::calc_ratio(stat.current as i64, stat.max as i64));
         stat.current = (stat.max as f64 * ratio).round() as u64;
     }
 
@@ -422,6 +426,24 @@ impl Stats {
                 continue;
             }
             self.set_stats_on_effect(&buffer.stats_name, buffer.value, buffer.is_percent, true);
+        }
+    }
+
+    /// Updates selected stats by 10% for their current raw max value when a character levels up.
+    /// This applies equipment buffers and effects to those stats while preserving the current/max ratio.
+    pub fn update_stats_to_next_level(&mut self) {
+        for &stat_name in STATS_TO_LEVEL_UP {
+            if let Some(stat) = self.all_stats.get_mut(stat_name) {
+                // Calculate ratio BEFORE incrementing max_raw to preserve it accurately
+                let ratio = utils::calc_ratio(stat.current as i64, stat.max as i64);
+
+                // Update the raw max value by 10%
+                stat.max_raw += stat.max_raw * 10 / 100;
+
+                // Recompute max and current with the new raw value and existing buffers,
+                // while preserving the current/max ratio
+                Self::recompute_stat_max_and_current(stat, Some(ratio));
+            }
         }
     }
 }
@@ -636,5 +658,54 @@ mod tests {
         );
         // real amount cannot excess the life of the character
         assert_eq!(result, -(old_hp as i64));
+    }
+
+    #[test]
+    fn unit_add_level_up_stats() {
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let old_stats = c.stats.clone();
+        c.stats.update_stats_to_next_level();
+
+        // Check that level-up stats have increased their raw max value by 10%
+        for &stat_name in STATS_TO_LEVEL_UP {
+            let old_raw_max = old_stats.all_stats[stat_name].max_raw;
+            let expected_raw_max = old_raw_max + old_raw_max * 10 / 100;
+            assert_eq!(
+                expected_raw_max, c.stats.all_stats[stat_name].max_raw,
+                "Raw max for {} should increase by 10%",
+                stat_name
+            );
+
+            // Check that current/max ratio was preserved (allowing small rounding error)
+            let old_ratio = utils::calc_ratio(
+                old_stats.all_stats[stat_name].current as i64,
+                old_stats.all_stats[stat_name].max as i64,
+            );
+            let new_ratio = utils::calc_ratio(
+                c.stats.all_stats[stat_name].current as i64,
+                c.stats.all_stats[stat_name].max as i64,
+            );
+            assert!(
+                (new_ratio - old_ratio).abs() < 0.01,
+                "Ratio for {} should be preserved",
+                stat_name
+            );
+        }
+
+        // Non-level-up stats should not change
+        assert_eq!(
+            old_stats.all_stats[DODGE].max_raw,
+            c.stats.all_stats[DODGE].max_raw
+        );
+        assert_eq!(
+            old_stats.all_stats[CRITICAL_STRIKE].max_raw,
+            c.stats.all_stats[CRITICAL_STRIKE].max_raw
+        );
     }
 }

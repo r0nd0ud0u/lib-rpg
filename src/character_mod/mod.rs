@@ -5,6 +5,7 @@ pub mod class;
 pub mod effect;
 pub mod energy;
 pub mod equipment;
+pub mod experience;
 pub mod inventory;
 pub mod rank;
 pub mod rounds_information;

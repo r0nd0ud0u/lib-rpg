@@ -32,6 +32,18 @@ pub mod stats_const {
     pub const BERSECK_RATE: &str = "Berserk rate";
     pub const AGGRO_RATE: &str = "Aggro rate";
     pub const SPEED_REGEN: &str = "Speed regeneration";
+
+    /// Stats that level up when a character gains a level (increases by 10% of raw max value)
+    pub const STATS_TO_LEVEL_UP: &[&str] = &[
+        HP,
+        MANA,
+        VIGOR,
+        PHYSICAL_POWER,
+        MAGICAL_POWER,
+        PHYSICAL_ARMOR,
+        MAGICAL_ARMOR,
+        SPEED,
+    ];
 }
 
 /// Defines all the keys except stats you can decode from the JSON input
