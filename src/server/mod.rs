@@ -5,3 +5,4 @@ pub mod game_paths;
 pub mod game_state;
 pub mod players_manager;
 pub mod server_manager;
+pub mod scenario;
