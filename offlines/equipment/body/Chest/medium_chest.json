@@ -1,7 +1,7 @@
 {
-    "Categorie": "RightWeapon",
-    "Nom": "starting right weapon",
-    "Nom unique": "starting right weapon",
+    "Categorie": "Chest",
+    "Nom": "medium chest",
+    "Nom unique": "medium chest",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -37,7 +37,7 @@
         },
         "Magical armor": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "Magical power": {
             "equip_percent": 0,
@@ -53,11 +53,11 @@
         },
         "Physical armor": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 5
         },
         "Physical power": {
             "equip_percent": 0,
-            "equip_value": 10
+            "equip_value": 0
         },
         "Speed": {
             "equip_percent": 0,

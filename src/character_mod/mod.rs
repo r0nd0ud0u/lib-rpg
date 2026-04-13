@@ -7,6 +7,7 @@ pub mod energy;
 pub mod equipment;
 pub mod experience;
 pub mod inventory;
+pub mod loot;
 pub mod rank;
 pub mod rounds_information;
 pub mod stats;
