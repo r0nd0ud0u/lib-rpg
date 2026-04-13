@@ -10,15 +10,15 @@ use std::{
 /// * If the effect str name is empty => only the stats str
 ///* If the stats str name is empty => only the effect str
 pub fn build_effect_name(raw_effect: &str, stats_name: &str) -> String {
-    let mut effect_name = "".to_string();
+    let mut effect_name = String::new();
     if raw_effect.is_empty() && !stats_name.is_empty() {
-        effect_name = stats_name.to_string();
+        effect_name = stats_name.to_owned();
     } else if !raw_effect.is_empty() && stats_name.is_empty() {
-        effect_name = raw_effect.to_string();
+        effect_name = raw_effect.to_owned();
     } else if !raw_effect.is_empty() && !stats_name.is_empty() {
         effect_name = format!("{}-{}", stats_name, raw_effect);
     }
-    effect_name.to_string()
+    effect_name
 }
 
 pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {

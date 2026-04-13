@@ -392,8 +392,11 @@ impl GameManager {
     ///  and return the logs to display for the new round if it is the case
     fn eval_end_of_round(&mut self, logs_atk: Vec<LogData>) -> Vec<LogData> {
         let mut output_logs = vec![];
-        if self.pm.check_end_of_game() {
+        let (all_heroes_dead, all_bosses_dead) = self.pm.check_end_of_game();
+        if all_heroes_dead {
             self.game_state.status = GameStatus::EndOfGame;
+        } else if all_bosses_dead {
+            self.game_state.status = GameStatus::EndOfScenario;
         } else {
             let (is_new_round, logs) = self.new_round();
             output_logs.extend(logs);
@@ -1371,14 +1374,18 @@ mod tests {
         assert_eq!(2, gm.process_nb_bosses_atk_in_a_row());
         // None => random atk for boss
         let _ = gm.launch_attack(None); // one or several hero could be dead
-        if !gm.pm.check_end_of_game() {
+        let (all_heroes_dead, all_bosses_dead) = gm.pm.check_end_of_game();
+        assert!(!all_heroes_dead);
+        assert!(!all_bosses_dead);
+        if !all_heroes_dead && !all_bosses_dead {
             assert_eq!(GameStatus::StartRound, gm.game_state.status);
             assert_eq!(1, gm.game_state.current_turn_nb);
             assert_eq!(6, gm.game_state.current_round);
             assert_eq!(1, gm.process_nb_bosses_atk_in_a_row());
             // None => random atk for boss
             let _ = gm.launch_attack(None); // one or several hero could be dead
-            if !gm.pm.check_end_of_game() {
+            let (all_heroes_dead, all_bosses_dead) = gm.pm.check_end_of_game();
+            if !all_heroes_dead && !all_bosses_dead {
                 assert_eq!(GameStatus::StartRound, gm.game_state.status);
                 assert_eq!(2, gm.game_state.current_turn_nb);
                 assert_eq!(1, gm.game_state.current_round);
