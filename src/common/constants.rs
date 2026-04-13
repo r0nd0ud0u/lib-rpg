@@ -89,6 +89,7 @@ pub mod paths_const {
         pub static ref OFFLINE_LOOT_EQUIPMENT: &'static Path = Path::new("equipment/body");
         pub static ref OFFLINE_EFFECTS: &'static Path = Path::new("effects");
         pub static ref OFFLINE_GAMESTATE: &'static Path = Path::new("game_state");
+        pub static ref OFFLINE_SCENARIOS: &'static Path = Path::new("scenarios");
         pub static ref GAME_STATE_STATS_IN_GAME: &'static Path = Path::new("/stats_in_game_{}.csv");
     }
 }

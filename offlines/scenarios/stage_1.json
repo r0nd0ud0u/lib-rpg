@@ -1,0 +1,7 @@
+{
+    "name": "Stage 1",
+    "description": "Le premier affrontement contre les forces du Mordor. Angmar10PV défend les portes obscures.",
+    "boss_patterns": {
+        "Angmar10PV": [0]
+    }
+}

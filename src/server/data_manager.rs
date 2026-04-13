@@ -4,9 +4,14 @@ use anyhow::{Result, bail};
 use strum::IntoEnumIterator;
 
 use crate::{
-    character_mod::character::{Character, CharacterKind},
-    character_mod::equipment::{Equipment, EquipmentJsonKey},
-    common::constants::paths_const::{OFFLINE_CHARACTERS, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT},
+    character_mod::{
+        character::{Character, CharacterKind},
+        equipment::{Equipment, EquipmentJsonKey},
+    },
+    common::constants::paths_const::{
+        OFFLINE_CHARACTERS, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT, OFFLINE_SCENARIOS,
+    },
+    server::scenario::Scenario,
     utils::list_files_in_dir,
 };
 
@@ -16,6 +21,8 @@ pub struct DataManager {
     pub all_heroes: Vec<Character>,
     /// List of all playable bosses -> computer
     pub all_bosses: Vec<Character>,
+    /// List of all scenarios
+    pub all_scenarios: Vec<Scenario>,
     /// Equipment table mapping character names to their equipped items
     pub equipment_table: HashMap<EquipmentJsonKey, Vec<Equipment>>,
     /// Root path for offline files
@@ -39,10 +46,13 @@ impl DataManager {
         dm.load_all_equipments(path_ref)?;
         // load all the characters
         dm.load_all_characters(path_ref)?;
+        // load all the scenarios
+        dm.load_all_scenarios(path_ref)?;
 
         Ok(DataManager {
             all_heroes: dm.all_heroes,
             all_bosses: dm.all_bosses,
+            all_scenarios: dm.all_scenarios,
             equipment_table: dm.equipment_table,
             offline_root: dm.offline_root,
         })
@@ -104,6 +114,23 @@ impl DataManager {
                 }
             }),
             Err(e) => bail!("Files cannot be listed in {:#?}: {}", character_dir_path, e),
+        };
+        Ok(())
+    }
+
+    pub fn load_all_scenarios<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
+        if path.as_ref().as_os_str().is_empty() {
+            bail!("no root path")
+        }
+        let scenario_dir_path = path.as_ref().join(*OFFLINE_SCENARIOS);
+        match list_files_in_dir(&scenario_dir_path) {
+            Ok(list) => list.iter().for_each(|scenario_path| {
+                match Scenario::try_new_from_json(scenario_path) {
+                    Ok(s) => self.all_scenarios.push(s),
+                    Err(e) => tracing::error!("{:?} cannot be decoded: {}", scenario_path, e),
+                }
+            }),
+            Err(e) => bail!("Files cannot be listed in {:#?}: {}", scenario_dir_path, e),
         };
         Ok(())
     }

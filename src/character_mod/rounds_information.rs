@@ -27,7 +27,7 @@ use crate::{
     },
     utils::get_random_nb,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, Eq, Hash, PartialEq)]
 pub enum AmountType {
@@ -81,6 +81,9 @@ pub struct CharacterRoundsInfo {
     pub is_potential_target: bool,
     #[serde(default, rename = "Effects")]
     pub all_effects: Vec<GameAtkEffect>,
+    /// Queue of attack indexes from the scenario pattern, filled on first use and cycled
+    #[serde(default, skip)]
+    pub atk_pattern_queue: VecDeque<u64>,
 }
 
 impl Default for CharacterRoundsInfo {
@@ -99,6 +102,7 @@ impl Default for CharacterRoundsInfo {
             exp: 0,
             is_potential_target: false,
             all_effects: vec![],
+            atk_pattern_queue: VecDeque::new(),
         }
     }
 }
