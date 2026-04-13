@@ -28,7 +28,11 @@ pub fn testing_pm() -> PlayerManager {
     // All the bosses are active
     pl.active_bosses = dm.all_bosses.clone();
     // find test
-    let test_hero = pl.active_heroes.iter().find(|h| h.id_name == "test_#1").unwrap();
+    let test_hero = pl
+        .active_heroes
+        .iter()
+        .find(|h| h.id_name == "test_#1")
+        .unwrap();
     pl.current_player = test_hero.clone();
     pl
 }
