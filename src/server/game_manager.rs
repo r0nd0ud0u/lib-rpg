@@ -18,7 +18,8 @@ use crate::{
     server::{
         game_paths::GamePaths,
         game_state::{GameState, GameStatus},
-        players_manager::{DodgeInfo, GameAtkEffect, PlayerManager}, scenario::{Scenario, ScenarioState},
+        players_manager::{DodgeInfo, GameAtkEffect, PlayerManager},
+        scenario::{Scenario, ScenarioState},
     },
     utils,
 };
@@ -87,21 +88,31 @@ impl GameManager {
         }
     }
 
-    pub fn load_next_scenario(&mut self, scenario: Scenario){
+    pub fn load_next_scenario(&mut self, scenario: Scenario) {
         // update current scenario state
-        self.states_scenarios.iter_mut().find(|(name, _)| *name == &self.current_scenario.name).map(|(_, state)| {
+        if let Some((_, state)) = self
+            .states_scenarios
+            .iter_mut()
+            .find(|(name, _)| *name == &self.current_scenario.name)
+        {
             *state = ScenarioState::Completed;
-        });
+        }
         // update scenario state in map
-        self.states_scenarios.iter_mut().find(|(name, _)| *name == &scenario.name).map(|(_, state)| {
+        if let Some((_, state)) = self
+            .states_scenarios
+            .iter_mut()
+            .find(|(name, _)| *name == &scenario.name)
+        {
             *state = ScenarioState::InProgress;
-        });
+        }
         // update current scenario
         self.current_scenario = scenario;
     }
 
     pub fn all_scenarios_completed(&self) -> bool {
-        self.states_scenarios.values().all(|state| *state == ScenarioState::Completed)
+        self.states_scenarios
+            .values()
+            .all(|state| *state == ScenarioState::Completed)
     }
 
     /// Start the game by starting a new turn
@@ -209,21 +220,42 @@ impl GameManager {
         let Some(atk_name) = atk_name else {
             if self.is_round_auto() {
                 // check if pattern exists in scenario
-                if let Some(patterns) = self.current_scenario.boss_patterns.get(&self.pm.current_player.id_name).cloned() {
+                if let Some(patterns) = self
+                    .current_scenario
+                    .boss_patterns
+                    .get(&self.pm.current_player.id_name)
+                    .cloned()
+                {
                     // fill queue from pattern on first use, then cycle
-                    if self.pm.current_player.character_rounds_info.atk_pattern_queue.is_empty() {
-                        self.pm.current_player.character_rounds_info.atk_pattern_queue.extend(patterns.iter().copied());
+                    if self
+                        .pm
+                        .current_player
+                        .character_rounds_info
+                        .atk_pattern_queue
+                        .is_empty()
+                    {
+                        self.pm
+                            .current_player
+                            .character_rounds_info
+                            .atk_pattern_queue
+                            .extend(patterns.iter().copied());
                     }
-                    if let Some(idx) = self.pm.current_player.character_rounds_info.atk_pattern_queue.pop_front() {
-                        if let Some((atk_name, _)) = self.pm.current_player.attacks_list.get_index(idx as usize) {
-                            let atk_name = atk_name.clone();
-                            tracing::info!(
-                                "Auto attack for boss {}: {}",
-                                self.pm.current_player.id_name,
-                                atk_name
-                            );
-                            return self.launch_attack(Some(&atk_name));
-                        }
+                    if let Some(idx) = self
+                        .pm
+                        .current_player
+                        .character_rounds_info
+                        .atk_pattern_queue
+                        .pop_front()
+                        && let Some((atk_name, _)) =
+                            self.pm.current_player.attacks_list.get_index(idx as usize)
+                    {
+                        let atk_name = atk_name.clone();
+                        tracing::info!(
+                            "Auto attack for boss {}: {}",
+                            self.pm.current_player.id_name,
+                            atk_name
+                        );
+                        return self.launch_attack(Some(&atk_name));
                     }
                 }
                 // auto atk for boss
@@ -1446,5 +1478,165 @@ mod tests {
             let _ra = gm.launch_attack(Some("SimpleAtk"));
         }
         assert_eq!(GameStatus::EndOfGame, gm.game_state.status);
+    }
+
+    #[test]
+    fn unit_launch_attack_boss_pattern_queue() {
+        let mut gm = testing_all_characters::testing_game_manager();
+
+        // Set pattern [0, 2] for test_boss1_#1:
+        // index 0 = first attack in boss's attacks_list
+        // index 2 = third attack in boss's attacks_list
+        gm.current_scenario
+            .boss_patterns
+            .insert("test_boss1_#1".to_string(), vec![0, 2]);
+
+        // start game and navigate to test_boss1_#1's round
+        gm.start_game();
+        while gm.pm.current_player.id_name != "test_boss1_#1" {
+            let (ok, _) = gm.new_round();
+            if !ok {
+                gm.start_new_turn();
+            }
+        }
+
+        // queue must be empty before first use
+        assert!(
+            gm.pm
+                .current_player
+                .character_rounds_info
+                .atk_pattern_queue
+                .is_empty(),
+            "queue should be empty before first pattern launch"
+        );
+
+        // first launch: fills queue with [0, 2], pops 0, boss attacks using atk at index 0
+        let ra1 = gm.launch_attack(None);
+        assert_ne!(
+            ra1.launcher_id_name, "",
+            "expected a valid attack to be launched"
+        );
+        // queue now has [2] stored back in active_bosses
+        let queue_after_first: Vec<u64> = gm
+            .pm
+            .get_active_boss_character("test_boss1_#1")
+            .unwrap()
+            .character_rounds_info
+            .atk_pattern_queue
+            .iter()
+            .copied()
+            .collect();
+        assert_eq!(
+            queue_after_first,
+            vec![2u64],
+            "queue should hold [2] after first launch"
+        );
+
+        // navigate back to test_boss1_#1's round
+        while gm.pm.current_player.id_name != "test_boss1_#1" {
+            let (ok, _) = gm.new_round();
+            if !ok {
+                gm.start_new_turn();
+            }
+        }
+
+        // second launch: pops index 2, queue becomes empty
+        let ra2 = gm.launch_attack(None);
+        assert_ne!(ra2.launcher_id_name, "");
+        let queue_after_second: Vec<u64> = gm
+            .pm
+            .get_active_boss_character("test_boss1_#1")
+            .unwrap()
+            .character_rounds_info
+            .atk_pattern_queue
+            .iter()
+            .copied()
+            .collect();
+        assert!(
+            queue_after_second.is_empty(),
+            "queue should be empty after second launch"
+        );
+
+        // navigate back to test_boss1_#1's round
+        while gm.pm.current_player.id_name != "test_boss1_#1" {
+            let (ok, _) = gm.new_round();
+            if !ok {
+                gm.start_new_turn();
+            }
+        }
+
+        // third launch: queue empty → refills [0, 2], pops 0 again (cycling)
+        let ra3 = gm.launch_attack(None);
+        assert_ne!(ra3.launcher_id_name, "");
+        let queue_after_third: Vec<u64> = gm
+            .pm
+            .get_active_boss_character("test_boss1_#1")
+            .unwrap()
+            .character_rounds_info
+            .atk_pattern_queue
+            .iter()
+            .copied()
+            .collect();
+        assert_eq!(
+            queue_after_third,
+            vec![2u64],
+            "queue should hold [2] again after cycling"
+        );
+    }
+
+    #[test]
+    fn unit_load_next_scenario() {
+        use crate::server::scenario::{Scenario, ScenarioState};
+
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+
+        // dxrpg loads stage_1 and stage_2; states start as NotStarted
+        let stage1_name = "Stage 1".to_string();
+        let stage2_name = "Stage 2".to_string();
+        assert_eq!(gm.states_scenarios[&stage1_name], ScenarioState::NotStarted);
+        assert_eq!(gm.states_scenarios[&stage2_name], ScenarioState::NotStarted);
+
+        // set stage 1 as current (simulates game start on stage 1)
+        let stage1 = gm
+            .states_scenarios
+            .keys()
+            .find(|k| k.as_str() == &stage1_name)
+            .cloned()
+            .map(|name| Scenario {
+                name: name.clone(),
+                ..Default::default()
+            })
+            .unwrap();
+        gm.current_scenario = stage1;
+        gm.states_scenarios
+            .insert(stage1_name.clone(), ScenarioState::InProgress);
+
+        // build stage2 scenario to load
+        let stage2 = Scenario {
+            name: stage2_name.clone(),
+            description: "stage 2".to_string(),
+            ..Default::default()
+        };
+
+        // load stage 2
+        gm.load_next_scenario(stage2.clone());
+
+        // stage 1 must be Completed
+        assert_eq!(
+            gm.states_scenarios[&stage1_name],
+            ScenarioState::Completed,
+            "stage 1 should be Completed after loading stage 2"
+        );
+        // stage 2 must be InProgress
+        assert_eq!(
+            gm.states_scenarios[&stage2_name],
+            ScenarioState::InProgress,
+            "stage 2 should be InProgress after being loaded"
+        );
+        // current_scenario must be stage 2
+        assert_eq!(gm.current_scenario.name, stage2_name);
+
+        // all_scenarios_completed returns false (stage 2 still in progress)
+        assert!(!gm.all_scenarios_completed());
     }
 }

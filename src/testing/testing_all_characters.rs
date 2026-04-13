@@ -40,7 +40,11 @@ pub fn testing_pm() -> PlayerManager {
 pub fn testing_game_manager() -> GameManager {
     let dm = testing_dm();
     // init gm
-    let mut gm = GameManager::new(*TEST_OFFLINE_ROOT, dm.equipment_table.clone(), dm.all_scenarios.clone());
+    let mut gm = GameManager::new(
+        *TEST_OFFLINE_ROOT,
+        dm.equipment_table.clone(),
+        dm.all_scenarios.clone(),
+    );
     // All the bosses are active
     gm.pm = testing_pm();
     gm
@@ -95,7 +99,11 @@ pub fn dxrpg_pm() -> PlayerManager {
 pub fn dxrpg_game_manager() -> GameManager {
     let dm: DataManager = dxrpg_dm();
     // init gm
-    let mut gm = GameManager::new("./offlines", dm.equipment_table.clone(), dm.all_scenarios.clone());
+    let mut gm = GameManager::new(
+        "./offlines",
+        dm.equipment_table.clone(),
+        dm.all_scenarios.clone(),
+    );
     // All the bosses are active
     gm.pm = dxrpg_pm();
     gm
