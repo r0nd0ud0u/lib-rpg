@@ -525,7 +525,9 @@ impl PlayerManager {
         nb
     }
 
-    pub fn check_end_of_game(&self) -> bool {
+    /// Check if the game is over by checking if all heroes or all bosses are dead.
+    /// Returns a tuple of booleans (all_heroes_dead, all_bosses_dead).
+    pub fn check_end_of_game(&self) -> (bool, bool) {
         let all_heroes_dead = self
             .active_heroes
             .iter()
@@ -534,7 +536,7 @@ impl PlayerManager {
             .active_bosses
             .iter()
             .all(|c| c.stats.is_dead() == Some(true));
-        all_bosses_dead || all_heroes_dead
+        (all_heroes_dead, all_bosses_dead)
     }
 }
 
