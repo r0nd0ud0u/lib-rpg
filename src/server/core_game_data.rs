@@ -22,7 +22,7 @@ pub struct CoreGameData {
 
 impl CoreGameData {
     pub fn new(dm: &DataManager, server_name: &str) -> CoreGameData {
-        let mut gm = GameManager::new(&dm.offline_root, dm.equipment_table.clone());
+        let mut gm = GameManager::new(&dm.offline_root, dm.equipment_table.clone(), dm.all_scenarios.clone());
         // set bosses
         dm.all_bosses.iter().for_each(|boss| {
             let mut boss_to_push = boss.clone();

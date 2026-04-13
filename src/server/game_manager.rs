@@ -18,7 +18,7 @@ use crate::{
     server::{
         game_paths::GamePaths,
         game_state::{GameState, GameStatus},
-        players_manager::{DodgeInfo, GameAtkEffect, PlayerManager},
+        players_manager::{DodgeInfo, GameAtkEffect, PlayerManager}, scenario::{Scenario, ScenarioState},
     },
     utils,
 };
@@ -49,6 +49,10 @@ pub struct GameManager {
     pub game_paths: GamePaths,
     /// logs of the game, to display in the log sheet
     pub logs: Vec<LogData>,
+    /// Current scenario of the game, to adapt the behavior of the fight
+    pub current_scenario: Scenario,
+    /// State of the different scenarios, to know which scenario is available for the player and to adapt the behavior of the fight
+    pub states_scenarios: HashMap<String, ScenarioState>,
 }
 
 impl GameManager {
@@ -56,6 +60,7 @@ impl GameManager {
     pub fn new<P: AsRef<Path>>(
         path: P,
         equipment_table: HashMap<EquipmentJsonKey, Vec<Equipment>>,
+        scenarios: Vec<Scenario>,
     ) -> GameManager {
         // if path is empty, use the default one
         let mut new_path = path.as_ref();
@@ -66,12 +71,37 @@ impl GameManager {
         let game_state = GameState::new();
         let game_name = game_state.game_name.clone();
 
+        // scenarios state
+        let mut states_scenarios = HashMap::new();
+        for scenario in scenarios {
+            states_scenarios.insert(scenario.name.clone(), ScenarioState::NotStarted);
+        }
+
         GameManager {
             game_state,
             pm: PlayerManager::new(equipment_table),
             game_paths: GamePaths::new(new_path, &game_name),
             logs: Vec::new(),
+            current_scenario: Scenario::default(),
+            states_scenarios,
         }
+    }
+
+    pub fn load_next_scenario(&mut self, scenario: Scenario){
+        // update current scenario state
+        self.states_scenarios.iter_mut().find(|(name, _)| *name == &self.current_scenario.name).map(|(_, state)| {
+            *state = ScenarioState::Completed;
+        });
+        // update scenario state in map
+        self.states_scenarios.iter_mut().find(|(name, _)| *name == &scenario.name).map(|(_, state)| {
+            *state = ScenarioState::InProgress;
+        });
+        // update current scenario
+        self.current_scenario = scenario;
+    }
+
+    pub fn all_scenarios_completed(&self) -> bool {
+        self.states_scenarios.values().all(|state| *state == ScenarioState::Completed)
     }
 
     /// Start the game by starting a new turn
@@ -178,6 +208,24 @@ impl GameManager {
         // is atk existing?
         let Some(atk_name) = atk_name else {
             if self.is_round_auto() {
+                // check if pattern exists in scenario
+                if let Some(patterns) = self.current_scenario.boss_patterns.get(&self.pm.current_player.id_name).cloned() {
+                    // fill queue from pattern on first use, then cycle
+                    if self.pm.current_player.character_rounds_info.atk_pattern_queue.is_empty() {
+                        self.pm.current_player.character_rounds_info.atk_pattern_queue.extend(patterns.iter().copied());
+                    }
+                    if let Some(idx) = self.pm.current_player.character_rounds_info.atk_pattern_queue.pop_front() {
+                        if let Some((atk_name, _)) = self.pm.current_player.attacks_list.get_index(idx as usize) {
+                            let atk_name = atk_name.clone();
+                            tracing::info!(
+                                "Auto attack for boss {}: {}",
+                                self.pm.current_player.id_name,
+                                atk_name
+                            );
+                            return self.launch_attack(Some(&atk_name));
+                        }
+                    }
+                }
                 // auto atk for boss
                 if let Some(auto_atk_name) = AttackType::get_one_random_atk_name(
                     &self.pm.current_player.character_rounds_info.launchable_atks,

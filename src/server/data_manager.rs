@@ -4,7 +4,7 @@ use anyhow::{Result, bail};
 use strum::IntoEnumIterator;
 
 use crate::{
-    character_mod::{character::{Character, CharacterKind}, equipment::{Equipment, EquipmentJsonKey}}, common::constants::paths_const::{OFFLINE_CHARACTERS, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT}, server::scenario::Scenario, utils::list_files_in_dir
+    character_mod::{character::{Character, CharacterKind}, equipment::{Equipment, EquipmentJsonKey}}, common::constants::paths_const::{OFFLINE_CHARACTERS, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT, OFFLINE_SCENARIOS}, server::scenario::Scenario, utils::list_files_in_dir
 };
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

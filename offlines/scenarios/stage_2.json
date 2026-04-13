@@ -1,0 +1,8 @@
+{
+    "name": "Stage 2",
+    "description": "Le deuxième affrontement contre les forces du Mordor. Angmar et Angmar10PV défendent les portes obscures.",
+    "boss_patterns": {
+        "Angmar": [0],
+        "Angmar10PV": [0]
+    }
+}
