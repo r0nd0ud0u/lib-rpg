@@ -5,17 +5,7 @@ use std::{collections::HashMap, path::Path, vec};
 
 use crate::{
     character_mod::{
-        attack_type::{AttackType, LauncherAtkInfo},
-        buffers::BufKinds,
-        class::Class,
-        effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
-        energy::{Energy, EnergyKind},
-        equipment::{Equipment, EquipmentJsonKey},
-        inventory::{Consumable, Inventory},
-        rank::Rank,
-        rounds_information::{AmountType, CharacterRoundsInfo},
-        stats::Stats,
-        target::TargetData,
+        attack_type::{AttackType, LauncherAtkInfo}, buffers::BufKinds, class::Class, effect::{EffectOutcome, EffectParam, ProcessedEffectParam}, energy::{Energy, EnergyKind}, equipment::{Equipment, EquipmentJsonKey}, inventory::{Consumable, Inventory}, phase::Phase, rank::Rank, rounds_information::{AmountType, CharacterRoundsInfo}, stats::Stats, target::TargetData
     },
     common::{
         constants::{all_target_const::*, paths_const::*, stats_const::*},
@@ -72,6 +62,8 @@ pub struct Character {
     pub energies: Vec<Energy>,
     /// Rank of the character, used for boss to adapt the difficulty of the fight
     pub rank: Rank,
+    /// Phases of the character, used for boss to adapt the behavior of the fight
+    pub phases: Vec<Phase>,
 }
 
 impl Default for Character {
@@ -91,6 +83,7 @@ impl Default for Character {
             inventory: Inventory::default(),
             energies: Vec::new(),
             rank: Rank::default(),
+            phases: Vec::new(),
         }
     }
 }
