@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::{Result, bail};
 
-use crate::utils;
+use crate::{character_mod::loot::Loot, utils};
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Scenario {
@@ -11,6 +11,9 @@ pub struct Scenario {
     /// Boss patterns, used for boss to adapt the behavior of the fight
     /// The key is the name of the boss, and the value is a list of pattern indexes that the boss can use
     pub boss_patterns: HashMap<String, Vec<u64>>,
+    /// Loots to give to the heroes at the end of the scenario, if they win
+    #[serde(default)]
+    pub loots: Vec<Loot>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

@@ -1,7 +1,30 @@
 {
     "name": "Stage 1",
-    "description": "Le premier affrontement contre les forces du Mordor. Angmar10PV défend les portes obscures.",
+    "description": "This is a test scenario",
     "boss_patterns": {
         "Angmar10PV": [0]
-    }
+    },
+    "loots": [
+        {
+            "name": "starting right weapon",
+            "kind": "Equipment",
+            "rank": "Common",
+            "level": 1,
+            "class": ["Healer", "Mage"]
+        },
+        {
+            "name": "starting belt",
+            "kind": "Equipment",
+            "rank": "Common",
+            "level": 1,
+            "class": ["Warrior", "Berserker"]
+        },
+        {
+            "name": "Common potion",
+            "kind": "Consumable",
+            "rank": "Common",
+            "level": 1,
+            "class": ["Standard"]
+        }
+    ]
 }

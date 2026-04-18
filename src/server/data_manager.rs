@@ -191,4 +191,33 @@ mod tests {
         let mut dm = DataManager::default();
         assert!(dm.load_all_characters("").is_err());
     }
+
+    #[test]
+    fn unit_load_all_scenarios() {
+        let mut dm = DataManager::default();
+        dm.load_all_scenarios(*TEST_OFFLINE_ROOT).unwrap();
+        assert_eq!(2, dm.all_scenarios.len());
+        // check the content of the first scenario
+        // check if stage 1 is correctly loaded
+        let stage_1 = dm
+            .all_scenarios
+            .iter()
+            .find(|s| s.name == "Stage 1")
+            .unwrap();
+        assert_eq!(stage_1.description, "This is a test scenario");
+        assert_eq!(stage_1.boss_patterns.len(), 1);
+        assert_eq!(stage_1.boss_patterns["Angmar10PV"], vec![0]);
+        assert_eq!(stage_1.loots.len(), 3);
+        // stage 2 is correctly loaded
+        let stage_2 = dm
+            .all_scenarios
+            .iter()
+            .find(|s| s.name == "Stage 2")
+            .unwrap();
+        assert_eq!(stage_2.description, "The second stage of the game");
+        assert_eq!(stage_2.boss_patterns.len(), 2);
+        assert_eq!(stage_2.boss_patterns["Angmar"], vec![0]);
+        assert_eq!(stage_2.boss_patterns["Angmar10PV"], vec![0]);
+        assert!(stage_2.loots.is_empty());
+    }
 }

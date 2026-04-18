@@ -11,7 +11,7 @@
     "Name": "test_boss2",
     "IdName": "test_boss2_#1",
     "Photo": "phototest",
-    "Rank": 4,
+    "Rank": "Common",
     "Shape": "",
     "Short name": "test_boss2",
     "Stats": {

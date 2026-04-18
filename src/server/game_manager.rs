@@ -5,11 +5,15 @@ use crate::{
         attack_type::{AttackType, LauncherAtkInfo},
         buffers::BufKinds,
         character::CharacterKind,
+        class::Class,
         equipment::{Equipment, EquipmentJsonKey},
+        experience::{build_exp_to_next_level, build_experience},
+        loot::LootType,
+        rank::Rank,
         rounds_information::AmountType,
     },
     common::{
-        constants::{paths_const::*, stats_const::*},
+        constants::{character_const::ULTIMATE_LEVEL, paths_const::*, stats_const::*},
         log_data::{
             LogData,
             const_colors::{DARK_RED, LIGHT_BLUE, LIGHT_GREEN},
@@ -443,6 +447,100 @@ impl GameManager {
         result_attack
     }
 
+    /// Process end-of-scenario rewards for every hero:
+    /// - Add loot items matching the hero's class (equipment checked against the equipment database,
+    ///   consumables and currency added directly)
+    /// - Add experience gained from all defeated bosses and level up (with stat update) as needed
+    /// - Automatically use all consumables in inventory (potions restore HP)
+    pub fn process_end_of_scenario(&mut self) {
+        // Total exp: sum from all bosses
+        let total_exp: u64 = self
+            .pm
+            .active_bosses
+            .iter()
+            .map(|boss| build_experience(&boss.rank, boss.level))
+            .sum();
+
+        let loots = self.current_scenario.loots.clone();
+        let equipment_table_flat: Vec<Equipment> = self
+            .pm
+            .equipment_table
+            .values()
+            .flatten()
+            .cloned()
+            .collect();
+
+        for i in 0..self.pm.active_heroes.len() {
+            let hero_class = self.pm.active_heroes[i].class.clone();
+
+            // Add loot according to class
+            for loot in &loots {
+                let class_matches =
+                    loot.class.contains(&hero_class) || loot.class.contains(&Class::Standard);
+                if !class_matches {
+                    continue;
+                }
+                match &loot.kind {
+                    LootType::Equipment => {
+                        if let Some(equipment) = equipment_table_flat
+                            .iter()
+                            .find(|e| e.unique_name == loot.name)
+                            .cloned()
+                        {
+                            self.pm.active_heroes[i]
+                                .inventory
+                                .add_equipment(&equipment, false);
+                        } else {
+                            tracing::warn!(
+                                "Equipment '{}' not found in equipment database",
+                                loot.name
+                            );
+                        }
+                    }
+                    LootType::Consumable => {
+                        let hp_amount = match &loot.rank {
+                            Rank::Common => 20,
+                            Rank::Intermediate => 60,
+                            Rank::Advanced => 120,
+                        };
+                        self.pm.active_heroes[i].inventory.add_potion(
+                            &loot.name,
+                            hp_amount,
+                            loot.rank.clone(),
+                        );
+                    }
+                    LootType::Currency => {
+                        self.pm.active_heroes[i].inventory.money += loot.level as u64;
+                    }
+                    LootType::Material => {}
+                }
+            }
+
+            // Add experience and level up if needed
+            self.pm.active_heroes[i].character_rounds_info.exp += total_exp;
+            while self.pm.active_heroes[i].character_rounds_info.exp
+                >= self.pm.active_heroes[i]
+                    .character_rounds_info
+                    .exp_to_next_level
+                && self.pm.active_heroes[i].level < ULTIMATE_LEVEL
+            {
+                self.pm.active_heroes[i].character_rounds_info.exp -= self.pm.active_heroes[i]
+                    .character_rounds_info
+                    .exp_to_next_level;
+                self.pm.active_heroes[i].level += 1;
+                self.pm.active_heroes[i].stats.update_stats_to_next_level();
+                // Recompute the threshold for the new level
+                self.pm.active_heroes[i]
+                    .character_rounds_info
+                    .exp_to_next_level = build_exp_to_next_level(
+                    &self.pm.active_heroes[i].rank,
+                    &self.pm.active_heroes[i].class,
+                    self.pm.active_heroes[i].level,
+                );
+            }
+        }
+    }
+
     fn process_no_atk_launched(&mut self) -> ResultLaunchAttack {
         // no atk launched
         // update action done in round
@@ -477,6 +575,7 @@ impl GameManager {
             self.game_state.status = GameStatus::EndOfGame;
         } else if all_bosses_dead {
             self.game_state.status = GameStatus::EndOfScenario;
+            self.process_end_of_scenario();
         } else {
             let (is_new_round, logs) = self.new_round();
             output_logs.extend(logs);
@@ -1638,5 +1737,363 @@ mod tests {
 
         // all_scenarios_completed returns false (stage 2 still in progress)
         assert!(!gm.all_scenarios_completed());
+    }
+
+    // -------------------------------------------------------------------------
+    // process_end_of_scenario tests
+    // -------------------------------------------------------------------------
+
+    #[test]
+    fn unit_end_of_scenario_equipment_loot_matching_class() {
+        use crate::character_mod::class::Class;
+        use crate::character_mod::loot::{Loot, LootType};
+        use crate::character_mod::rank::Rank;
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+        // Both test heroes are Standard class.
+        // Create a scenario with one equipment loot targeting Standard heroes.
+        gm.current_scenario = Scenario {
+            name: "test".to_string(),
+            description: "test".to_string(),
+            boss_patterns: HashMap::new(),
+            loots: vec![Loot {
+                name: "starting right weapon".to_string(),
+                kind: LootType::Equipment,
+                rank: Rank::Common,
+                level: 1,
+                class: vec![Class::Standard],
+            }],
+        };
+
+        gm.process_end_of_scenario();
+
+        // Both heroes must now have the equipment in their inventory
+        for hero in &gm.pm.active_heroes {
+            let has_it = hero
+                .inventory
+                .equipments
+                .values()
+                .flatten()
+                .any(|e| e.unique_name == "starting right weapon");
+            assert!(
+                has_it,
+                "hero '{}' should have received the equipment",
+                hero.id_name
+            );
+        }
+    }
+
+    #[test]
+    fn unit_end_of_scenario_equipment_loot_no_class_match() {
+        use crate::character_mod::class::Class;
+        use crate::character_mod::loot::{Loot, LootType};
+        use crate::character_mod::rank::Rank;
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+        // Both test heroes are Standard.
+        // Equipment loot only for Warrior → heroes must NOT receive an extra copy.
+        let belts_before: Vec<usize> = gm
+            .pm
+            .active_heroes
+            .iter()
+            .map(|h| {
+                h.inventory
+                    .equipments
+                    .values()
+                    .flatten()
+                    .filter(|e| e.unique_name == "starting belt")
+                    .count()
+            })
+            .collect();
+
+        gm.current_scenario = Scenario {
+            name: "test".to_string(),
+            description: "test".to_string(),
+            boss_patterns: HashMap::new(),
+            loots: vec![Loot {
+                name: "starting belt".to_string(),
+                kind: LootType::Equipment,
+                rank: Rank::Common,
+                level: 1,
+                class: vec![Class::Warrior],
+            }],
+        };
+
+        gm.process_end_of_scenario();
+
+        for (idx, hero) in gm.pm.active_heroes.iter().enumerate() {
+            let belts_after = hero
+                .inventory
+                .equipments
+                .values()
+                .flatten()
+                .filter(|e| e.unique_name == "starting belt")
+                .count();
+            assert_eq!(
+                belts_after, belts_before[idx],
+                "hero '{}' belt count should not change (class mismatch)",
+                hero.id_name
+            );
+        }
+    }
+
+    #[test]
+    fn unit_end_of_scenario_equipment_loot_unknown_equipment() {
+        use crate::character_mod::class::Class;
+        use crate::character_mod::loot::{Loot, LootType};
+        use crate::character_mod::rank::Rank;
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+        // Record initial equipment count per hero
+        let equip_before: Vec<usize> = gm
+            .pm
+            .active_heroes
+            .iter()
+            .map(|h| h.inventory.equipments.values().map(|v| v.len()).sum())
+            .collect();
+
+        gm.current_scenario = Scenario {
+            name: "test".to_string(),
+            description: "test".to_string(),
+            boss_patterns: HashMap::new(),
+            loots: vec![Loot {
+                name: "non_existent_equipment".to_string(),
+                kind: LootType::Equipment,
+                rank: Rank::Common,
+                level: 1,
+                class: vec![Class::Standard],
+            }],
+        };
+
+        // Must not panic; unknown equipment is just warned about and skipped
+        gm.process_end_of_scenario();
+
+        for (idx, hero) in gm.pm.active_heroes.iter().enumerate() {
+            let total_equip: usize = hero.inventory.equipments.values().map(|v| v.len()).sum();
+            assert_eq!(
+                total_equip, equip_before[idx],
+                "hero '{}' equipment count should not change for unknown loot name",
+                hero.id_name
+            );
+        }
+    }
+
+    #[test]
+    fn unit_end_of_scenario_consumable_loot() {
+        use crate::character_mod::class::Class;
+        use crate::character_mod::loot::{Loot, LootType};
+        use crate::character_mod::rank::Rank;
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+
+        gm.current_scenario = Scenario {
+            name: "test".to_string(),
+            description: "test".to_string(),
+            boss_patterns: HashMap::new(),
+            loots: vec![Loot {
+                name: "Common potion".to_string(),
+                kind: LootType::Consumable,
+                rank: Rank::Common, // heals 20 HP
+                level: 1,
+                class: vec![Class::Standard],
+            }],
+        };
+
+        gm.process_end_of_scenario();
+
+        for hero in &gm.pm.active_heroes {
+            let has_potion = hero
+                .inventory
+                .consumables
+                .iter()
+                .any(|c| c.name == "Common potion");
+            assert!(
+                has_potion,
+                "hero '{}' should have received the consumable",
+                hero.id_name
+            );
+        }
+    }
+
+    #[test]
+    fn unit_end_of_scenario_currency_loot() {
+        use crate::character_mod::class::Class;
+        use crate::character_mod::loot::{Loot, LootType};
+        use crate::character_mod::rank::Rank;
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+        gm.current_scenario = Scenario {
+            name: "test".to_string(),
+            description: "test".to_string(),
+            boss_patterns: HashMap::new(),
+            loots: vec![Loot {
+                name: "gold".to_string(),
+                kind: LootType::Currency,
+                rank: Rank::Common,
+                level: 100,
+                class: vec![Class::Standard],
+            }],
+        };
+
+        // Test heroes already have money: 100 in their JSON
+        let money_before: Vec<u64> = gm
+            .pm
+            .active_heroes
+            .iter()
+            .map(|h| h.inventory.money)
+            .collect();
+
+        gm.process_end_of_scenario();
+
+        for (idx, hero) in gm.pm.active_heroes.iter().enumerate() {
+            assert_eq!(
+                hero.inventory.money,
+                money_before[idx] + 100,
+                "hero '{}' should have received 100 gold",
+                hero.id_name
+            );
+        }
+    }
+
+    #[test]
+    fn unit_end_of_scenario_exp_and_level_up() {
+        // Test setup: 2 bosses, each rank Common level 1 → 100 exp each → 200 total
+        //
+        // "test" hero:  exp=50, exp_to_next_level(Common, Standard, 1)=100
+        //   50 + 200 = 250 → level-up to 2 (exp=150), new threshold=200 → 150 < 200 → stop at level 2
+        //
+        // "test2" hero: exp=0,  exp_to_next_level(Common, Standard, 1)=100
+        //   0 + 200 = 200 → level-up to 2 (exp=100), new threshold=200 → 100 < 200 → stop at level 2
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+        gm.current_scenario = Scenario {
+            name: "test".to_string(),
+            description: "test".to_string(),
+            boss_patterns: HashMap::new(),
+            loots: vec![],
+        };
+
+        let old_hp_max: Vec<u64> = gm
+            .pm
+            .active_heroes
+            .iter()
+            .map(|h| h.stats.all_stats[HP].max)
+            .collect();
+
+        gm.process_end_of_scenario();
+
+        for (idx, hero) in gm.pm.active_heroes.iter().enumerate() {
+            assert_eq!(
+                hero.level, 2,
+                "hero '{}' should be level 2 after 200 exp (dynamic threshold grows to 200 at level 2)",
+                hero.id_name
+            );
+            // exp_to_next_level must now reflect the new level
+            assert_eq!(
+                hero.character_rounds_info.exp_to_next_level,
+                200, // build_exp_to_next_level(Common, Standard, 2) = 200
+                "hero '{}' exp_to_next_level should be 200 at level 2",
+                hero.id_name
+            );
+            // Stats must have been updated upward on level-up
+            assert!(
+                hero.stats.all_stats[HP].max > old_hp_max[idx],
+                "hero '{}' HP max should have increased after leveling up",
+                hero.id_name
+            );
+        }
+    }
+
+    #[test]
+    fn unit_end_of_scenario_no_level_up_when_exp_insufficient() {
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+        // Remove all bosses so total_exp = 0
+        gm.pm.active_bosses.clear();
+        gm.current_scenario = Scenario {
+            name: "test".to_string(),
+            description: "test".to_string(),
+            boss_patterns: HashMap::new(),
+            loots: vec![],
+        };
+
+        let levels_before: Vec<u64> = gm.pm.active_heroes.iter().map(|h| h.level).collect();
+
+        gm.process_end_of_scenario();
+
+        for (idx, hero) in gm.pm.active_heroes.iter().enumerate() {
+            assert_eq!(
+                hero.level, levels_before[idx],
+                "hero '{}' should not have leveled up with 0 exp",
+                hero.id_name
+            );
+        }
+    }
+
+    #[test]
+    fn unit_end_of_scenario_triggered_via_game_flow() {
+        // Verify that eval_end_of_round sets EndOfScenario and processes rewards
+        // when all bosses are killed in a single hit.
+        use crate::character_mod::class::Class;
+        use crate::character_mod::loot::{Loot, LootType};
+        use crate::character_mod::rank::Rank;
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let (mut gm, _, _) = testing_test_ally1_vs_test_boss1();
+
+        gm.current_scenario = Scenario {
+            name: "test".to_string(),
+            description: "test".to_string(),
+            boss_patterns: HashMap::new(),
+            loots: vec![Loot {
+                name: "gold".to_string(),
+                kind: LootType::Currency,
+                rank: Rank::Common,
+                level: 50,
+                class: vec![Class::Standard],
+            }],
+        };
+
+        // Kill all bosses
+        for boss in gm.pm.active_bosses.iter_mut() {
+            boss.stats.all_stats.get_mut(HP).unwrap().current = 0;
+        }
+
+        // Set target and launch — eval_end_of_round sees all bosses dead
+        gm.pm
+            .get_mut_active_boss_character("test_boss1_#1")
+            .unwrap()
+            .character_rounds_info
+            .is_current_target = true;
+        gm.launch_attack(None);
+
+        assert_eq!(
+            gm.game_state.status,
+            GameStatus::EndOfScenario,
+            "status should be EndOfScenario"
+        );
+        // Rewards must have been processed: each Standard hero got 50 gold on top of their starting 100
+        for hero in &gm.pm.active_heroes {
+            assert!(
+                hero.inventory.money >= 50,
+                "hero '{}' should have received 50 gold after end-of-scenario",
+                hero.id_name
+            );
+        }
     }
 }

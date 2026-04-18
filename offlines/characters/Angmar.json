@@ -16,11 +16,11 @@
         }
     ]
     },
-    "Level": 2147483647,
+    "Level": 5,
     "Name": "Angmar",
     "IdName": "Angmar_#1",
     "Photo": "Angmar",
-    "Rank": 4,
+    "Rank": "Advanced",
     "Shape": "",
     "Short name": "Angmar",
     "Stats": {

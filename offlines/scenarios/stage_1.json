@@ -3,5 +3,35 @@
     "description": "Le premier affrontement contre les forces du Mordor. Angmar10PV défend les portes obscures.",
     "boss_patterns": {
         "Angmar10PV": [0]
-    }
+    },
+    "loots": [
+        {
+            "name": "starting belt",
+            "kind": "Equipment",
+            "rank": "Common",
+            "level": 1,
+            "class": ["Warrior", "Berserker"]
+        },
+        {
+            "name": "starting amulet",
+            "kind": "Equipment",
+            "rank": "Common",
+            "level": 1,
+            "class": ["Healer", "Mage"]
+        },
+        {
+            "name": "Common potion",
+            "kind": "Consumable",
+            "rank": "Common",
+            "level": 1,
+            "class": ["Standard"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 50,
+            "class": ["Standard"]
+        }
+    ]
 }

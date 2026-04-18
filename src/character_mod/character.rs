@@ -11,6 +11,7 @@ use crate::{
         effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
         energy::{Energy, EnergyKind},
         equipment::{Equipment, EquipmentJsonKey},
+        experience::build_exp_to_next_level,
         inventory::{Consumable, Inventory},
         rank::Rank,
         rounds_information::{AmountType, CharacterRoundsInfo},
@@ -71,6 +72,7 @@ pub struct Character {
     /// Energy
     pub energies: Vec<Energy>,
     /// Rank of the character, used for boss to adapt the difficulty of the fight
+    #[serde(rename = "Rank")]
     pub rank: Rank,
 }
 
@@ -115,6 +117,9 @@ impl Character {
         if let Ok(mut value) = utils::read_from_json::<_, Character>(&path) {
             // init stats
             value.stats.init();
+            // init exp_to_next_level based on hero's rank, class and current level
+            value.character_rounds_info.exp_to_next_level =
+                build_exp_to_next_level(&value.rank, &value.class, value.level);
             // init tx rx table
             let txrxlen = value.character_rounds_info.tx_rx.len();
             for _ in 0..AmountType::EnumSize as usize - txrxlen {

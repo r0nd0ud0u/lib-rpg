@@ -4,5 +4,35 @@
     "boss_patterns": {
         "Angmar": [0],
         "Angmar10PV": [0]
-    }
+    },
+    "loots": [
+        {
+            "name": "medium belt",
+            "kind": "Equipment",
+            "rank": "Intermediate",
+            "level": 2,
+            "class": ["Warrior", "Berserker"]
+        },
+        {
+            "name": "medium amulet",
+            "kind": "Equipment",
+            "rank": "Intermediate",
+            "level": 2,
+            "class": ["Healer", "Mage"]
+        },
+        {
+            "name": "Super potion",
+            "kind": "Consumable",
+            "rank": "Intermediate",
+            "level": 1,
+            "class": ["Standard"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 150,
+            "class": ["Standard"]
+        }
+    ]
 }

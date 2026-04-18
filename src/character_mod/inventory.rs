@@ -92,7 +92,7 @@ impl Inventory {
     }
 
     pub fn add_small_potion(&mut self) {
-        self.add_potion("potion", 20, Rank::Beginner);
+        self.add_potion("potion", 20, Rank::Common);
     }
 
     pub fn add_super_potion(&mut self) {
