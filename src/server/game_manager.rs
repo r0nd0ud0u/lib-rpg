@@ -477,6 +477,10 @@ impl GameManager {
             self.game_state.status = GameStatus::EndOfGame;
         } else if all_bosses_dead {
             self.game_state.status = GameStatus::EndOfScenario;
+            // add loot to heroes according class
+            //-> add consumable
+            //-> add money
+            //-> add exp -> update level -> update stats
         } else {
             let (is_new_round, logs) = self.new_round();
             output_logs.extend(logs);

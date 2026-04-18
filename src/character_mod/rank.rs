@@ -2,7 +2,7 @@
 #[serde(rename_all = "PascalCase")]
 pub enum Rank {
     #[default]
-    Beginner,
+    Common,
     Intermediate,
     Advanced,
 }

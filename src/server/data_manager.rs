@@ -170,6 +170,7 @@ mod tests {
         let dm = DataManager::try_new("").unwrap();
         assert_eq!(dm.all_heroes.len(), 4);
         assert_eq!(dm.all_bosses.len(), 2);
+
     }
 
     #[test]
@@ -190,5 +191,18 @@ mod tests {
     fn unit_load_all_characters_err() {
         let mut dm = DataManager::default();
         assert!(dm.load_all_characters("").is_err());
+    }
+
+    #[test]
+    fn unit_load_all_scenarios() {
+        let mut dm = DataManager::default();
+        dm.load_all_scenarios(*TEST_OFFLINE_ROOT).unwrap();
+        assert_eq!(2, dm.all_scenarios.len());
+        assert_eq!(dm.all_scenarios[0].name, "Stage 1");
+        assert_eq!(dm.all_scenarios[0].description, "This is a test scenario");
+        assert_eq!(dm.all_scenarios[0].boss_patterns.len(), 1);
+        assert_eq!(dm.all_scenarios[0].boss_patterns["Angmar10PV"].len(), 1);
+        assert_eq!(dm.all_scenarios[0].boss_patterns["Angmar10PV"][0], 0);
+        assert_eq!(dm.all_scenarios[0].loots.len(), 3);
     }
 }
