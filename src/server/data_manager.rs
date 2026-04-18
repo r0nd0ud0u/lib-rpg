@@ -170,7 +170,6 @@ mod tests {
         let dm = DataManager::try_new("").unwrap();
         assert_eq!(dm.all_heroes.len(), 4);
         assert_eq!(dm.all_bosses.len(), 2);
-
     }
 
     #[test]

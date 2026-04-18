@@ -7,7 +7,7 @@ use crate::{
         character::CharacterKind,
         class::Class,
         equipment::{Equipment, EquipmentJsonKey},
-        experience::build_experience,
+        experience::{build_exp_to_next_level, build_experience},
         loot::LootType,
         rank::Rank,
         rounds_information::AmountType,
@@ -462,7 +462,6 @@ impl GameManager {
             .sum();
 
         let loots = self.current_scenario.loots.clone();
-        let game_state = self.game_state.clone();
         let equipment_table_flat: Vec<Equipment> = self
             .pm
             .equipment_table
@@ -476,8 +475,8 @@ impl GameManager {
 
             // Add loot according to class
             for loot in &loots {
-                let class_matches = loot.class.contains(&hero_class)
-                    || loot.class.contains(&Class::Standard);
+                let class_matches =
+                    loot.class.contains(&hero_class) || loot.class.contains(&Class::Standard);
                 if !class_matches {
                     continue;
                 }
@@ -504,9 +503,11 @@ impl GameManager {
                             Rank::Intermediate => 60,
                             Rank::Advanced => 120,
                         };
-                        self.pm.active_heroes[i]
-                            .inventory
-                            .add_potion(&loot.name, hp_amount, loot.rank.clone());
+                        self.pm.active_heroes[i].inventory.add_potion(
+                            &loot.name,
+                            hp_amount,
+                            loot.rank.clone(),
+                        );
                     }
                     LootType::Currency => {
                         self.pm.active_heroes[i].inventory.money += loot.level as u64;
@@ -516,33 +517,25 @@ impl GameManager {
             }
 
             // Add experience and level up if needed
-            // Use 100 as a safe fallback when exp_to_next_level is 0 (field not set in JSON)
-            let exp_threshold = if self.pm.active_heroes[i]
-                .character_rounds_info
-                .exp_to_next_level
-                == 0
-            {
-                100
-            } else {
-                self.pm.active_heroes[i].character_rounds_info.exp_to_next_level
-            };
             self.pm.active_heroes[i].character_rounds_info.exp += total_exp;
-            while self.pm.active_heroes[i].character_rounds_info.exp >= exp_threshold
+            while self.pm.active_heroes[i].character_rounds_info.exp
+                >= self.pm.active_heroes[i]
+                    .character_rounds_info
+                    .exp_to_next_level
                 && self.pm.active_heroes[i].level < ULTIMATE_LEVEL
             {
-                self.pm.active_heroes[i].character_rounds_info.exp -= exp_threshold;
+                self.pm.active_heroes[i].character_rounds_info.exp -= self.pm.active_heroes[i]
+                    .character_rounds_info
+                    .exp_to_next_level;
                 self.pm.active_heroes[i].level += 1;
                 self.pm.active_heroes[i].stats.update_stats_to_next_level();
-            }
-
-            // Use all consumables
-            let consumables = self.pm.active_heroes[i].inventory.consumables.clone();
-            let launcher_stats = self.pm.active_heroes[i].stats.clone();
-            for consumable in consumables {
-                let _ = self.pm.active_heroes[i].use_consumable(
-                    consumable,
-                    &game_state,
-                    &launcher_stats,
+                // Recompute the threshold for the new level
+                self.pm.active_heroes[i]
+                    .character_rounds_info
+                    .exp_to_next_level = build_exp_to_next_level(
+                    &self.pm.active_heroes[i].rank,
+                    &self.pm.active_heroes[i].class,
+                    self.pm.active_heroes[i].level,
                 );
             }
         }
@@ -1752,9 +1745,9 @@ mod tests {
 
     #[test]
     fn unit_end_of_scenario_equipment_loot_matching_class() {
+        use crate::character_mod::class::Class;
         use crate::character_mod::loot::{Loot, LootType};
         use crate::character_mod::rank::Rank;
-        use crate::character_mod::class::Class;
         use crate::server::scenario::Scenario;
         use std::collections::HashMap;
 
@@ -1794,9 +1787,9 @@ mod tests {
 
     #[test]
     fn unit_end_of_scenario_equipment_loot_no_class_match() {
+        use crate::character_mod::class::Class;
         use crate::character_mod::loot::{Loot, LootType};
         use crate::character_mod::rank::Rank;
-        use crate::character_mod::class::Class;
         use crate::server::scenario::Scenario;
         use std::collections::HashMap;
 
@@ -1841,8 +1834,7 @@ mod tests {
                 .filter(|e| e.unique_name == "starting belt")
                 .count();
             assert_eq!(
-                belts_after,
-                belts_before[idx],
+                belts_after, belts_before[idx],
                 "hero '{}' belt count should not change (class mismatch)",
                 hero.id_name
             );
@@ -1851,9 +1843,9 @@ mod tests {
 
     #[test]
     fn unit_end_of_scenario_equipment_loot_unknown_equipment() {
+        use crate::character_mod::class::Class;
         use crate::character_mod::loot::{Loot, LootType};
         use crate::character_mod::rank::Rank;
-        use crate::character_mod::class::Class;
         use crate::server::scenario::Scenario;
         use std::collections::HashMap;
 
@@ -1885,8 +1877,7 @@ mod tests {
         for (idx, hero) in gm.pm.active_heroes.iter().enumerate() {
             let total_equip: usize = hero.inventory.equipments.values().map(|v| v.len()).sum();
             assert_eq!(
-                total_equip,
-                equip_before[idx],
+                total_equip, equip_before[idx],
                 "hero '{}' equipment count should not change for unknown loot name",
                 hero.id_name
             );
@@ -1895,17 +1886,13 @@ mod tests {
 
     #[test]
     fn unit_end_of_scenario_consumable_loot() {
+        use crate::character_mod::class::Class;
         use crate::character_mod::loot::{Loot, LootType};
         use crate::character_mod::rank::Rank;
-        use crate::character_mod::class::Class;
         use crate::server::scenario::Scenario;
         use std::collections::HashMap;
 
         let mut gm = testing_game_manager();
-        // Reduce hero HP so the potion actually heals
-        for hero in gm.pm.active_heroes.iter_mut() {
-            hero.stats.all_stats.get_mut(HP).unwrap().current = 1;
-        }
 
         gm.current_scenario = Scenario {
             name: "test".to_string(),
@@ -1923,16 +1910,14 @@ mod tests {
         gm.process_end_of_scenario();
 
         for hero in &gm.pm.active_heroes {
-            // Consumable was added then immediately used → inventory is empty
+            let has_potion = hero
+                .inventory
+                .consumables
+                .iter()
+                .any(|c| c.name == "Common potion");
             assert!(
-                hero.inventory.consumables.is_empty(),
-                "hero '{}' should have used the consumable",
-                hero.id_name
-            );
-            // HP should be > 1 after using a 20 HP potion
-            assert!(
-                hero.stats.all_stats[HP].current > 1,
-                "hero '{}' HP should have been restored",
+                has_potion,
+                "hero '{}' should have received the consumable",
                 hero.id_name
             );
         }
@@ -1940,9 +1925,9 @@ mod tests {
 
     #[test]
     fn unit_end_of_scenario_currency_loot() {
+        use crate::character_mod::class::Class;
         use crate::character_mod::loot::{Loot, LootType};
         use crate::character_mod::rank::Rank;
-        use crate::character_mod::class::Class;
         use crate::server::scenario::Scenario;
         use std::collections::HashMap;
 
@@ -1961,7 +1946,12 @@ mod tests {
         };
 
         // Test heroes already have money: 100 in their JSON
-        let money_before: Vec<u64> = gm.pm.active_heroes.iter().map(|h| h.inventory.money).collect();
+        let money_before: Vec<u64> = gm
+            .pm
+            .active_heroes
+            .iter()
+            .map(|h| h.inventory.money)
+            .collect();
 
         gm.process_end_of_scenario();
 
@@ -1978,10 +1968,12 @@ mod tests {
     #[test]
     fn unit_end_of_scenario_exp_and_level_up() {
         // Test setup: 2 bosses, each rank Common level 1 → 100 exp each → 200 total
-        // test hero starts with exp=50, exp_to_next_level=100:
-        //   50+200=250 → level 2 (exp=150) → level 3 (exp=50) → stop
-        // test2 hero starts with exp=0:
-        //   0+200=200 → level 2 (exp=100) → level 3 (exp=0) → stop
+        //
+        // "test" hero:  exp=50, exp_to_next_level(Common, Standard, 1)=100
+        //   50 + 200 = 250 → level-up to 2 (exp=150), new threshold=200 → 150 < 200 → stop at level 2
+        //
+        // "test2" hero: exp=0,  exp_to_next_level(Common, Standard, 1)=100
+        //   0 + 200 = 200 → level-up to 2 (exp=100), new threshold=200 → 100 < 200 → stop at level 2
         use crate::server::scenario::Scenario;
         use std::collections::HashMap;
 
@@ -2004,11 +1996,18 @@ mod tests {
 
         for (idx, hero) in gm.pm.active_heroes.iter().enumerate() {
             assert_eq!(
-                hero.level, 3,
-                "hero '{}' should be level 3 after 200 exp",
+                hero.level, 2,
+                "hero '{}' should be level 2 after 200 exp (dynamic threshold grows to 200 at level 2)",
                 hero.id_name
             );
-            // Stats must have been updated upward on each level-up
+            // exp_to_next_level must now reflect the new level
+            assert_eq!(
+                hero.character_rounds_info.exp_to_next_level,
+                200, // build_exp_to_next_level(Common, Standard, 2) = 200
+                "hero '{}' exp_to_next_level should be 200 at level 2",
+                hero.id_name
+            );
+            // Stats must have been updated upward on level-up
             assert!(
                 hero.stats.all_stats[HP].max > old_hp_max[idx],
                 "hero '{}' HP max should have increased after leveling up",
@@ -2049,9 +2048,9 @@ mod tests {
     fn unit_end_of_scenario_triggered_via_game_flow() {
         // Verify that eval_end_of_round sets EndOfScenario and processes rewards
         // when all bosses are killed in a single hit.
+        use crate::character_mod::class::Class;
         use crate::character_mod::loot::{Loot, LootType};
         use crate::character_mod::rank::Rank;
-        use crate::character_mod::class::Class;
         use crate::server::scenario::Scenario;
         use std::collections::HashMap;
 
@@ -2098,4 +2097,3 @@ mod tests {
         }
     }
 }
-
