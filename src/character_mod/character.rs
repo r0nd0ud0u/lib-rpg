@@ -72,6 +72,7 @@ pub struct Character {
     /// Energy
     pub energies: Vec<Energy>,
     /// Rank of the character, used for boss to adapt the difficulty of the fight
+    #[serde(rename = "Rank")]
     pub rank: Rank,
 }
 

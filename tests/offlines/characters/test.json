@@ -34,7 +34,7 @@
     "Name": "test",
     "IdName": "test_#1",
     "Photo": "phototest",
-    "Rank": 4,
+    "Rank": "Common",
     "Shape": "",
     "Short name": "test",
     "Stats": {
