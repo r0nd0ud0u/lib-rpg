@@ -1,6 +1,7 @@
 {
     "name": "Stage 1",
     "description": "This is a test scenario",
+    "level": 1,
     "boss_patterns": {
         "Angmar10PV": [0]
     },

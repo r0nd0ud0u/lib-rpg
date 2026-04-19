@@ -27,6 +27,7 @@ use crate::{
     },
     utils,
 };
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -56,6 +57,8 @@ pub struct GameManager {
     pub logs: Vec<LogData>,
     /// Current scenario of the game, to adapt the behavior of the fight
     pub current_scenario: Scenario,
+    /// all scenarios
+    pub all_scenarios: Vec<Scenario>,
     /// State of the different scenarios, to know which scenario is available for the player and to adapt the behavior of the fight
     pub states_scenarios: HashMap<String, ScenarioState>,
 }
@@ -78,7 +81,7 @@ impl GameManager {
 
         // scenarios state
         let mut states_scenarios = HashMap::new();
-        for scenario in scenarios {
+        for scenario in &scenarios {
             states_scenarios.insert(scenario.name.clone(), ScenarioState::NotStarted);
         }
 
@@ -88,11 +91,13 @@ impl GameManager {
             game_paths: GamePaths::new(new_path, &game_name),
             logs: Vec::new(),
             current_scenario: Scenario::default(),
+            all_scenarios: scenarios,
+
             states_scenarios,
         }
     }
 
-    pub fn load_next_scenario(&mut self, scenario: Scenario) {
+    pub fn load_next_scenario(&mut self) -> Result<()> {
         // update current scenario state
         if let Some((_, state)) = self
             .states_scenarios
@@ -101,6 +106,19 @@ impl GameManager {
         {
             *state = ScenarioState::Completed;
         }
+        let current_level = self.current_scenario.level;
+        // get the next scenario with the next level
+        let Some(scenario) = self
+            .all_scenarios
+            .iter()
+            .find(|s| s.level == current_level + 1)
+            .cloned()
+        else {
+            return Err(anyhow::anyhow!(
+                "No next scenario found for level {}",
+                current_level + 1
+            ));
+        };
         // update scenario state in map
         if let Some((_, state)) = self
             .states_scenarios
@@ -111,6 +129,8 @@ impl GameManager {
         }
         // update current scenario
         self.current_scenario = scenario;
+
+        Ok(())
     }
 
     pub fn all_scenarios_completed(&self) -> bool {
@@ -1685,40 +1705,30 @@ mod tests {
 
     #[test]
     fn unit_load_next_scenario() {
-        use crate::server::scenario::{Scenario, ScenarioState};
+        use crate::server::scenario::ScenarioState;
 
         let mut gm = testing_all_characters::dxrpg_game_manager();
 
         // dxrpg loads stage_1 and stage_2; states start as NotStarted
-        let stage1_name = "Stage 1".to_string();
-        let stage2_name = "Stage 2".to_string();
+        let stage1_name = "Stage 1".to_owned();
+        let stage2_name = "Stage 2".to_owned();
         assert_eq!(gm.states_scenarios[&stage1_name], ScenarioState::NotStarted);
         assert_eq!(gm.states_scenarios[&stage2_name], ScenarioState::NotStarted);
 
         // set stage 1 as current (simulates game start on stage 1)
         let stage1 = gm
-            .states_scenarios
-            .keys()
-            .find(|k| k.as_str() == &stage1_name)
+            .all_scenarios
+            .iter()
+            .find(|s| s.name == stage1_name)
             .cloned()
-            .map(|name| Scenario {
-                name: name.clone(),
-                ..Default::default()
-            })
             .unwrap();
         gm.current_scenario = stage1;
         gm.states_scenarios
             .insert(stage1_name.clone(), ScenarioState::InProgress);
 
-        // build stage2 scenario to load
-        let stage2 = Scenario {
-            name: stage2_name.clone(),
-            description: "stage 2".to_string(),
-            ..Default::default()
-        };
-
         // load stage 2
-        gm.load_next_scenario(stage2.clone());
+        let result = gm.load_next_scenario();
+        assert!(result.is_ok(), "loading stage 2 should succeed");
 
         // stage 1 must be Completed
         assert_eq!(
@@ -1758,6 +1768,7 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "starting right weapon".to_string(),
                 kind: LootType::Equipment,
@@ -1814,6 +1825,7 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "starting belt".to_string(),
                 kind: LootType::Equipment,
@@ -1862,6 +1874,7 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "non_existent_equipment".to_string(),
                 kind: LootType::Equipment,
@@ -1898,6 +1911,7 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "Common potion".to_string(),
                 kind: LootType::Consumable,
@@ -1936,6 +1950,7 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "gold".to_string(),
                 kind: LootType::Currency,
@@ -1983,6 +1998,7 @@ mod tests {
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
             loots: vec![],
+            level: 1,
         };
 
         let old_hp_max: Vec<u64> = gm
@@ -2029,6 +2045,7 @@ mod tests {
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
             loots: vec![],
+            level: 1,
         };
 
         let levels_before: Vec<u64> = gm.pm.active_heroes.iter().map(|h| h.level).collect();
@@ -2060,6 +2077,7 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "gold".to_string(),
                 kind: LootType::Currency,

@@ -10,9 +10,11 @@ use crate::server::server_manager::GamePhase;
 /// Those data are necessary to run/load/replay a game
 #[derive(Default, Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct CoreGameData {
+    /// game manager, contains all the data of the game, including players, bosses, scenarios, logs, etc.
     pub game_manager: GameManager,
     /// Name of the server, used to identify the game and for clients to connect to the right game
     pub server_name: String,
+    /// current game phase, used to know what actions are allowed and what data to send to clients
     pub game_phase: GamePhase,
     /// reload info: players_nb
     pub players_nb: i64,

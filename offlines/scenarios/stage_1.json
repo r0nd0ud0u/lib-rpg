@@ -4,6 +4,7 @@
     "boss_patterns": {
         "Angmar10PV": [0]
     },
+    "level": 1,
     "loots": [
         {
             "name": "starting belt",

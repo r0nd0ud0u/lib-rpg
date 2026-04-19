@@ -1,6 +1,7 @@
 {
     "name": "Stage 2",
     "description": "The second stage of the game",
+    "level": 2,
     "boss_patterns": {
         "Angmar": [0],
         "Angmar10PV": [0]

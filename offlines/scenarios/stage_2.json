@@ -5,6 +5,7 @@
         "Angmar": [0],
         "Angmar10PV": [0]
     },
+    "level": 2,
     "loots": [
         {
             "name": "medium belt",
@@ -24,7 +25,7 @@
             "name": "Super potion",
             "kind": "Consumable",
             "rank": "Intermediate",
-            "level": 1,
+            "level": 2,
             "class": ["Standard"]
         },
         {

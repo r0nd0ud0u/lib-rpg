@@ -6,7 +6,9 @@ use crate::{character_mod::loot::Loot, utils};
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Scenario {
+    /// Name of the scenario, used to identify it and for players to choose it
     pub name: String,
+    /// Description of the scenario, used to explain the story and the objectives to the players
     pub description: String,
     /// Boss patterns, used for boss to adapt the behavior of the fight
     /// The key is the name of the boss, and the value is a list of pattern indexes that the boss can use
@@ -14,6 +16,8 @@ pub struct Scenario {
     /// Loots to give to the heroes at the end of the scenario, if they win
     #[serde(default)]
     pub loots: Vec<Loot>,
+    /// Level of the scenario, used to know the difficulty and to adapt the rewards
+    pub level: u64,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
