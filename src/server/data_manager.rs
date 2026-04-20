@@ -206,7 +206,7 @@ mod tests {
             .unwrap();
         assert_eq!(stage_1.description, "This is a test scenario");
         assert_eq!(stage_1.boss_patterns.len(), 1);
-        assert_eq!(stage_1.boss_patterns["Angmar10PV"], vec![0]);
+        assert_eq!(stage_1.boss_patterns["test_boss1"], vec![0]);
         assert_eq!(stage_1.loots.len(), 3);
         // stage 2 is correctly loaded
         let stage_2 = dm
@@ -216,8 +216,8 @@ mod tests {
             .unwrap();
         assert_eq!(stage_2.description, "The second stage of the game");
         assert_eq!(stage_2.boss_patterns.len(), 2);
-        assert_eq!(stage_2.boss_patterns["Angmar"], vec![0]);
-        assert_eq!(stage_2.boss_patterns["Angmar10PV"], vec![0]);
+        assert_eq!(stage_2.boss_patterns["test_boss1"], vec![0]);
+        assert_eq!(stage_2.boss_patterns["test_boss2"], vec![0]);
         assert!(stage_2.loots.is_empty());
     }
 }

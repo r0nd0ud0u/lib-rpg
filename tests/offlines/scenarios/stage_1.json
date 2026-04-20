@@ -3,7 +3,7 @@
     "description": "This is a test scenario",
     "level": 1,
     "boss_patterns": {
-        "Angmar10PV": [0]
+        "test_boss1": [0]
     },
     "loots": [
         {

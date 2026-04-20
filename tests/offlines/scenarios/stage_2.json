@@ -3,8 +3,8 @@
     "description": "The second stage of the game",
     "level": 2,
     "boss_patterns": {
-        "Angmar": [0],
-        "Angmar10PV": [0]
+        "test_boss1": [0],
+        "test_boss2": [0]
     },
     "loots": []
 }
