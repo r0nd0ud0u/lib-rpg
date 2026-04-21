@@ -153,11 +153,12 @@ impl GameManager {
         }
         // update current scenario
         self.current_scenario = scenario;
+        // clear previous scenario
+        self.game_state.clear_scenario();
+        self.pm.clear_scenario();
         // set active bosses for the new scenario from the stored roster
         let all_bosses = self.pm.all_bosses.clone();
         self.set_active_bosses(&all_bosses);
-        // start scenario
-        self.game_state.clear_scenario();
         let _ = self.start_new_turn();
 
         Ok(())
@@ -1756,8 +1757,13 @@ mod tests {
         gm.states_scenarios
             .insert(stage1_name.clone(), ScenarioState::InProgress);
 
-        // record bosses count before loading stage 2
-        let bosses_before = gm.pm.active_bosses.len();
+        // damage heroes and drain their energy to verify restoration on next scenario
+        for hero in gm.pm.active_heroes.iter_mut() {
+            hero.stats.get_mut_value(HP).current = 1;
+            hero.stats.get_mut_value(MANA).current = 0;
+            hero.stats.get_mut_value(VIGOR).current = 0;
+            hero.stats.get_mut_value(BERSERK).current = 0;
+        }
 
         // load stage 2
         let result = gm.load_next_scenario();
@@ -1778,14 +1784,41 @@ mod tests {
         // current_scenario must be stage 2
         assert_eq!(gm.current_scenario.name, stage2_name);
 
-        // active_bosses should have grown by the number of stage 2 boss patterns
-        // (bosses are populated from pm.all_bosses via the stored roster)
-        let added = gm.pm.active_bosses.len() - bosses_before;
+        // active_bosses count must equal the stage 2 boss patterns
         assert_eq!(
-            added,
+            gm.pm.active_bosses.len(),
             gm.current_scenario.boss_patterns.len(),
-            "active_bosses should grow by the stage 2 boss patterns count"
+            "active_bosses should match stage 2 boss patterns count"
         );
+
+        // heroes must have HP, energy and no effects restored to max
+        for hero in gm.pm.active_heroes.iter() {
+            assert_eq!(
+                hero.stats.all_stats[HP].current, hero.stats.all_stats[HP].max,
+                "hero {} HP should be restored to max",
+                hero.db_full_name
+            );
+            assert_eq!(
+                hero.stats.all_stats[MANA].current, hero.stats.all_stats[MANA].max,
+                "hero {} Mana should be restored to max",
+                hero.db_full_name
+            );
+            assert_eq!(
+                hero.stats.all_stats[VIGOR].current, hero.stats.all_stats[VIGOR].max,
+                "hero {} Vigor should be restored to max",
+                hero.db_full_name
+            );
+            assert_eq!(
+                hero.stats.all_stats[BERSERK].current, 0,
+                "hero {} Berserk should NOT be restored on scenario load",
+                hero.db_full_name
+            );
+            assert!(
+                hero.character_rounds_info.all_effects.is_empty(),
+                "hero {} should have no active effects after scenario transition",
+                hero.db_full_name
+            );
+        }
 
         // all_scenarios_completed returns false (stage 2 still in progress)
         assert!(!gm.all_scenarios_completed());

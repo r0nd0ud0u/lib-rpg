@@ -75,6 +75,14 @@ impl PlayerManager {
     pub fn clear_scenario(&mut self) {
         self.active_bosses.clear();
         self.current_player = Character::default();
+        self.active_heroes.iter_mut().for_each(|c| {
+            c.character_rounds_info.clear();
+            c.reset_all_effects_on_player()
+                .expect("failed to reset all effects");
+            c.stats.get_mut_value(HP).current = c.stats.all_stats[HP].max;
+            c.stats.get_mut_value(MANA).current = c.stats.all_stats[MANA].max;
+            c.stats.get_mut_value(VIGOR).current = c.stats.all_stats[VIGOR].max;
+        });
     }
 
     /// Get the number of active heroes with the given name
