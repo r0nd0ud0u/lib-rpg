@@ -31,28 +31,8 @@ impl CoreGameData {
             dm.all_scenarios.clone(),
         );
 
-        // load the first scenario of the game
-        gm.load_next_scenario()?;
-
-        // set active bosses
-        gm.current_scenario
-            .boss_patterns
-            .iter()
-            .for_each(|(boss_name, _)| {
-                if let Some(b) = dm.all_bosses.iter().find(|b| b.db_full_name == *boss_name) {
-                    let mut boss_to_push = b.clone();
-                    boss_to_push.id_name = format!(
-                        "{}_#{}",
-                        boss_to_push.db_full_name,
-                        1 + gm
-                            .pm
-                            .get_nb_of_active_bosses_by_name(&boss_to_push.db_full_name)
-                    );
-                    gm.pm.active_bosses.push(boss_to_push);
-                } else {
-                    tracing::warn!("Boss {} not found in data manager, skipping it", boss_name);
-                }
-            });
+        // load the first scenario of the game and set its active bosses
+        gm.load_next_scenario(&dm.all_bosses)?;
 
         Ok(CoreGameData {
             game_manager: gm,

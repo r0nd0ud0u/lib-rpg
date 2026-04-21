@@ -4,7 +4,7 @@ use crate::{
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
         buffers::BufKinds,
-        character::CharacterKind,
+        character::{Character, CharacterKind},
         class::Class,
         equipment::{Equipment, EquipmentJsonKey},
         experience::{build_exp_to_next_level, build_experience},
@@ -97,7 +97,31 @@ impl GameManager {
         }
     }
 
-    pub fn load_next_scenario(&mut self) -> Result<()> {
+    /// Set active bosses from the current scenario's boss patterns.
+    /// Bosses whose name matches a pattern in the current scenario are cloned and
+    /// pushed into `pm.active_bosses` with a unique id_name (`"<name>_#<n>"`).
+    pub fn set_active_bosses(&mut self, all_bosses: &[Character]) {
+        self.current_scenario
+            .boss_patterns
+            .iter()
+            .for_each(|(boss_name, _)| {
+                if let Some(b) = all_bosses.iter().find(|b| b.db_full_name == *boss_name) {
+                    let mut boss_to_push = b.clone();
+                    boss_to_push.id_name = format!(
+                        "{}_#{}",
+                        boss_to_push.db_full_name,
+                        1 + self
+                            .pm
+                            .get_nb_of_active_bosses_by_name(&boss_to_push.db_full_name)
+                    );
+                    self.pm.active_bosses.push(boss_to_push);
+                } else {
+                    tracing::warn!("Boss {} not found in data manager, skipping it", boss_name);
+                }
+            });
+    }
+
+    pub fn load_next_scenario(&mut self, all_bosses: &[Character]) -> Result<()> {
         // update current scenario state
         if let Some((_, state)) = self
             .states_scenarios
@@ -129,6 +153,11 @@ impl GameManager {
         }
         // update current scenario
         self.current_scenario = scenario;
+        // set active bosses for the new scenario
+        self.set_active_bosses(all_bosses);
+        // start scenario
+        self.game_state.clear_scenario();
+        let _ = self.start_new_turn();
 
         Ok(())
     }
@@ -1727,7 +1756,7 @@ mod tests {
             .insert(stage1_name.clone(), ScenarioState::InProgress);
 
         // load stage 2
-        let result = gm.load_next_scenario();
+        let result = gm.load_next_scenario(&[]);
         assert!(result.is_ok(), "loading stage 2 should succeed");
 
         // stage 1 must be Completed
@@ -1747,6 +1776,52 @@ mod tests {
 
         // all_scenarios_completed returns false (stage 2 still in progress)
         assert!(!gm.all_scenarios_completed());
+    }
+
+    #[test]
+    fn unit_set_active_bosses() {
+        use crate::testing::testing_all_characters::dxrpg_dm;
+
+        let dm = dxrpg_dm();
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+
+        // set stage 1 as current scenario so boss_patterns are in scope
+        let stage1 = gm
+            .all_scenarios
+            .iter()
+            .find(|s| s.level == 1)
+            .cloned()
+            .unwrap();
+        gm.current_scenario = stage1;
+
+        // no bosses yet
+        gm.pm.active_bosses.clear();
+        assert_eq!(gm.pm.active_bosses.len(), 0);
+
+        gm.set_active_bosses(&dm.all_bosses);
+
+        // the number of active bosses must match the number of boss_patterns entries
+        // that have a matching entry in dm.all_bosses
+        let expected = gm
+            .current_scenario
+            .boss_patterns
+            .keys()
+            .filter(|name| dm.all_bosses.iter().any(|b| &b.db_full_name == *name))
+            .count();
+        assert_eq!(
+            gm.pm.active_bosses.len(),
+            expected,
+            "active_bosses count should match boss_patterns with a known boss"
+        );
+
+        // each active boss must have the correct id_name suffix format
+        for boss in &gm.pm.active_bosses {
+            assert!(
+                boss.id_name.contains("_#"),
+                "id_name '{}' should contain '_#'",
+                boss.id_name
+            );
+        }
     }
 
     // -------------------------------------------------------------------------
