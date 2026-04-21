@@ -31,8 +31,10 @@ impl CoreGameData {
             dm.all_scenarios.clone(),
         );
 
+        // set the full boss roster so load_next_scenario can populate active_bosses
+        gm.pm.all_bosses = dm.all_bosses.clone();
         // load the first scenario of the game and set its active bosses
-        gm.load_next_scenario(&dm.all_bosses)?;
+        gm.load_next_scenario()?;
 
         Ok(CoreGameData {
             game_manager: gm,
@@ -41,6 +43,10 @@ impl CoreGameData {
             players_nb: 0,
             heroes_chosen: HashMap::new(),
         })
+    }
+
+    pub fn load_next_scenario(&mut self) -> Result<()> {
+        self.game_manager.load_next_scenario()
     }
 }
 

@@ -27,6 +27,7 @@ pub fn testing_pm() -> PlayerManager {
     pl.active_heroes = dm.all_heroes.clone();
     // All the bosses are active
     pl.active_bosses = dm.all_bosses.clone();
+    pl.all_bosses = dm.all_bosses.clone();
     // find test
     let test_hero = pl
         .active_heroes
@@ -92,6 +93,7 @@ pub fn dxrpg_pm() -> PlayerManager {
     pl.active_heroes = dm.all_heroes.clone();
     // All the bosses are active
     pl.active_bosses = dm.all_bosses.clone();
+    pl.all_bosses = dm.all_bosses.clone();
     pl.current_player = pl.active_heroes[0].clone();
     pl
 }

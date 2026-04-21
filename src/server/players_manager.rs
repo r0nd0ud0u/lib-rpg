@@ -47,6 +47,9 @@ pub struct PlayerManager {
     pub active_heroes: Vec<Character>,
     /// List of all selected bosses by computer
     pub active_bosses: Vec<Character>,
+    /// Full roster of all bosses loaded from the data manager.
+    /// Used as a source when populating active_bosses for each new scenario.
+    pub all_bosses: Vec<Character>,
     /// Shadow current player used to update the active character in the list of active characters
     pub current_player: Character,
     /// Equipment table mapping character names to their equipped items
@@ -63,9 +66,15 @@ impl PlayerManager {
         PlayerManager {
             active_heroes: Vec::new(),
             active_bosses: Vec::new(),
+            all_bosses: Vec::new(),
             current_player: Character::default(),
             equipment_table,
         }
+    }
+
+    pub fn clear_scenario(&mut self) {
+        self.active_bosses.clear();
+        self.current_player = Character::default();
     }
 
     /// Get the number of active heroes with the given name
@@ -558,6 +567,21 @@ mod tests {
 
         // equipments
         assert_eq!(EquipmentJsonKey::iter().count(), pl.equipment_table.len());
+    }
+
+    #[test]
+    fn unit_all_bosses() {
+        use crate::character_mod::character::CharacterKind;
+        let pl = testing_all_characters::testing_pm();
+        assert!(!pl.all_bosses.is_empty(), "all_bosses should not be empty");
+        for b in &pl.all_bosses {
+            assert_eq!(
+                b.kind,
+                CharacterKind::Boss,
+                "all_bosses should only contain Boss characters, got {:?}",
+                b.db_full_name
+            );
+        }
     }
 
     #[test]

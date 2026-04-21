@@ -121,7 +121,7 @@ impl GameManager {
             });
     }
 
-    pub fn load_next_scenario(&mut self, all_bosses: &[Character]) -> Result<()> {
+    pub fn load_next_scenario(&mut self) -> Result<()> {
         // update current scenario state
         if let Some((_, state)) = self
             .states_scenarios
@@ -153,8 +153,9 @@ impl GameManager {
         }
         // update current scenario
         self.current_scenario = scenario;
-        // set active bosses for the new scenario
-        self.set_active_bosses(all_bosses);
+        // set active bosses for the new scenario from the stored roster
+        let all_bosses = self.pm.all_bosses.clone();
+        self.set_active_bosses(&all_bosses);
         // start scenario
         self.game_state.clear_scenario();
         let _ = self.start_new_turn();
@@ -1755,8 +1756,11 @@ mod tests {
         gm.states_scenarios
             .insert(stage1_name.clone(), ScenarioState::InProgress);
 
+        // record bosses count before loading stage 2
+        let bosses_before = gm.pm.active_bosses.len();
+
         // load stage 2
-        let result = gm.load_next_scenario(&[]);
+        let result = gm.load_next_scenario();
         assert!(result.is_ok(), "loading stage 2 should succeed");
 
         // stage 1 must be Completed
@@ -1773,6 +1777,15 @@ mod tests {
         );
         // current_scenario must be stage 2
         assert_eq!(gm.current_scenario.name, stage2_name);
+
+        // active_bosses should have grown by the number of stage 2 boss patterns
+        // (bosses are populated from pm.all_bosses via the stored roster)
+        let added = gm.pm.active_bosses.len() - bosses_before;
+        assert_eq!(
+            added,
+            gm.current_scenario.boss_patterns.len(),
+            "active_bosses should grow by the stage 2 boss patterns count"
+        );
 
         // all_scenarios_completed returns false (stage 2 still in progress)
         assert!(!gm.all_scenarios_completed());
