@@ -153,13 +153,21 @@ impl GameManager {
         }
         // update current scenario
         self.current_scenario = scenario;
-        // clear previous scenario
-        self.game_state.clear_scenario();
-        self.pm.clear_scenario();
-        // set active bosses for the new scenario from the stored roster
-        let all_bosses = self.pm.all_bosses.clone();
-        self.set_active_bosses(&all_bosses);
-        let _ = self.start_new_turn();
+
+        if self.current_scenario.level > 1 {
+            // clear previous scenario
+            self.game_state.clear_scenario();
+            self.pm.clear_scenario();
+            // set active bosses for the new scenario from the stored roster
+            // do it before start new turn and after clearing a scenario
+            let all_bosses = self.pm.all_bosses.clone();
+            self.set_active_bosses(&all_bosses);
+            let _ = self.start_new_turn();
+        } else {
+            // set active bosses for the new scenario from the stored roster
+            let all_bosses = self.pm.all_bosses.clone();
+            self.set_active_bosses(&all_bosses);
+        }
 
         Ok(())
     }
