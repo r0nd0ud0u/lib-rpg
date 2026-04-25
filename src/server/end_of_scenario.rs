@@ -17,12 +17,12 @@ impl EndOfScenario {
         for level_up in &self.characters_levelup {
             if level_up.new_level > level_up.old_level {
                 result.push_str(&format!(
-                    "Character {} UP: {} to {} \n",
+                    "Character {} ⬆️ {} to {} \n",
                     level_up.character_id_name, level_up.old_level, level_up.new_level
                 ));
             } else {
                 result.push_str(&format!(
-                    "Character {} =: {} \n",
+                    "Character {} 🟰 {} \n",
                     level_up.character_id_name, level_up.old_level
                 ));
             }
@@ -57,13 +57,13 @@ mod tests {
         };
         let formatted_string = end_of_scenario.to_formatted_string(false);
         let expected_string =
-            "Scenario Level: 5\nCharacter Hero1 UP: 2 to 3 \nCharacter Hero2 =: 2 \n";
+            "Scenario Level: 5\nCharacter Hero1 ⬆️ 2 to 3 \nCharacter Hero2 🟰 2 \n";
         assert_eq!(formatted_string, expected_string);
 
         // html string
         let formatted_string_html = end_of_scenario.to_formatted_string(true);
         let expected_string_html =
-            "Scenario Level: 5<br/>Character Hero1 UP: 2 to 3 <br/>Character Hero2 =: 2 <br/>";
+            "Scenario Level: 5<br/>Character Hero1 ⬆️ 2 to 3 <br/>Character Hero2 🟰 2 <br/>";
         assert_eq!(formatted_string_html, expected_string_html);
     }
 }
