@@ -27,6 +27,22 @@ impl Loot {
             .collect::<Vec<&str>>()
             .join(", ")
     }
+
+    pub fn format_loot(&self) -> String {
+        format!(
+            "{} ({}), Rank: {}, Level: {}, Classes: {}",
+            self.name,
+            match self.kind {
+                LootType::Equipment => "Equipment",
+                LootType::Consumable => "Consumable",
+                LootType::Material => "Material",
+                LootType::Currency => "Currency",
+            },
+            self.rank.to_str(),
+            self.level,
+            self.format_classes()
+        )
+    }
 }
 
 #[cfg(test)]
@@ -43,5 +59,20 @@ mod tests {
             classes: vec![Class::Warrior, Class::Mage],
         };
         assert_eq!(loot.format_classes(), "Warrior, Mage");
+    }
+
+    #[test]
+    fn test_format_loot() {
+        let loot = Loot {
+            name: "Test Loot".to_string(),
+            kind: LootType::Consumable,
+            rank: Rank::Intermediate,
+            level: 5,
+            classes: vec![Class::Healer],
+        };
+        assert_eq!(
+            loot.format_loot(),
+            "Test Loot (Consumable), Rank: Intermediate, Level: 5, Classes: Healer"
+        );
     }
 }
