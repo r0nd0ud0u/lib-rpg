@@ -11,21 +11,21 @@
             "kind": "Equipment",
             "rank": "Common",
             "level": 1,
-            "class": ["Healer", "Mage"]
+            "classes": ["Healer", "Mage"]
         },
         {
             "name": "starting belt",
             "kind": "Equipment",
             "rank": "Common",
             "level": 1,
-            "class": ["Warrior", "Berserker"]
+            "classes": ["Warrior", "Berserker"]
         },
         {
             "name": "Common potion",
             "kind": "Consumable",
             "rank": "Common",
             "level": 1,
-            "class": ["Standard"]
+            "classes": ["Standard"]
         }
     ]
 }

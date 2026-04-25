@@ -12,28 +12,28 @@
             "kind": "Equipment",
             "rank": "Intermediate",
             "level": 2,
-            "class": ["Warrior", "Berserker"]
+            "classes": ["Warrior", "Berserker"]
         },
         {
             "name": "medium amulet",
             "kind": "Equipment",
             "rank": "Intermediate",
             "level": 2,
-            "class": ["Healer", "Mage"]
+            "classes": ["Healer", "Mage"]
         },
         {
             "name": "Super potion",
             "kind": "Consumable",
             "rank": "Intermediate",
             "level": 2,
-            "class": ["Standard"]
+            "classes": ["Standard"]
         },
         {
             "name": "gold",
             "kind": "Currency",
             "rank": "Common",
             "level": 150,
-            "class": ["Standard"]
+            "classes": ["Standard"]
         }
     ]
 }

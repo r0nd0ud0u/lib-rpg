@@ -11,28 +11,28 @@
             "kind": "Equipment",
             "rank": "Common",
             "level": 1,
-            "class": ["Warrior", "Berserker"]
+            "classes": ["Warrior", "Berserker"]
         },
         {
             "name": "starting amulet",
             "kind": "Equipment",
             "rank": "Common",
             "level": 1,
-            "class": ["Healer", "Mage"]
+            "classes": ["Healer", "Mage"]
         },
         {
             "name": "Common potion",
             "kind": "Consumable",
             "rank": "Common",
             "level": 1,
-            "class": ["Standard"]
+            "classes": ["Standard"]
         },
         {
             "name": "gold",
             "kind": "Currency",
             "rank": "Common",
             "level": 50,
-            "class": ["Standard"]
+            "classes": ["Standard"]
         }
     ]
 }

@@ -535,7 +535,7 @@ impl GameManager {
             // Add loot according to class
             for loot in &loots {
                 let class_matches =
-                    loot.class.contains(&hero_class) || loot.class.contains(&Class::Standard);
+                    loot.classes.contains(&hero_class) || loot.classes.contains(&Class::Standard);
                 if !class_matches {
                     continue;
                 }
@@ -1903,7 +1903,7 @@ mod tests {
                 kind: LootType::Equipment,
                 rank: Rank::Common,
                 level: 1,
-                class: vec![Class::Standard],
+                classes: vec![Class::Standard],
             }],
         };
 
@@ -1960,7 +1960,7 @@ mod tests {
                 kind: LootType::Equipment,
                 rank: Rank::Common,
                 level: 1,
-                class: vec![Class::Warrior],
+                classes: vec![Class::Warrior],
             }],
         };
 
@@ -2009,7 +2009,7 @@ mod tests {
                 kind: LootType::Equipment,
                 rank: Rank::Common,
                 level: 1,
-                class: vec![Class::Standard],
+                classes: vec![Class::Standard],
             }],
         };
 
@@ -2046,7 +2046,7 @@ mod tests {
                 kind: LootType::Consumable,
                 rank: Rank::Common, // heals 20 HP
                 level: 1,
-                class: vec![Class::Standard],
+                classes: vec![Class::Standard],
             }],
         };
 
@@ -2085,7 +2085,7 @@ mod tests {
                 kind: LootType::Currency,
                 rank: Rank::Common,
                 level: 100,
-                class: vec![Class::Standard],
+                classes: vec![Class::Standard],
             }],
         };
 
@@ -2212,7 +2212,7 @@ mod tests {
                 kind: LootType::Currency,
                 rank: Rank::Common,
                 level: 50,
-                class: vec![Class::Standard],
+                classes: vec![Class::Standard],
             }],
         };
 
