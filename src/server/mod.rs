@@ -1,5 +1,6 @@
 pub mod core_game_data;
 pub mod data_manager;
+pub mod end_of_scenario;
 pub mod game_manager;
 pub mod game_paths;
 pub mod game_state;

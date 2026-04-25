@@ -106,6 +106,8 @@ pub struct Buffer {
     /// A buf can be passive, that is without being a change of value
     #[serde(rename = "passive-enabled")]
     pub is_passive_enabled: bool,
+    #[serde(rename = "passive")]
+    pub is_passive: bool,
     /// If it is active, it changes the value
     #[serde(rename = "value")]
     pub value: i64,

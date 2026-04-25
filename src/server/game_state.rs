@@ -57,6 +57,15 @@ impl GameState {
         }
     }
 
+    pub fn clear_scenario(&mut self) {
+        self.current_turn_nb = 0;
+        self.current_round = 0;
+        self.died_ennemies.clear();
+        self.order_to_play.clear();
+        self.status = GameStatus::StartGame;
+        self.last_result_atk = ResultLaunchAttack::default();
+    }
+
     pub fn start_new_turn(&mut self) {
         // Increment turn number
         self.current_turn_nb += 1;

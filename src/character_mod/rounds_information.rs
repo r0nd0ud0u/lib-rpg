@@ -441,6 +441,7 @@ impl CharacterRoundsInfo {
                 value: -ep.buffer.value,
                 is_percent: true,
                 kind: ep.buffer.kind.clone(),
+                is_passive: false,
                 ..Default::default()
             }),
             _ => {}
@@ -496,6 +497,7 @@ impl CharacterRoundsInfo {
                     is_percent: false,
                     stats_name: String::new(),
                     kind: BufKinds::DamageCritCapped,
+                    is_passive: false,
                 });
             }
             Ok(true)
@@ -591,6 +593,20 @@ impl CharacterRoundsInfo {
 
     pub fn add_effect_on_player(&mut self, gae: GameAtkEffect) {
         self.all_effects.push(gae);
+    }
+
+    pub fn clear(&mut self) {
+        self.all_effects.clear();
+        // TODO remove all buffers except passive ones -> add item to Buffer struct to know if it's a passive one or not
+        self.all_buffers.clear();
+        self.is_first_round = true;
+        self.atk_pattern_queue.clear();
+        self.is_heal_atk_blocked = false;
+        self.is_random_target = false;
+        self.is_current_target = false;
+        self.is_potential_target = false;
+        self.actions_done_in_round = 0;
+        self.tx_rx.clear();
     }
 }
 
@@ -776,6 +792,7 @@ mod tests {
             is_percent: false,
             stats_name: String::new(),
             is_passive_enabled: false,
+            is_passive: false,
         });
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
         // -100 -20 = -120
@@ -793,6 +810,7 @@ mod tests {
             is_percent: false,
             stats_name: String::new(),
             kind: BufKinds::DamageRxPercent,
+            is_passive: false,
         });
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, false);
         // -100 -20 = -120
@@ -806,6 +824,7 @@ mod tests {
             is_percent: false,
             stats_name: String::new(),
             kind: BufKinds::DamageCritCapped,
+            is_passive: false,
         });
         // crit is doubled init:2 -> 2 + 2 = 4
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
@@ -819,6 +838,7 @@ mod tests {
             is_percent: false,
             stats_name: String::new(),
             kind: BufKinds::DamageTxPercent,
+            is_passive: false,
         });
         let result = cri.apply_buf_debuf(-100, TARGET_ENNEMY, true);
         // -100 -20 = -120* 4 = -480
@@ -834,6 +854,7 @@ mod tests {
             is_percent: false,
             stats_name: String::new(),
             kind: BufKinds::MultiValue,
+            is_passive: false,
         });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 * 3 = 300
@@ -847,6 +868,7 @@ mod tests {
             is_percent: false,
             stats_name: String::new(),
             kind: BufKinds::HealTxPercent,
+            is_passive: false,
         });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 + 20 = 120
@@ -859,6 +881,7 @@ mod tests {
             is_percent: false,
             stats_name: String::new(),
             kind: BufKinds::HealRxPercent,
+            is_passive: false,
         });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 + 20 = 120
@@ -871,6 +894,7 @@ mod tests {
             is_percent: false,
             stats_name: String::new(),
             kind: BufKinds::BoostedByHots,
+            is_passive: false,
         });
         let result = cri.apply_buf_debuf(100, TARGET_ALLY, false);
         // 100 + 20 = 120
@@ -887,6 +911,7 @@ mod tests {
             is_percent: false,
             stats_name: String::new(),
             kind: BufKinds::DamageTxPercent,
+            is_passive: false,
         });
         cri.reset_all_buffers();
         assert!(cri.all_buffers.is_empty());
@@ -901,6 +926,7 @@ mod tests {
             is_percent: false,
             stats_name: HP.to_owned(),
             kind: BufKinds::DamageTxPercent,
+            is_passive: false,
         });
         assert_eq!(
             20,

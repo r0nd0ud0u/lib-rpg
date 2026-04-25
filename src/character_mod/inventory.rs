@@ -11,8 +11,9 @@ use crate::character_mod::{
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 #[serde(default)]
 pub struct Inventory {
-    pub equipments: HashMap<EquipmentJsonKey, Vec<EquipmentInventory>>, // key: equipment category, value: list of equipment unique name
+    /// key: equipment category, value: list of equipment unique name
     pub limits: Vec<EquipmentLimit>,
+    pub equipments: HashMap<EquipmentJsonKey, Vec<EquipmentInventory>>,
     pub consumables: Vec<Consumable>,
     pub money: u64,
 }
@@ -44,12 +45,17 @@ pub struct EquipmentInventory {
     pub is_equipped: bool,
 }
 
+/// Inventory of a character, contains the equipments and consumables of the character
 #[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 #[serde(default)]
 pub struct Consumable {
+    /// Name of the consumable, used to identify it and for players to choose it
     pub name: String,
+    /// Effects of the consumable, used to know what the consumable does and to apply its effects when used
     pub effects: Vec<EffectParam>,
+    /// Kind of the consumable, used to know how to use it and to display it in the right category in the inventory
     pub consumable_kind: ConsumableKind,
+    /// Rank of the consumable, used to know the rarity and the power of the consumable
     pub rank: Rank,
 }
 

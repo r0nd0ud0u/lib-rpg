@@ -11,6 +11,9 @@ panic = "abort"
 [profile.dev]
 panic = "abort"
 opt-level = 0
+codegen-units = 256
+incremental = true
+split-debuginfo = "unpacked"
 
 [dependencies]
 anyhow = "1.0.101"

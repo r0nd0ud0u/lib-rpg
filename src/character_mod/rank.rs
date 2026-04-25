@@ -6,3 +6,13 @@ pub enum Rank {
     Intermediate,
     Advanced,
 }
+
+impl Rank {
+    pub fn to_str(&self) -> &str {
+        match self {
+            Rank::Common => "Common",
+            Rank::Intermediate => "Intermediate",
+            Rank::Advanced => "Advanced",
+        }
+    }
+}
