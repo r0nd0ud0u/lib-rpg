@@ -1,3 +1,4 @@
+use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -10,9 +11,11 @@ use crate::server::server_manager::GamePhase;
 /// Those data are necessary to run/load/replay a game
 #[derive(Default, Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct CoreGameData {
+    /// game manager, contains all the data of the game, including players, bosses, scenarios, logs, etc.
     pub game_manager: GameManager,
     /// Name of the server, used to identify the game and for clients to connect to the right game
     pub server_name: String,
+    /// current game phase, used to know what actions are allowed and what data to send to clients
     pub game_phase: GamePhase,
     /// reload info: players_nb
     pub players_nb: i64,
@@ -21,33 +24,29 @@ pub struct CoreGameData {
 }
 
 impl CoreGameData {
-    pub fn new(dm: &DataManager, server_name: &str) -> CoreGameData {
+    pub fn new(dm: &DataManager, server_name: &str) -> Result<CoreGameData> {
         let mut gm = GameManager::new(
             &dm.offline_root,
             dm.equipment_table.clone(),
             dm.all_scenarios.clone(),
         );
-        // set bosses
-        dm.all_bosses.iter().for_each(|boss| {
-            let mut boss_to_push = boss.clone();
-            boss_to_push.id_name = format!(
-                "{}_#{}",
-                boss_to_push.db_full_name,
-                1 + gm
-                    .pm
-                    .get_nb_of_active_bosses_by_name(&boss_to_push.db_full_name)
-            );
-            gm.pm.active_bosses.push(boss_to_push);
-        });
-        gm.pm.active_bosses = dm.all_bosses.clone();
 
-        CoreGameData {
+        // set the full boss roster so load_next_scenario can populate active_bosses
+        gm.pm.all_bosses = dm.all_bosses.clone();
+        // load the first scenario of the game and set its active bosses
+        gm.load_next_scenario()?;
+
+        Ok(CoreGameData {
             game_manager: gm,
-            server_name: server_name.to_string(),
+            server_name: server_name.to_owned(),
             game_phase: GamePhase::Default,
             players_nb: 0,
             heroes_chosen: HashMap::new(),
-        }
+        })
+    }
+
+    pub fn load_next_scenario(&mut self) -> Result<()> {
+        self.game_manager.load_next_scenario()
     }
 }
 
@@ -62,10 +61,9 @@ mod tests {
         let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
         let core_game_data = CoreGameData::new(&dm, "Default");
 
-        assert_eq!(
-            core_game_data.game_manager.pm.active_bosses.len(),
-            dm.all_bosses.len()
-        );
+        assert!(core_game_data.is_ok());
+        let core_game_data = core_game_data.unwrap();
+        assert_eq!(core_game_data.game_manager.pm.active_bosses.len(), 1);
         // check that the id_name of the boss is correctly set
         for boss in &core_game_data.game_manager.pm.active_bosses {
             assert!(boss.id_name.starts_with(&boss.db_full_name));

@@ -4,7 +4,7 @@ use crate::{
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
         buffers::BufKinds,
-        character::CharacterKind,
+        character::{Character, CharacterKind},
         class::Class,
         equipment::{Equipment, EquipmentJsonKey},
         experience::{build_exp_to_next_level, build_experience},
@@ -20,6 +20,7 @@ use crate::{
         },
     },
     server::{
+        end_of_scenario::{EndOfScenario, LevelUp},
         game_paths::GamePaths,
         game_state::{GameState, GameStatus},
         players_manager::{DodgeInfo, GameAtkEffect, PlayerManager},
@@ -27,6 +28,7 @@ use crate::{
     },
     utils,
 };
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -56,8 +58,12 @@ pub struct GameManager {
     pub logs: Vec<LogData>,
     /// Current scenario of the game, to adapt the behavior of the fight
     pub current_scenario: Scenario,
+    /// all scenarios
+    pub all_scenarios: Vec<Scenario>,
     /// State of the different scenarios, to know which scenario is available for the player and to adapt the behavior of the fight
     pub states_scenarios: HashMap<String, ScenarioState>,
+    /// End of scenario
+    pub end_of_scenario: EndOfScenario,
 }
 
 impl GameManager {
@@ -78,7 +84,7 @@ impl GameManager {
 
         // scenarios state
         let mut states_scenarios = HashMap::new();
-        for scenario in scenarios {
+        for scenario in &scenarios {
             states_scenarios.insert(scenario.name.clone(), ScenarioState::NotStarted);
         }
 
@@ -88,11 +94,37 @@ impl GameManager {
             game_paths: GamePaths::new(new_path, &game_name),
             logs: Vec::new(),
             current_scenario: Scenario::default(),
+            all_scenarios: scenarios,
             states_scenarios,
+            end_of_scenario: EndOfScenario::default(),
         }
     }
 
-    pub fn load_next_scenario(&mut self, scenario: Scenario) {
+    /// Set active bosses from the current scenario's boss patterns.
+    /// Bosses whose name matches a pattern in the current scenario are cloned and
+    /// pushed into `pm.active_bosses` with a unique id_name (`"<name>_#<n>"`).
+    pub fn set_active_bosses(&mut self, all_bosses: &[Character]) {
+        self.current_scenario
+            .boss_patterns
+            .iter()
+            .for_each(|(boss_name, _)| {
+                if let Some(b) = all_bosses.iter().find(|b| b.db_full_name == *boss_name) {
+                    let mut boss_to_push = b.clone();
+                    boss_to_push.id_name = format!(
+                        "{}_#{}",
+                        boss_to_push.db_full_name,
+                        1 + self
+                            .pm
+                            .get_nb_of_active_bosses_by_name(&boss_to_push.db_full_name)
+                    );
+                    self.pm.active_bosses.push(boss_to_push);
+                } else {
+                    tracing::warn!("Boss {} not found in data manager, skipping it", boss_name);
+                }
+            });
+    }
+
+    pub fn load_next_scenario(&mut self) -> Result<()> {
         // update current scenario state
         if let Some((_, state)) = self
             .states_scenarios
@@ -101,6 +133,19 @@ impl GameManager {
         {
             *state = ScenarioState::Completed;
         }
+        let current_level = self.current_scenario.level;
+        // get the next scenario with the next level
+        let Some(scenario) = self
+            .all_scenarios
+            .iter()
+            .find(|s| s.level == current_level + 1)
+            .cloned()
+        else {
+            return Err(anyhow::anyhow!(
+                "No next scenario found for level {}",
+                current_level + 1
+            ));
+        };
         // update scenario state in map
         if let Some((_, state)) = self
             .states_scenarios
@@ -111,6 +156,23 @@ impl GameManager {
         }
         // update current scenario
         self.current_scenario = scenario;
+
+        if self.current_scenario.level > 1 {
+            // clear previous scenario
+            self.game_state.clear_scenario();
+            self.pm.clear_scenario();
+            // set active bosses for the new scenario from the stored roster
+            // do it before start new turn and after clearing a scenario
+            let all_bosses = self.pm.all_bosses.clone();
+            self.set_active_bosses(&all_bosses);
+            let _ = self.start_new_turn();
+        } else {
+            // set active bosses for the new scenario from the stored roster
+            let all_bosses = self.pm.all_bosses.clone();
+            self.set_active_bosses(&all_bosses);
+        }
+
+        Ok(())
     }
 
     pub fn all_scenarios_completed(&self) -> bool {
@@ -452,6 +514,7 @@ impl GameManager {
     ///   consumables and currency added directly)
     /// - Add experience gained from all defeated bosses and level up (with stat update) as needed
     /// - Automatically use all consumables in inventory (potions restore HP)
+    /// Process enf of scenario struct to be sent to the frontend with the rewards and the level up info
     pub fn process_end_of_scenario(&mut self) {
         // Total exp: sum from all bosses
         let total_exp: u64 = self
@@ -470,13 +533,24 @@ impl GameManager {
             .cloned()
             .collect();
 
+        // prepare end of scenario
+        self.end_of_scenario.scenario_level = self.current_scenario.level;
+        self.end_of_scenario.characters_levelup.clear();
+        self.pm.active_heroes.iter().for_each(|hero| {
+            self.end_of_scenario.characters_levelup.push(LevelUp {
+                character_id_name: hero.id_name.clone(),
+                new_level: hero.level,
+                old_level: hero.level,
+            });
+        });
+
         for i in 0..self.pm.active_heroes.len() {
             let hero_class = self.pm.active_heroes[i].class.clone();
 
             // Add loot according to class
             for loot in &loots {
                 let class_matches =
-                    loot.class.contains(&hero_class) || loot.class.contains(&Class::Standard);
+                    loot.classes.contains(&hero_class) || loot.classes.contains(&Class::Standard);
                 if !class_matches {
                     continue;
                 }
@@ -537,6 +611,15 @@ impl GameManager {
                     &self.pm.active_heroes[i].class,
                     self.pm.active_heroes[i].level,
                 );
+                // update end of scenario
+                if let Some(level_up) = self
+                    .end_of_scenario
+                    .characters_levelup
+                    .iter_mut()
+                    .find(|lu| lu.character_id_name == self.pm.active_heroes[i].id_name)
+                {
+                    level_up.new_level = self.pm.active_heroes[i].level;
+                }
             }
         }
     }
@@ -1685,40 +1768,38 @@ mod tests {
 
     #[test]
     fn unit_load_next_scenario() {
-        use crate::server::scenario::{Scenario, ScenarioState};
+        use crate::server::scenario::ScenarioState;
 
         let mut gm = testing_all_characters::dxrpg_game_manager();
 
         // dxrpg loads stage_1 and stage_2; states start as NotStarted
-        let stage1_name = "Stage 1".to_string();
-        let stage2_name = "Stage 2".to_string();
+        let stage1_name = "Stage 1".to_owned();
+        let stage2_name = "Stage 2".to_owned();
         assert_eq!(gm.states_scenarios[&stage1_name], ScenarioState::NotStarted);
         assert_eq!(gm.states_scenarios[&stage2_name], ScenarioState::NotStarted);
 
         // set stage 1 as current (simulates game start on stage 1)
         let stage1 = gm
-            .states_scenarios
-            .keys()
-            .find(|k| k.as_str() == &stage1_name)
+            .all_scenarios
+            .iter()
+            .find(|s| s.name == stage1_name)
             .cloned()
-            .map(|name| Scenario {
-                name: name.clone(),
-                ..Default::default()
-            })
             .unwrap();
         gm.current_scenario = stage1;
         gm.states_scenarios
             .insert(stage1_name.clone(), ScenarioState::InProgress);
 
-        // build stage2 scenario to load
-        let stage2 = Scenario {
-            name: stage2_name.clone(),
-            description: "stage 2".to_string(),
-            ..Default::default()
-        };
+        // damage heroes and drain their energy to verify restoration on next scenario
+        for hero in gm.pm.active_heroes.iter_mut() {
+            hero.stats.get_mut_value(HP).current = 1;
+            hero.stats.get_mut_value(MANA).current = 0;
+            hero.stats.get_mut_value(VIGOR).current = 0;
+            hero.stats.get_mut_value(BERSERK).current = 0;
+        }
 
         // load stage 2
-        gm.load_next_scenario(stage2.clone());
+        let result = gm.load_next_scenario();
+        assert!(result.is_ok(), "loading stage 2 should succeed");
 
         // stage 1 must be Completed
         assert_eq!(
@@ -1735,8 +1816,90 @@ mod tests {
         // current_scenario must be stage 2
         assert_eq!(gm.current_scenario.name, stage2_name);
 
+        // active_bosses count must equal the stage 2 boss patterns
+        assert_eq!(
+            gm.pm.active_bosses.len(),
+            gm.current_scenario.boss_patterns.len(),
+            "active_bosses should match stage 2 boss patterns count"
+        );
+
+        // heroes must have HP, energy and no effects restored to max
+        for hero in gm.pm.active_heroes.iter() {
+            assert_eq!(
+                hero.stats.all_stats[HP].current, hero.stats.all_stats[HP].max,
+                "hero {} HP should be restored to max",
+                hero.db_full_name
+            );
+            assert_eq!(
+                hero.stats.all_stats[MANA].current, hero.stats.all_stats[MANA].max,
+                "hero {} Mana should be restored to max",
+                hero.db_full_name
+            );
+            assert_eq!(
+                hero.stats.all_stats[VIGOR].current, hero.stats.all_stats[VIGOR].max,
+                "hero {} Vigor should be restored to max",
+                hero.db_full_name
+            );
+            assert_eq!(
+                hero.stats.all_stats[BERSERK].current, 0,
+                "hero {} Berserk should NOT be restored on scenario load",
+                hero.db_full_name
+            );
+            assert!(
+                hero.character_rounds_info.all_effects.is_empty(),
+                "hero {} should have no active effects after scenario transition",
+                hero.db_full_name
+            );
+        }
+
         // all_scenarios_completed returns false (stage 2 still in progress)
         assert!(!gm.all_scenarios_completed());
+    }
+
+    #[test]
+    fn unit_set_active_bosses() {
+        use crate::testing::testing_all_characters::dxrpg_dm;
+
+        let dm = dxrpg_dm();
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+
+        // set stage 1 as current scenario so boss_patterns are in scope
+        let stage1 = gm
+            .all_scenarios
+            .iter()
+            .find(|s| s.level == 1)
+            .cloned()
+            .unwrap();
+        gm.current_scenario = stage1;
+
+        // no bosses yet
+        gm.pm.active_bosses.clear();
+        assert_eq!(gm.pm.active_bosses.len(), 0);
+
+        gm.set_active_bosses(&dm.all_bosses);
+
+        // the number of active bosses must match the number of boss_patterns entries
+        // that have a matching entry in dm.all_bosses
+        let expected = gm
+            .current_scenario
+            .boss_patterns
+            .keys()
+            .filter(|name| dm.all_bosses.iter().any(|b| &b.db_full_name == *name))
+            .count();
+        assert_eq!(
+            gm.pm.active_bosses.len(),
+            expected,
+            "active_bosses count should match boss_patterns with a known boss"
+        );
+
+        // each active boss must have the correct id_name suffix format
+        for boss in &gm.pm.active_bosses {
+            assert!(
+                boss.id_name.contains("_#"),
+                "id_name '{}' should contain '_#'",
+                boss.id_name
+            );
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -1758,12 +1921,13 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "starting right weapon".to_string(),
                 kind: LootType::Equipment,
                 rank: Rank::Common,
                 level: 1,
-                class: vec![Class::Standard],
+                classes: vec![Class::Standard],
             }],
         };
 
@@ -1814,12 +1978,13 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "starting belt".to_string(),
                 kind: LootType::Equipment,
                 rank: Rank::Common,
                 level: 1,
-                class: vec![Class::Warrior],
+                classes: vec![Class::Warrior],
             }],
         };
 
@@ -1862,12 +2027,13 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "non_existent_equipment".to_string(),
                 kind: LootType::Equipment,
                 rank: Rank::Common,
                 level: 1,
-                class: vec![Class::Standard],
+                classes: vec![Class::Standard],
             }],
         };
 
@@ -1898,12 +2064,13 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "Common potion".to_string(),
                 kind: LootType::Consumable,
                 rank: Rank::Common, // heals 20 HP
                 level: 1,
-                class: vec![Class::Standard],
+                classes: vec![Class::Standard],
             }],
         };
 
@@ -1936,12 +2103,13 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "gold".to_string(),
                 kind: LootType::Currency,
                 rank: Rank::Common,
                 level: 100,
-                class: vec![Class::Standard],
+                classes: vec![Class::Standard],
             }],
         };
 
@@ -1983,6 +2151,7 @@ mod tests {
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
             loots: vec![],
+            level: 1,
         };
 
         let old_hp_max: Vec<u64> = gm
@@ -2014,6 +2183,20 @@ mod tests {
                 hero.id_name
             );
         }
+        // assess end of scenario LevelUp
+        assert_eq!(gm.end_of_scenario.characters_levelup.len(), 2); // 2 heroes
+        gm.end_of_scenario.characters_levelup.iter().for_each(|lu| {
+            assert_eq!(
+                lu.new_level, 2,
+                "LevelUp record should show new level 2 for hero '{}'",
+                lu.character_id_name
+            );
+            assert_eq!(
+                lu.old_level, 1,
+                "LevelUp record should show old level 1 for hero '{}'",
+                lu.character_id_name
+            );
+        });
     }
 
     #[test]
@@ -2029,6 +2212,7 @@ mod tests {
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
             loots: vec![],
+            level: 1,
         };
 
         let levels_before: Vec<u64> = gm.pm.active_heroes.iter().map(|h| h.level).collect();
@@ -2060,12 +2244,13 @@ mod tests {
             name: "test".to_string(),
             description: "test".to_string(),
             boss_patterns: HashMap::new(),
+            level: 1,
             loots: vec![Loot {
                 name: "gold".to_string(),
                 kind: LootType::Currency,
                 rank: Rank::Common,
                 level: 50,
-                class: vec![Class::Standard],
+                classes: vec![Class::Standard],
             }],
         };
 
