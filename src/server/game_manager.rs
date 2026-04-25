@@ -20,6 +20,7 @@ use crate::{
         },
     },
     server::{
+        end_of_scenario::{EndOfScenario, LevelUp},
         game_paths::GamePaths,
         game_state::{GameState, GameStatus},
         players_manager::{DodgeInfo, GameAtkEffect, PlayerManager},
@@ -61,6 +62,8 @@ pub struct GameManager {
     pub all_scenarios: Vec<Scenario>,
     /// State of the different scenarios, to know which scenario is available for the player and to adapt the behavior of the fight
     pub states_scenarios: HashMap<String, ScenarioState>,
+    /// End of scenario
+    pub end_of_scenario: EndOfScenario,
 }
 
 impl GameManager {
@@ -92,8 +95,8 @@ impl GameManager {
             logs: Vec::new(),
             current_scenario: Scenario::default(),
             all_scenarios: scenarios,
-
             states_scenarios,
+            end_of_scenario: EndOfScenario::default(),
         }
     }
 
@@ -511,6 +514,7 @@ impl GameManager {
     ///   consumables and currency added directly)
     /// - Add experience gained from all defeated bosses and level up (with stat update) as needed
     /// - Automatically use all consumables in inventory (potions restore HP)
+    /// Process enf of scenario struct to be sent to the frontend with the rewards and the level up info
     pub fn process_end_of_scenario(&mut self) {
         // Total exp: sum from all bosses
         let total_exp: u64 = self
@@ -528,6 +532,17 @@ impl GameManager {
             .flatten()
             .cloned()
             .collect();
+
+        // prepare end of scenario
+        self.end_of_scenario.scenario_level = self.current_scenario.level;
+        self.end_of_scenario.characters_levelup.clear();
+        self.pm.active_heroes.iter().for_each(|hero| {
+            self.end_of_scenario.characters_levelup.push(LevelUp {
+                character_id_name: hero.id_name.clone(),
+                new_level: hero.level,
+                old_level: hero.level,
+            });
+        });
 
         for i in 0..self.pm.active_heroes.len() {
             let hero_class = self.pm.active_heroes[i].class.clone();
@@ -596,6 +611,15 @@ impl GameManager {
                     &self.pm.active_heroes[i].class,
                     self.pm.active_heroes[i].level,
                 );
+                // update end of scenario
+                if let Some(level_up) = self
+                    .end_of_scenario
+                    .characters_levelup
+                    .iter_mut()
+                    .find(|lu| lu.character_id_name == self.pm.active_heroes[i].id_name)
+                {
+                    level_up.new_level = self.pm.active_heroes[i].level;
+                }
             }
         }
     }
@@ -2159,6 +2183,20 @@ mod tests {
                 hero.id_name
             );
         }
+        // assess end of scenario LevelUp
+        assert_eq!(gm.end_of_scenario.characters_levelup.len(), 2); // 2 heroes
+        gm.end_of_scenario.characters_levelup.iter().for_each(|lu| {
+            assert_eq!(
+                lu.new_level, 2,
+                "LevelUp record should show new level 2 for hero '{}'",
+                lu.character_id_name
+            );
+            assert_eq!(
+                lu.old_level, 1,
+                "LevelUp record should show old level 1 for hero '{}'",
+                lu.character_id_name
+            );
+        });
     }
 
     #[test]
