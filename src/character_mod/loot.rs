@@ -30,7 +30,7 @@ impl Loot {
 
     pub fn format_loot(&self) -> String {
         format!(
-            "{} ({}), Rank: {}, Level: {}, Classes: {}",
+            "{} ({}), 🎖️: {}, #️⃣: {}, 🏷️: {}",
             self.name,
             match self.kind {
                 LootType::Equipment => "Equipment",
@@ -72,7 +72,7 @@ mod tests {
         };
         assert_eq!(
             loot.format_loot(),
-            "Test Loot (Consumable), Rank: Intermediate, Level: 5, Classes: Healer"
+            "Test Loot (Consumable), 🎖️: Intermediate, #️⃣: 5, 🏷️: Healer"
         );
     }
 }
