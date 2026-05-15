@@ -40,6 +40,12 @@ pub enum BufKinds {
     PercentageIntoDamages,
     NextHealAtkIsCritical,
     AddAsMuchAsHp,
+    /// Enables the crit streak-breaker: value = max consecutive turns without a crit
+    /// before the next attack is guaranteed to crit. Applied by effects or active by rank/class/level.
+    StreakBreakerCrit,
+    /// Enables the dodge streak-breaker: value = max consecutive turns without a dodge
+    /// before the next attack is guaranteed to dodge/block.
+    StreakBreakerDodge,
     EnumSize,
 }
 
@@ -74,6 +80,8 @@ impl fmt::Display for BufKinds {
             BufKinds::PercentageIntoDamages => "PercentageIntoDamages",
             BufKinds::NextHealAtkIsCritical => "NextHealAtkIsCritical",
             BufKinds::AddAsMuchAsHp => "AddAsMuchAsHp",
+            BufKinds::StreakBreakerCrit => "StreakBreakerCrit",
+            BufKinds::StreakBreakerDodge => "StreakBreakerDodge",
             BufKinds::EnumSize => "EnumSize",
         };
         write!(f, "{}", s)

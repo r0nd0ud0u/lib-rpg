@@ -19,7 +19,12 @@ use crate::{
         target::TargetData,
     },
     common::{
-        constants::{all_target_const::*, paths_const::*, stats_const::*},
+        constants::{
+            all_target_const::*, paths_const::*, stats_const::*,
+            streak_breaker_const::{
+                STREAK_BREAKER_ADVANCED, STREAK_BREAKER_BERSERKER, STREAK_BREAKER_INTERMEDIATE,
+            },
+        },
         log_data::{
             LogData,
             const_colors::{DARK_RED, LIGHT_GREEN},
@@ -107,6 +112,64 @@ pub enum CharacterKind {
     Boss,
 }
 
+/// Compute the effective crit streak-breaker threshold for the given character state.
+///
+/// Priority order:
+/// 1. `StreakBreakerCrit` buffer (set by attack effects) — highest priority
+/// 2. Berserker class — rewarded for aggressive play (threshold 3)
+/// 3. Advanced rank at level ≥ 5 (threshold 5)
+/// 4. Intermediate rank at level ≥ 10 (threshold 8)
+/// 5. None — streak-breaker disabled
+fn drought_threshold_crit(
+    rank: &Rank,
+    class: &Class,
+    level: u64,
+    cri: &CharacterRoundsInfo,
+) -> Option<u32> {
+    if let Some(buf) = cri.get_buffer_by_type(&BufKinds::StreakBreakerCrit)
+        && buf.value > 0
+    {
+        return Some(buf.value as u32);
+    }
+    if *class == Class::Berserker {
+        return Some(STREAK_BREAKER_BERSERKER);
+    }
+    match rank {
+        Rank::Advanced if level >= 5 => Some(STREAK_BREAKER_ADVANCED),
+        Rank::Intermediate if level >= 10 => Some(STREAK_BREAKER_INTERMEDIATE),
+        _ => None,
+    }
+}
+
+/// Compute the effective dodge streak-breaker threshold for the given character state.
+///
+/// Priority order:
+/// 1. `StreakBreakerDodge` buffer (set by attack effects) — highest priority
+/// 2. Advanced rank at level ≥ 5 (threshold 5)
+/// 3. Intermediate rank at level ≥ 10 (threshold 8)
+/// 4. None — streak-breaker disabled
+fn drought_threshold_dodge(
+    rank: &Rank,
+    class: &Class,
+    level: u64,
+    cri: &CharacterRoundsInfo,
+) -> Option<u32> {
+    if let Some(buf) = cri.get_buffer_by_type(&BufKinds::StreakBreakerDodge)
+        && buf.value > 0
+    {
+        return Some(buf.value as u32);
+    }
+    // Berserker blocks instead of dodging — no dodge drought counter applies
+    if *class == Class::Berserker {
+        return None;
+    }
+    match rank {
+        Rank::Advanced if level >= 5 => Some(STREAK_BREAKER_ADVANCED),
+        Rank::Intermediate if level >= 10 => Some(STREAK_BREAKER_INTERMEDIATE),
+        _ => None,
+    }
+}
+
 impl Character {
     pub fn try_new_from_json<P1: AsRef<Path>, P2: AsRef<Path>>(
         path: P1,
@@ -122,7 +185,7 @@ impl Character {
                 build_exp_to_next_level(&value.rank, &value.class, value.level);
             // init tx rx table
             let txrxlen = value.character_rounds_info.tx_rx.len();
-            for _ in 0..AmountType::EnumSize as usize - txrxlen {
+            for _ in txrxlen..AmountType::EnumSize as usize {
                 value.character_rounds_info.tx_rx.push(HashMap::new());
             }
             // read atk only if it is new game
@@ -236,11 +299,14 @@ impl Character {
     }
 
     pub fn process_dodging(&mut self, atk_level: u64) {
+        let drought_threshold =
+            drought_threshold_dodge(&self.rank, &self.class, self.level, &self.character_rounds_info);
         self.character_rounds_info.process_dodging(
             atk_level,
             &self.class,
             self.stats.all_stats[DODGE].current,
             &self.id_name,
+            drought_threshold,
         );
     }
 
@@ -251,8 +317,10 @@ impl Character {
             return Ok(false);
         };
 
+        let drought_threshold =
+            drought_threshold_crit(&self.rank, &self.class, self.level, &self.character_rounds_info);
         self.character_rounds_info
-            .process_critical_strike(atk, self.stats.all_stats[CRITICAL_STRIKE].current as i64)
+            .process_critical_strike(atk, self.stats.all_stats[CRITICAL_STRIKE].current as i64, drought_threshold)
     }
 
     pub fn apply_processed_effect_param(
@@ -619,8 +687,11 @@ impl Character {
             // update buf overheal
             if overhead > 0 {
                 // update txrx
-                self.character_rounds_info.tx_rx[AmountType::OverHealRx as usize]
-                    .insert(current_turn_nb as u64, overhead);
+                if let Some(map) = self.character_rounds_info.tx_rx
+                    .get_mut(AmountType::OverHealRx as usize)
+                {
+                    map.insert(current_turn_nb as u64, overhead);
+                }
                 log = format!("overheal of {}", overhead);
             }
         }
@@ -797,6 +868,8 @@ mod tests {
     use crate::character_mod::energy::EnergyKind;
     use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
+    use crate::common::constants::streak_breaker_const::STREAK_BREAKER_ADVANCED;
+    use crate::character_mod::rank::Rank;
     use crate::server::players_manager::GameAtkEffect;
     use crate::testing::testing_all_characters::{self, testing_all_equipment, testing_character};
     use crate::{
@@ -1245,23 +1318,28 @@ mod tests {
         assert!(!c.character_rounds_info.dodge_info.is_dodging);
         assert!(!c.character_rounds_info.dodge_info.is_blocking);
 
-        // impossible to dodge
+        // impossible to dodge (dodge stat = 0 → softcap = 0%)
         let atk_level = 1;
         c.stats.all_stats[DODGE].current = 0;
         c.process_dodging(atk_level);
         assert!(!c.character_rounds_info.dodge_info.is_dodging);
         assert!(!c.character_rounds_info.dodge_info.is_blocking);
 
-        // total dodge
-        let atk_level = 1;
-        c.stats.all_stats[DODGE].current = 100;
+        // guaranteed dodge via streak-breaker:
+        // give the character an Advanced rank at level >= 5 and set the drought counter
+        // past the threshold so the next dodge is guaranteed.
+        c.rank = Rank::Advanced;
+        c.level = 5;
+        c.stats.all_stats[DODGE].current = 0; // softcap still 0%, but streak-breaker fires
+        c.character_rounds_info.dodge_drought_counter = STREAK_BREAKER_ADVANCED;
         c.process_dodging(atk_level);
         assert!(c.character_rounds_info.dodge_info.is_dodging);
         assert!(!c.character_rounds_info.dodge_info.is_blocking);
+        // counter is reset after a successful dodge
+        assert_eq!(0, c.character_rounds_info.dodge_drought_counter);
 
-        // A tank is not dodging, he is blocking
+        // A Berserker blocks instead of dodging (no drought counter for dodge)
         let atk_level = 1;
-        c.stats.all_stats[DODGE].current = 100;
         c.class = Class::Berserker;
         c.process_dodging(atk_level);
         assert!(!c.character_rounds_info.dodge_info.is_dodging);
@@ -1270,13 +1348,21 @@ mod tests {
 
     #[test]
     fn unit_process_critical_strike() {
-        // no critical strike buff
+        // no critical strike stat → softcap(0) = 0% → never crits
         let mut c = testing_character();
         c.stats.all_stats[CRITICAL_STRIKE].current = 0;
         assert!(!c.process_critical_strike("atk1").unwrap());
-        // ensure critical strike
-        c.stats.all_stats[CRITICAL_STRIKE].current = 100;
+
+        // guaranteed crit via streak-breaker:
+        // Advanced rank at level >= 5, drought counter at threshold → guaranteed
+        c.rank = Rank::Advanced;
+        c.level = 5;
+        c.stats.all_stats[CRITICAL_STRIKE].current = 0; // still 0%, but streak-breaker fires
+        c.character_rounds_info.crit_drought_counter = STREAK_BREAKER_ADVANCED;
         assert!(c.process_critical_strike("atk1").unwrap());
+        // counter is reset after a successful crit
+        assert_eq!(0, c.character_rounds_info.crit_drought_counter);
+
         assert!(
             c.character_rounds_info
                 .get_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
@@ -1285,7 +1371,7 @@ mod tests {
                 .is_passive_enabled
         );
 
-        // critical strike is processed only on atk with heal effect
+        // critical strike via passive is processed only on atk with heal effect
         assert!(c.process_critical_strike("atk_heal1_indiv").unwrap());
         assert!(
             !c.character_rounds_info
@@ -1527,6 +1613,22 @@ mod tests {
 
         pl.current_player.apply_hot_or_dot(0, -30);
         assert_eq!(70, pl.current_player.stats.all_stats[HP].current);
+    }
+
+    #[test]
+    fn unit_apply_hot_or_dot_no_overheal_slot() {
+        // Regression test: calling apply_hot_or_dot when tx_rx has fewer slots than
+        // AmountType::OverHealRx must not panic (safe indexing with get_mut).
+        let mut c = Character::default();
+        c.stats.init();
+        // Default tx_rx has 1 entry, which is below OverHealRx (index 4). No panic expected.
+        assert!(c.character_rounds_info.tx_rx.len() < AmountType::OverHealRx as usize);
+        // A DOT: no overheal possible, log is empty
+        let log = c.apply_hot_or_dot(1, -10);
+        assert!(log.is_empty());
+        // A large HOT against default HP (0 max) produces no overheal
+        let log = c.apply_hot_or_dot(1, 500);
+        assert!(log.is_empty());
     }
 
     #[test]
