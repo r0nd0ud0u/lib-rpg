@@ -25,7 +25,7 @@ use crate::{
         game_state::GameState,
         players_manager::{DodgeInfo, GameAtkEffect},
     },
-    utils::get_random_nb,
+    utils::{get_random_nb, softcap_percent},
 };
 use std::collections::{HashMap, VecDeque};
 
@@ -84,6 +84,16 @@ pub struct CharacterRoundsInfo {
     /// Queue of attack indexes from the scenario pattern, filled on first use and cycled
     #[serde(default, skip)]
     pub atk_pattern_queue: VecDeque<u64>,
+    /// Streak-breaker: number of consecutive turns without a critical strike.
+    /// Reset to 0 each time a crit lands. Compared against the active threshold
+    /// (from rank/class/level or `StreakBreakerCrit` buffer) to guarantee the next crit.
+    #[serde(default, skip)]
+    pub crit_drought_counter: u32,
+    /// Streak-breaker: number of consecutive turns without a successful dodge.
+    /// Reset to 0 each time a dodge/block succeeds. Compared against the active
+    /// threshold (from rank/class/level or `StreakBreakerDodge` buffer).
+    #[serde(default, skip)]
+    pub dodge_drought_counter: u32,
 }
 
 impl Default for CharacterRoundsInfo {
@@ -103,6 +113,8 @@ impl Default for CharacterRoundsInfo {
             is_potential_target: false,
             all_effects: vec![],
             atk_pattern_queue: VecDeque::new(),
+            crit_drought_counter: 0,
+            dodge_drought_counter: 0,
         }
     }
 }
@@ -411,17 +423,35 @@ impl CharacterRoundsInfo {
         class: &Class,
         current_dodge: u64,
         id_name: &str,
+        drought_threshold: Option<u32>,
     ) {
         let dodge_info = if atk_level == ULTIMATE_LEVEL {
+            // Ultimate attacks can never be dodged or blocked
             DodgeInfo {
                 name: id_name.to_owned(),
                 is_dodging: false,
                 is_blocking: false,
             }
         } else {
+            let effective_dodge = softcap_percent(current_dodge);
             let rand_nb = get_random_nb(1, 100);
-            let is_dodging = *class != Class::Berserker && rand_nb <= current_dodge as i64;
+
+            // Streak-breaker: if the character hasn't dodged in `threshold` turns, guarantee dodge
+            let dodge_guaranteed = drought_threshold
+                .map(|t| self.dodge_drought_counter >= t)
+                .unwrap_or(false);
+
+            let is_dodging =
+                *class != Class::Berserker && (dodge_guaranteed || rand_nb <= effective_dodge);
             let is_blocking = *class == Class::Berserker;
+
+            // Update drought counter
+            if is_dodging {
+                self.dodge_drought_counter = 0;
+            } else {
+                self.dodge_drought_counter += 1;
+            }
+
             DodgeInfo {
                 name: id_name.to_owned(),
                 is_dodging,
@@ -475,21 +505,41 @@ impl CharacterRoundsInfo {
         &mut self,
         atk: &AttackType,
         current_critical: i64,
+        drought_threshold: Option<u32>,
     ) -> Result<bool> {
-        // process passive power
+        // Priority 1: passive guarantee — `NextHealAtkIsCrit` fires unconditionally
+        // on the next heal attack, regardless of the dice roll.
         let is_crit_by_passive =
             if let Some(buf) = self.get_buffer_by_type(&BufKinds::NextHealAtkIsCrit) {
                 buf.is_passive_enabled && atk.has_only_heal_effect()
             } else {
                 false
             };
-        let crit_capped = 60;
-        let rand_nb = get_random_nb(1, 100);
-        let is_crit = rand_nb <= current_critical;
+        if is_crit_by_passive {
+            self.crit_drought_counter = 0;
+            if let Some(buf) = self.get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit) {
+                buf.is_passive_enabled = false;
+            }
+            return Ok(true);
+        }
 
-        // priority to passive
+        // Apply hyperbolic softcap: P = stat / (100 + stat) * 100
+        let effective_critical = softcap_percent(current_critical.max(0) as u64);
+
+        // Priority 2: streak-breaker — guarantee after `threshold` consecutive non-crits
+        let crit_guaranteed = drought_threshold
+            .map(|t| self.crit_drought_counter >= t)
+            .unwrap_or(false);
+
+        let rand_nb = get_random_nb(1, 100);
+        let is_crit = crit_guaranteed || rand_nb <= effective_critical;
+
+        // For excess stat above raw 60: still converts to DamageCritCapped bonus
+        let crit_capped = 60;
         let delta_capped = std::cmp::max(0, current_critical - crit_capped);
-        if is_crit && !is_crit_by_passive {
+
+        if is_crit {
+            self.crit_drought_counter = 0;
             if delta_capped > 0 {
                 self.update_buffer(&Buffer {
                     is_passive_enabled: false,
@@ -501,12 +551,8 @@ impl CharacterRoundsInfo {
                 });
             }
             Ok(true)
-        } else if is_crit && is_crit_by_passive {
-            if let Some(buf) = self.get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit) {
-                buf.is_passive_enabled = false;
-            }
-            Ok(true)
         } else {
+            self.crit_drought_counter += 1;
             Ok(false)
         }
     }
@@ -607,6 +653,8 @@ impl CharacterRoundsInfo {
         self.is_potential_target = false;
         self.actions_done_in_round = 0;
         self.tx_rx.clear();
+        self.crit_drought_counter = 0;
+        self.dodge_drought_counter = 0;
     }
 }
 
@@ -1125,5 +1173,110 @@ mod tests {
         let level_up = cri.add_exp(5);
         assert_eq!(cri.exp, 3);
         assert!(level_up);
+    }
+
+    #[test]
+    fn unit_has_buffer_type() {
+        let mut cri = CharacterRoundsInfo::default();
+        assert!(!cri.has_buffer_type(&BufKinds::DamageTxPercent));
+        cri.update_buffer(&Buffer {
+            kind: BufKinds::DamageTxPercent,
+            ..Default::default()
+        });
+        assert!(cri.has_buffer_type(&BufKinds::DamageTxPercent));
+        assert!(!cri.has_buffer_type(&BufKinds::HealTxPercent));
+    }
+
+    #[test]
+    fn unit_increment_counter_effect() {
+        let mut cri = CharacterRoundsInfo::default();
+        // no effects: no-op
+        cri.increment_counter_effect();
+        assert!(cri.all_effects.is_empty());
+
+        cri.all_effects.push(GameAtkEffect {
+            processed_effect_param: build_hot_effect_individual(),
+            ..Default::default()
+        });
+        cri.all_effects.push(GameAtkEffect {
+            processed_effect_param: build_dot_effect_individual(),
+            ..Default::default()
+        });
+        assert_eq!(0, cri.all_effects[0].processed_effect_param.counter_turn);
+        assert_eq!(0, cri.all_effects[1].processed_effect_param.counter_turn);
+
+        cri.increment_counter_effect();
+        assert_eq!(1, cri.all_effects[0].processed_effect_param.counter_turn);
+        assert_eq!(1, cri.all_effects[1].processed_effect_param.counter_turn);
+
+        cri.increment_counter_effect();
+        assert_eq!(2, cri.all_effects[0].processed_effect_param.counter_turn);
+        assert_eq!(2, cri.all_effects[1].processed_effect_param.counter_turn);
+    }
+
+    #[test]
+    fn unit_process_hot_and_dot() {
+        let mut cri = CharacterRoundsInfo::default();
+        // empty effects
+        let (logs, total) = cri.process_hot_and_dot(0);
+        assert_eq!(0, total);
+        assert!(logs.is_empty());
+
+        // effect launched this turn => ignored
+        let mut hot = GameAtkEffect {
+            processed_effect_param: build_hot_effect_individual(),
+            launching_turn: 1,
+            ..Default::default()
+        };
+        cri.all_effects.push(hot.clone());
+        let (logs, total) = cri.process_hot_and_dot(1);
+        assert_eq!(0, total);
+        assert!(logs.is_empty());
+
+        // effect from a previous turn => applied
+        hot.launching_turn = 0;
+        cri.all_effects.clear();
+        let hot_value = hot.processed_effect_param.input_effect_param.buffer.value;
+        cri.all_effects.push(hot);
+
+        let dot = GameAtkEffect {
+            processed_effect_param: build_dot_effect_individual(),
+            launching_turn: 0,
+            ..Default::default()
+        };
+        let dot_value = dot.processed_effect_param.input_effect_param.buffer.value;
+        cri.all_effects.push(dot);
+
+        let (logs, total) = cri.process_hot_and_dot(1);
+        assert_eq!(hot_value + dot_value, total);
+        assert_eq!(2, logs.len());
+    }
+
+    #[test]
+    fn unit_clear() {
+        let mut cri = CharacterRoundsInfo::default();
+        cri.all_effects.push(GameAtkEffect::default());
+        cri.update_buffer(&Buffer {
+            kind: BufKinds::DamageTxPercent,
+            ..Default::default()
+        });
+        cri.is_heal_atk_blocked = true;
+        cri.is_random_target = true;
+        cri.is_current_target = true;
+        cri.is_potential_target = true;
+        cri.actions_done_in_round = 5;
+        cri.tx_rx.push(Default::default());
+
+        cri.clear();
+
+        assert!(cri.all_effects.is_empty());
+        assert!(cri.all_buffers.is_empty());
+        assert!(cri.is_first_round);
+        assert!(!cri.is_heal_atk_blocked);
+        assert!(!cri.is_random_target);
+        assert!(!cri.is_current_target);
+        assert!(!cri.is_potential_target);
+        assert_eq!(0, cri.actions_done_in_round);
+        assert!(cri.tx_rx.is_empty());
     }
 }

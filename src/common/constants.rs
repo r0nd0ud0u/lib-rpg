@@ -104,6 +104,19 @@ pub mod attak_const {
     pub const COEFF_CRIT_STATS: f64 = 1.5;
 }
 
+/// Streak-breaker thresholds: number of consecutive turns without crit/dodge
+/// before the next occurrence is guaranteed.
+/// These apply automatically based on rank/class/level; they can also be
+/// overridden per-character via a `StreakBreakerCrit` / `StreakBreakerDodge` buffer.
+pub mod streak_breaker_const {
+    /// Berserker class: guarantee after 3 missed crits (offensive class, rewards aggression)
+    pub const STREAK_BREAKER_BERSERKER: u32 = 3;
+    /// Advanced rank (level >= 5): guarantee after 5 missed crits/dodges
+    pub const STREAK_BREAKER_ADVANCED: u32 = 5;
+    /// Intermediate rank (level >= 10): guarantee after 8 missed crits/dodges
+    pub const STREAK_BREAKER_INTERMEDIATE: u32 = 8;
+}
+
 pub mod emoji_const {
     pub const EMOJI_HEAL: &str = "❤️";
     pub const EMOJI_DAMAGE: &str = "⚔️";
