@@ -102,6 +102,18 @@ pub fn get_random_nb(min: i64, max: i64) -> i64 {
     rng.random_range(min..=max)
 }
 
+/// Applies a hyperbolic softcap to a raw stat value, returning a percentage in [0, 100).
+/// Formula: P = raw / (100 + raw) * 100
+/// This provides diminishing returns instead of a hard cap:
+///   raw=10  → ~9.1 %
+///   raw=30  → ~23.1 %
+///   raw=60  → ~37.5 %
+///   raw=100 → 50 %
+///   raw=200 → ~66.7 %
+pub fn softcap_percent(raw: u64) -> i64 {
+    (raw as f64 / (100.0 + raw as f64) * 100.0).round() as i64
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::{Path, PathBuf};
