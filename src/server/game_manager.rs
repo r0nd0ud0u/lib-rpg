@@ -460,10 +460,15 @@ impl GameManager {
         // other function
         // update tx rx
         if is_crit
-            && let Some(map) = self.pm.current_player.character_rounds_info.tx_rx
+            && let Some(map) = self
+                .pm
+                .current_player
+                .character_rounds_info
+                .tx_rx
                 .get_mut(AmountType::CriticalStrike as usize)
         {
-            *map.entry(self.game_state.current_turn_nb as u64).or_insert(0) += 1;
+            *map.entry(self.game_state.current_turn_nb as u64)
+                .or_insert(0) += 1;
         }
         // end of buf
 
@@ -1056,7 +1061,10 @@ mod tests {
         // Use streak-breaker to guarantee the boss dodge: Advanced rank at level 5,
         // drought counter at the threshold ensures the next dodge is certain.
         {
-            let boss = gm.pm.get_mut_active_boss_character(&target_id_name).unwrap();
+            let boss = gm
+                .pm
+                .get_mut_active_boss_character(&target_id_name)
+                .unwrap();
             boss.rank = Rank::Advanced;
             boss.level = 5;
             boss.stats.all_stats[DODGE].current = 0; // softcap = 0%, streak-breaker fires
@@ -1065,7 +1073,10 @@ mod tests {
         }
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         // Disable the NextHealAtkIsCrit passive to ensure no crit on this non-heal atk
-        if let Some(buf) = gm.pm.current_player.character_rounds_info
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
             .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
         {
             buf.is_passive_enabled = false;
@@ -1120,7 +1131,10 @@ mod tests {
         gm.pm.current_player.rank = Rank::Advanced;
         gm.pm.current_player.level = 5;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        gm.pm.current_player.character_rounds_info.crit_drought_counter = STREAK_BREAKER_ADVANCED;
+        gm.pm
+            .current_player
+            .character_rounds_info
+            .crit_drought_counter = STREAK_BREAKER_ADVANCED;
         let old_boss = gm
             .pm
             .get_active_boss_character(&target_id_name)
@@ -1282,7 +1296,10 @@ mod tests {
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         // Disable the NextHealAtkIsCrit passive (loaded from test JSON) so this
         // heal attack is not treated as a crit.
-        if let Some(buf) = gm.pm.current_player.character_rounds_info
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
             .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
         {
             buf.is_passive_enabled = false;
@@ -1326,7 +1343,10 @@ mod tests {
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         // Disable the NextHealAtkIsCrit passive (loaded from test JSON) so this
         // heal attack is not treated as a crit.
-        if let Some(buf) = gm.pm.current_player.character_rounds_info
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
             .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
         {
             buf.is_passive_enabled = false;

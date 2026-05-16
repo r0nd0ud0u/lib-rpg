@@ -20,7 +20,9 @@ use crate::{
     },
     common::{
         constants::{
-            all_target_const::*, paths_const::*, stats_const::*,
+            all_target_const::*,
+            paths_const::*,
+            stats_const::*,
             streak_breaker_const::{
                 STREAK_BREAKER_ADVANCED, STREAK_BREAKER_BERSERKER, STREAK_BREAKER_INTERMEDIATE,
             },
@@ -299,8 +301,12 @@ impl Character {
     }
 
     pub fn process_dodging(&mut self, atk_level: u64) {
-        let drought_threshold =
-            drought_threshold_dodge(&self.rank, &self.class, self.level, &self.character_rounds_info);
+        let drought_threshold = drought_threshold_dodge(
+            &self.rank,
+            &self.class,
+            self.level,
+            &self.character_rounds_info,
+        );
         self.character_rounds_info.process_dodging(
             atk_level,
             &self.class,
@@ -317,10 +323,17 @@ impl Character {
             return Ok(false);
         };
 
-        let drought_threshold =
-            drought_threshold_crit(&self.rank, &self.class, self.level, &self.character_rounds_info);
-        self.character_rounds_info
-            .process_critical_strike(atk, self.stats.all_stats[CRITICAL_STRIKE].current as i64, drought_threshold)
+        let drought_threshold = drought_threshold_crit(
+            &self.rank,
+            &self.class,
+            self.level,
+            &self.character_rounds_info,
+        );
+        self.character_rounds_info.process_critical_strike(
+            atk,
+            self.stats.all_stats[CRITICAL_STRIKE].current as i64,
+            drought_threshold,
+        )
     }
 
     pub fn apply_processed_effect_param(
@@ -687,7 +700,9 @@ impl Character {
             // update buf overheal
             if overhead > 0 {
                 // update txrx
-                if let Some(map) = self.character_rounds_info.tx_rx
+                if let Some(map) = self
+                    .character_rounds_info
+                    .tx_rx
                     .get_mut(AmountType::OverHealRx as usize)
                 {
                     map.insert(current_turn_nb as u64, overhead);
@@ -867,9 +882,9 @@ mod tests {
     use crate::character_mod::effect::{Condition, ConditionKind};
     use crate::character_mod::energy::EnergyKind;
     use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
+    use crate::character_mod::rank::Rank;
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::common::constants::streak_breaker_const::STREAK_BREAKER_ADVANCED;
-    use crate::character_mod::rank::Rank;
     use crate::server::players_manager::GameAtkEffect;
     use crate::testing::testing_all_characters::{self, testing_all_equipment, testing_character};
     use crate::{
