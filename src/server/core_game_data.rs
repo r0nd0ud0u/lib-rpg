@@ -21,6 +21,9 @@ pub struct CoreGameData {
     pub players_nb: i64,
     /// reload info: key: username, value: character-name
     pub heroes_chosen: HashMap<String, String>,
+    /// single-player mode: one real player controls all heroes
+    #[serde(default)]
+    pub is_single_player: bool,
 }
 
 impl CoreGameData {
@@ -51,6 +54,7 @@ impl CoreGameData {
             game_phase: GamePhase::Default,
             players_nb: 0,
             heroes_chosen: HashMap::new(),
+            is_single_player: false,
         })
     }
 
