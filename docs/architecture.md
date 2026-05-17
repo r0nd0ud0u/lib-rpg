@@ -220,13 +220,13 @@ flowchart TD
 
 ### Armor reduction formula
 
-$$\text{real\_damage} = \text{full\_damage} \times \frac{1000}{1000 + \text{armor}}$$
+$$\text{real damage} = \text{full damage} \times \frac{1000}{1000 + \text{armor}}$$
 
 This gives a soft reduction: armor=1000 → 50 %, armor=3000 → 25 %.
 
 ### Power scaling (HP effects only)
 
-$$\text{full\_amount} = \text{base\_value} + \frac{\text{launcher\_power}}{\text{nb\_turns}}$$
+$$\text{full amount} = \text{base value} + \frac{\text{launcher power}}{\text{nb turns}}$$
 
 where `launcher_power` is `Physical power` for physical attacks and `Magic power` for magical attacks.
 
@@ -290,7 +290,7 @@ An attack or equipment effect can enable/tune the streak-breaker by applying a `
 
 ### Dodge probability — same softcap
 
-$$P_{\text{dodge}} = \frac{\text{Dodge\_stat}}{100 + \text{Dodge\_stat}} \times 100$$
+$$P_{\text{dodge}} = \frac{\text{Dodge stat}}{100 + \text{Dodge stat}} \times 100$$
 
 ### Class behaviour
 
