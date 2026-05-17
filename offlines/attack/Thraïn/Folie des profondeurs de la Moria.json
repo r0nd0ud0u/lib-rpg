@@ -94,5 +94,6 @@
     "Niveau": 8,
     "Nom": "Folie des profondeurs de la Moria",
     "Photo": "default.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Moria Madness — a berserk frenzy from the deep, dealing enormous damage."
 }

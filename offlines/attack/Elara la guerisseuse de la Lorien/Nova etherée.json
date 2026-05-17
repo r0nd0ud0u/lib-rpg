@@ -60,5 +60,6 @@
     "Niveau": 8,
     "Nom": "Nova etherée",
     "Photo": "default.png",
-    "Portée": "Zone"
+    "Portée": "Zone",
+    "Description": "Ethereal Nova — an explosion of ethereal energy dealing AoE magic damage."
 }

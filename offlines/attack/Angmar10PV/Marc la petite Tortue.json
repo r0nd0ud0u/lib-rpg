@@ -39,5 +39,6 @@
     "Niveau": 6,
     "Nom": "Marc la petite Tortue",
     "Photo": "default.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "A slow but steady strike."
 }

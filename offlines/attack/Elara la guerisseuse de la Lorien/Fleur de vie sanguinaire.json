@@ -95,5 +95,6 @@
     "Nom": "Fleur de vie sanguinaire",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Sound": ""
+    "Sound": "",
+    "Description": "Blood Bloom — a life flower that draws on vitality to trigger rapid regeneration."
 }

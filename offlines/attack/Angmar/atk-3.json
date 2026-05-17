@@ -43,5 +43,6 @@
     "Niveau": 8,
     "Nom": "atk-3",
     "Photo": "default.png",
-    "Portée": "Zone"
+    "Portée": "Zone",
+    "Description": "Test attack 3."
 }

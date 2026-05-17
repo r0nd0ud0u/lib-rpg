@@ -51,5 +51,6 @@
     "Niveau": 1,
     "Nom": "Essence Régénératrice",
     "Photo": "Essence regeneratrice.jpg",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Regenerative Essence — infuses a target with pure life essence for powerful ongoing regeneration."
 }

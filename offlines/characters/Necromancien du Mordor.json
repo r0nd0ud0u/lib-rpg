@@ -97,7 +97,14 @@
             "Max": 0
         }
     },
-    "Tx-rx": [{}, {}, {}, {}, {}, {}],
+    "Tx-rx": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
     "Type": "Boss",
     "is-blocking-atk": false,
     "max-actions-by-round": 1,
@@ -106,5 +113,6 @@
         {
             "kind": "Mana"
         }
-    ]
+    ],
+    "Description": "A dark necromancer channeling shadow magic and death curses."
 }

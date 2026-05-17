@@ -25,5 +25,6 @@
     "Niveau": 5,
     "Nom": "Lame du Spectre",
     "Photo": "SimpleAtk.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Wraith Blade — a spectral sword cuts through armor, dealing dark physical damage."
 }

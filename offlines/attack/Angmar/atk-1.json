@@ -60,5 +60,6 @@
     "Niveau": 5,
     "Nom": "atk-1",
     "Photo": "default.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Test attack 1."
 }

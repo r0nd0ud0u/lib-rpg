@@ -7,14 +7,14 @@
         "is_heal_atk_blocked": false,
         "is_random_target": false,
         "Buf-debuf": [
-        {
-            "stats-name": "",
-            "is-percent": true,
-            "passive-enabled": false,
-            "kind": "DamageRxPercent",
-            "value": 100
-        }
-    ]
+            {
+                "stats-name": "",
+                "is-percent": true,
+                "passive-enabled": false,
+                "kind": "DamageRxPercent",
+                "value": 100
+            }
+        ]
     },
     "Level": 1,
     "Name": "Thraïn",
@@ -98,18 +98,12 @@
         }
     },
     "Tx-rx": [
-        {
-        },
-        {
-        },
-        {
-        },
-        {
-        },
-        {
-        },
-        {
-        }
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
     ],
     "Type": "Hero",
     "is-blocking-atk": false,
@@ -117,72 +111,84 @@
     "nb-actions-in-round": 0,
     "inventory": {
         "equipments": {
-            "Amulet": [{
+            "Amulet": [
+                {
                     "unique_name": "starting amulet",
                     "is_equipped": true
                 }
             ],
-            "Belt": [{
+            "Belt": [
+                {
                     "unique_name": "starting belt",
                     "is_equipped": true
                 }
             ],
-            "Cape": [{
+            "Cape": [
+                {
                     "unique_name": "starting cape",
                     "is_equipped": true
                 }
             ],
-            "Chest": [{
+            "Chest": [
+                {
                     "unique_name": "starting chest",
                     "is_equipped": true
                 }
             ],
-            "Gloves": [{
+            "Gloves": [
+                {
                     "unique_name": "starting gloves",
                     "is_equipped": true
                 }
             ],
-            "Head": [{
+            "Head": [
+                {
                     "unique_name": "starting head",
                     "is_equipped": true
                 }
             ],
-            "LeftRing": [{
+            "LeftRing": [
+                {
                     "unique_name": "starting left ring",
                     "is_equipped": true
                 }
             ],
-            "RightRing": [{
+            "RightRing": [
+                {
                     "unique_name": "starting right ring",
                     "is_equipped": true
                 }
             ],
-            "Shoes": [{
+            "Shoes": [
+                {
                     "unique_name": "starting shoes",
                     "is_equipped": true
                 }
             ],
-            "LeftWeapon": [{
+            "LeftWeapon": [
+                {
                     "unique_name": "starting left weapon",
                     "is_equipped": true
                 }
             ],
-            "RightWeapon": [{
+            "RightWeapon": [
+                {
                     "unique_name": "starting right weapon",
                     "is_equipped": true
                 }
             ],
-            "Pants": [{
+            "Pants": [
+                {
                     "unique_name": "starting pants",
                     "is_equipped": true
                 }
             ],
-            "Tattoes": [{
+            "Tattoes": [
+                {
                     "unique_name": "starting tattoo",
                     "is_equipped": true
                 }
             ]
-
         },
         "consumables": [],
         "money": 100
@@ -191,6 +197,6 @@
         {
             "kind": "Berserk"
         }
-    ]
+    ],
+    "Description": "A dwarven warrior-king from Erebor. An unyielding tank who provokes enemies, absorbs damage and crushes foes with a great hammer."
 }
-

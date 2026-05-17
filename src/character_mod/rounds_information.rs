@@ -19,7 +19,7 @@ use crate::{
             reach_const::INDIVIDUAL,
             stats_const::HP,
         },
-        log_data::LogData,
+        log_data::{LogData, const_colors::{DARK_RED, LIGHT_GREEN}},
     },
     server::{
         game_state::GameState,
@@ -193,10 +193,10 @@ impl CharacterRoundsInfo {
 
     fn get_hot_and_buf_texts(ep: &EffectParam) -> String {
         if ep.buffer.stats_name.is_empty() {
-            format!("{}: {}", ep.buffer.kind, ep.buffer.value)
+            format!("[{}] {}", ep.buffer.kind, ep.buffer.value)
         } else {
             format!(
-                "{}-{}: {}",
+                "[{}] {} {}",
                 ep.buffer.kind, ep.buffer.stats_name, ep.buffer.value
             )
         }
@@ -296,7 +296,7 @@ impl CharacterRoundsInfo {
             BufKinds::CooldownTurnsNumber => {
                 processed_effect_param.log = LogData {
                     message: format!(
-                        "Cooldown actif sur {} de {} tours.",
+                        "Cooldown on {}: {} turns",
                         atk_name, ep.buffer.value
                     ),
                     color: "".to_owned(),
@@ -313,7 +313,7 @@ impl CharacterRoundsInfo {
                 });
                 processed_effect_param.log = LogData {
                     message: format!(
-                        "L'attaque sera effectuée {} fois.",
+                        "Attack will be applied {} times",
                         processed_effect_param.number_of_applies
                     ),
                     color: "".to_owned(),
@@ -598,19 +598,19 @@ impl CharacterRoundsInfo {
         gae: &GameAtkEffect,
     ) {
         *hot_and_dot += gae.processed_effect_param.input_effect_param.buffer.value;
-        let effect_type = if gae.processed_effect_param.input_effect_param.buffer.value > 0 {
-            "HOT->"
+        let (effect_type, color) = if gae.processed_effect_param.input_effect_param.buffer.value > 0 {
+            ("HOT", LIGHT_GREEN)
         } else {
-            "DOT->"
+            ("DOT", DARK_RED)
         };
         local_log.push(LogData {
             message: format!(
-                "{} valeur: {}, atk: {}",
+                "\u{1f7e2} {} {} HP from {}",
                 effect_type,
                 gae.processed_effect_param.input_effect_param.buffer.value,
                 gae.atk_type.name
             ),
-            ..Default::default()
+            color: color.to_string(),
         });
     }
 
@@ -709,7 +709,7 @@ mod tests {
                 buf_nb: 0,
                 debuf_nb: 0,
                 hot_txt: vec![format!(
-                    "{}-{}: {}",
+                    "[{}] {} {}",
                     BufKinds::ChangeCurrentStatByValue,
                     HP,
                     30
@@ -733,13 +733,13 @@ mod tests {
                 buf_nb: 0,
                 debuf_nb: 0,
                 hot_txt: vec![format!(
-                    "{}-{}: {}",
+                    "[{}] {} {}",
                     BufKinds::ChangeCurrentStatByValue,
                     HP,
                     30
                 )],
                 dot_txt: vec![format!(
-                    "{}-{}: {}",
+                    "[{}] {} {}",
                     BufKinds::ChangeCurrentStatByValue,
                     HP,
                     -20
@@ -762,19 +762,19 @@ mod tests {
                 buf_nb: 1,
                 debuf_nb: 0,
                 hot_txt: vec![format!(
-                    "{}-{}: {}",
+                    "[{}] {} {}",
                     BufKinds::ChangeCurrentStatByValue,
                     HP,
                     30
                 )],
                 dot_txt: vec![format!(
-                    "{}-{}: {}",
+                    "[{}] {} {}",
                     BufKinds::ChangeCurrentStatByValue,
                     HP,
                     -20
                 )],
                 buf_txt: vec![format!(
-                    "{}-{}: {}",
+                    "[{}] {} {}",
                     BufKinds::ChangeCurrentStatByValue,
                     MAGICAL_ARMOR,
                     20
@@ -796,25 +796,25 @@ mod tests {
                 buf_nb: 1,
                 debuf_nb: 1,
                 hot_txt: vec![format!(
-                    "{}-{}: {}",
+                    "[{}] {} {}",
                     BufKinds::ChangeCurrentStatByValue,
                     HP,
                     30
                 )],
                 dot_txt: vec![format!(
-                    "{}-{}: {}",
+                    "[{}] {} {}",
                     BufKinds::ChangeCurrentStatByValue,
                     HP,
                     -20
                 )],
                 buf_txt: vec![format!(
-                    "{}-{}: {}",
+                    "[{}] {} {}",
                     BufKinds::ChangeCurrentStatByValue,
                     MAGICAL_ARMOR,
                     20
                 )],
                 debuf_txt: vec![format!(
-                    "{}-{}: {}",
+                    "[{}] {} {}",
                     BufKinds::ChangeCurrentStatByValue,
                     MAGICAL_ARMOR,
                     -20

@@ -60,5 +60,6 @@
     "Niveau": 2,
     "Nom": "Bouclier Défensif ",
     "Photo": "Thraïn.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Defensive Shield — raises a dwarven shield to greatly reduce incoming damage for several turns."
 }

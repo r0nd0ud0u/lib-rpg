@@ -97,7 +97,14 @@
             "Max": 15
         }
     },
-    "Tx-rx": [{}, {}, {}, {}, {}, {}],
+    "Tx-rx": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
     "Type": "Boss",
     "is-blocking-atk": false,
     "max-actions-by-round": 1,
@@ -106,5 +113,6 @@
         {
             "kind": "Vigor"
         }
-    ]
+    ],
+    "Description": "A quick goblin scout who harasses heroes with cheap attacks."
 }

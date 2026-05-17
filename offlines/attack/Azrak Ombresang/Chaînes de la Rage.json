@@ -60,5 +60,6 @@
     "Niveau": 7,
     "Nom": "Chaînes de la Rage",
     "Photo": "Azrak Ombresang.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Chains of Rage — iron chains infused with dark energy that bind and damage the enemy."
 }

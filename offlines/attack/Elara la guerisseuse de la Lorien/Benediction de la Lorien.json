@@ -61,5 +61,6 @@
     "Nom": "Benediction de la Lorien",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Sound": ""
+    "Sound": "",
+    "Description": "Lorien Blessing — bathes an ally in golden light, restoring significant HP."
 }

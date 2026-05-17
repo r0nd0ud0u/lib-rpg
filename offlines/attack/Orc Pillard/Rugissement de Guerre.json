@@ -25,5 +25,6 @@
     "Niveau": 2,
     "Nom": "Rugissement de Guerre",
     "Photo": "SimpleAtk.png",
-    "Portée": "Zone"
+    "Portée": "Zone",
+    "Description": "War Cry — a fearsome battle roar that weakens enemy morale and defenses."
 }

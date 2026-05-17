@@ -97,7 +97,14 @@
             "Max": 18
         }
     },
-    "Tx-rx": [{}, {}, {}, {}, {}, {}],
+    "Tx-rx": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
     "Type": "Boss",
     "is-blocking-atk": false,
     "max-actions-by-round": 1,
@@ -106,5 +113,6 @@
         {
             "kind": "Vigor"
         }
-    ]
+    ],
+    "Description": "A brutal orc raider dealing heavy physical blows."
 }

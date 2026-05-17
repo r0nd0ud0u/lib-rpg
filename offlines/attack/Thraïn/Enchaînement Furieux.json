@@ -26,5 +26,6 @@
     "Niveau": 9,
     "Nom": "Enchaînement Furieux",
     "Photo": "Thraïn.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Furious Chain — a rapid sequence of blows that overwhelms enemy defenses."
 }

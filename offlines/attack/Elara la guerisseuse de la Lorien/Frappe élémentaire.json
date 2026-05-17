@@ -60,5 +60,6 @@
     "Niveau": 11,
     "Nom": "Frappe élémentaire",
     "Photo": "default.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Elemental Strike — a swift strike channeling elemental magic for bonus damage."
 }

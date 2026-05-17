@@ -78,5 +78,6 @@
     "Niveau": 6,
     "Nom": "Récupération Mordorienne",
     "Photo": "Azrak Ombresang.png",
-    "Portée": "Zone"
+    "Portée": "Zone",
+    "Description": "Mordor Recovery — channels dark energy to restore the caster's HP."
 }

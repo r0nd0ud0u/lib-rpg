@@ -112,5 +112,6 @@
     "Nom": "Prière du desespoir",
     "Photo": "default.png",
     "Portée": "Zone",
-    "Sound": ""
+    "Sound": "",
+    "Description": "Prayer of Despair — a desperate prayer that channels divine energy for a powerful emergency heal."
 }

@@ -94,5 +94,6 @@
     "Niveau": 13,
     "Nom": "Non sans raison",
     "Photo": "default.png",
-    "Portée": "Zone"
+    "Portée": "Zone",
+    "Description": "Not Without Reason — cleanses debuffs and heals the target with focused light."
 }

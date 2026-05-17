@@ -95,5 +95,6 @@
     "Nom": "Offrande vitale",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Sound": ""
+    "Sound": "",
+    "Description": "Vital Offering — drains own HP to deliver a massive heal to an ally."
 }

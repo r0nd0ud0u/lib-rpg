@@ -39,5 +39,6 @@
     "Niveau": 2,
     "Nom": "caca culotte",
     "Photo": "default.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "A basic strike."
 }

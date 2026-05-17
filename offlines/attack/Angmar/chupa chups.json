@@ -43,5 +43,6 @@
     "Niveau": 3,
     "Nom": "chupa chups",
     "Photo": "default.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "A sweet strike."
 }

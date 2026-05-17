@@ -21,5 +21,6 @@
     "Niveau": 1,
     "Nom": "SimpleAtk",
     "Photo": "SimpleAtk.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "A basic strike dealing physical damage."
 }

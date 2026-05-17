@@ -97,7 +97,14 @@
             "Max": 25
         }
     },
-    "Tx-rx": [{}, {}, {}, {}, {}, {}],
+    "Tx-rx": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
     "Type": "Boss",
     "is-blocking-atk": false,
     "max-actions-by-round": 1,
@@ -109,5 +116,6 @@
         {
             "kind": "Vigor"
         }
-    ]
+    ],
+    "Description": "A Ringwraith of Sauron — a terrifying spectral warrior wielding dark power."
 }

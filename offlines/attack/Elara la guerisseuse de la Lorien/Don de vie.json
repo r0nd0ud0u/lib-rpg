@@ -112,5 +112,6 @@
     "Nom": "Don de vie",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Sound": ""
+    "Sound": "",
+    "Description": "Gift of Life — sacrifices personal energy to provide a powerful heal to an ally."
 }

@@ -97,7 +97,14 @@
             "Max": 30
         }
     },
-    "Tx-rx": [{}, {}, {}, {}, {}, {}],
+    "Tx-rx": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
     "Type": "Boss",
     "is-blocking-atk": false,
     "max-actions-by-round": 1,
@@ -109,5 +116,6 @@
         {
             "kind": "Vigor"
         }
-    ]
+    ],
+    "Description": "The Dark Lord himself. Wields ancient evil and the One Ring for overwhelming power."
 }

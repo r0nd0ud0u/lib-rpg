@@ -81,6 +81,9 @@ pub struct Character {
     /// Rank of the character, used for boss to adapt the difficulty of the fight
     #[serde(rename = "Rank")]
     pub rank: Rank,
+    /// Short description of the character for UI display (optional)
+    #[serde(rename = "Description", default)]
+    pub description: String,
 }
 
 impl Default for Character {
@@ -100,6 +103,7 @@ impl Default for Character {
             inventory: Inventory::default(),
             energies: Vec::new(),
             rank: Rank::default(),
+            description: String::new(),
         }
     }
 }
@@ -728,8 +732,14 @@ impl Character {
 
             match self.remove_terminated_effect_on_player() {
                 Ok(effects_param_removed) => effects_param_removed.iter().for_each(|e| {
+                    let stat = &e.buffer.stats_name;
+                    let msg = if stat.is_empty() {
+                        format!("\u{1f550} Effect expired: {}", e.buffer.kind)
+                    } else {
+                        format!("\u{1f550} Effect expired: {} on {}", e.buffer.kind, stat)
+                    };
                     output_logs_data.push(LogData {
-                        message: format!("{} on {}", e.buffer.kind, e.buffer.stats_name),
+                        message: msg,
                         ..Default::default()
                     })
                 }),
@@ -1207,7 +1217,7 @@ mod tests {
             processed_effect_param.input_effect_param.sub_value_effect
         );
         assert_eq!(
-            "Cooldown actif sur  de 10 tours.",
+            "Cooldown on : 10 turns",
             processed_effect_param.log.message
         );
 

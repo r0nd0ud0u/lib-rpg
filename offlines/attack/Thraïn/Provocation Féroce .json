@@ -94,5 +94,6 @@
     "Niveau": 7,
     "Nom": "Provocation Féroce ",
     "Photo": "Thraïn.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Fierce Taunt — forces all enemies to target this character, protecting allies."
 }

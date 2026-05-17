@@ -43,5 +43,6 @@
     "Niveau": 3,
     "Nom": "Briseur d'Égide",
     "Photo": "Azrak Ombresang.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Shield Breaker — shatters the target's protective barrier, reducing their defenses."
 }

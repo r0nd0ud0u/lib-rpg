@@ -60,5 +60,6 @@
     "Niveau": 8,
     "Nom": "Protection naine ",
     "Photo": "Thraïn.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Dwarven Protection — dwarven endurance greatly increases an ally's defense."
 }

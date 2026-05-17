@@ -60,5 +60,6 @@
     "Niveau": 11,
     "Nom": "Feuillage Réparateur",
     "Photo": "Thalia.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Restorative Foliage — healing leaves wrap around the target for gentle ongoing recovery."
 }

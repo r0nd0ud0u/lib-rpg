@@ -25,5 +25,6 @@
     "Niveau": 1,
     "Nom": "Griffure",
     "Photo": "SimpleAtk.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Scratch — quick claws raking across flesh for minor damage."
 }

@@ -78,5 +78,6 @@
     "Nom": "Éclipse du Mordor",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Zone",
-    "Sound": "kamehameha.mp3"
+    "Sound": "kamehameha.mp3",
+    "Description": "Mordor Eclipse — cloaks the battlefield in shadow, dealing dark damage and reducing enemy accuracy."
 }

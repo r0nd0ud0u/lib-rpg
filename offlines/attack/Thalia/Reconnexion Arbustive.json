@@ -60,5 +60,6 @@
     "Niveau": 10,
     "Nom": "Reconnexion Arbustive",
     "Photo": "Thalia.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Nature Reconnection — re-establishes a bond with the earth to steadily restore HP."
 }

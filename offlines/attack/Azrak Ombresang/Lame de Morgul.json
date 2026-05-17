@@ -94,5 +94,6 @@
     "Niveau": 11,
     "Nom": "Lame de Morgul",
     "Photo": "Azrak Ombresang.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "Morgul Blade — a cursed strike dealing damage over time; grants dodge but costs self-HP."
 }

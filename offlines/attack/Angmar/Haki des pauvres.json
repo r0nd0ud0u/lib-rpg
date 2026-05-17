@@ -60,5 +60,6 @@
     "Niveau": 4,
     "Nom": "Haki des pauvres",
     "Photo": "default.png",
-    "Portée": "Individual"
+    "Portée": "Individual",
+    "Description": "A budding warrior's strike."
 }

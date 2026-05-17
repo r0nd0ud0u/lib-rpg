@@ -61,5 +61,6 @@
     "Nom": "Lumiere curative",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Sound": ""
+    "Sound": "",
+    "Description": "Healing Light — a gentle beam of light that restores HP to an ally."
 }
