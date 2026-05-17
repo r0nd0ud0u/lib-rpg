@@ -25,10 +25,19 @@ pub struct CoreGameData {
 
 impl CoreGameData {
     pub fn new(dm: &DataManager, server_name: &str) -> Result<CoreGameData> {
+        Self::new_with_scenarios(dm, server_name, dm.all_scenarios.clone())
+    }
+
+    /// Like `new`, but uses a custom set of scenarios instead of all scenarios in `dm`.
+    pub fn new_with_scenarios(
+        dm: &DataManager,
+        server_name: &str,
+        scenarios: Vec<crate::server::scenario::Scenario>,
+    ) -> Result<CoreGameData> {
         let mut gm = GameManager::new(
             &dm.offline_root,
             dm.equipment_table.clone(),
-            dm.all_scenarios.clone(),
+            scenarios,
         );
 
         // set the full boss roster so load_next_scenario can populate active_bosses
