@@ -151,11 +151,9 @@ impl DataManager {
                                     }
                                     self.all_scenarios.push(s);
                                 }
-                                Err(e) => tracing::error!(
-                                    "{:?} cannot be decoded: {}",
-                                    scenario_path,
-                                    e
-                                ),
+                                Err(e) => {
+                                    tracing::error!("{:?} cannot be decoded: {}", scenario_path, e)
+                                }
                             }
                         }
                     }
@@ -184,7 +182,8 @@ impl DataManager {
             .map(|s| s.universe.clone())
             .collect::<std::collections::HashSet<_>>()
             .into_iter()
-            .collect();        universes.sort();
+            .collect();
+        universes.sort();
         universes
     }
 

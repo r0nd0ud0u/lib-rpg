@@ -778,10 +778,7 @@ impl GameManager {
                     } else {
                         format!(
                             "{} ← {} HP (raw: {}, after mitigation: {})",
-                            gae.effect_outcome.target_id_name,
-                            real,
-                            full,
-                            real
+                            gae.effect_outcome.target_id_name, real, full, real
                         )
                     };
                     logs.push(LogData {
@@ -2354,41 +2351,38 @@ mod tests {
         use crate::{
             character_mod::{attack_type::AttackType, buffers::BufKinds, effect::EffectParam},
             common::constants::{
-                all_target_const::TARGET_HIMSELF,
-                reach_const::INDIVIDUAL,
-                stats_const::HP,
+                all_target_const::TARGET_HIMSELF, reach_const::INDIVIDUAL, stats_const::HP,
             },
         };
 
         let (mut gm, hero_id_name, _) = testing_test_ally1_vs_test_boss1();
 
         // Build Fracas Marteau: 50 HP self-damage (guaranteed kill at 10 HP)
-        let fracas_marteau = AttackType::try_new_from_json(
-            "./offlines/attack/Thraïn/Fracas Marteau .json",
-        )
-        .unwrap_or_else(|_| {
-            use crate::character_mod::buffers::Buffer;
-            AttackType {
-                name: "Fracas Marteau".to_owned(),
-                target: TARGET_HIMSELF.to_owned(),
-                reach: INDIVIDUAL.to_owned(),
-                all_effects: vec![EffectParam {
-                    nb_turns: 1,
-                    target_kind: TARGET_HIMSELF.to_owned(),
-                    reach: INDIVIDUAL.to_owned(),
-                    buffer: Buffer {
-                        kind: BufKinds::ChangeCurrentStatByValue,
-                        value: -50,
-                        is_percent: false,
-                        stats_name: HP.to_owned(),
-                        is_passive_enabled: false,
-                        is_passive: false,
-                    },
-                    ..Default::default()
-                }],
-                ..Default::default()
-            }
-        });
+        let fracas_marteau =
+            AttackType::try_new_from_json("./offlines/attack/Thraïn/Fracas Marteau .json")
+                .unwrap_or_else(|_| {
+                    use crate::character_mod::buffers::Buffer;
+                    AttackType {
+                        name: "Fracas Marteau".to_owned(),
+                        target: TARGET_HIMSELF.to_owned(),
+                        reach: INDIVIDUAL.to_owned(),
+                        all_effects: vec![EffectParam {
+                            nb_turns: 1,
+                            target_kind: TARGET_HIMSELF.to_owned(),
+                            reach: INDIVIDUAL.to_owned(),
+                            buffer: Buffer {
+                                kind: BufKinds::ChangeCurrentStatByValue,
+                                value: -50,
+                                is_percent: false,
+                                stats_name: HP.to_owned(),
+                                is_passive_enabled: false,
+                                is_passive: false,
+                            },
+                            ..Default::default()
+                        }],
+                        ..Default::default()
+                    }
+                });
 
         // Set hero HP to 10 so self-damage is lethal
         for hero in gm.pm.active_heroes.iter_mut() {
@@ -2401,7 +2395,9 @@ mod tests {
         // Also update current_player (shadow copy)
         if gm.pm.current_player.id_name == hero_id_name {
             gm.pm.current_player.stats.get_mut_value(HP).current = 10;
-            gm.pm.current_player.attacks_list
+            gm.pm
+                .current_player
+                .attacks_list
                 .insert(fracas_marteau.name.clone(), fracas_marteau.clone());
         }
 

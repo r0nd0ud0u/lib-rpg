@@ -1216,10 +1216,7 @@ mod tests {
             0,
             processed_effect_param.input_effect_param.sub_value_effect
         );
-        assert_eq!(
-            "Cooldown on : 10 turns",
-            processed_effect_param.log.message
-        );
+        assert_eq!("Cooldown on : 10 turns", processed_effect_param.log.message);
 
         // test - critical
         ep.buffer.stats_name = HP.to_owned();

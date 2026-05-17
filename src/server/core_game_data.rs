@@ -37,11 +37,7 @@ impl CoreGameData {
         server_name: &str,
         scenarios: Vec<crate::server::scenario::Scenario>,
     ) -> Result<CoreGameData> {
-        let mut gm = GameManager::new(
-            &dm.offline_root,
-            dm.equipment_table.clone(),
-            scenarios,
-        );
+        let mut gm = GameManager::new(&dm.offline_root, dm.equipment_table.clone(), scenarios);
 
         // set the full boss roster so load_next_scenario can populate active_bosses
         gm.pm.all_bosses = dm.all_bosses.clone();

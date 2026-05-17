@@ -19,7 +19,10 @@ use crate::{
             reach_const::INDIVIDUAL,
             stats_const::HP,
         },
-        log_data::{LogData, const_colors::{DARK_RED, LIGHT_GREEN}},
+        log_data::{
+            LogData,
+            const_colors::{DARK_RED, LIGHT_GREEN},
+        },
     },
     server::{
         game_state::GameState,
@@ -295,10 +298,7 @@ impl CharacterRoundsInfo {
         match ep.buffer.kind {
             BufKinds::CooldownTurnsNumber => {
                 processed_effect_param.log = LogData {
-                    message: format!(
-                        "Cooldown on {}: {} turns",
-                        atk_name, ep.buffer.value
-                    ),
+                    message: format!("Cooldown on {}: {} turns", atk_name, ep.buffer.value),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
@@ -598,7 +598,8 @@ impl CharacterRoundsInfo {
         gae: &GameAtkEffect,
     ) {
         *hot_and_dot += gae.processed_effect_param.input_effect_param.buffer.value;
-        let (effect_type, color) = if gae.processed_effect_param.input_effect_param.buffer.value > 0 {
+        let (effect_type, color) = if gae.processed_effect_param.input_effect_param.buffer.value > 0
+        {
             ("HOT", LIGHT_GREEN)
         } else {
             ("DOT", DARK_RED)
