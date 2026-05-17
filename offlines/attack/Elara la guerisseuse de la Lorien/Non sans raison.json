@@ -56,8 +56,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 10,
             "Type": "CooldownTurnsNumber",
@@ -73,8 +73,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 3,
             "Type": "BlockHealAtk",
@@ -96,4 +96,3 @@
     "Photo": "default.png",
     "Portée": "Zone"
 }
-

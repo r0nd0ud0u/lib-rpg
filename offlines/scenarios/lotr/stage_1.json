@@ -1,0 +1,24 @@
+{
+    "name": "Patrouille Gobeline",
+    "description": "Un gobelin éclaireur monte la garde aux abords de la forêt sombre. Combat d'initiation pour découvrir les mécaniques de base.",
+    "boss_patterns": {
+        "Gobelin Eclaireur": [0]
+    },
+    "level": 1,
+    "loots": [
+        {
+            "name": "Common potion",
+            "kind": "Consumable",
+            "rank": "Common",
+            "level": 1,
+            "classes": ["Standard"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 30,
+            "classes": ["Standard"]
+        }
+    ]
+}

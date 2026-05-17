@@ -1,0 +1,31 @@
+{
+    "name": "L'Ombre du Mordor",
+    "description": "Le nécromancien du Mordor invoque ses pouvoirs sombres. Ses sorts magiques ignorent une grande partie de l'armure physique. Préparez vos défenses magiques.",
+    "boss_patterns": {
+        "Necromancien du Mordor": [0]
+    },
+    "level": 7,
+    "loots": [
+        {
+            "name": "Super potion",
+            "kind": "Consumable",
+            "rank": "Intermediate",
+            "level": 2,
+            "classes": ["Standard"]
+        },
+        {
+            "name": "medium amulet",
+            "kind": "Equipment",
+            "rank": "Intermediate",
+            "level": 3,
+            "classes": ["Healer", "Mage"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 250,
+            "classes": ["Standard"]
+        }
+    ]
+}

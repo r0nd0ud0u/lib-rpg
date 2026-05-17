@@ -1,12 +1,12 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 1,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 2,
             "Type": "ChangeMaxStatByPercentage",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 3,
             "Type": "DamageRxPercent",
@@ -43,6 +43,5 @@
     "Niveau": 6,
     "Nom": "atk-2",
     "Photo": "default.png",
-    "Portée": "Individuel"
+    "Portée": "Individual"
 }
-

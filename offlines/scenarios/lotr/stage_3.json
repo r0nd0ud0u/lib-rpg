@@ -1,0 +1,31 @@
+{
+    "name": "Le Pillard Orc",
+    "description": "Un orc pillard barre la route du village. Plus résistant et plus puissant que les gobelins, il frappe fort et peut toucher tout le groupe.",
+    "boss_patterns": {
+        "Orc Pillard": [0]
+    },
+    "level": 3,
+    "loots": [
+        {
+            "name": "Common potion",
+            "kind": "Consumable",
+            "rank": "Common",
+            "level": 1,
+            "classes": ["Standard"]
+        },
+        {
+            "name": "medium amulet",
+            "kind": "Equipment",
+            "rank": "Common",
+            "level": 1,
+            "classes": ["Healer", "Mage"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 70,
+            "classes": ["Standard"]
+        }
+    ]
+}

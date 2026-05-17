@@ -1,11 +1,11 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 1,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
@@ -15,7 +15,7 @@
             "IsMagicEffect": true
         },
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 5,
@@ -31,4 +31,3 @@
     "Photo": "default.png",
     "Portée": "Zone"
 }
-

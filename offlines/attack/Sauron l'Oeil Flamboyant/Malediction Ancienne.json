@@ -1,0 +1,29 @@
+{
+    "Aggro": 0,
+    "Cible": "Enemy",
+    "Coût de mana": 35,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Durée": 1,
+    "Effet": [
+        {
+            "Cible": "Enemy",
+            "Portée": "Zone",
+            "Tours actifs": 4,
+            "Valeur de l'effet": 0,
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -120,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 6,
+    "Nom": "Malediction Ancienne",
+    "Photo": "SimpleAtk.png",
+    "Portée": "Zone"
+}

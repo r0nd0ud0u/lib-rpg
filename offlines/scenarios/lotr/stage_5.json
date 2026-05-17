@@ -1,0 +1,38 @@
+{
+    "name": "Le Champion des Orcs",
+    "description": "Le champion des orcs débarque avec sa garde. Intermédiaire et redoutable, il enchaîne frappes dévastatrices et charges de zone.",
+    "boss_patterns": {
+        "Champion Orc": [0]
+    },
+    "level": 5,
+    "loots": [
+        {
+            "name": "Super potion",
+            "kind": "Consumable",
+            "rank": "Intermediate",
+            "level": 2,
+            "classes": ["Standard"]
+        },
+        {
+            "name": "medium belt",
+            "kind": "Equipment",
+            "rank": "Intermediate",
+            "level": 2,
+            "classes": ["Warrior", "Berserker"]
+        },
+        {
+            "name": "medium amulet",
+            "kind": "Equipment",
+            "rank": "Intermediate",
+            "level": 2,
+            "classes": ["Healer", "Mage"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 150,
+            "classes": ["Standard"]
+        }
+    ]
+}

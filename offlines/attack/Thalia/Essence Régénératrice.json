@@ -1,12 +1,12 @@
 {
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 10,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Tours actifs": 5,
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
@@ -19,8 +19,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Tours actifs": 5,
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
@@ -33,8 +33,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Tours actifs": 5,
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
@@ -51,6 +51,5 @@
     "Niveau": 1,
     "Nom": "Essence Régénératrice",
     "Photo": "Essence regeneratrice.jpg",
-    "Portée": "Individuel"
+    "Portée": "Individual"
 }
-

@@ -1,11 +1,11 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 25,
     "Effet": [
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
@@ -39,8 +39,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 10,
             "Type": "CooldownTurnsNumber",
@@ -80,4 +80,3 @@
     "Portée": "Zone",
     "Sound": "kamehameha.mp3"
 }
-

@@ -1,0 +1,38 @@
+{
+    "name": "Le Cavalier Sans Visage",
+    "description": "Un Nazgûl, spectre redoutable au service de Sauron, fond sur votre groupe. Sa cible est aléatoire et ses attaques ignorent les stratégies d'aggro. Survivre à ses assauts est déjà un exploit.",
+    "boss_patterns": {
+        "Nazgul": [0]
+    },
+    "level": 9,
+    "loots": [
+        {
+            "name": "Super potion",
+            "kind": "Consumable",
+            "rank": "Advanced",
+            "level": 3,
+            "classes": ["Standard"]
+        },
+        {
+            "name": "medium belt",
+            "kind": "Equipment",
+            "rank": "Advanced",
+            "level": 4,
+            "classes": ["Warrior", "Berserker"]
+        },
+        {
+            "name": "medium amulet",
+            "kind": "Equipment",
+            "rank": "Advanced",
+            "level": 4,
+            "classes": ["Healer", "Mage"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 500,
+            "classes": ["Standard"]
+        }
+    ]
+}

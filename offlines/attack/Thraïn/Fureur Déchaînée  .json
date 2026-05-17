@@ -1,6 +1,6 @@
 {
     "Aggro": 0,
-    "Cible": "Soi-même",
+    "Cible": "Self",
     "Coût de mana": 0,
     "Coût de rage": 12,
     "Coût de vigueur": 0,
@@ -8,8 +8,8 @@
     "Dégâts": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Physical power",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
@@ -25,8 +25,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Aggro",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -42,8 +42,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Critical strike",
             "Tours actifs": 3,
             "Type": "ChangeCurrentStatByValue",
@@ -63,10 +63,9 @@
     "Niveau": 5,
     "Nom": "Fureur Déchaînée  ",
     "Photo": "Thraïn.png",
-    "Portée": "Individuel",
+    "Portée": "Individual",
     "Regen mana": 0,
     "Regen rage": 0,
     "Regen vigueur": 0,
     "Soin": 0
 }
-

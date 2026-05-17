@@ -1,6 +1,6 @@
 {
     "Aggro": 0,
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 13,
@@ -8,8 +8,8 @@
     "Dégâts": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -25,8 +25,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Physical armor",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
@@ -46,10 +46,9 @@
     "Niveau": 5,
     "Nom": "Fléau Sylvestre",
     "Photo": "Azrak Ombresang.png",
-    "Portée": "Individuel",
+    "Portée": "Individual",
     "Regen mana": 0,
     "Regen rage": 0,
     "Regen vigueur": 0,
     "Soin": 0
 }
-

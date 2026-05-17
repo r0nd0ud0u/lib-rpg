@@ -1,12 +1,12 @@
 {
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 12,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
@@ -19,8 +19,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
@@ -33,8 +33,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Tours actifs": 2,
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
@@ -47,8 +47,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Tours actifs": 2,
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
@@ -61,8 +61,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
@@ -79,7 +79,6 @@
     "Niveau": 2,
     "Nom": "Offrande vitale",
     "Photo": "default.png",
-    "Portée": "Individuel",
+    "Portée": "Individual",
     "Sound": ""
 }
-

@@ -1,12 +1,12 @@
 {
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 24,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 1,
             "Type": "DecreasingRateOnTurn",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByPercentage",
@@ -39,8 +39,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByPercentage",
@@ -56,8 +56,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "Magic power",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
@@ -73,8 +73,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "Physical power",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
@@ -90,8 +90,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 6,
             "Type": "CooldownTurnsNumber",
@@ -111,7 +111,6 @@
     "Niveau": 9,
     "Nom": "Don de vie",
     "Photo": "default.png",
-    "Portée": "Individuel",
+    "Portée": "Individual",
     "Sound": ""
 }
-

@@ -1,21 +1,21 @@
 {
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 12,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                    "kind": "CooldownTurnsNumber",
-                    "value": 2,
-                    "is-percent": false,
-                    "stats-name": "",
-                    "passive-enabled": false
+                "kind": "CooldownTurnsNumber",
+                "value": 2,
+                "is-percent": false,
+                "stats-name": "",
+                "passive-enabled": false
             }
         }
     ],
@@ -23,7 +23,6 @@
     "Niveau": 2,
     "Nom": "cooldown",
     "Photo": "default.png",
-    "Portée": "Individuel",
+    "Portée": "Individual",
     "Sound": ""
 }
-

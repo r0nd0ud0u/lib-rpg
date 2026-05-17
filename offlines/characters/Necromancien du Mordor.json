@@ -1,0 +1,110 @@
+{
+    "Class": "Mage",
+    "Color": "purple",
+    "Experience": 0,
+    "CharacterRoundsInfo": {
+        "is_first_round": false,
+        "is_heal_atk_blocked": false,
+        "is_random_target": false,
+        "Buf-debuf": [
+            {
+                "stats-name": "",
+                "is-percent": true,
+                "passive-enabled": false,
+                "kind": "DamageRxPercent",
+                "value": 100
+            }
+        ]
+    },
+    "Level": 7,
+    "Name": "Necromancien du Mordor",
+    "IdName": "Necromancien_du_Mordor_#1",
+    "Photo": "Angmar",
+    "Rank": "Intermediate",
+    "Shape": "",
+    "Short name": "Nécro",
+    "Stats": {
+        "Aggro": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Aggro rate": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Berserk": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Berserk rate": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Critical strike": {
+            "Current": 16,
+            "Max": 16
+        },
+        "Dodge": {
+            "Current": 12,
+            "Max": 12
+        },
+        "HP": {
+            "Current": 10000,
+            "Max": 10000
+        },
+        "HP regeneration": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Magical armor": {
+            "Current": 250,
+            "Max": 250
+        },
+        "Magical power": {
+            "Current": 300,
+            "Max": 300
+        },
+        "Mana": {
+            "Current": 9999,
+            "Max": 9999
+        },
+        "Mana regeneration": {
+            "Current": 30,
+            "Max": 30
+        },
+        "Physical armor": {
+            "Current": 150,
+            "Max": 150
+        },
+        "Physical power": {
+            "Current": 100,
+            "Max": 100
+        },
+        "Speed": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Speed regeneration": {
+            "Current": 26,
+            "Max": 26
+        },
+        "Vigor": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Vigor regeneration": {
+            "Current": 0,
+            "Max": 0
+        }
+    },
+    "Tx-rx": [{}, {}, {}, {}, {}, {}],
+    "Type": "Boss",
+    "is-blocking-atk": false,
+    "max-actions-by-round": 1,
+    "nb-actions-in-round": 0,
+    "energies": [
+        {
+            "kind": "Mana"
+        }
+    ]
+}

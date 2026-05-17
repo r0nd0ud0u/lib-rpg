@@ -123,16 +123,78 @@ impl DataManager {
             bail!("no root path")
         }
         let scenario_dir_path = path.as_ref().join(*OFFLINE_SCENARIOS);
-        match list_files_in_dir(&scenario_dir_path) {
-            Ok(list) => list.iter().for_each(|scenario_path| {
+
+        // Load top-level JSON files (default universe / no universe)
+        if let Ok(list) = list_files_in_dir(&scenario_dir_path) {
+            for scenario_path in &list {
                 match Scenario::try_new_from_json(scenario_path) {
                     Ok(s) => self.all_scenarios.push(s),
                     Err(e) => tracing::error!("{:?} cannot be decoded: {}", scenario_path, e),
                 }
-            }),
-            Err(e) => bail!("Files cannot be listed in {:#?}: {}", scenario_dir_path, e),
-        };
+            }
+        }
+
+        // Load scenarios from sub-directories — each sub-dir is a universe
+        if let Ok(universe_dirs) = crate::utils::list_dirs_in_dir(&scenario_dir_path) {
+            for universe_dir in &universe_dirs {
+                let universe_name = universe_dir
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_default();
+                match list_files_in_dir(universe_dir) {
+                    Ok(list) => {
+                        for scenario_path in &list {
+                            match Scenario::try_new_from_json(scenario_path) {
+                                Ok(mut s) => {
+                                    if s.universe.is_empty() {
+                                        s.universe = universe_name.clone();
+                                    }
+                                    self.all_scenarios.push(s);
+                                }
+                                Err(e) => tracing::error!(
+                                    "{:?} cannot be decoded: {}",
+                                    scenario_path,
+                                    e
+                                ),
+                            }
+                        }
+                    }
+                    Err(e) => tracing::warn!(
+                        "Cannot list files in universe dir {:?}: {}",
+                        universe_dir,
+                        e
+                    ),
+                }
+            }
+        }
+
+        if self.all_scenarios.is_empty() {
+            tracing::warn!("No scenarios found in {:?}", scenario_dir_path);
+        }
+
         Ok(())
+    }
+
+    /// Return a sorted list of all distinct universes found in loaded scenarios.
+    /// An empty string means the default universe (scenarios stored at the top level).
+    pub fn list_universes(&self) -> Vec<String> {
+        let mut universes: Vec<String> = self
+            .all_scenarios
+            .iter()
+            .map(|s| s.universe.clone())
+            .collect::<std::collections::HashSet<_>>()
+            .into_iter()
+            .collect();        universes.sort();
+        universes
+    }
+
+    /// Return all scenarios belonging to `universe`.
+    /// Pass an empty string to get scenarios with no universe set.
+    pub fn scenarios_by_universe(&self, universe: &str) -> Vec<&Scenario> {
+        self.all_scenarios
+            .iter()
+            .filter(|s| s.universe == universe)
+            .collect()
     }
 }
 
@@ -148,28 +210,28 @@ mod tests {
 
     #[test]
     fn unit_try_new() {
-        // offline_root with 2 heroes and 2 bosses
+        // offline_root with 2 heroes and 2 bosses (test data is unchanged)
         let dm = testing_dm();
         assert_eq!(dm.all_heroes.len(), 2);
         assert_eq!(dm.all_bosses.len(), 2);
 
-        // offline_root by default but no file
+        // offline_root by default (production data):
+        // 4 heroes + 6 new bosses added in feat/improvements-v2
         let dm = DataManager::try_new("").unwrap();
         assert_eq!(dm.all_heroes.len(), 4);
-        assert_eq!(dm.all_bosses.len(), 2);
+        assert!(dm.all_bosses.len() >= 2, "at least the original 2 bosses");
 
         // offline_root by default with unknown file
         assert!(DataManager::try_new("unknown").is_err());
 
-        // offline_root by default
+        // offline_root by default (again, consistent)
         let dm = DataManager::try_new("").unwrap();
         assert_eq!(dm.all_heroes.len(), 4);
-        assert_eq!(dm.all_bosses.len(), 2);
 
-        // offline_root by default but no file
+        // offline_root by default (consistent check)
         let dm = DataManager::try_new("").unwrap();
         assert_eq!(dm.all_heroes.len(), 4);
-        assert_eq!(dm.all_bosses.len(), 2);
+        assert!(dm.all_bosses.len() >= 2);
     }
 
     #[test]

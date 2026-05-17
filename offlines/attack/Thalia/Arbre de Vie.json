@@ -25,8 +25,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Regeneration Mana",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
@@ -58,7 +58,7 @@
                 "passive-enabled": false
             }
         },
-		{
+        {
             "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Magic power",
@@ -74,7 +74,7 @@
                 "stats-name": "HP",
                 "passive-enabled": false
             }
-		}
+        }
     ],
     "Forme": "Standard",
     "Niveau": 7,
@@ -86,4 +86,3 @@
     "Regen vigueur": 0,
     "Soin": 0
 }
-

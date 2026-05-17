@@ -1,18 +1,21 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
-    "Effet": [{
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+    "Effet": [
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeMaxStatByPercentage",
-            "Conditions": [{
-                "condition_type": "NbEnnemiesDied",
-                "value": 20
-            }],
+            "Conditions": [
+                {
+                    "condition_type": "NbEnnemiesDied",
+                    "value": 20
+                }
+            ],
             "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": false,
@@ -23,16 +26,19 @@
                 "stats-name": "HP",
                 "passive-enabled": false
             }
-        }, {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+        },
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Mana",
             "Tours actifs": 1,
             "Type": "ChangeMaxStatByPercentage",
-            "Conditions": [{
-                "condition_type": "NbEnnemiesDied",
-                "value": 20
-            }],
+            "Conditions": [
+                {
+                    "condition_type": "NbEnnemiesDied",
+                    "value": 20
+                }
+            ],
             "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": false,
@@ -43,16 +49,19 @@
                 "stats-name": "HP",
                 "passive-enabled": false
             }
-        }, {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+        },
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Vigor",
             "Tours actifs": 1,
             "Type": "ChangeMaxStatByPercentage",
-            "Conditions": [{
-                "condition_type": "NbEnnemiesDied",
-                "value": 20
-            }],
+            "Conditions": [
+                {
+                    "condition_type": "NbEnnemiesDied",
+                    "value": 20
+                }
+            ],
             "Valeur de l'effet": 0,
             "Value": 0,
             "IsMagicEffect": false,

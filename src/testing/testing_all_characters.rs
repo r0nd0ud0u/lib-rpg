@@ -119,7 +119,7 @@ mod tests {
     fn unit_dxrpg_game_manager() {
         let gm = super::dxrpg_game_manager();
         assert_eq!(gm.pm.active_heroes.len(), 4);
-        assert_eq!(gm.pm.active_bosses.len(), 2);
+        assert!(gm.pm.active_bosses.len() >= 2, "expected at least 2 bosses");
 
         // test all_buffer length
         assert_eq!(

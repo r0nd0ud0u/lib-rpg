@@ -18,6 +18,10 @@ pub struct Scenario {
     pub loots: Vec<Loot>,
     /// Level of the scenario, used to know the difficulty and to adapt the rewards
     pub level: u64,
+    /// Universe/theme the scenario belongs to (e.g. "lotr", "pokemon").
+    /// Empty string means the scenario is in the default universe.
+    #[serde(default)]
+    pub universe: String,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -44,3 +48,4 @@ impl Scenario {
         }
     }
 }
+

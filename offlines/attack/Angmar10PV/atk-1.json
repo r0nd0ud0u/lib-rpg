@@ -1,12 +1,12 @@
 {
-    "Cible": "Soi-même",
+    "Cible": "Self",
     "Coût de mana": 1,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Speed regeneration",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByValue",
@@ -15,8 +15,8 @@
             "IsMagicEffect": true
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Physical armor",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
@@ -25,8 +25,8 @@
             "IsMagicEffect": true
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Critical strike",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByValue",
@@ -39,6 +39,5 @@
     "Niveau": 5,
     "Nom": "atk-1",
     "Photo": "default.png",
-    "Portée": "Individuel"
+    "Portée": "Individual"
 }
-

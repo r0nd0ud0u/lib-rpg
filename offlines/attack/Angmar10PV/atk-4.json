@@ -1,11 +1,11 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 1,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "Aggro",
             "Tours actifs": 1,
@@ -15,8 +15,8 @@
             "IsMagicEffect": true
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Aggro",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -25,8 +25,8 @@
             "IsMagicEffect": true
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -39,6 +39,5 @@
     "Niveau": 7,
     "Nom": "atk-4",
     "Photo": "default.png",
-    "Portée": "Individuel"
+    "Portée": "Individual"
 }
-

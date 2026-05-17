@@ -1,12 +1,12 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 13,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 4,
             "Type": "ChangeCurrentStatByValue",
@@ -38,9 +38,9 @@
                 "passive-enabled": false
             }
         },
-		  {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 4,
             "Type": "CooldownTurnsNumber",
@@ -55,9 +55,9 @@
                 "passive-enabled": false
             }
         },
-	{
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 1,
             "Type": "DamageRxPercent",
@@ -72,9 +72,9 @@
                 "passive-enabled": false
             }
         },
-	    {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Magic power",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -94,6 +94,5 @@
     "Niveau": 10,
     "Nom": "Flèche de la Montagne du Destin",
     "Photo": "Azrak Ombresang.png",
-    "Portée": "Individuel"
+    "Portée": "Individual"
 }
-

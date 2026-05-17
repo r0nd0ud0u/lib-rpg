@@ -1,12 +1,12 @@
 {
-    "Cible": "Soi-même",
+    "Cible": "Self",
     "Coût de mana": 1,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Tours actifs": 2,
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
@@ -23,6 +23,5 @@
     "Niveau": 2,
     "Nom": "up-par-valeur",
     "Photo": "Thraïn.png",
-    "Portée": "Individuel"
+    "Portée": "Individual"
 }
-

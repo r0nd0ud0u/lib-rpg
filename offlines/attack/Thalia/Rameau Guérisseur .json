@@ -1,12 +1,12 @@
 {
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 20,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 4,
             "Type": "DecreasingRateOnTurn",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "Magic power",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
@@ -60,6 +60,5 @@
     "Niveau": 2,
     "Nom": "Rameau Guérisseur ",
     "Photo": "Thalia.png",
-    "Portée": "Individuel"
+    "Portée": "Individual"
 }
-

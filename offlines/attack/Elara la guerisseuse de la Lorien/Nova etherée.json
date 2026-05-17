@@ -1,11 +1,11 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 16,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
@@ -22,7 +22,7 @@
             }
         },
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "Speed regeneration",
             "Tours actifs": 2,
@@ -62,4 +62,3 @@
     "Photo": "default.png",
     "Portée": "Zone"
 }
-

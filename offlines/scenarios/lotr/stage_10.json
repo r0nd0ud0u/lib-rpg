@@ -1,0 +1,38 @@
+{
+    "name": "L'Oeil de Sauron",
+    "description": "Sauron l'Œil Flamboyant, seigneur des ténèbres, s'éveille. Ses sorts de zone dévastent l'ensemble du groupe, sa frappe corrompue broie les individus et sa malédiction ancienne empoisonne toute résistance. Seul un groupe parfaitement coordonné peut espérer survivre.",
+    "boss_patterns": {
+        "Sauron l'Oeil Flamboyant": [0]
+    },
+    "level": 10,
+    "loots": [
+        {
+            "name": "Super potion",
+            "kind": "Consumable",
+            "rank": "Advanced",
+            "level": 4,
+            "classes": ["Standard"]
+        },
+        {
+            "name": "medium belt",
+            "kind": "Equipment",
+            "rank": "Advanced",
+            "level": 5,
+            "classes": ["Warrior", "Berserker"]
+        },
+        {
+            "name": "medium amulet",
+            "kind": "Equipment",
+            "rank": "Advanced",
+            "level": 5,
+            "classes": ["Healer", "Mage"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 1000,
+            "classes": ["Standard"]
+        }
+    ]
+}

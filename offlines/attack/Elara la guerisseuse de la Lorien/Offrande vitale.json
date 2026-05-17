@@ -1,12 +1,12 @@
 {
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 12,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByPercentage",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -39,8 +39,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "Magic armor",
             "Tours actifs": 2,
             "Type": "ChangeMaxStatByPercentage",
@@ -56,8 +56,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "Physical armor",
             "Tours actifs": 2,
             "Type": "ChangeMaxStatByPercentage",
@@ -73,8 +73,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 2,
             "Type": "CooldownTurnsNumber",
@@ -94,7 +94,6 @@
     "Niveau": 2,
     "Nom": "Offrande vitale",
     "Photo": "default.png",
-    "Portée": "Individuel",
+    "Portée": "Individual",
     "Sound": ""
 }
-

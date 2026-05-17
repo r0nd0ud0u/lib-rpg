@@ -1,12 +1,12 @@
 {
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 13,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 4,
             "Type": "ChangeCurrentStatByValue",
@@ -38,7 +38,7 @@
                 "passive-enabled": false
             }
         },
-	{
+        {
             "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Magic power",
@@ -54,12 +54,11 @@
                 "stats-name": "HP",
                 "passive-enabled": false
             }
-	}
+        }
     ],
     "Forme": "Standard",
     "Niveau": 11,
     "Nom": "Feuillage Réparateur",
     "Photo": "Thalia.png",
-    "Portée": "Individuel"
+    "Portée": "Individual"
 }
-

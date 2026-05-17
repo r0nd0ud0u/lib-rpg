@@ -1,0 +1,29 @@
+{
+    "Aggro": 0,
+    "Cible": "Enemy",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 20,
+    "Durée": 1,
+    "Effet": [
+        {
+            "Cible": "Enemy",
+            "Portée": "Zone",
+            "Tours actifs": 1,
+            "Valeur de l'effet": 0,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -40,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 2,
+    "Nom": "Rugissement de Guerre",
+    "Photo": "SimpleAtk.png",
+    "Portée": "Zone"
+}
