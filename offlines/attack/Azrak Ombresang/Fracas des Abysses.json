@@ -1,6 +1,6 @@
 {
     "Aggro": 0,
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 10,
@@ -8,7 +8,7 @@
     "Dégâts": 70,
     "Effet": [
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
@@ -25,7 +25,7 @@
             }
         },
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "Dodge",
             "Tours actifs": 3,
@@ -41,9 +41,9 @@
                 "passive-enabled": false
             }
         },
-          {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Regeneration vigueur",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
@@ -57,8 +57,7 @@
                 "stats-name": "HP",
                 "passive-enabled": false
             }
-           }
-
+        }
     ],
     "Forme": "Standard",
     "Niveau": 9,
@@ -68,6 +67,6 @@
     "Regen mana": 0,
     "Regen rage": 0,
     "Regen vigueur": 0,
-    "Soin": 0
+    "Soin": 0,
+    "Description": "Abyss Crash — a devastating blow channeling the power of the deep."
 }
-

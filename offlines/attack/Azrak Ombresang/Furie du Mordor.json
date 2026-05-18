@@ -1,6 +1,6 @@
 {
     "Aggro": 0,
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 13,
@@ -8,8 +8,8 @@
     "Dégâts": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Physical power",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
@@ -25,7 +25,7 @@
             }
         },
         {
-            "Cible": "Seulement les alliés",
+            "Cible": "Only allies",
             "Portée": "Zone",
             "Stat": "Physical power",
             "Tours actifs": 4,
@@ -41,9 +41,9 @@
                 "passive-enabled": false
             }
         },
-		{
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Magic power",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
@@ -59,7 +59,7 @@
             }
         },
         {
-            "Cible": "Seulement les alliés",
+            "Cible": "Only allies",
             "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 4,
@@ -76,8 +76,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 6,
             "Type": "CooldownTurnsNumber",
@@ -100,6 +100,6 @@
     "Regen mana": 0,
     "Regen rage": 0,
     "Regen vigueur": 0,
-    "Soin": 0
+    "Soin": 0,
+    "Description": "Mordor Fury — channels the rage of Mordor for a powerful, wide-area assault."
 }
-

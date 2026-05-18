@@ -1,21 +1,21 @@
 {
-    "Cible": "Soi-même",
+    "Cible": "Self",
     "Coût de mana": 0,
     "Coût de rage": 5,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Tours actifs": 2,
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                    "kind": "ChangeCurrentStatByValue",
-                    "value": 20,
-                    "is-percent": false,
-                    "stats-name": "Berserk",
-                    "passive-enabled": false
+                "kind": "ChangeCurrentStatByValue",
+                "value": 20,
+                "is-percent": false,
+                "stats-name": "Berserk",
+                "passive-enabled": false
             }
         }
     ],
@@ -23,6 +23,5 @@
     "Niveau": 2,
     "Nom": "ChangeCurrentStatByValue-berseck",
     "Photo": "Thraïn.png",
-    "Portée": "Individuel"
+    "Portée": "Individual"
 }
-

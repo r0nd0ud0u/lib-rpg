@@ -1,12 +1,12 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 1,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Magic armor",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByValue",
@@ -39,8 +39,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Physical armor",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByValue",
@@ -59,6 +59,6 @@
     "Niveau": 1,
     "Nom": "atk-5",
     "Photo": "default.png",
-    "Portée": "Individuel"
+    "Portée": "Individual",
+    "Description": "Test attack 5."
 }
-

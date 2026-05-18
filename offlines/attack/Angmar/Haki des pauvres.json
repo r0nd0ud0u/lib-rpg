@@ -1,12 +1,12 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 40,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Dodge",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByValue",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Magic power",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
@@ -39,8 +39,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Physical power",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
@@ -60,6 +60,6 @@
     "Niveau": 4,
     "Nom": "Haki des pauvres",
     "Photo": "default.png",
-    "Portée": "Individuel"
+    "Portée": "Individual",
+    "Description": "A budding warrior's strike."
 }
-

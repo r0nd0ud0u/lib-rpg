@@ -1,6 +1,6 @@
 {
     "Aggro": 0,
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 11,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
@@ -8,8 +8,8 @@
     "Dégâts": 0,
     "Effet": [
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -25,8 +25,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 1,
             "Type": "RemoveOneDebuf",
@@ -42,8 +42,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ReinitBuf",
@@ -58,9 +58,9 @@
                 "passive-enabled": false
             }
         },
-		{
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 5,
             "Type": "CooldownTurnsNumber",
@@ -80,10 +80,10 @@
     "Niveau": 9,
     "Nom": "Éveil de l'Espérance",
     "Photo": "Thalia.png",
-    "Portée": "Individuel",
+    "Portée": "Individual",
     "Regen mana": 0,
     "Regen rage": 0,
     "Regen vigueur": 0,
-    "Soin": 0
+    "Soin": 0,
+    "Description": "Awakening of Hope — a radiant bloom of hope that heals the entire group."
 }
-

@@ -8,7 +8,7 @@
     "Effet": [
         {
             "Cible": "All allies",
-            "Portée": "Individuel",
+            "Portée": "Individual",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
@@ -25,6 +25,5 @@
     "Niveau": 1,
     "Nom": "simple-atk-all-heroes",
     "Photo": "SimpleAtk.png",
-    "Portée": "Individuel"
+    "Portée": "Individual"
 }
-

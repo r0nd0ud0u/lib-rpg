@@ -1,12 +1,12 @@
 {
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 15,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 1,
             "Type": "Dégâts au tour précédent",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Allié",
-            "Portée": "Individuel",
+            "Cible": "Ally",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -39,8 +39,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 5,
             "Type": "CooldownTurnsNumber",
@@ -60,7 +60,7 @@
     "Niveau": 5,
     "Nom": "Lumiere curative",
     "Photo": "default.png",
-    "Portée": "Individuel",
-    "Sound": ""
+    "Portée": "Individual",
+    "Sound": "",
+    "Description": "Healing Light — a gentle beam of light that restores HP to an ally."
 }
-

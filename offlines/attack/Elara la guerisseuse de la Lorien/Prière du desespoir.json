@@ -5,8 +5,8 @@
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByPercentage",
@@ -90,8 +90,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 6,
             "Type": "CooldownTurnsNumber",
@@ -112,6 +112,6 @@
     "Nom": "Prière du desespoir",
     "Photo": "default.png",
     "Portée": "Zone",
-    "Sound": ""
+    "Sound": "",
+    "Description": "Prayer of Despair — a desperate prayer that channels divine energy for a powerful emergency heal."
 }
-

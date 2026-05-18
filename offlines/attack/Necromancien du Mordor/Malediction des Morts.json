@@ -1,0 +1,30 @@
+{
+    "Aggro": 0,
+    "Cible": "Enemy",
+    "Coût de mana": 25,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Durée": 1,
+    "Effet": [
+        {
+            "Cible": "Enemy",
+            "Portée": "Zone",
+            "Tours actifs": 3,
+            "Valeur de l'effet": 0,
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -80,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 4,
+    "Nom": "Malediction des Morts",
+    "Photo": "SimpleAtk.png",
+    "Portée": "Zone",
+    "Description": "Curse of the Dead — a necromantic hex that saps strength and deals ongoing damage."
+}

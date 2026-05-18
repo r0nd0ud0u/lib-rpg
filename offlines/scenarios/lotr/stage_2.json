@@ -1,0 +1,32 @@
+{
+    "name": "Embuscade Gobeline",
+    "description": "Deux gobelins éclaireurs tendent une embuscade. Gérer plusieurs ennemis en simultané est la clé de la victoire.",
+    "boss_patterns": {
+        "Gobelin Eclaireur": [0],
+        "Angmar10PV": [0]
+    },
+    "level": 2,
+    "loots": [
+        {
+            "name": "Common potion",
+            "kind": "Consumable",
+            "rank": "Common",
+            "level": 1,
+            "classes": ["Standard"]
+        },
+        {
+            "name": "medium belt",
+            "kind": "Equipment",
+            "rank": "Common",
+            "level": 1,
+            "classes": ["Warrior", "Berserker"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 50,
+            "classes": ["Standard"]
+        }
+    ]
+}

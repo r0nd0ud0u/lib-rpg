@@ -1,12 +1,12 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 10,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Magic armor",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
@@ -43,7 +43,7 @@
     "Niveau": 3,
     "Nom": "Rayon astral",
     "Photo": "default.png",
-    "Portée": "Individuel",
-    "Sound": ""
+    "Portée": "Individual",
+    "Sound": "",
+    "Description": "Astral Ray — fires a beam of starlight dealing magic damage while healing the caster."
 }
-

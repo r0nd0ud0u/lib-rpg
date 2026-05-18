@@ -400,7 +400,7 @@ mod tests {
         inventory.add_equipment(&equipment2, true);
         assert_eq!(
             inventory
-                .sum_all_equipped_equipment_stat(HP, &vec![equipment1.clone(), equipment2.clone()]),
+                .sum_all_equipped_equipment_stat(HP, &[equipment1.clone(), equipment2.clone()]),
             (30, 30)
         );
 

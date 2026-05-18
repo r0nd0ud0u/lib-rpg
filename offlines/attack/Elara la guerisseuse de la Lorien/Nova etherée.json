@@ -1,11 +1,11 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 16,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
@@ -22,7 +22,7 @@
             }
         },
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "Speed regeneration",
             "Tours actifs": 2,
@@ -60,6 +60,6 @@
     "Niveau": 8,
     "Nom": "Nova etherée",
     "Photo": "default.png",
-    "Portée": "Zone"
+    "Portée": "Zone",
+    "Description": "Ethereal Nova — an explosion of ethereal energy dealing AoE magic damage."
 }
-

@@ -623,7 +623,9 @@ mod tests {
         stats.init();
 
         let mut all_aggro = HashMap::new();
-        assert!(NB_TURN_SUM_AGGRO > 0);
+        const {
+            assert!(NB_TURN_SUM_AGGRO > 0);
+        }
 
         // Insert NB_TURN_SUM_AGGRO + 1 turns
         for i in 0..=NB_TURN_SUM_AGGRO {
