@@ -149,11 +149,11 @@ mod tests {
     fn unit_list_dirs_in_dir() {
         let all_dirs = list_dirs_in_dir(PathBuf::from(".\\tests\\offlines"));
         let list = all_dirs.unwrap();
-        assert!(list.len() > 0);
+        assert!(!list.is_empty());
 
         let all_dirs = list_dirs_in_dir(Path::new("./tests/offlines"));
         let list = all_dirs.unwrap();
-        assert!(list.len() > 0);
+        assert!(!list.is_empty());
     }
 
     #[test]

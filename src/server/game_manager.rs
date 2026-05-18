@@ -519,7 +519,7 @@ impl GameManager {
     ///   consumables and currency added directly)
     /// - Add experience gained from all defeated bosses and level up (with stat update) as needed
     /// - Automatically use all consumables in inventory (potions restore HP)
-    /// Process enf of scenario struct to be sent to the frontend with the rewards and the level up info
+    ///   Process end of scenario struct to be sent to the frontend with the rewards and the level up info
     pub fn process_end_of_scenario(&mut self) {
         // Total exp: sum from all bosses
         let total_exp: u64 = self
@@ -1005,7 +1005,7 @@ mod tests {
 
         assert_eq!(1, ra.new_game_atk_effects.len());
         assert!(ra.all_dodging.is_empty());
-        assert!(ra.logs_atk.len() > 0);
+        assert!(!ra.logs_atk.is_empty());
         // not dead boss : end of game
         assert!(gm.game_state.status != GameStatus::EndOfGame);
         // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
@@ -2422,7 +2422,7 @@ mod tests {
             .find(|h| h.id_name == hero_id_name);
         if let Some(hero) = hero_after {
             assert!(
-                hero.stats.is_dead() == Some(true) || hero.stats.all_stats[HP].current <= 0,
+                hero.stats.is_dead() == Some(true) || hero.stats.all_stats[HP].current == 0,
                 "Fracas Marteau should kill the hero at 10 HP, but HP is {}",
                 hero.stats.all_stats[HP].current
             );
