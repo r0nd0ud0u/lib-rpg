@@ -1,12 +1,12 @@
 {
-    "Cible": "Soi-même",
+    "Cible": "Self",
     "Coût de mana": 8,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Mana",
             "Tours actifs": 1,
             "Type": "ChangeMaxStatByPercentage",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 5,
             "Type": "PercentageIntoDamages",
@@ -39,8 +39,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 6,
             "Type": "CooldownTurnsNumber",
@@ -60,6 +60,6 @@
     "Niveau": 10,
     "Nom": "Reconnexion Arbustive",
     "Photo": "Thalia.png",
-    "Portée": "Individuel"
+    "Portée": "Individual",
+    "Description": "Nature Reconnection — re-establishes a bond with the earth to steadily restore HP."
 }
-

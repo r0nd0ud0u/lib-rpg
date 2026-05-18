@@ -1,12 +1,12 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 15,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Speed regeneration",
             "Tours actifs": 6,
             "Type": "ChangeCurrentStatByValue",
@@ -60,6 +60,6 @@
     "Niveau": 7,
     "Nom": "Chaînes de la Rage",
     "Photo": "Azrak Ombresang.png",
-    "Portée": "Individuel"
+    "Portée": "Individual",
+    "Description": "Chains of Rage — iron chains infused with dark energy that bind and damage the enemy."
 }
-

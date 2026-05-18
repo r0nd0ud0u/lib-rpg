@@ -21,15 +21,23 @@ pub struct CoreGameData {
     pub players_nb: i64,
     /// reload info: key: username, value: character-name
     pub heroes_chosen: HashMap<String, String>,
+    /// single-player mode: one real player controls all heroes
+    #[serde(default)]
+    pub is_single_player: bool,
 }
 
 impl CoreGameData {
     pub fn new(dm: &DataManager, server_name: &str) -> Result<CoreGameData> {
-        let mut gm = GameManager::new(
-            &dm.offline_root,
-            dm.equipment_table.clone(),
-            dm.all_scenarios.clone(),
-        );
+        Self::new_with_scenarios(dm, server_name, dm.all_scenarios.clone())
+    }
+
+    /// Like `new`, but uses a custom set of scenarios instead of all scenarios in `dm`.
+    pub fn new_with_scenarios(
+        dm: &DataManager,
+        server_name: &str,
+        scenarios: Vec<crate::server::scenario::Scenario>,
+    ) -> Result<CoreGameData> {
+        let mut gm = GameManager::new(&dm.offline_root, dm.equipment_table.clone(), scenarios);
 
         // set the full boss roster so load_next_scenario can populate active_bosses
         gm.pm.all_bosses = dm.all_bosses.clone();
@@ -42,6 +50,7 @@ impl CoreGameData {
             game_phase: GamePhase::Default,
             players_nb: 0,
             heroes_chosen: HashMap::new(),
+            is_single_player: false,
         })
     }
 

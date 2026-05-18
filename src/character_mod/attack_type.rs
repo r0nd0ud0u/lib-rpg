@@ -76,6 +76,9 @@ pub struct AttackType {
     /// Whether the attack can be launched or not
     #[serde(rename = "CanBeLaunched")]
     pub can_be_launched: bool,
+    /// Optional description of the attack, shown as a tooltip in the UI
+    #[serde(rename = "Description", default)]
+    pub description: String,
 }
 
 impl Default for AttackType {
@@ -92,6 +95,7 @@ impl Default for AttackType {
             all_effects: vec![],
             aggro: 0,
             can_be_launched: true,
+            description: "".to_owned(),
         }
     }
 }

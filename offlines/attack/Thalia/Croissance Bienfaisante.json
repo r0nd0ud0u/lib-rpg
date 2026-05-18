@@ -21,7 +21,7 @@
                 "passive-enabled": false
             }
         },
-	{
+        {
             "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Magic power",
@@ -37,12 +37,12 @@
                 "stats-name": "HP",
                 "passive-enabled": false
             }
-		}
+        }
     ],
     "Forme": "Standard",
     "Niveau": 3,
     "Nom": "Croissance Bienfaisante",
     "Photo": "Thalia.png",
-    "Portée": "Zone"
+    "Portée": "Zone",
+    "Description": "Beneficial Growth — infuses a target with nature energy for gentle ongoing healing."
 }
-

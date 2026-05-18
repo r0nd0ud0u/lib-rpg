@@ -1,0 +1,39 @@
+{
+    "name": "Rituel des Tenebres",
+    "description": "Le nécromancien a invoqué un gobelin pour protéger son rituel. Interrompez le rituel en éliminant le nécromancien avant que sa malédiction ne consume votre groupe.",
+    "boss_patterns": {
+        "Necromancien du Mordor": [0],
+        "Gobelin Eclaireur": [0]
+    },
+    "level": 8,
+    "loots": [
+        {
+            "name": "Super potion",
+            "kind": "Consumable",
+            "rank": "Intermediate",
+            "level": 3,
+            "classes": ["Standard"]
+        },
+        {
+            "name": "medium belt",
+            "kind": "Equipment",
+            "rank": "Intermediate",
+            "level": 3,
+            "classes": ["Warrior", "Berserker"]
+        },
+        {
+            "name": "medium amulet",
+            "kind": "Equipment",
+            "rank": "Intermediate",
+            "level": 3,
+            "classes": ["Healer", "Mage"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 300,
+            "classes": ["Standard"]
+        }
+    ]
+}

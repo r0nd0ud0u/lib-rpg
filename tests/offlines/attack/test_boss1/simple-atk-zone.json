@@ -1,13 +1,13 @@
 {
     "Aggro": 0,
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 9,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,
@@ -27,4 +27,3 @@
     "Photo": "SimpleAtk.png",
     "Portée": "Zone"
 }
-

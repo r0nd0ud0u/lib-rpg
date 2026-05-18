@@ -1,12 +1,12 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 1,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Critical strike",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByValue",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Dodge",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByValue",
@@ -39,8 +39,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -60,6 +60,6 @@
     "Niveau": 2,
     "Nom": "caca culotte",
     "Photo": "default.png",
-    "Portée": "Individuel"
+    "Portée": "Individual",
+    "Description": "A basic strike."
 }
-

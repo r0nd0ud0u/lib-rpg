@@ -1,13 +1,13 @@
 {
     "Aggro": 0,
-    "Cible": "Allié",
+    "Cible": "Ally",
     "Coût de mana": 9,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
-            "Cible": "Allié",
+            "Cible": "Ally",
             "Portée": "Zone",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,

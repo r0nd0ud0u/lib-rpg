@@ -8,8 +8,8 @@
     "Dégâts": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Berserk",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -58,7 +58,7 @@
                 "passive-enabled": false
             }
         },
-		{
+        {
             "Cible": "All allies",
             "Portée": "Zone",
             "Stat": "Physical armor",
@@ -76,8 +76,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Soi-même",
+            "Cible": "Self",
+            "Portée": "Self",
             "Stat": "",
             "Tours actifs": 5,
             "Type": "CooldownTurnsNumber",
@@ -101,6 +101,6 @@
     "Regen mana": 0,
     "Regen rage": 0,
     "Regen vigueur": 0,
-    "Soin": 0
+    "Soin": 0,
+    "Description": "Horn of Erebor — a rallying war horn that boosts allies' morale and combat effectiveness."
 }
-

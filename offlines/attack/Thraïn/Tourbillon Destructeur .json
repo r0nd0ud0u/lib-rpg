@@ -1,11 +1,11 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 15,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,
@@ -19,8 +19,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
@@ -33,8 +33,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Taux rage",
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
@@ -55,6 +55,6 @@
     "Nom": "Tourbillon Destructeur ",
     "Photo": "Thraïn.png",
     "Portée": "Zone",
-    "Sound": ""
+    "Sound": "",
+    "Description": "Destructive Whirlwind — spins the great hammer in a wide arc, dealing damage to all enemies."
 }
-

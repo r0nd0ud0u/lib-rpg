@@ -1,0 +1,121 @@
+{
+    "Class": "Warrior",
+    "Color": "black",
+    "Experience": 0,
+    "CharacterRoundsInfo": {
+        "is_first_round": false,
+        "is_heal_atk_blocked": false,
+        "is_random_target": true,
+        "Buf-debuf": [
+            {
+                "stats-name": "",
+                "is-percent": true,
+                "passive-enabled": false,
+                "kind": "DamageRxPercent",
+                "value": 100
+            }
+        ]
+    },
+    "Level": 9,
+    "Name": "Nazgul",
+    "IdName": "Nazgul_#1",
+    "Photo": "Angmar",
+    "Rank": "Advanced",
+    "Shape": "",
+    "Short name": "Nazgul",
+    "Stats": {
+        "Aggro": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Aggro rate": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Berserk": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Berserk rate": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Critical strike": {
+            "Current": 20,
+            "Max": 20
+        },
+        "Dodge": {
+            "Current": 16,
+            "Max": 16
+        },
+        "HP": {
+            "Current": 25000,
+            "Max": 25000
+        },
+        "HP regeneration": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Magical armor": {
+            "Current": 400,
+            "Max": 400
+        },
+        "Magical power": {
+            "Current": 350,
+            "Max": 350
+        },
+        "Mana": {
+            "Current": 9999,
+            "Max": 9999
+        },
+        "Mana regeneration": {
+            "Current": 35,
+            "Max": 35
+        },
+        "Physical armor": {
+            "Current": 500,
+            "Max": 500
+        },
+        "Physical power": {
+            "Current": 350,
+            "Max": 350
+        },
+        "Speed": {
+            "Current": 0,
+            "Max": 0
+        },
+        "Speed regeneration": {
+            "Current": 30,
+            "Max": 30
+        },
+        "Vigor": {
+            "Current": 9999,
+            "Max": 9999
+        },
+        "Vigor regeneration": {
+            "Current": 25,
+            "Max": 25
+        }
+    },
+    "Tx-rx": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
+    "Type": "Boss",
+    "is-blocking-atk": false,
+    "max-actions-by-round": 1,
+    "nb-actions-in-round": 0,
+    "energies": [
+        {
+            "kind": "Mana"
+        },
+        {
+            "kind": "Vigor"
+        }
+    ],
+    "Description": "A Ringwraith of Sauron — a terrifying spectral warrior wielding dark power."
+}

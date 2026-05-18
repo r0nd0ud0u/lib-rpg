@@ -1,0 +1,32 @@
+{
+    "name": "Patrouille Mixte",
+    "description": "Un orc pillard mène une patrouille avec un gobelin. Attention aux attaques combinées : le gobelin harcèle pendant que l'orc frappe lourd.",
+    "boss_patterns": {
+        "Orc Pillard": [0],
+        "Gobelin Eclaireur": [0]
+    },
+    "level": 4,
+    "loots": [
+        {
+            "name": "Common potion",
+            "kind": "Consumable",
+            "rank": "Common",
+            "level": 1,
+            "classes": ["Standard"]
+        },
+        {
+            "name": "medium belt",
+            "kind": "Equipment",
+            "rank": "Common",
+            "level": 2,
+            "classes": ["Warrior", "Berserker"]
+        },
+        {
+            "name": "gold",
+            "kind": "Currency",
+            "rank": "Common",
+            "level": 90,
+            "classes": ["Standard"]
+        }
+    ]
+}

@@ -1,12 +1,12 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 9,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
@@ -19,8 +19,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Tours actifs": 6,
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
@@ -37,7 +37,7 @@
     "Niveau": 1,
     "Nom": "Lame Fusionnelle",
     "Photo": "Azrak Ombresang.png",
-    "Portée": "Individuel",
-    "Sound": "final-flash.mp3"
+    "Portée": "Individual",
+    "Sound": "final-flash.mp3",
+    "Description": "Fusion Blade — a blade imbued with elemental power, dealing boosted damage."
 }
-

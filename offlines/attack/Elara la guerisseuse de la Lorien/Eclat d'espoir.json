@@ -52,6 +52,6 @@
     "Nom": "Eclat d'espoir",
     "Photo": "default.png",
     "Portée": "Zone",
-    "Sound": ""
+    "Sound": "",
+    "Description": "Spark of Hope — releases a burst of radiant light, healing allies and damaging enemies."
 }
-

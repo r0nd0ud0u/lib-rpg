@@ -1,12 +1,12 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 20,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "RepeatAsManyAsPossible",
@@ -26,6 +26,6 @@
     "Niveau": 9,
     "Nom": "Enchaînement Furieux",
     "Photo": "Thraïn.png",
-    "Portée": "Individuel"
+    "Portée": "Individual",
+    "Description": "Furious Chain — a rapid sequence of blows that overwhelms enemy defenses."
 }
-

@@ -1,6 +1,6 @@
 {
     "Aggro": 0,
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
@@ -8,8 +8,8 @@
     "Dégâts": 0,
     "Effet": [
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Berserk",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -25,7 +25,7 @@
             }
         },
         {
-            "Cible": "Ennemie",
+            "Cible": "Enemy",
             "Portée": "Zone",
             "Stat": "HP",
             "Tours actifs": 1,
@@ -42,8 +42,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "Aggro",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -67,6 +67,6 @@
     "Regen mana": 0,
     "Regen rage": 0,
     "Regen vigueur": 0,
-    "Soin": 0
+    "Soin": 0,
+    "Description": "Hammer Crash — a devastating hammer strike that can be lethal at low HP."
 }
-

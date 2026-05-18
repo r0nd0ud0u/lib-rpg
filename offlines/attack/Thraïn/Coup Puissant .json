@@ -1,12 +1,12 @@
 {
-    "Cible": "Ennemie",
+    "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 20,
     "Coût de vigueur": 0,
     "Effet": [
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
@@ -22,8 +22,8 @@
             }
         },
         {
-            "Cible": "Soi-même",
-            "Portée": "Individuel",
+            "Cible": "Self",
+            "Portée": "Individual",
             "Stat": "",
             "Tours actifs": 4,
             "Type": "CooldownTurnsNumber",
@@ -39,8 +39,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Physical armor",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
@@ -56,8 +56,8 @@
             }
         },
         {
-            "Cible": "Ennemie",
-            "Portée": "Individuel",
+            "Cible": "Enemy",
+            "Portée": "Individual",
             "Stat": "Speed regeneration",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByValue",
@@ -77,6 +77,6 @@
     "Niveau": 6,
     "Nom": "Coup Puissant ",
     "Photo": "Thraïn.png",
-    "Portée": "Individuel"
+    "Portée": "Individual",
+    "Description": "Mighty Blow — a heavy hammer strike dealing massive physical damage."
 }
-

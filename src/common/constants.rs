@@ -1,14 +1,14 @@
 /// Define the kind of target
 pub mod all_target_const {
-    pub const TARGET_ENNEMY: &str = "Ennemie";
-    pub const TARGET_ALLY: &str = "Allié";
+    pub const TARGET_ENNEMY: &str = "Enemy";
+    pub const TARGET_ALLY: &str = "Ally";
     pub const TARGET_ALL_ALLIES: &str = "All allies";
-    pub const TARGET_HIMSELF: &str = "Soi-même";
-    pub const TARGET_ONLY_ALLY: &str = "Seulement les alliés";
+    pub const TARGET_HIMSELF: &str = "Self";
+    pub const TARGET_ONLY_ALLY: &str = "Only allies";
 }
 
 pub mod reach_const {
-    pub const INDIVIDUAL: &str = "Individuel";
+    pub const INDIVIDUAL: &str = "Individual";
     pub const ZONE: &str = "Zone";
 }
 
