@@ -90,13 +90,18 @@ impl DataManager {
 
     /// Load all the JSON files in a path `P` which corresponds to a directory.
     /// Characters are inserted in Hero or Boss lists.
+    /// Load all the JSON files in a path `P` which corresponds to a directory.
+    /// Characters are inserted in Hero or Boss lists.
+    /// Sub-directories are treated as universe names (each file inside gets `.universe` set).
     pub fn load_all_characters<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
         if path.as_ref().as_os_str().is_empty() {
             bail!("no root path")
         }
         let character_dir_path = path.as_ref().join(*OFFLINE_CHARACTERS);
-        match list_files_in_dir(&character_dir_path) {
-            Ok(list) => list.iter().for_each(|character_path| {
+
+        // Load top-level JSON files (default universe / no universe)
+        if let Ok(list) = list_files_in_dir(&character_dir_path) {
+            for character_path in &list {
                 match Character::try_new_from_json(
                     character_path,
                     path.as_ref(),
@@ -112,9 +117,54 @@ impl DataManager {
                     }
                     Err(e) => tracing::error!("{:?} cannot be decoded: {}", character_path, e),
                 }
-            }),
-            Err(e) => bail!("Files cannot be listed in {:#?}: {}", character_dir_path, e),
-        };
+            }
+        }
+
+        // Load characters from sub-directories — each sub-dir is a universe
+        if let Ok(universe_dirs) = crate::utils::list_dirs_in_dir(&character_dir_path) {
+            for universe_dir in &universe_dirs {
+                let universe_name = universe_dir
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_default();
+                match list_files_in_dir(universe_dir) {
+                    Ok(list) => {
+                        for character_path in &list {
+                            match Character::try_new_from_json(
+                                character_path,
+                                path.as_ref(),
+                                false,
+                                &self.equipment_table,
+                            ) {
+                                Ok(mut c) => {
+                                    if c.universe.is_empty() {
+                                        c.universe = universe_name.clone();
+                                    }
+                                    if c.kind == CharacterKind::Hero {
+                                        self.all_heroes.push(c);
+                                    } else {
+                                        self.all_bosses.push(c);
+                                    }
+                                }
+                                Err(e) => {
+                                    tracing::error!("{:?} cannot be decoded: {}", character_path, e)
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => tracing::warn!(
+                        "Cannot list files in universe dir {:?}: {}",
+                        universe_dir,
+                        e
+                    ),
+                }
+            }
+        }
+
+        if self.all_heroes.is_empty() && self.all_bosses.is_empty() {
+            tracing::warn!("No characters found in {:?}", character_dir_path);
+        }
+
         Ok(())
     }
 
@@ -195,6 +245,27 @@ impl DataManager {
             .filter(|s| s.universe == universe)
             .collect()
     }
+
+    /// Return a sorted list of all distinct universes found in loaded heroes.
+    pub fn list_hero_universes(&self) -> Vec<String> {
+        let mut universes: Vec<String> = self
+            .all_heroes
+            .iter()
+            .map(|c| c.universe.clone())
+            .collect::<std::collections::HashSet<_>>()
+            .into_iter()
+            .collect();
+        universes.sort();
+        universes
+    }
+
+    /// Return all hero characters belonging to `universe`.
+    pub fn heroes_by_universe(&self, universe: &str) -> Vec<&Character> {
+        self.all_heroes
+            .iter()
+            .filter(|c| c.universe == universe)
+            .collect()
+    }
 }
 
 #[cfg(test)]
@@ -215,9 +286,9 @@ mod tests {
         assert_eq!(dm.all_bosses.len(), 2);
 
         // offline_root by default (production data):
-        // 4 heroes + 6 new bosses added in feat/improvements-v2
+        // lotr: 4 heroes + 8 bosses; pokemon: 3 heroes + 9 bosses
         let dm = DataManager::try_new("").unwrap();
-        assert_eq!(dm.all_heroes.len(), 4);
+        assert_eq!(dm.all_heroes.len(), 7, "4 lotr heroes + 3 pokemon heroes");
         assert!(dm.all_bosses.len() >= 2, "at least the original 2 bosses");
 
         // offline_root by default with unknown file
@@ -225,12 +296,7 @@ mod tests {
 
         // offline_root by default (again, consistent)
         let dm = DataManager::try_new("").unwrap();
-        assert_eq!(dm.all_heroes.len(), 4);
-
-        // offline_root by default (consistent check)
-        let dm = DataManager::try_new("").unwrap();
-        assert_eq!(dm.all_heroes.len(), 4);
-        assert!(dm.all_bosses.len() >= 2);
+        assert_eq!(dm.all_heroes.len(), 7);
     }
 
     #[test]
@@ -280,5 +346,105 @@ mod tests {
         assert_eq!(stage_2.boss_patterns["test_boss1"], vec![0]);
         assert_eq!(stage_2.boss_patterns["test_boss2"], vec![0]);
         assert!(stage_2.loots.is_empty());
+    }
+
+    #[test]
+    fn unit_heroes_by_universe_empty_default() {
+        let dm = DataManager::default();
+        assert!(dm.list_hero_universes().is_empty());
+        assert!(dm.heroes_by_universe("lotr").is_empty());
+    }
+
+    #[test]
+    fn unit_heroes_by_universe_production() {
+        use crate::common::constants::paths_const::OFFLINE_ROOT;
+        let mut dm = DataManager::default();
+        dm.load_all_equipments(&*OFFLINE_ROOT).unwrap();
+        dm.load_all_characters(&*OFFLINE_ROOT).unwrap();
+        let universes = dm.list_hero_universes();
+        assert!(!universes.is_empty(), "expected at least one universe");
+        assert!(
+            universes.contains(&"lotr".to_owned()),
+            "expected 'lotr' universe"
+        );
+        let lotr_heroes = dm.heroes_by_universe("lotr");
+        assert_eq!(lotr_heroes.len(), 4, "expected 4 lotr heroes");
+        for hero in &lotr_heroes {
+            assert_eq!(hero.universe, "lotr");
+        }
+    }
+
+    #[test]
+    fn unit_pokemon_heroes() {
+        use crate::common::constants::paths_const::OFFLINE_ROOT;
+        let mut dm = DataManager::default();
+        dm.load_all_equipments(&*OFFLINE_ROOT).unwrap();
+        dm.load_all_characters(&*OFFLINE_ROOT).unwrap();
+
+        let universes = dm.list_hero_universes();
+        assert!(
+            universes.contains(&"pokemon".to_owned()),
+            "expected 'pokemon' universe to be loaded"
+        );
+
+        let pokemon_heroes = dm.heroes_by_universe("pokemon");
+        assert_eq!(
+            pokemon_heroes.len(),
+            3,
+            "expected 3 pokemon heroes (Bulbasaur, Charmander, Squirtle)"
+        );
+        for hero in &pokemon_heroes {
+            assert_eq!(hero.universe, "pokemon");
+        }
+        let names: Vec<&str> = pokemon_heroes
+            .iter()
+            .map(|h| h.db_full_name.as_str())
+            .collect();
+        assert!(names.contains(&"Bulbasaur"), "Bulbasaur should be loaded");
+        assert!(names.contains(&"Charmander"), "Charmander should be loaded");
+        assert!(names.contains(&"Squirtle"), "Squirtle should be loaded");
+    }
+
+    #[test]
+    fn unit_pokemon_scenarios() {
+        use crate::common::constants::paths_const::OFFLINE_ROOT;
+        let mut dm = DataManager::default();
+        dm.load_all_scenarios(&*OFFLINE_ROOT).unwrap();
+
+        let pokemon_scenarios = dm.scenarios_by_universe("pokemon");
+        assert_eq!(
+            pokemon_scenarios.len(),
+            10,
+            "expected 10 pokemon scenarios (stage_1 through stage_10)"
+        );
+        for s in &pokemon_scenarios {
+            assert_eq!(s.universe, "pokemon");
+            assert!(!s.name.is_empty(), "scenario name should not be empty");
+            assert!(
+                !s.description.is_empty(),
+                "scenario description should not be empty"
+            );
+        }
+        let levels: Vec<u64> = pokemon_scenarios.iter().map(|s| s.level).collect();
+        for i in 1..=10u64 {
+            assert!(
+                levels.contains(&i),
+                "pokemon should have level {i} scenario"
+            );
+        }
+    }
+
+    #[test]
+    fn unit_lotr_scenarios() {
+        use crate::common::constants::paths_const::OFFLINE_ROOT;
+        let mut dm = DataManager::default();
+        dm.load_all_scenarios(&*OFFLINE_ROOT).unwrap();
+
+        let lotr_scenarios = dm.scenarios_by_universe("lotr");
+        assert_eq!(lotr_scenarios.len(), 10, "expected 10 lotr scenarios");
+        for s in &lotr_scenarios {
+            assert_eq!(s.universe, "lotr");
+            assert!(!s.name.is_empty(), "lotr scenario name should not be empty");
+        }
     }
 }

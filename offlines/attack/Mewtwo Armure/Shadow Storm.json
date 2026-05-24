@@ -1,0 +1,66 @@
+{
+  "Cible": "Enemy",
+  "Coût de mana": 0,
+  "Coût de rage": 0,
+  "Coût de vigueur": 30,
+  "Durée": 1,
+  "Effet": [
+    {
+      "Cible": "Enemy",
+      "Portée": "Individual",
+      "Stat": "HP",
+      "Tours actifs": 5,
+      "Type": "ChangeCurrentStatByValue",
+      "Valeur de l'effet": 0,
+      "Value": -20,
+      "IsMagicEffect": true,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Enemy",
+      "Portée": "Individual",
+      "Stat": "Magical armor",
+      "Tours actifs": 4,
+      "Type": "ChangeMaxStatByPercentage",
+      "Valeur de l'effet": 0,
+      "Value": -30,
+      "IsMagicEffect": true,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Self",
+      "Portée": "Individual",
+      "Stat": "",
+      "Tours actifs": 6,
+      "Type": "CooldownTurnsNumber",
+      "Valeur de l'effet": 0,
+      "Value": 0,
+      "IsMagicEffect": false,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    }
+  ],
+  "Forme": "Standard",
+  "Niveau": 10,
+  "Nom": "Shadow Storm",
+  "Photo": "Angmar.png",
+  "Portée": "Individual",
+  "Description": "Summons a psychic storm — persistent magical damage for 5 turns with armour reduction."
+}

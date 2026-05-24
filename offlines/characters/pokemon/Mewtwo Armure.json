@@ -1,0 +1,119 @@
+{
+  "Class": "Warrior",
+  "Color": "red",
+  "Experience": 0,
+  "CharacterRoundsInfo": {
+    "is_first_round": false,
+    "is_heal_atk_blocked": false,
+    "is_random_target": true,
+    "Buf-debuf": [
+      {
+        "stats-name": "",
+        "is-percent": true,
+        "passive-enabled": false,
+        "kind": "DamageRxPercent",
+        "value": 100
+      }
+    ]
+  },
+  "Level": 10,
+  "Name": "Mewtwo Armure",
+  "IdName": "Mewtwo_Armure_#1",
+  "Photo": "default",
+  "Rank": "Advanced",
+  "Shape": "",
+  "Short name": "Mewtwo Armure",
+  "Stats": {
+    "Aggro": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Aggro rate": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Berserk": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Berserk rate": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Critical strike": {
+      "Current": 25,
+      "Max": 25
+    },
+    "Dodge": {
+      "Current": 15,
+      "Max": 15
+    },
+    "HP": {
+      "Current": 640,
+      "Max": 640
+    },
+    "HP regeneration": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Magical armor": {
+      "Current": 90,
+      "Max": 90
+    },
+    "Magical power": {
+      "Current": 110,
+      "Max": 110
+    },
+    "Mana": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Mana regeneration": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Physical armor": {
+      "Current": 60,
+      "Max": 60
+    },
+    "Physical power": {
+      "Current": 65,
+      "Max": 65
+    },
+    "Speed": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Speed regeneration": {
+      "Current": 15,
+      "Max": 15
+    },
+    "Vigor": {
+      "Current": 9999,
+      "Max": 9999
+    },
+    "Vigor regeneration": {
+      "Current": 20,
+      "Max": 20
+    }
+  },
+  "Tx-rx": [
+    {},
+    {},
+    {},
+    {},
+    {},
+    {}
+  ],
+  "Type": "Boss",
+  "is-blocking-atk": false,
+  "max-actions-by-round": 3,
+  "nb-actions-in-round": 0,
+  "energies": [
+    {
+      "kind": "Vigor"
+    }
+  ],
+  "Description": "Mewtwo in armoured form. The pinnacle of Pokémon power — psychic storms shatter every defence."
+
+}

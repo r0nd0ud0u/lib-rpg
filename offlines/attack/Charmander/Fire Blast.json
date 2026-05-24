@@ -1,0 +1,66 @@
+{
+  "Cible": "Enemy",
+  "Coût de mana": 0,
+  "Coût de rage": 22,
+  "Coût de vigueur": 0,
+  "Durée": 1,
+  "Effet": [
+    {
+      "Cible": "Enemy",
+      "Portée": "Individual",
+      "Stat": "HP",
+      "Tours actifs": 1,
+      "Type": "ChangeCurrentStatByValue",
+      "Valeur de l'effet": 0,
+      "Value": -110,
+      "IsMagicEffect": true,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Self",
+      "Portée": "Individual",
+      "Stat": "Berserk",
+      "Tours actifs": 1,
+      "Type": "ChangeMaxStatByPercentage",
+      "Valeur de l'effet": 0,
+      "Value": 10,
+      "IsMagicEffect": false,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Self",
+      "Portée": "Individual",
+      "Stat": "",
+      "Tours actifs": 6,
+      "Type": "CooldownTurnsNumber",
+      "Valeur de l'effet": 0,
+      "Value": 0,
+      "IsMagicEffect": false,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    }
+  ],
+  "Forme": "Standard",
+  "Niveau": 10,
+  "Nom": "Fire Blast",
+  "Photo": "charmander.png",
+  "Portée": "Individual",
+  "Description": "Fires an enormous five-pointed flame. Costs high rage but deals massive fire damage."
+}

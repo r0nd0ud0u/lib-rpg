@@ -1,0 +1,49 @@
+{
+  "Cible": "Enemy",
+  "Coût de mana": 0,
+  "Coût de rage": 0,
+  "Coût de vigueur": 18,
+  "Durée": 1,
+  "Effet": [
+    {
+      "Cible": "Enemy",
+      "Portée": "Individual",
+      "Stat": "HP",
+      "Tours actifs": 1,
+      "Type": "ChangeCurrentStatByValue",
+      "Valeur de l'effet": 0,
+      "Value": -65,
+      "IsMagicEffect": false,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Self",
+      "Portée": "Individual",
+      "Stat": "Physical power",
+      "Tours actifs": 2,
+      "Type": "ChangeMaxStatByPercentage",
+      "Valeur de l'effet": 0,
+      "Value": 15,
+      "IsMagicEffect": false,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    }
+  ],
+  "Forme": "Standard",
+  "Niveau": 8,
+  "Nom": "Wing Attack",
+  "Photo": "Angmar.png",
+  "Portée": "Individual",
+  "Description": "Strikes with powerful wings — boosts own physical power."
+}

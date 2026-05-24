@@ -1,0 +1,49 @@
+{
+  "Cible": "Enemy",
+  "Coût de mana": 0,
+  "Coût de rage": 0,
+  "Coût de vigueur": 10,
+  "Durée": 1,
+  "Effet": [
+    {
+      "Cible": "Enemy",
+      "Portée": "Individual",
+      "Stat": "HP",
+      "Tours actifs": 1,
+      "Type": "ChangeCurrentStatByValue",
+      "Valeur de l'effet": 0,
+      "Value": -35,
+      "IsMagicEffect": true,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Enemy",
+      "Portée": "Individual",
+      "Stat": "Speed regeneration",
+      "Tours actifs": 2,
+      "Type": "ChangeMaxStatByPercentage",
+      "Valeur de l'effet": 0,
+      "Value": -20,
+      "IsMagicEffect": false,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    }
+  ],
+  "Forme": "Standard",
+  "Niveau": 2,
+  "Nom": "Gust",
+  "Photo": "Angmar.png",
+  "Portée": "Individual",
+  "Description": "Flaps its wings to generate a gust — deals wind damage and reduces enemy speed."
+}

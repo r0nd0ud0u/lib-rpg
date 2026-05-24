@@ -1,0 +1,66 @@
+{
+  "Cible": "Enemy",
+  "Coût de mana": 14,
+  "Coût de rage": 0,
+  "Coût de vigueur": 0,
+  "Durée": 1,
+  "Effet": [
+    {
+      "Cible": "Enemy",
+      "Portée": "Individual",
+      "Stat": "HP",
+      "Tours actifs": 4,
+      "Type": "ChangeCurrentStatByValue",
+      "Valeur de l'effet": 0,
+      "Value": -18,
+      "IsMagicEffect": true,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Self",
+      "Portée": "Individual",
+      "Stat": "HP",
+      "Tours actifs": 4,
+      "Type": "ChangeCurrentStatByPercentage",
+      "Valeur de l'effet": 0,
+      "Value": 12,
+      "IsMagicEffect": true,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Self",
+      "Portée": "Individual",
+      "Stat": "",
+      "Tours actifs": 4,
+      "Type": "CooldownTurnsNumber",
+      "Valeur de l'effet": 0,
+      "Value": 0,
+      "IsMagicEffect": false,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    }
+  ],
+  "Forme": "Standard",
+  "Niveau": 3,
+  "Nom": "Leech Seed",
+  "Photo": "bulbasaur.png",
+  "Portée": "Individual",
+  "Description": "Plants a seed that drains enemy HP each turn, restoring Bulbasaur's own health."
+}

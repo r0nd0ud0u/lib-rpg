@@ -1,0 +1,30 @@
+{
+  "name": "Patrouille Rattata",
+  "description": "A young Rattata guards a forest path. Perfect first encounter to learn the basics.",
+  "boss_patterns": {
+    "Rattata": [
+      0
+    ]
+  },
+  "level": 1,
+  "loots": [
+    {
+      "name": "Common potion",
+      "kind": "Consumable",
+      "rank": "Common",
+      "level": 1,
+      "classes": [
+        "Standard"
+      ]
+    },
+    {
+      "name": "gold",
+      "kind": "Currency",
+      "rank": "Common",
+      "level": 30,
+      "classes": [
+        "Standard"
+      ]
+    }
+  ]
+}

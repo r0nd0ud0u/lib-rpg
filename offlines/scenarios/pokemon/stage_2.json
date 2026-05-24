@@ -1,0 +1,33 @@
+{
+  "name": "Double Attaque",
+  "description": "A Rattata and a Pidgey work together to defend their territory.",
+  "boss_patterns": {
+    "Rattata": [
+      0
+    ],
+    "Pidgey": [
+      1
+    ]
+  },
+  "level": 2,
+  "loots": [
+    {
+      "name": "Common potion",
+      "kind": "Consumable",
+      "rank": "Common",
+      "level": 1,
+      "classes": [
+        "Standard"
+      ]
+    },
+    {
+      "name": "gold",
+      "kind": "Currency",
+      "rank": "Common",
+      "level": 30,
+      "classes": [
+        "Standard"
+      ]
+    }
+  ]
+}

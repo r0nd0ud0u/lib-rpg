@@ -1,0 +1,49 @@
+{
+  "Cible": "Enemy",
+  "Coût de mana": 0,
+  "Coût de rage": 0,
+  "Coût de vigueur": 18,
+  "Durée": 1,
+  "Effet": [
+    {
+      "Cible": "Enemy",
+      "Portée": "Individual",
+      "Stat": "HP",
+      "Tours actifs": 3,
+      "Type": "ChangeCurrentStatByValue",
+      "Valeur de l'effet": 0,
+      "Value": -25,
+      "IsMagicEffect": true,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Self",
+      "Portée": "Individual",
+      "Stat": "",
+      "Tours actifs": 4,
+      "Type": "CooldownTurnsNumber",
+      "Valeur de l'effet": 0,
+      "Value": 0,
+      "IsMagicEffect": false,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    }
+  ],
+  "Forme": "Standard",
+  "Niveau": 7,
+  "Nom": "Hex",
+  "Photo": "Angmar.png",
+  "Portée": "Individual",
+  "Description": "Curses the enemy with dark energy — deals damage over 3 turns."
+}
