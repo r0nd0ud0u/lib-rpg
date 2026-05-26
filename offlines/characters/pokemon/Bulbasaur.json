@@ -1,0 +1,156 @@
+{
+  "Class": "Mage",
+  "Color": "green",
+  "Experience": 0,
+  "CharacterRoundsInfo": {
+    "is_first_round": false,
+    "is_heal_atk_blocked": false,
+    "is_random_target": false,
+    "Buf-debuf": [
+      {
+        "stats-name": "",
+        "is-percent": true,
+        "passive-enabled": false,
+        "kind": "DamageRxPercent",
+        "value": 100
+      }
+    ]
+  },
+  "Level": 1,
+  "Name": "Bulbasaur",
+  "IdName": "Bulbasaur_#1",
+  "Photo": "default",
+  "Rank": "Common",
+  "Shape": "",
+  "Short name": "Bulbasaur",
+  "Stats": {
+    "Aggro": {
+      "Current": 0,
+      "Max": 9999
+    },
+    "Aggro rate": {
+      "Current": 3,
+      "Max": 3
+    },
+    "Berserk": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Berserk rate": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Critical strike": {
+      "Current": 8,
+      "Max": 8
+    },
+    "Dodge": {
+      "Current": 5,
+      "Max": 5
+    },
+    "HP": {
+      "Current": 85,
+      "Max": 85
+    },
+    "HP regeneration": {
+      "Current": 5,
+      "Max": 5
+    },
+    "Magical armor": {
+      "Current": 30,
+      "Max": 30
+    },
+    "Magical power": {
+      "Current": 50,
+      "Max": 50
+    },
+    "Mana": {
+      "Current": 100,
+      "Max": 100
+    },
+    "Mana regeneration": {
+      "Current": 18,
+      "Max": 18
+    },
+    "Physical armor": {
+      "Current": 15,
+      "Max": 15
+    },
+    "Physical power": {
+      "Current": 30,
+      "Max": 30
+    },
+    "Speed": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Speed regeneration": {
+      "Current": 20,
+      "Max": 20
+    },
+    "Vigor": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Vigor regeneration": {
+      "Current": 0,
+      "Max": 0
+    }
+  },
+  "Type": "Hero",
+  "inventory": {
+    "equipments": {
+      "Head": [
+        {
+          "unique_name": "starting helmet",
+          "is_equipped": true
+        }
+      ],
+      "Chest": [
+        {
+          "unique_name": "starting chest",
+          "is_equipped": true
+        }
+      ],
+      "Shoes": [
+        {
+          "unique_name": "starting shoes",
+          "is_equipped": true
+        }
+      ],
+      "LeftWeapon": [
+        {
+          "unique_name": "starting left weapon",
+          "is_equipped": true
+        }
+      ],
+      "RightWeapon": [
+        {
+          "unique_name": "starting right weapon",
+          "is_equipped": true
+        }
+      ],
+      "Pants": [
+        {
+          "unique_name": "starting pants",
+          "is_equipped": true
+        }
+      ],
+      "Tattoes": [
+        {
+          "unique_name": "starting tattoo",
+          "is_equipped": true
+        }
+      ]
+    },
+    "consumables": [],
+    "money": 100
+  },
+  "energies": [
+    {
+      "kind": "Mana"
+    }
+  ],
+  "Description": "The Seed Pokémon from Pallet Town. Channels solar energy to heal allies and unleash grass and poison attacks."
+
+}

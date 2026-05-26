@@ -1,0 +1,66 @@
+{
+  "Cible": "Ally",
+  "Coût de mana": 20,
+  "Coût de rage": 0,
+  "Coût de vigueur": 0,
+  "Durée": 1,
+  "Effet": [
+    {
+      "Cible": "Ally",
+      "Portée": "Individual",
+      "Stat": "HP",
+      "Tours actifs": 1,
+      "Type": "ChangeCurrentStatByPercentage",
+      "Valeur de l'effet": 0,
+      "Value": 35,
+      "IsMagicEffect": true,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Ally",
+      "Portée": "Individual",
+      "Stat": "HP",
+      "Tours actifs": 2,
+      "Type": "ChangeMaxStatByPercentage",
+      "Valeur de l'effet": 0,
+      "Value": 10,
+      "IsMagicEffect": true,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    },
+    {
+      "Cible": "Self",
+      "Portée": "Individual",
+      "Stat": "",
+      "Tours actifs": 6,
+      "Type": "CooldownTurnsNumber",
+      "Valeur de l'effet": 0,
+      "Value": 0,
+      "IsMagicEffect": false,
+      "Buffer": {
+        "kind": "ChangeCurrentStatByValue",
+        "value": -35,
+        "is-percent": false,
+        "stats-name": "HP",
+        "passive-enabled": false
+      }
+    }
+  ],
+  "Forme": "Standard",
+  "Niveau": 6,
+  "Nom": "Synthesis",
+  "Photo": "bulbasaur.png",
+  "Portée": "Individual",
+  "Description": "Absorbs solar energy to restore a large amount of an ally's HP."
+}

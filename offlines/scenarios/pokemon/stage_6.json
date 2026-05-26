@@ -1,0 +1,30 @@
+{
+  "name": "L'Ombre de Gengar",
+  "description": "Gengar lurks in Lavender Town's shadows, draining energy with spectral attacks.",
+  "boss_patterns": {
+    "Gengar": [
+      0
+    ]
+  },
+  "level": 6,
+  "loots": [
+    {
+      "name": "Rare potion",
+      "kind": "Consumable",
+      "rank": "Advanced",
+      "level": 3,
+      "classes": [
+        "Standard"
+      ]
+    },
+    {
+      "name": "gold",
+      "kind": "Currency",
+      "rank": "Advanced",
+      "level": 80,
+      "classes": [
+        "Standard"
+      ]
+    }
+  ]
+}

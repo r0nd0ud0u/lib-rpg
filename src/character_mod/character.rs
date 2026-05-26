@@ -84,6 +84,9 @@ pub struct Character {
     /// Short description of the character for UI display (optional)
     #[serde(rename = "Description", default)]
     pub description: String,
+    /// Universe/theme the character belongs to (e.g. "lotr", "pokemon").
+    #[serde(default)]
+    pub universe: String,
 }
 
 impl Default for Character {
@@ -104,6 +107,7 @@ impl Default for Character {
             energies: Vec::new(),
             rank: Rank::default(),
             description: String::new(),
+            universe: String::new(),
         }
     }
 }

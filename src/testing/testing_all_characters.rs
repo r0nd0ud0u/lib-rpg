@@ -90,7 +90,13 @@ pub fn dxrpg_all_equipment() -> HashMap<EquipmentJsonKey, Vec<Equipment>> {
 pub fn dxrpg_pm() -> PlayerManager {
     let dm = dxrpg_dm();
     let mut pl = PlayerManager::new(dm.equipment_table);
-    pl.active_heroes = dm.all_heroes.clone();
+    // Use only lotr heroes to keep game integration tests deterministic
+    pl.active_heroes = dm
+        .all_heroes
+        .iter()
+        .filter(|h| h.universe == "lotr")
+        .cloned()
+        .collect();
     // All the bosses are active
     pl.active_bosses = dm.all_bosses.clone();
     pl.all_bosses = dm.all_bosses.clone();
@@ -118,7 +124,11 @@ mod tests {
     #[test]
     fn unit_dxrpg_game_manager() {
         let gm = super::dxrpg_game_manager();
-        assert_eq!(gm.pm.active_heroes.len(), 4);
+        assert_eq!(
+            gm.pm.active_heroes.len(),
+            4,
+            "dxrpg_pm uses lotr-only heroes"
+        );
         assert!(gm.pm.active_bosses.len() >= 2, "expected at least 2 bosses");
 
         // test all_buffer length

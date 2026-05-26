@@ -1,0 +1,30 @@
+{
+  "name": "Machoke le Colosse",
+  "description": "The mighty Machoke stands at the city gate. Its raw power overwhelms most challengers.",
+  "boss_patterns": {
+    "Machoke": [
+      0
+    ]
+  },
+  "level": 5,
+  "loots": [
+    {
+      "name": "Common potion",
+      "kind": "Consumable",
+      "rank": "Common",
+      "level": 2,
+      "classes": [
+        "Standard"
+      ]
+    },
+    {
+      "name": "gold",
+      "kind": "Currency",
+      "rank": "Common",
+      "level": 50,
+      "classes": [
+        "Standard"
+      ]
+    }
+  ]
+}
