@@ -1,0 +1,119 @@
+{
+  "Class": "Warrior",
+  "Color": "red",
+  "Experience": 0,
+  "CharacterRoundsInfo": {
+    "is_first_round": false,
+    "is_heal_atk_blocked": false,
+    "is_random_target": true,
+    "Buf-debuf": [
+      {
+        "stats-name": "",
+        "is-percent": true,
+        "passive-enabled": false,
+        "kind": "DamageRxPercent",
+        "value": 100
+      }
+    ]
+  },
+  "Level": 2,
+  "Name": "Pidgey",
+  "IdName": "Pidgey_#1",
+  "Photo": "default",
+  "Rank": "Common",
+  "Shape": "",
+  "Short name": "Pidgey",
+  "Stats": {
+    "Aggro": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Aggro rate": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Berserk": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Berserk rate": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Critical strike": {
+      "Current": 10,
+      "Max": 10
+    },
+    "Dodge": {
+      "Current": 10,
+      "Max": 10
+    },
+    "HP": {
+      "Current": 240,
+      "Max": 240
+    },
+    "HP regeneration": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Magical armor": {
+      "Current": 20,
+      "Max": 20
+    },
+    "Magical power": {
+      "Current": 30,
+      "Max": 30
+    },
+    "Mana": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Mana regeneration": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Physical armor": {
+      "Current": 20,
+      "Max": 20
+    },
+    "Physical power": {
+      "Current": 30,
+      "Max": 30
+    },
+    "Speed": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Speed regeneration": {
+      "Current": 15,
+      "Max": 15
+    },
+    "Vigor": {
+      "Current": 9999,
+      "Max": 9999
+    },
+    "Vigor regeneration": {
+      "Current": 15,
+      "Max": 15
+    }
+  },
+  "Tx-rx": [
+    {},
+    {},
+    {},
+    {},
+    {},
+    {}
+  ],
+  "Type": "Boss",
+  "is-blocking-atk": false,
+  "max-actions-by-round": 1,
+  "nb-actions-in-round": 0,
+  "energies": [
+    {
+      "kind": "Vigor"
+    }
+  ],
+  "Description": "A tiny bird Pokémon that kicks up sand and strikes with wing gusts."
+
+}

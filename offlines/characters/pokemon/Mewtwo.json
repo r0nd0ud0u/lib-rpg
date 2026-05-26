@@ -1,0 +1,119 @@
+{
+  "Class": "Warrior",
+  "Color": "red",
+  "Experience": 0,
+  "CharacterRoundsInfo": {
+    "is_first_round": false,
+    "is_heal_atk_blocked": false,
+    "is_random_target": true,
+    "Buf-debuf": [
+      {
+        "stats-name": "",
+        "is-percent": true,
+        "passive-enabled": false,
+        "kind": "DamageRxPercent",
+        "value": 100
+      }
+    ]
+  },
+  "Level": 9,
+  "Name": "Mewtwo",
+  "IdName": "Mewtwo_#1",
+  "Photo": "default",
+  "Rank": "Advanced",
+  "Shape": "",
+  "Short name": "Mewtwo",
+  "Stats": {
+    "Aggro": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Aggro rate": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Berserk": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Berserk rate": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Critical strike": {
+      "Current": 22,
+      "Max": 22
+    },
+    "Dodge": {
+      "Current": 18,
+      "Max": 18
+    },
+    "HP": {
+      "Current": 510,
+      "Max": 510
+    },
+    "HP regeneration": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Magical armor": {
+      "Current": 75,
+      "Max": 75
+    },
+    "Magical power": {
+      "Current": 95,
+      "Max": 95
+    },
+    "Mana": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Mana regeneration": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Physical armor": {
+      "Current": 40,
+      "Max": 40
+    },
+    "Physical power": {
+      "Current": 55,
+      "Max": 55
+    },
+    "Speed": {
+      "Current": 0,
+      "Max": 0
+    },
+    "Speed regeneration": {
+      "Current": 15,
+      "Max": 15
+    },
+    "Vigor": {
+      "Current": 9999,
+      "Max": 9999
+    },
+    "Vigor regeneration": {
+      "Current": 15,
+      "Max": 15
+    }
+  },
+  "Tx-rx": [
+    {},
+    {},
+    {},
+    {},
+    {},
+    {}
+  ],
+  "Type": "Boss",
+  "is-blocking-atk": false,
+  "max-actions-by-round": 2,
+  "nb-actions-in-round": 0,
+  "energies": [
+    {
+      "kind": "Vigor"
+    }
+  ],
+  "Description": "The Genetic Pokémon. Levitates enemies with raw psychic power and erases their will to fight."
+
+}

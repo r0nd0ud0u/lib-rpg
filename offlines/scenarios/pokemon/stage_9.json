@@ -1,0 +1,30 @@
+{
+  "name": "Mewtwo Éveillé",
+  "description": "Mewtwo has escaped Cerulean Cave and unleashes psychic devastation on everything in its path.",
+  "boss_patterns": {
+    "Mewtwo": [
+      0
+    ]
+  },
+  "level": 9,
+  "loots": [
+    {
+      "name": "Rare potion",
+      "kind": "Consumable",
+      "rank": "Advanced",
+      "level": 3,
+      "classes": [
+        "Standard"
+      ]
+    },
+    {
+      "name": "gold",
+      "kind": "Currency",
+      "rank": "Advanced",
+      "level": 80,
+      "classes": [
+        "Standard"
+      ]
+    }
+  ]
+}

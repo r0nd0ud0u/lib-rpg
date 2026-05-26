@@ -1,0 +1,33 @@
+{
+  "name": "Embuscade en Montagne",
+  "description": "Mankey calls for backup — a Pidgey swoops in from above.",
+  "boss_patterns": {
+    "Mankey": [
+      0
+    ],
+    "Pidgey": [
+      1
+    ]
+  },
+  "level": 4,
+  "loots": [
+    {
+      "name": "Common potion",
+      "kind": "Consumable",
+      "rank": "Common",
+      "level": 2,
+      "classes": [
+        "Standard"
+      ]
+    },
+    {
+      "name": "gold",
+      "kind": "Currency",
+      "rank": "Common",
+      "level": 50,
+      "classes": [
+        "Standard"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "Colère de Mankey",
+  "description": "An enraged Mankey blocks the mountain trail with fierce fighting moves.",
+  "boss_patterns": {
+    "Mankey": [
+      0
+    ]
+  },
+  "level": 3,
+  "loots": [
+    {
+      "name": "Common potion",
+      "kind": "Consumable",
+      "rank": "Common",
+      "level": 2,
+      "classes": [
+        "Standard"
+      ]
+    },
+    {
+      "name": "gold",
+      "kind": "Currency",
+      "rank": "Common",
+      "level": 50,
+      "classes": [
+        "Standard"
+      ]
+    }
+  ]
+}
