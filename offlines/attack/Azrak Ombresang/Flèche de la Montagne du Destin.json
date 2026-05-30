@@ -15,7 +15,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -120,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -32,7 +32,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -40,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -48,10 +48,10 @@
             "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "CooldownTurnsNumber",
+                "value": 0,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "",
                 "passive-enabled": false
             }
         },
@@ -65,10 +65,10 @@
             "Value": 100,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "DamageRxPercent",
+                "value": 100,
+                "is-percent": true,
+                "stats-name": "",
                 "passive-enabled": false
             }
         },
@@ -83,9 +83,9 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 65,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Magic power",
                 "passive-enabled": false
             }
         }

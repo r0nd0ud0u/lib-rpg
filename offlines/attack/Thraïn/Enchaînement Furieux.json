@@ -14,8 +14,8 @@
             "Value": -50,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "RepeatAsManyAsPossible",
+                "value": -50,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false

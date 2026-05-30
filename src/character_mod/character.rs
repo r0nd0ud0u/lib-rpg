@@ -6,7 +6,7 @@ use std::{collections::HashMap, path::Path, vec};
 use crate::{
     character_mod::{
         attack_type::{AttackType, LauncherAtkInfo},
-        buffers::BufKinds,
+        buffers::{BufKinds, Buffer},
         class::Class,
         effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
         energy::{Energy, EnergyKind},
@@ -519,6 +519,34 @@ impl Character {
         is_crit: bool,
         atk: &AttackType,
     ) -> Result<Vec<ProcessedEffectParam>> {
+        // Pre-compute number of applies for RepeatAsManyAsPossible effects
+        // (must happen after process_atk_cost has already deducted the energy)
+        let has_repeat = atk
+            .all_effects
+            .iter()
+            .any(|e| e.buffer.kind == BufKinds::RepeatAsManyAsPossible);
+        if has_repeat {
+            let cost_per_apply = atk
+                .berseck_cost
+                .max(atk.vigor_cost)
+                .max(atk.mana_cost) as i64;
+            if cost_per_apply > 0 {
+                let remaining = if atk.berseck_cost > 0 {
+                    self.stats.all_stats.get(BERSERK).map(|s| s.current as i64).unwrap_or(0)
+                } else if atk.vigor_cost > 0 {
+                    self.stats.all_stats.get(VIGOR).map(|s| s.current as i64).unwrap_or(0)
+                } else {
+                    self.stats.all_stats.get(MANA).map(|s| s.current as i64).unwrap_or(0)
+                };
+                let nb_applies = (remaining / cost_per_apply).max(1);
+                self.character_rounds_info.update_buffer(&Buffer {
+                    value: nb_applies,
+                    is_percent: false,
+                    kind: BufKinds::ApplyEffectInit,
+                    ..Default::default()
+                });
+            }
+        }
         self.process_all_effects(game_state, is_crit, &atk.name, &atk.all_effects)
     }
 
@@ -531,12 +559,20 @@ impl Character {
     ) -> Result<Vec<ProcessedEffectParam>> {
         let mut processed_effect_param_list: Vec<ProcessedEffectParam> = vec![];
         for effect in all_effects {
-            processed_effect_param_list.push(self.character_rounds_info.process_one_effect(
+            let processed = self.character_rounds_info.process_one_effect(
                 effect,
                 action_name,
                 game_state,
                 is_crit,
-            )?);
+            )?;
+            // If a gate-condition effect reports failure (0 applies), stop processing
+            let is_condition_failed = processed.input_effect_param.buffer.kind
+                == BufKinds::ConditionDamagePrevTurn
+                && processed.number_of_applies == 0;
+            processed_effect_param_list.push(processed);
+            if is_condition_failed {
+                break;
+            }
         }
         Ok(processed_effect_param_list)
     }
@@ -1196,7 +1232,7 @@ mod tests {
                 value: 10,
                 ..Default::default()
             },
-            nb_turns: 1,
+            nb_turns: 10,
             target_kind: c.id_name.clone(),
             ..Default::default()
         };
@@ -1226,6 +1262,7 @@ mod tests {
         ep.buffer.stats_name = HP.to_owned();
         ep.buffer.kind = BufKinds::ChangeMaxStatByValue;
         ep.buffer.value = 10;
+        ep.nb_turns = 1;
         let processed_effect_param = c
             .character_rounds_info
             .process_one_effect(&ep, "", &game_state, true)

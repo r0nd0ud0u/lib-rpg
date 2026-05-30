@@ -20,9 +20,9 @@
             "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 0,
+                "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
             }
@@ -43,10 +43,10 @@
             "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 0,
+                "is-percent": true,
+                "stats-name": "Mana",
                 "passive-enabled": false
             }
         },
@@ -66,10 +66,10 @@
             "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 0,
+                "is-percent": true,
+                "stats-name": "Vigor",
                 "passive-enabled": false
             }
         }

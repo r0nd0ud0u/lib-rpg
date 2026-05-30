@@ -18,7 +18,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -60,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -34,10 +34,10 @@
             "Value": -25,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": -25,
+                "is-percent": true,
+                "stats-name": "Physical armor",
                 "passive-enabled": false
             }
         }

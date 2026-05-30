@@ -1,66 +1,66 @@
 {
-  "Cible": "Self",
-  "Coût de mana": 0,
-  "Coût de rage": 0,
-  "Coût de vigueur": 14,
-  "Durée": 1,
-  "Effet": [
-    {
-      "Cible": "Self",
-      "Portée": "Individual",
-      "Stat": "Physical armor",
-      "Tours actifs": 3,
-      "Type": "ChangeMaxStatByPercentage",
-      "Valeur de l'effet": 0,
-      "Value": 30,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    },
-    {
-      "Cible": "Self",
-      "Portée": "Individual",
-      "Stat": "Magical armor",
-      "Tours actifs": 3,
-      "Type": "ChangeMaxStatByPercentage",
-      "Valeur de l'effet": 0,
-      "Value": 30,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    },
-    {
-      "Cible": "Self",
-      "Portée": "Individual",
-      "Stat": "",
-      "Tours actifs": 5,
-      "Type": "CooldownTurnsNumber",
-      "Valeur de l'effet": 0,
-      "Value": 0,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    }
-  ],
-  "Forme": "Standard",
-  "Niveau": 4,
-  "Nom": "Withdraw",
-  "Photo": "squirtle.png",
-  "Portée": "Individual",
-  "Description": "Retreats into its shell — greatly boosts physical and magical armour for 3 turns."
+    "Cible": "Self",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 14,
+    "Durée": 1,
+    "Effet": [
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
+            "Stat": "Physical armor",
+            "Tours actifs": 3,
+            "Type": "ChangeMaxStatByPercentage",
+            "Valeur de l'effet": 0,
+            "Value": 30,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 30,
+                "is-percent": true,
+                "stats-name": "Physical armor",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
+            "Stat": "Magical armor",
+            "Tours actifs": 3,
+            "Type": "ChangeMaxStatByPercentage",
+            "Valeur de l'effet": 0,
+            "Value": 30,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 30,
+                "is-percent": true,
+                "stats-name": "Magical armor",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
+            "Stat": "",
+            "Tours actifs": 5,
+            "Type": "CooldownTurnsNumber",
+            "Valeur de l'effet": 0,
+            "Value": 0,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "CooldownTurnsNumber",
+                "value": 0,
+                "is-percent": false,
+                "stats-name": "",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 4,
+    "Nom": "Withdraw",
+    "Photo": "squirtle.png",
+    "Portée": "Individual",
+    "Description": "Retreats into its shell — greatly boosts physical and magical armour for 3 turns."
 }

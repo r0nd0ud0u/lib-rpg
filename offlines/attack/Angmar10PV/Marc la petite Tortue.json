@@ -12,7 +12,14 @@
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 3,
             "Value": -150,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -150,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Enemy",
@@ -22,7 +29,14 @@
             "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 1,
             "Value": -25,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": -25,
+                "is-percent": true,
+                "stats-name": "Mana",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Enemy",
@@ -32,7 +46,14 @@
             "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 1,
             "Value": -25,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": -25,
+                "is-percent": true,
+                "stats-name": "Vigor",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

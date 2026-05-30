@@ -1,49 +1,49 @@
 {
-  "Cible": "Enemy",
-  "Coût de mana": 0,
-  "Coût de rage": 0,
-  "Coût de vigueur": 12,
-  "Durée": 1,
-  "Effet": [
-    {
-      "Cible": "Enemy",
-      "Portée": "Individual",
-      "Stat": "HP",
-      "Tours actifs": 1,
-      "Type": "ChangeCurrentStatByValue",
-      "Valeur de l'effet": 0,
-      "Value": -45,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    },
-    {
-      "Cible": "Enemy",
-      "Portée": "Individual",
-      "Stat": "Physical armor",
-      "Tours actifs": 2,
-      "Type": "ChangeMaxStatByPercentage",
-      "Valeur de l'effet": 0,
-      "Value": -15,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    }
-  ],
-  "Forme": "Standard",
-  "Niveau": 3,
-  "Nom": "Low Kick",
-  "Photo": "Angmar.png",
-  "Portée": "Individual",
-  "Description": "Sweeps the enemy's legs — deals damage and reduces physical armour."
+    "Cible": "Enemy",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 12,
+    "Durée": 1,
+    "Effet": [
+        {
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "HP",
+            "Tours actifs": 1,
+            "Type": "ChangeCurrentStatByValue",
+            "Valeur de l'effet": 0,
+            "Value": -45,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -45,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "Physical armor",
+            "Tours actifs": 2,
+            "Type": "ChangeMaxStatByPercentage",
+            "Valeur de l'effet": 0,
+            "Value": -15,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": -15,
+                "is-percent": true,
+                "stats-name": "Physical armor",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 3,
+    "Nom": "Low Kick",
+    "Photo": "Angmar.png",
+    "Portée": "Individual",
+    "Description": "Sweeps the enemy's legs — deals damage and reduces physical armour."
 }

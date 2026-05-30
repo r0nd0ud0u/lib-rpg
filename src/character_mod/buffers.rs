@@ -46,6 +46,11 @@ pub enum BufKinds {
     /// Enables the dodge streak-breaker: value = max consecutive turns without a dodge
     /// before the next attack is guaranteed to dodge/block.
     StreakBreakerDodge,
+    /// Gate condition: all subsequent effects are skipped unless the character
+    /// dealt damage on the previous turn.
+    ConditionDamagePrevTurn,
+    /// Repeat the attack with a given % chance if the character healed on the previous turn.
+    RepeatIfHeal,
     EnumSize,
 }
 
@@ -82,6 +87,8 @@ impl fmt::Display for BufKinds {
             BufKinds::AddAsMuchAsHp => "AddAsMuchAsHp",
             BufKinds::StreakBreakerCrit => "StreakBreakerCrit",
             BufKinds::StreakBreakerDodge => "StreakBreakerDodge",
+            BufKinds::ConditionDamagePrevTurn => "ConditionDamagePrevTurn",
+            BufKinds::RepeatIfHeal => "RepeatIfHeal",
             BufKinds::EnumSize => "EnumSize",
         };
         write!(f, "{}", s)

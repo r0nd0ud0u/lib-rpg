@@ -14,8 +14,8 @@
             "Value": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "ReinitBuf",
+                "value": 0,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -32,7 +32,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 120,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false

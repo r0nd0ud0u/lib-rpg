@@ -298,7 +298,7 @@ impl CharacterRoundsInfo {
         match ep.buffer.kind {
             BufKinds::CooldownTurnsNumber => {
                 processed_effect_param.log = LogData {
-                    message: format!("Cooldown on {}: {} turns", atk_name, ep.buffer.value),
+                    message: format!("Cooldown on {}: {} turns", atk_name, ep.nb_turns),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
@@ -319,69 +319,222 @@ impl CharacterRoundsInfo {
                     color: "".to_owned(),
                 };
             }
-            BufKinds::ReinitBuf => {}
+            BufKinds::DamageTxPercent
+            | BufKinds::DamageRxPercent
+            | BufKinds::HealRxPercent
+            | BufKinds::HealTxPercent => {
+                let applied_value = processed_effect_param.number_of_applies * ep.buffer.value;
+                self.update_buffer(&Buffer {
+                    kind: ep.buffer.kind.clone(),
+                    value: applied_value,
+                    is_percent: true,
+                    ..Default::default()
+                });
+                processed_effect_param.log = LogData {
+                    message: format!("{} {}%", ep.buffer.kind, applied_value),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::ReinitBuf => {
+                // Restart all HOTs/DOTs on the given stat
+                let stats_name = ep.buffer.stats_name.clone();
+                for gae in self.all_effects.iter_mut() {
+                    if gae
+                        .processed_effect_param
+                        .input_effect_param
+                        .buffer
+                        .stats_name
+                        == stats_name
+                        && is_effet_hot_or_dot(
+                            &gae.processed_effect_param.input_effect_param.buffer.kind,
+                        )
+                    {
+                        gae.processed_effect_param.counter_turn = 0;
+                    }
+                }
+                processed_effect_param.log = LogData {
+                    message: format!("HOTs/DOTs on '{}' restarted", stats_name),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::RemoveOneDebuf => {
+                // Remove the first (oldest) active debuf effect (negative value)
+                if let Some(pos) = self.all_effects.iter().position(|gae| {
+                    gae.processed_effect_param.input_effect_param.buffer.value < 0
+                }) {
+                    self.all_effects.remove(pos);
+                }
+                processed_effect_param.log = LogData {
+                    message: "One debuf removed".to_owned(),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::BoostHotsByPercentage => {
+                // Boost all active HOT values by value%
+                let boost_percent = ep.buffer.value;
+                for gae in self.all_effects.iter_mut() {
+                    if effect::is_hot(
+                        &gae.processed_effect_param.input_effect_param.buffer.kind,
+                        &gae.processed_effect_param.input_effect_param.buffer.stats_name,
+                        gae.processed_effect_param.input_effect_param.buffer.value,
+                    ) {
+                        let cur_val =
+                            gae.processed_effect_param.input_effect_param.buffer.value;
+                        gae.processed_effect_param.input_effect_param.buffer.value +=
+                            cur_val * boost_percent / 100;
+                    }
+                }
+                processed_effect_param.log = LogData {
+                    message: format!("HOTs boosted by {}%", boost_percent),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::BoostBufByHotsNumberInPercentage => {
+                // Count active HOTs and add BoostedByHots buffer = count * value%
+                let hot_count = self
+                    .all_effects
+                    .iter()
+                    .filter(|gae| {
+                        effect::is_hot(
+                            &gae.processed_effect_param.input_effect_param.buffer.kind,
+                            &gae.processed_effect_param.input_effect_param.buffer.stats_name,
+                            gae.processed_effect_param.input_effect_param.buffer.value,
+                        )
+                    })
+                    .count() as i64;
+                let bonus = hot_count * ep.buffer.value;
+                self.update_buffer(&Buffer {
+                    value: bonus,
+                    is_percent: true,
+                    kind: BufKinds::BoostedByHots,
+                    ..Default::default()
+                });
+                processed_effect_param.log = LogData {
+                    message: format!("{} HOTs => {}% heal boost", hot_count, bonus),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::BlockHealAtk => {
+                self.is_heal_atk_blocked = true;
+                processed_effect_param.log = LogData {
+                    message: format!("Heals blocked for {} turns", ep.nb_turns),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::MultiValue => {
+                // Store multiplier for heal application (read in apply_buf_debuf)
+                self.update_buffer(&Buffer {
+                    kind: BufKinds::MultiValue,
+                    value: ep.buffer.value,
+                    is_percent: ep.buffer.is_percent,
+                    ..Default::default()
+                });
+                processed_effect_param.log = LogData {
+                    message: format!("Heal multiplied by {}", ep.buffer.value),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::AddAsMuchAsHp => {
+                // Enable ChangeByHealValue passive: overheal boosts the given stat
+                self.update_buffer(&Buffer {
+                    kind: BufKinds::ChangeByHealValue,
+                    value: 0,
+                    is_percent: false,
+                    stats_name: ep.buffer.stats_name.clone(),
+                    is_passive_enabled: true,
+                    is_passive: true,
+                });
+                processed_effect_param.log = LogData {
+                    message: format!(
+                        "Overheal boosts '{}' for {} turns",
+                        ep.buffer.stats_name, ep.nb_turns
+                    ),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::IsDamageTxHealNeedyAlly => {
+                // Enable passive: previous turn's damage TX becomes heal on most needy ally
+                self.update_buffer(&Buffer {
+                    kind: BufKinds::IsDamageTxHealNeedyAlly,
+                    value: 0,
+                    is_percent: false,
+                    is_passive_enabled: true,
+                    is_passive: true,
+                    ..Default::default()
+                });
+                processed_effect_param.log = LogData {
+                    message: "Previous turn damage TX => HP heal on most needy ally".to_owned(),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::PercentageIntoDamages => {
+                // Stored as an effect in all_effects; conversion logic runs during heal processing
+                processed_effect_param.log = LogData {
+                    message: format!(
+                        "{}% of '{}' heals converted to damages for {} turns",
+                        ep.sub_value_effect, ep.buffer.stats_name, ep.nb_turns
+                    ),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::RepeatAsManyAsPossible => {
+                // number_of_applies was set by process_atk via ApplyEffectInit before this call
+                processed_effect_param.log = LogData {
+                    message: format!(
+                        "Attack repeated {} times",
+                        processed_effect_param.number_of_applies
+                    ),
+                    color: "".to_owned(),
+                };
+                // Fall through: let the normal effect application use number_of_applies
+            }
+            BufKinds::RepeatIfHeal => {
+                // Handled in process_one_effect before reaching here
+                processed_effect_param.log = LogData {
+                    message: "RepeatIfHeal condition evaluated".to_owned(),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::ConditionDamagePrevTurn => {
+                // Handled in process_one_effect before reaching here
+                processed_effect_param.log = LogData {
+                    message: "ConditionDamagePrevTurn evaluated".to_owned(),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::ChangeMaxStatByPercentage => {
+                processed_effect_param.log = LogData {
+                    message: format!(
+                        "Max stat of {} is up by {}%",
+                        ep.buffer.stats_name, ep.buffer.value
+                    ),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
+            BufKinds::ChangeMaxStatByValue => {
+                processed_effect_param.log = LogData {
+                    message: format!(
+                        "Max stat of {} is up by value:{}",
+                        ep.buffer.stats_name, ep.buffer.value
+                    ),
+                    color: "".to_owned(),
+                };
+                return Ok(processed_effect_param);
+            }
             _ => {}
-        }
-        // Must be filled before changing value of nbTurns
-        if ep.buffer.kind == BufKinds::ReinitBuf {
-            // TODO
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::RemoveOneDebuf {
-            // TODO
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::BoostHotsByPercentage {
-            // TODO
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::BoostBufByHotsNumberInPercentage {
-            // TODO
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::DamageTxPercent {
-            // TODO
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::DamageRxPercent {
-            // TODO
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::HealRxPercent {
-            // TODO
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::HealTxPercent {
-            // TODO
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage {
-            processed_effect_param.log = LogData {
-                message: format!(
-                    "Max stat of {} is up by {}%",
-                    ep.buffer.stats_name, ep.buffer.value
-                ),
-                color: "".to_owned(),
-            };
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::ChangeMaxStatByValue {
-            processed_effect_param.log = LogData {
-                message: format!(
-                    "Max stat of {} is up by value:{}",
-                    ep.buffer.stats_name, ep.buffer.value
-                ),
-                color: "".to_owned(),
-            };
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::RepeatAsManyAsPossible {
-            // TODO
-            return Ok(processed_effect_param);
-        }
-        if ep.buffer.kind == BufKinds::PercentageIntoDamages {
-            // TODO
-            return Ok(processed_effect_param);
         }
         Ok(processed_effect_param)
     }
@@ -394,6 +547,69 @@ impl CharacterRoundsInfo {
         is_crit: bool,
     ) -> Result<ProcessedEffectParam> {
         let mut effect_param_mutable = ep.clone();
+
+        // Gate condition: skip remaining effects when no damage was dealt on the previous turn
+        if ep.buffer.kind == BufKinds::ConditionDamagePrevTurn {
+            let prev_turn = game_state.current_turn_nb.saturating_sub(1) as u64;
+            let did_damage = game_state.current_turn_nb > 0
+                && self
+                    .tx_rx
+                    .get(AmountType::DamageTx as usize)
+                    .and_then(|m| m.get(&prev_turn))
+                    .map(|&v| v != 0)
+                    .unwrap_or(false);
+            let number_of_applies = if did_damage { 1 } else { 0 };
+            return Ok(ProcessedEffectParam {
+                input_effect_param: ep.clone(),
+                number_of_applies,
+                log: LogData {
+                    message: if did_damage {
+                        "Condition met: damage dealt on previous turn".to_owned()
+                    } else {
+                        "Condition failed: no damage on previous turn".to_owned()
+                    },
+                    color: "".to_owned(),
+                },
+                ..Default::default()
+            });
+        }
+
+        // Probabilistic repeat: repeat attack with value% chance if heal was done last turn
+        if ep.buffer.kind == BufKinds::RepeatIfHeal {
+            let prev_turn = game_state.current_turn_nb.saturating_sub(1) as u64;
+            let did_heal = game_state.current_turn_nb > 0
+                && self
+                    .tx_rx
+                    .get(AmountType::HealTx as usize)
+                    .and_then(|m| m.get(&prev_turn))
+                    .map(|&v| v > 0)
+                    .unwrap_or(false);
+            let number_of_applies = if did_heal {
+                let chance = ep.buffer.value.clamp(0, 100) as u64;
+                let roll = get_random_nb(1, 100);
+                if roll <= chance as i64 { ep.sub_value_effect.max(1) } else { 0 }
+            } else {
+                0
+            };
+            self.update_buffer(&Buffer {
+                value: number_of_applies,
+                is_percent: false,
+                kind: BufKinds::ApplyEffectInit,
+                ..Default::default()
+            });
+            return Ok(ProcessedEffectParam {
+                input_effect_param: ep.clone(),
+                number_of_applies,
+                log: LogData {
+                    message: format!(
+                        "RepeatIfHeal: {} repeat(s) ({}% chance, healed_prev={})",
+                        number_of_applies, ep.buffer.value, did_heal
+                    ),
+                    color: "".to_owned(),
+                },
+                ..Default::default()
+            });
+        }
 
         // Preprocess effectParam before applying it
         // update effectParam -> only used on in case of atk launched
@@ -1279,5 +1495,317 @@ mod tests {
         assert!(!cri.is_potential_target);
         assert_eq!(0, cri.actions_done_in_round);
         assert!(cri.tx_rx.is_empty());
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Tests for newly-implemented BufKinds in process_effect_type
+    // ──────────────────────────────────────────────────────────────────────────
+
+    use crate::character_mod::effect::{EffectParam, ProcessedEffectParam};
+    use crate::character_mod::rounds_information::AmountType;
+    use crate::server::game_state::GameState;
+
+    fn make_ep(kind: BufKinds, value: i64, stats_name: &str, nb_turns: i64) -> EffectParam {
+        EffectParam {
+            nb_turns,
+            buffer: Buffer {
+                kind,
+                value,
+                stats_name: stats_name.to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
+
+    fn make_hot_gae(value: i64) -> GameAtkEffect {
+        GameAtkEffect {
+            processed_effect_param: ProcessedEffectParam {
+                input_effect_param: EffectParam {
+                    nb_turns: 3,
+                    buffer: Buffer {
+                        kind: BufKinds::ChangeCurrentStatByValue,
+                        value,
+                        stats_name: HP.to_owned(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                number_of_applies: 1,
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
+
+    fn make_debuf_gae(value: i64) -> GameAtkEffect {
+        GameAtkEffect {
+            processed_effect_param: ProcessedEffectParam {
+                input_effect_param: EffectParam {
+                    nb_turns: 3,
+                    buffer: Buffer {
+                        kind: BufKinds::ChangeCurrentStatByValue,
+                        value,
+                        stats_name: HP.to_owned(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                number_of_applies: 1,
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn unit_process_effect_damage_tx_percent() {
+        let mut cri = CharacterRoundsInfo::default();
+        let ep = make_ep(BufKinds::DamageTxPercent, 15, "", 1);
+        let result = cri.process_effect_type(&ep, "test_atk").unwrap();
+        assert_eq!(result.number_of_applies, 1);
+        let buf = cri.get_buffer_by_type(&BufKinds::DamageTxPercent).unwrap();
+        assert_eq!(buf.value, 15);
+        assert!(buf.is_percent);
+    }
+
+    #[test]
+    fn unit_process_effect_damage_rx_percent() {
+        let mut cri = CharacterRoundsInfo::default();
+        let ep = make_ep(BufKinds::DamageRxPercent, 10, "", 1);
+        let result = cri.process_effect_type(&ep, "test_atk").unwrap();
+        assert_eq!(result.number_of_applies, 1);
+        let buf = cri.get_buffer_by_type(&BufKinds::DamageRxPercent).unwrap();
+        assert_eq!(buf.value, 10);
+        assert!(buf.is_percent);
+    }
+
+    #[test]
+    fn unit_process_effect_heal_tx_percent() {
+        let mut cri = CharacterRoundsInfo::default();
+        let ep = make_ep(BufKinds::HealTxPercent, 20, "", 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        let buf = cri.get_buffer_by_type(&BufKinds::HealTxPercent).unwrap();
+        assert_eq!(buf.value, 20);
+        assert!(buf.is_percent);
+    }
+
+    #[test]
+    fn unit_process_effect_heal_rx_percent() {
+        let mut cri = CharacterRoundsInfo::default();
+        let ep = make_ep(BufKinds::HealRxPercent, 25, "", 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        let buf = cri.get_buffer_by_type(&BufKinds::HealRxPercent).unwrap();
+        assert_eq!(buf.value, 25);
+        assert!(buf.is_percent);
+    }
+
+    #[test]
+    fn unit_process_effect_reinit_buf() {
+        let mut cri = CharacterRoundsInfo::default();
+        // Add an active HOT with counter_turn = 2
+        let mut gae = make_hot_gae(30);
+        gae.processed_effect_param.counter_turn = 2;
+        cri.all_effects.push(gae);
+        // ReinitBuf on HP resets the counter
+        let ep = make_ep(BufKinds::ReinitBuf, 0, HP, 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        assert_eq!(0, cri.all_effects[0].processed_effect_param.counter_turn);
+    }
+
+    #[test]
+    fn unit_process_effect_reinit_buf_no_match() {
+        let mut cri = CharacterRoundsInfo::default();
+        let mut gae = make_hot_gae(30);
+        gae.processed_effect_param.counter_turn = 2;
+        cri.all_effects.push(gae);
+        // ReinitBuf on a different stat — should not reset HP HOT
+        let ep = make_ep(BufKinds::ReinitBuf, 0, MANA, 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        assert_eq!(2, cri.all_effects[0].processed_effect_param.counter_turn);
+    }
+
+    #[test]
+    fn unit_process_effect_remove_one_debuf() {
+        let mut cri = CharacterRoundsInfo::default();
+        cri.all_effects.push(make_hot_gae(30)); // positive — NOT a debuf
+        cri.all_effects.push(make_debuf_gae(-20)); // negative — IS a debuf
+        assert_eq!(2, cri.all_effects.len());
+        let ep = make_ep(BufKinds::RemoveOneDebuf, 0, "", 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        // Only the debuf removed
+        assert_eq!(1, cri.all_effects.len());
+        assert_eq!(30, cri.all_effects[0].processed_effect_param.input_effect_param.buffer.value);
+    }
+
+    #[test]
+    fn unit_process_effect_remove_one_debuf_none() {
+        let mut cri = CharacterRoundsInfo::default();
+        cri.all_effects.push(make_hot_gae(30));
+        let ep = make_ep(BufKinds::RemoveOneDebuf, 0, "", 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        // No debuf to remove — HOT should remain
+        assert_eq!(1, cri.all_effects.len());
+    }
+
+    #[test]
+    fn unit_process_effect_boost_hots_by_percentage() {
+        let mut cri = CharacterRoundsInfo::default();
+        cri.all_effects.push(make_hot_gae(100));
+        // Boost HOTs by 20%
+        let ep = make_ep(BufKinds::BoostHotsByPercentage, 20, "", 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        // 100 + (100 * 20 / 100) = 120
+        assert_eq!(120, cri.all_effects[0].processed_effect_param.input_effect_param.buffer.value);
+    }
+
+    #[test]
+    fn unit_process_effect_boost_hots_no_hots() {
+        let mut cri = CharacterRoundsInfo::default();
+        // Only a DOT: value < 0, not a HOT
+        cri.all_effects.push(make_debuf_gae(-50));
+        let ep = make_ep(BufKinds::BoostHotsByPercentage, 20, "", 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        // DOT should be unchanged
+        assert_eq!(-50, cri.all_effects[0].processed_effect_param.input_effect_param.buffer.value);
+    }
+
+    #[test]
+    fn unit_process_effect_boost_buf_by_hots_number() {
+        let mut cri = CharacterRoundsInfo::default();
+        cri.all_effects.push(make_hot_gae(30));
+        cri.all_effects.push(make_hot_gae(40));
+        // 2 HOTs × 10% = 20% boost stored in BoostedByHots
+        let ep = make_ep(BufKinds::BoostBufByHotsNumberInPercentage, 10, "", 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        let buf = cri.get_buffer_by_type(&BufKinds::BoostedByHots).unwrap();
+        assert_eq!(20, buf.value);
+        assert!(buf.is_percent);
+    }
+
+    #[test]
+    fn unit_process_effect_boost_buf_by_hots_number_no_hots() {
+        let mut cri = CharacterRoundsInfo::default();
+        // 0 HOTs → 0% boost
+        let ep = make_ep(BufKinds::BoostBufByHotsNumberInPercentage, 10, "", 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        let buf = cri.get_buffer_by_type(&BufKinds::BoostedByHots).unwrap();
+        assert_eq!(0, buf.value);
+    }
+
+    #[test]
+    fn unit_process_effect_block_heal_atk() {
+        let mut cri = CharacterRoundsInfo::default();
+        assert!(!cri.is_heal_atk_blocked);
+        let ep = make_ep(BufKinds::BlockHealAtk, 0, "", 3);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        assert!(cri.is_heal_atk_blocked);
+    }
+
+    #[test]
+    fn unit_process_effect_multi_value() {
+        let mut cri = CharacterRoundsInfo::default();
+        let ep = make_ep(BufKinds::MultiValue, 3, "", 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        let buf = cri.get_buffer_by_type(&BufKinds::MultiValue).unwrap();
+        assert_eq!(3, buf.value);
+    }
+
+    #[test]
+    fn unit_process_effect_add_as_much_as_hp() {
+        let mut cri = CharacterRoundsInfo::default();
+        let ep = make_ep(BufKinds::AddAsMuchAsHp, 0, MAGICAL_POWER, 3);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        let buf = cri.get_buffer_by_type(&BufKinds::ChangeByHealValue).unwrap();
+        assert!(buf.is_passive_enabled);
+        assert_eq!(MAGICAL_POWER, buf.stats_name);
+    }
+
+    #[test]
+    fn unit_process_effect_is_damage_tx_heal_needy_ally() {
+        let mut cri = CharacterRoundsInfo::default();
+        let ep = make_ep(BufKinds::IsDamageTxHealNeedyAlly, 0, "", 1);
+        cri.process_effect_type(&ep, "test_atk").unwrap();
+        let buf = cri.get_buffer_by_type(&BufKinds::IsDamageTxHealNeedyAlly).unwrap();
+        assert!(buf.is_passive_enabled);
+    }
+
+    #[test]
+    fn unit_process_effect_percentage_into_damages() {
+        let mut cri = CharacterRoundsInfo::default();
+        let mut ep = make_ep(BufKinds::PercentageIntoDamages, 0, HP, 5);
+        ep.sub_value_effect = 50;
+        let result = cri.process_effect_type(&ep, "test_atk").unwrap();
+        assert!(result.log.message.contains("50%"));
+        assert!(result.log.message.contains(HP));
+    }
+
+    #[test]
+    fn unit_process_effect_repeat_as_many_as_possible() {
+        let mut cri = CharacterRoundsInfo::default();
+        // Pre-set ApplyEffectInit to 4 (as process_atk would do)
+        cri.update_buffer(&Buffer {
+            kind: BufKinds::ApplyEffectInit,
+            value: 4,
+            ..Default::default()
+        });
+        let ep = make_ep(BufKinds::RepeatAsManyAsPossible, -50, HP, 1);
+        let result = cri.process_effect_type(&ep, "test_atk").unwrap();
+        assert_eq!(4, result.number_of_applies);
+    }
+
+    #[test]
+    fn unit_process_one_effect_condition_damage_prev_turn_met() {
+        let mut cri = CharacterRoundsInfo::default();
+        // Ensure tx_rx has enough slots
+        for _ in 0..AmountType::EnumSize as usize {
+            cri.tx_rx.push(std::collections::HashMap::new());
+        }
+        // Damage TX on turn 0
+        cri.tx_rx[AmountType::DamageTx as usize].insert(0, 100);
+        let mut gs = GameState::default();
+        gs.current_turn_nb = 1; // prev turn = 0
+
+        let ep = EffectParam {
+            nb_turns: 1,
+            buffer: Buffer {
+                kind: BufKinds::ConditionDamagePrevTurn,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let result = cri.process_one_effect(&ep, "test", &gs, false).unwrap();
+        assert_eq!(1, result.number_of_applies);
+    }
+
+    #[test]
+    fn unit_process_one_effect_condition_damage_prev_turn_failed() {
+        let mut cri = CharacterRoundsInfo::default();
+        for _ in 0..AmountType::EnumSize as usize {
+            cri.tx_rx.push(std::collections::HashMap::new());
+        }
+        // No damage TX on any turn
+        let mut gs = GameState::default();
+        gs.current_turn_nb = 1;
+
+        let ep = EffectParam {
+            nb_turns: 1,
+            buffer: Buffer {
+                kind: BufKinds::ConditionDamagePrevTurn,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let result = cri.process_one_effect(&ep, "test", &gs, false).unwrap();
+        assert_eq!(0, result.number_of_applies);
+        assert!(result.log.message.contains("failed"));
+    }
+
+    #[test]
+    fn unit_process_effect_cooldown_uses_nb_turns() {
+        let mut cri = CharacterRoundsInfo::default();
+        let ep = make_ep(BufKinds::CooldownTurnsNumber, 0, "", 7);
+        let result = cri.process_effect_type(&ep, "my_atk").unwrap();
+        assert!(result.log.message.contains("7 turns"), "Message: {}", result.log.message);
     }
 }

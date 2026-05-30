@@ -15,7 +15,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -50,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -32,7 +32,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -30,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -48,10 +48,10 @@
             "Value": -10,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "ChangeMaxStatByValue",
+                "value": -10,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Critical strike",
                 "passive-enabled": false
             }
         }

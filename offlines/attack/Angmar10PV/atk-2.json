@@ -12,7 +12,14 @@
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": -75,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": -75,
+                "is-percent": true,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Enemy",
@@ -22,7 +29,14 @@
             "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
             "Value": -300,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "DamageRxPercent",
+                "value": -300,
+                "is-percent": true,
+                "stats-name": "",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "",

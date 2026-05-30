@@ -14,8 +14,8 @@
             "Value": 32,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "DecreasingRateOnTurn",
+                "value": 32,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -31,10 +31,10 @@
             "Value": 10,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 10,
+                "is-percent": true,
+                "stats-name": "Magic power",
                 "passive-enabled": false
             }
         },
