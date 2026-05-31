@@ -117,7 +117,7 @@ pub fn is_effect_only_at_atk_launch(buf_types: &BufKinds) -> bool {
 
 pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
     let mut nb_of_applies = 0;
-    let mut counter = ep.sub_value_effect;
+    let mut counter = ep.buffer.value;
     let step_limit = (100 / counter) + 1; // Calculate once
 
     let mut rng = rand::rng();
@@ -176,8 +176,19 @@ mod tests {
     #[test]
     fn unit_process_decrease_on_turn() {
         let ep = EffectParam {
-            sub_value_effect: 3,
-            ..Default::default()
+            nb_turns: 3,
+            sub_value_effect: 0,
+            target_kind: TARGET_ENNEMY.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            is_magic_atk: false,
+            conditions: vec![],
+            buffer: Buffer {
+                kind: BufKinds::DecreasingRateOnTurn,
+                value: 3,
+                stats_name: HP.to_owned(),
+                ..Default::default()
+            },
+            is_passive: false,
         };
         let result = process_decrease_on_turn(&ep);
         assert!((0..=3).contains(&result));

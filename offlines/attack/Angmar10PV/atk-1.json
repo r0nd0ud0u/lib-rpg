@@ -12,7 +12,14 @@
             "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 80,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByValue",
+                "value": 80,
+                "is-percent": false,
+                "stats-name": "Speed regeneration",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Self",
@@ -22,7 +29,14 @@
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
             "Value": 180,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 180,
+                "is-percent": true,
+                "stats-name": "Physical armor",
+                "passive-enabled": false
+            }
         },
         {
             "Cible": "Self",
@@ -32,7 +46,14 @@
             "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
             "Value": 50,
-            "IsMagicEffect": true
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeMaxStatByValue",
+                "value": 50,
+                "is-percent": false,
+                "stats-name": "Critical strike",
+                "passive-enabled": false
+            }
         }
     ],
     "Forme": "Standard",

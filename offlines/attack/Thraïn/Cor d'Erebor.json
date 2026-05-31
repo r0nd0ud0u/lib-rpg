@@ -18,9 +18,9 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 5,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Berserk",
                 "passive-enabled": false
             }
         },
@@ -34,9 +34,9 @@
             "Value": 25,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 25,
+                "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
             }
@@ -51,10 +51,10 @@
             "Value": 25,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 25,
+                "is-percent": true,
+                "stats-name": "Magic armor",
                 "passive-enabled": false
             }
         },
@@ -68,10 +68,10 @@
             "Value": 25,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 25,
+                "is-percent": true,
+                "stats-name": "Physical armor",
                 "passive-enabled": false
             }
         },
@@ -85,10 +85,10 @@
             "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "CooldownTurnsNumber",
+                "value": 0,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "",
                 "passive-enabled": false
             }
         }

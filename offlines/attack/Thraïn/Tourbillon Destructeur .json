@@ -44,7 +44,7 @@
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
                 "value": 100,
-                "is-percent": false,
+                "is-percent": true,
                 "stats-name": "Taux rage",
                 "passive-enabled": false
             }

@@ -15,7 +15,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 25,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -31,10 +31,10 @@
             "Value": 2,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "ChangeMaxStatByValue",
+                "value": 2,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Regeneration Mana",
                 "passive-enabled": false
             }
         },
@@ -49,9 +49,9 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -5,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Dodge",
                 "passive-enabled": false
             }
         },
@@ -65,10 +65,10 @@
             "Value": 10,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 10,
+                "is-percent": true,
+                "stats-name": "Magic power",
                 "passive-enabled": false
             }
         }

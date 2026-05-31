@@ -14,9 +14,9 @@
             "Value": -75,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
+                "kind": "ChangeMaxStatByPercentage",
+                "value": -75,
+                "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
             }
@@ -31,10 +31,10 @@
             "Value": -300,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "DamageRxPercent",
+                "value": -300,
+                "is-percent": true,
+                "stats-name": "",
                 "passive-enabled": false
             }
         }

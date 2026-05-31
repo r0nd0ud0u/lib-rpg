@@ -1,66 +1,66 @@
 {
-  "Cible": "Enemy",
-  "Coût de mana": 0,
-  "Coût de rage": 5,
-  "Coût de vigueur": 0,
-  "Durée": 1,
-  "Effet": [
-    {
-      "Cible": "Enemy",
-      "Portée": "Individual",
-      "Stat": "HP",
-      "Tours actifs": 1,
-      "Type": "ChangeCurrentStatByValue",
-      "Valeur de l'effet": 0,
-      "Value": -42,
-      "IsMagicEffect": true,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    },
-    {
-      "Cible": "Enemy",
-      "Portée": "Individual",
-      "Stat": "HP",
-      "Tours actifs": 3,
-      "Type": "ChangeCurrentStatByValue",
-      "Valeur de l'effet": 0,
-      "Value": -10,
-      "IsMagicEffect": true,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    },
-    {
-      "Cible": "Self",
-      "Portée": "Individual",
-      "Stat": "",
-      "Tours actifs": 2,
-      "Type": "CooldownTurnsNumber",
-      "Valeur de l'effet": 0,
-      "Value": 0,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    }
-  ],
-  "Forme": "Standard",
-  "Niveau": 1,
-  "Nom": "Ember",
-  "Photo": "charmander.png",
-  "Portée": "Individual",
-  "Description": "Spits embers that burn the enemy — deals immediate damage and leaves them burning for 3 turns."
+    "Cible": "Enemy",
+    "Coût de mana": 0,
+    "Coût de rage": 5,
+    "Coût de vigueur": 0,
+    "Durée": 1,
+    "Effet": [
+        {
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "HP",
+            "Tours actifs": 1,
+            "Type": "ChangeCurrentStatByValue",
+            "Valeur de l'effet": 0,
+            "Value": -42,
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -42,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "HP",
+            "Tours actifs": 3,
+            "Type": "ChangeCurrentStatByValue",
+            "Valeur de l'effet": 0,
+            "Value": -10,
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -10,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
+            "Stat": "",
+            "Tours actifs": 2,
+            "Type": "CooldownTurnsNumber",
+            "Valeur de l'effet": 0,
+            "Value": 0,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "CooldownTurnsNumber",
+                "value": 0,
+                "is-percent": false,
+                "stats-name": "",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 1,
+    "Nom": "Ember",
+    "Photo": "charmander.png",
+    "Portée": "Individual",
+    "Description": "Spits embers that burn the enemy — deals immediate damage and leaves them burning for 3 turns."
 }

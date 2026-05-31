@@ -1,66 +1,66 @@
 {
-  "Cible": "Enemy",
-  "Coût de mana": 0,
-  "Coût de rage": 8,
-  "Coût de vigueur": 0,
-  "Durée": 1,
-  "Effet": [
-    {
-      "Cible": "Enemy",
-      "Portée": "Individual",
-      "Stat": "HP",
-      "Tours actifs": 1,
-      "Type": "ChangeCurrentStatByValue",
-      "Valeur de l'effet": 0,
-      "Value": -30,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    },
-    {
-      "Cible": "Enemy",
-      "Portée": "Individual",
-      "Stat": "Speed regeneration",
-      "Tours actifs": 3,
-      "Type": "ChangeMaxStatByPercentage",
-      "Valeur de l'effet": 0,
-      "Value": -30,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    },
-    {
-      "Cible": "Self",
-      "Portée": "Individual",
-      "Stat": "",
-      "Tours actifs": 3,
-      "Type": "CooldownTurnsNumber",
-      "Valeur de l'effet": 0,
-      "Value": 0,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    }
-  ],
-  "Forme": "Standard",
-  "Niveau": 3,
-  "Nom": "Fire Spin",
-  "Photo": "charmander.png",
-  "Portée": "Individual",
-  "Description": "Traps the enemy in a spinning fire vortex, slowing their speed regeneration."
+    "Cible": "Enemy",
+    "Coût de mana": 0,
+    "Coût de rage": 8,
+    "Coût de vigueur": 0,
+    "Durée": 1,
+    "Effet": [
+        {
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "HP",
+            "Tours actifs": 1,
+            "Type": "ChangeCurrentStatByValue",
+            "Valeur de l'effet": 0,
+            "Value": -30,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -30,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "Speed regeneration",
+            "Tours actifs": 3,
+            "Type": "ChangeMaxStatByPercentage",
+            "Valeur de l'effet": 0,
+            "Value": -30,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": -30,
+                "is-percent": true,
+                "stats-name": "Speed regeneration",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
+            "Stat": "",
+            "Tours actifs": 3,
+            "Type": "CooldownTurnsNumber",
+            "Valeur de l'effet": 0,
+            "Value": 0,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "CooldownTurnsNumber",
+                "value": 0,
+                "is-percent": false,
+                "stats-name": "",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 3,
+    "Nom": "Fire Spin",
+    "Photo": "charmander.png",
+    "Portée": "Individual",
+    "Description": "Traps the enemy in a spinning fire vortex, slowing their speed regeneration."
 }

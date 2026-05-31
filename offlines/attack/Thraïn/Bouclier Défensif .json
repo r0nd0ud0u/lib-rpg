@@ -15,9 +15,9 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 30,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Berserk",
                 "passive-enabled": false
             }
         },
@@ -31,10 +31,10 @@
             "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "ChangeMaxStatByValue",
+                "value": 20,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Dodge",
                 "passive-enabled": false
             }
         },
@@ -49,9 +49,9 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 40,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Aggro",
                 "passive-enabled": false
             }
         }

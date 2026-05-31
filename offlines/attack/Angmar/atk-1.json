@@ -14,10 +14,10 @@
             "Value": 80,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "ChangeMaxStatByValue",
+                "value": 80,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Speed regeneration",
                 "passive-enabled": false
             }
         },
@@ -31,10 +31,10 @@
             "Value": 180,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 180,
+                "is-percent": true,
+                "stats-name": "Physical armor",
                 "passive-enabled": false
             }
         },
@@ -48,10 +48,10 @@
             "Value": 50,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "ChangeMaxStatByValue",
+                "value": 50,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Critical strike",
                 "passive-enabled": false
             }
         }

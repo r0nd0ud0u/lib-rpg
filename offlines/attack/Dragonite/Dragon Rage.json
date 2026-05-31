@@ -1,49 +1,49 @@
 {
-  "Cible": "Enemy",
-  "Coût de mana": 0,
-  "Coût de rage": 0,
-  "Coût de vigueur": 22,
-  "Durée": 1,
-  "Effet": [
-    {
-      "Cible": "Enemy",
-      "Portée": "Individual",
-      "Stat": "HP",
-      "Tours actifs": 1,
-      "Type": "ChangeCurrentStatByValue",
-      "Valeur de l'effet": 0,
-      "Value": -80,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    },
-    {
-      "Cible": "Enemy",
-      "Portée": "Individual",
-      "Stat": "Physical armor",
-      "Tours actifs": 3,
-      "Type": "ChangeMaxStatByPercentage",
-      "Valeur de l'effet": 0,
-      "Value": -20,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    }
-  ],
-  "Forme": "Standard",
-  "Niveau": 8,
-  "Nom": "Dragon Rage",
-  "Photo": "Angmar.png",
-  "Portée": "Individual",
-  "Description": "Unleashes draconic wrath — cracks enemy armour."
+    "Cible": "Enemy",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 22,
+    "Durée": 1,
+    "Effet": [
+        {
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "HP",
+            "Tours actifs": 1,
+            "Type": "ChangeCurrentStatByValue",
+            "Valeur de l'effet": 0,
+            "Value": -80,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -80,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "Physical armor",
+            "Tours actifs": 3,
+            "Type": "ChangeMaxStatByPercentage",
+            "Valeur de l'effet": 0,
+            "Value": -20,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeMaxStatByPercentage",
+                "value": -20,
+                "is-percent": true,
+                "stats-name": "Physical armor",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 8,
+    "Nom": "Dragon Rage",
+    "Photo": "Angmar.png",
+    "Portée": "Individual",
+    "Description": "Unleashes draconic wrath — cracks enemy armour."
 }

@@ -18,7 +18,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -70,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -35,9 +35,9 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -5,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Dodge",
                 "passive-enabled": false
             }
         },
@@ -51,10 +51,10 @@
             "Value": 200,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 200,
+                "is-percent": true,
+                "stats-name": "Regeneration vigueur",
                 "passive-enabled": false
             }
         }
