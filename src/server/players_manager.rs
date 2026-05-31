@@ -87,6 +87,10 @@ impl PlayerManager {
             c.stats.get_mut_value(HP).current = c.stats.all_stats[HP].max;
             c.stats.get_mut_value(MANA).current = c.stats.all_stats[MANA].max;
             c.stats.get_mut_value(VIGOR).current = c.stats.all_stats[VIGOR].max;
+            // Reset displayed aggro so the new scenario starts from 0.
+            if let Some(aggro) = c.stats.all_stats.get_mut(AGGRO) {
+                aggro.current = 0;
+            }
         });
     }
 

@@ -889,7 +889,11 @@ impl CharacterRoundsInfo {
         self.is_current_target = false;
         self.is_potential_target = false;
         self.actions_done_in_round = 0;
-        self.tx_rx.clear();
+        // Re-initialize with empty-but-sized slots so init_aggro_on_turn and
+        // process_aggro keep working correctly after a scenario reset.
+        self.tx_rx = (0..AmountType::EnumSize as usize)
+            .map(|_| HashMap::new())
+            .collect();
         self.crit_drought_counter = 0;
         self.dodge_drought_counter = 0;
     }
@@ -1485,7 +1489,10 @@ mod tests {
         assert!(!cri.is_current_target);
         assert!(!cri.is_potential_target);
         assert_eq!(0, cri.actions_done_in_round);
-        assert!(cri.tx_rx.is_empty());
+        // After clear(), tx_rx is re-initialized with AmountType::EnumSize empty slots
+        // so that aggro and damage tracking keep working on the next scenario.
+        assert_eq!(AmountType::EnumSize as usize, cri.tx_rx.len());
+        assert!(cri.tx_rx.iter().all(|m| m.is_empty()));
     }
 
     // ──────────────────────────────────────────────────────────────────────────
