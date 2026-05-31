@@ -27,6 +27,9 @@ pub struct CoreGameData {
     /// universe selected at lobby creation; empty = all universes
     #[serde(default)]
     pub universe: String,
+    /// true when the game was restored from a save file (universe and scenarios are fixed)
+    #[serde(default)]
+    pub loaded_from_save: bool,
 }
 
 impl CoreGameData {
@@ -55,6 +58,7 @@ impl CoreGameData {
             heroes_chosen: HashMap::new(),
             is_single_player: false,
             universe: String::new(),
+            loaded_from_save: false,
         })
     }
 

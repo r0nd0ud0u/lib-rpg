@@ -10,7 +10,7 @@ use crate::common::constants::{all_target_const::*, reach_const::*, stats_const:
 pub fn build_cooldown_effect() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            nb_turns: 1,
+            nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_HIMSELF.to_owned(),
             reach: INDIVIDUAL.to_owned(),

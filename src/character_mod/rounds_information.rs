@@ -298,7 +298,7 @@ impl CharacterRoundsInfo {
         match ep.buffer.kind {
             BufKinds::CooldownTurnsNumber => {
                 processed_effect_param.log = LogData {
-                    message: format!("Cooldown on {}: {} turns", atk_name, ep.nb_turns),
+                    message: format!("Cooldown on {}: {} turns", atk_name, ep.buffer.value),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
@@ -1799,8 +1799,7 @@ mod tests {
         }
         // Damage TX on turn 0
         cri.tx_rx[AmountType::DamageTx as usize].insert(0, 100);
-        let mut gs = GameState::default();
-        gs.current_turn_nb = 1; // prev turn = 0
+        let gs = GameState { current_turn_nb: 1, ..Default::default() }; // prev turn = 0
 
         let ep = EffectParam {
             nb_turns: 1,
@@ -1821,8 +1820,7 @@ mod tests {
             cri.tx_rx.push(std::collections::HashMap::new());
         }
         // No damage TX on any turn
-        let mut gs = GameState::default();
-        gs.current_turn_nb = 1;
+        let gs = GameState { current_turn_nb: 1, ..Default::default() };
 
         let ep = EffectParam {
             nb_turns: 1,
@@ -1838,9 +1836,10 @@ mod tests {
     }
 
     #[test]
-    fn unit_process_effect_cooldown_uses_nb_turns() {
+    fn unit_process_effect_cooldown_uses_buffer_value() {
         let mut cri = CharacterRoundsInfo::default();
-        let ep = make_ep(BufKinds::CooldownTurnsNumber, 0, "", 7);
+        // buffer.value=7 is the single source of truth for cooldown duration
+        let ep = make_ep(BufKinds::CooldownTurnsNumber, 7, "", 1);
         let result = cri.process_effect_type(&ep, "my_atk").unwrap();
         assert!(
             result.log.message.contains("7 turns"),

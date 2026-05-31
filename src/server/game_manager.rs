@@ -158,6 +158,14 @@ impl GameManager {
         self.current_scenario = scenario;
 
         if self.current_scenario.level > 1 {
+            // accumulate kills from the completed scenario before clearing
+            let scenario_kills = self
+                .pm
+                .active_bosses
+                .iter()
+                .filter(|b| b.stats.is_dead().unwrap_or(false))
+                .count();
+            self.game_state.accumulated_kills += scenario_kills;
             // clear previous scenario
             self.game_state.clear_scenario();
             self.pm.clear_scenario();
@@ -767,13 +775,9 @@ impl GameManager {
                     logs.push(LogData {
                         color: colortext.to_string(),
                         message: format!(
-                            "{} ← {} for {} turns",
+                            "{} ← Cooldown for {} turns",
                             gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param
-                                .input_effect_param
-                                .buffer
-                                .stats_name,
-                            gae.processed_effect_param.input_effect_param.nb_turns
+                            gae.processed_effect_param.input_effect_param.buffer.value
                         ),
                     });
                 } else if is_hp_effect {
