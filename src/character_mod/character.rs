@@ -383,6 +383,7 @@ impl Character {
                 * (processed_ep.input_effect_param.buffer.value
                     + pow_current / processed_ep.input_effect_param.nb_turns);
             // update effect value
+            processed_effect_param.input_effect_param.buffer.kind = BufKinds::ChangeCurrentStatByValue;
             processed_effect_param.input_effect_param.buffer.value = full_amount;
         } else if processed_ep.input_effect_param.buffer.stats_name == HP
             && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
