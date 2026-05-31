@@ -383,7 +383,8 @@ impl Character {
                 * (processed_ep.input_effect_param.buffer.value
                     + pow_current / processed_ep.input_effect_param.nb_turns);
             // update effect value
-            processed_effect_param.input_effect_param.buffer.kind = BufKinds::ChangeCurrentStatByValue;
+            processed_effect_param.input_effect_param.buffer.kind =
+                BufKinds::ChangeCurrentStatByValue;
             processed_effect_param.input_effect_param.buffer.value = full_amount;
         } else if processed_ep.input_effect_param.buffer.stats_name == HP
             && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
@@ -846,6 +847,31 @@ impl Character {
                     ));
                 }
                 self.inventory.remove_potion(&consumable.name);
+                Ok(all_eo)
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Apply a consumable's effects without requiring it to be in the personal inventory.
+    /// Used for party consumables which are tracked in the shared `party_consumables` pool.
+    pub fn apply_consumable_effects(
+        &mut self,
+        consumable: &Consumable,
+        game_state: &GameState,
+        launcher_stats: &Stats,
+    ) -> Result<Vec<EffectOutcome>> {
+        match self.process_all_effects(game_state, false, &consumable.name, &consumable.effects) {
+            Ok(all_processed_ep) => {
+                let mut all_eo: Vec<EffectOutcome> = vec![];
+                for processed_ep in all_processed_ep {
+                    all_eo.push(self.apply_processed_effect_param(
+                        &processed_ep,
+                        launcher_stats,
+                        false,
+                        game_state.current_turn_nb,
+                    ));
+                }
                 Ok(all_eo)
             }
             Err(e) => Err(e),

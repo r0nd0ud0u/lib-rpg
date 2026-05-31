@@ -163,7 +163,7 @@ impl CharacterRoundsInfo {
             if e.processed_effect_param.input_effect_param.nb_turns < 2 {
                 continue;
             }
-            let txt = Self::get_hot_and_buf_texts(&e.processed_effect_param.input_effect_param);
+            let txt = Self::get_hot_and_buf_texts(e);
             if effect::is_hot(
                 &e.processed_effect_param.input_effect_param.buffer.kind,
                 &e.processed_effect_param
@@ -194,13 +194,22 @@ impl CharacterRoundsInfo {
         hots_bufs
     }
 
-    fn get_hot_and_buf_texts(ep: &EffectParam) -> String {
+    fn get_hot_and_buf_texts(gae: &GameAtkEffect) -> String {
+        let ep = &gae.processed_effect_param.input_effect_param;
+        let nb_turns = ep.nb_turns;
+        let atk_name = &gae.atk_type.name;
+        // For HP effects show the full computed amount (real heal/damage), for other stats the raw value.
+        let amount = if ep.buffer.stats_name == HP {
+            gae.effect_outcome.full_amount_tx.abs()
+        } else {
+            ep.buffer.value.abs()
+        };
         if ep.buffer.stats_name.is_empty() {
-            format!("[{}] {}", ep.buffer.kind, ep.buffer.value)
+            format!("{}: {} × {} turns", atk_name, amount, nb_turns)
         } else {
             format!(
-                "[{}] {} {}",
-                ep.buffer.kind, ep.buffer.stats_name, ep.buffer.value
+                "{}: {} {} × {} turns",
+                atk_name, amount, ep.buffer.stats_name, nb_turns
             )
         }
     }
@@ -913,19 +922,30 @@ mod tests {
 
     #[test]
     fn unit_get_hot_and_buf_nbs() {
+        use crate::character_mod::{attack_type::AttackType, effect::EffectOutcome};
+
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![]);
         assert_eq!(result, HotsBufs::default());
         let mut all_effects: Vec<GameAtkEffect> = vec![];
-        // add a 1-turn-effect
+        // add a 1-turn-effect (nb_turns < 2, should be ignored)
         all_effects.push(GameAtkEffect {
             processed_effect_param: build_dmg_effect_individual(),
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(result, HotsBufs::default());
-        // add a 2-turn-effect HOT
+
+        // add a 2-turn HOT: +30 HP
         all_effects.push(GameAtkEffect {
             processed_effect_param: build_hot_effect_individual(),
+            atk_type: AttackType {
+                name: "TestHot".to_owned(),
+                ..Default::default()
+            },
+            effect_outcome: EffectOutcome {
+                full_amount_tx: 30,
+                ..Default::default()
+            },
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -933,23 +953,22 @@ mod tests {
             result,
             HotsBufs {
                 hot_nb: 1,
-                dot_nb: 0,
-                buf_nb: 0,
-                debuf_nb: 0,
-                hot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    30
-                )],
-                dot_txt: vec![],
-                buf_txt: vec![],
-                debuf_txt: vec![]
+                hot_txt: vec!["TestHot: 30 HP × 2 turns".to_owned()],
+                ..Default::default()
             }
         );
-        // add a 3-turn-effect DOT
+
+        // add a 3-turn DOT: -20 HP
         all_effects.push(GameAtkEffect {
             processed_effect_param: build_dot_effect_individual(),
+            atk_type: AttackType {
+                name: "TestDot".to_owned(),
+                ..Default::default()
+            },
+            effect_outcome: EffectOutcome {
+                full_amount_tx: -20,
+                ..Default::default()
+            },
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -958,27 +977,19 @@ mod tests {
             HotsBufs {
                 hot_nb: 1,
                 dot_nb: 1,
-                buf_nb: 0,
-                debuf_nb: 0,
-                hot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    30
-                )],
-                dot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    -20
-                )],
-                buf_txt: vec![],
-                debuf_txt: vec![]
+                hot_txt: vec!["TestHot: 30 HP × 2 turns".to_owned()],
+                dot_txt: vec!["TestDot: 20 HP × 3 turns".to_owned()],
+                ..Default::default()
             }
         );
-        // add a 3-turn-effect DOT
+
+        // add a 3-turn buff: +20 Magical armor (non-HP)
         all_effects.push(GameAtkEffect {
             processed_effect_param: build_buf_effect_individual(),
+            atk_type: AttackType {
+                name: "TestBuf".to_owned(),
+                ..Default::default()
+            },
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -988,31 +999,20 @@ mod tests {
                 hot_nb: 1,
                 dot_nb: 1,
                 buf_nb: 1,
-                debuf_nb: 0,
-                hot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    30
-                )],
-                dot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    -20
-                )],
-                buf_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    MAGICAL_ARMOR,
-                    20
-                )],
-                debuf_txt: vec![]
+                hot_txt: vec!["TestHot: 30 HP × 2 turns".to_owned()],
+                dot_txt: vec!["TestDot: 20 HP × 3 turns".to_owned()],
+                buf_txt: vec![format!("TestBuf: 20 {} × 3 turns", MAGICAL_ARMOR)],
+                ..Default::default()
             }
         );
-        // add a 3-turn-effect DOT
+
+        // add a 3-turn debuff: -20 Magical armor (non-HP)
         all_effects.push(GameAtkEffect {
             processed_effect_param: build_debuf_effect_individual(),
+            atk_type: AttackType {
+                name: "TestDebuf".to_owned(),
+                ..Default::default()
+            },
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -1023,30 +1023,10 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 1,
                 debuf_nb: 1,
-                hot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    30
-                )],
-                dot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    -20
-                )],
-                buf_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    MAGICAL_ARMOR,
-                    20
-                )],
-                debuf_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    MAGICAL_ARMOR,
-                    -20
-                )]
+                hot_txt: vec!["TestHot: 30 HP × 2 turns".to_owned()],
+                dot_txt: vec!["TestDot: 20 HP × 3 turns".to_owned()],
+                buf_txt: vec![format!("TestBuf: 20 {} × 3 turns", MAGICAL_ARMOR)],
+                debuf_txt: vec![format!("TestDebuf: 20 {} × 3 turns", MAGICAL_ARMOR)],
             }
         );
     }
@@ -1799,7 +1779,10 @@ mod tests {
         }
         // Damage TX on turn 0
         cri.tx_rx[AmountType::DamageTx as usize].insert(0, 100);
-        let gs = GameState { current_turn_nb: 1, ..Default::default() }; // prev turn = 0
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        }; // prev turn = 0
 
         let ep = EffectParam {
             nb_turns: 1,
@@ -1820,7 +1803,10 @@ mod tests {
             cri.tx_rx.push(std::collections::HashMap::new());
         }
         // No damage TX on any turn
-        let gs = GameState { current_turn_nb: 1, ..Default::default() };
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        };
 
         let ep = EffectParam {
             nb_turns: 1,

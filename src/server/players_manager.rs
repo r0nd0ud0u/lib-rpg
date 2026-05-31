@@ -203,7 +203,7 @@ impl PlayerManager {
             .get_mut_active_hero_character(hero_id_name)
             .ok_or_else(|| anyhow::anyhow!("Hero '{}' not found", hero_id_name))?;
         let launcher_stats = hero.stats.clone();
-        hero.use_consumable(consumable, game_state, &launcher_stats)
+        hero.apply_consumable_effects(&consumable, game_state, &launcher_stats)
             .map_err(|e| anyhow::anyhow!("{}", e))?;
         Ok(())
     }
