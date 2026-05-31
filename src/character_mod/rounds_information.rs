@@ -361,9 +361,11 @@ impl CharacterRoundsInfo {
             }
             BufKinds::RemoveOneDebuf => {
                 // Remove the first (oldest) active debuf effect (negative value)
-                if let Some(pos) = self.all_effects.iter().position(|gae| {
-                    gae.processed_effect_param.input_effect_param.buffer.value < 0
-                }) {
+                if let Some(pos) = self
+                    .all_effects
+                    .iter()
+                    .position(|gae| gae.processed_effect_param.input_effect_param.buffer.value < 0)
+                {
                     self.all_effects.remove(pos);
                 }
                 processed_effect_param.log = LogData {
@@ -378,11 +380,13 @@ impl CharacterRoundsInfo {
                 for gae in self.all_effects.iter_mut() {
                     if effect::is_hot(
                         &gae.processed_effect_param.input_effect_param.buffer.kind,
-                        &gae.processed_effect_param.input_effect_param.buffer.stats_name,
+                        &gae.processed_effect_param
+                            .input_effect_param
+                            .buffer
+                            .stats_name,
                         gae.processed_effect_param.input_effect_param.buffer.value,
                     ) {
-                        let cur_val =
-                            gae.processed_effect_param.input_effect_param.buffer.value;
+                        let cur_val = gae.processed_effect_param.input_effect_param.buffer.value;
                         gae.processed_effect_param.input_effect_param.buffer.value +=
                             cur_val * boost_percent / 100;
                     }
@@ -401,7 +405,10 @@ impl CharacterRoundsInfo {
                     .filter(|gae| {
                         effect::is_hot(
                             &gae.processed_effect_param.input_effect_param.buffer.kind,
-                            &gae.processed_effect_param.input_effect_param.buffer.stats_name,
+                            &gae.processed_effect_param
+                                .input_effect_param
+                                .buffer
+                                .stats_name,
                             gae.processed_effect_param.input_effect_param.buffer.value,
                         )
                     })
@@ -587,7 +594,11 @@ impl CharacterRoundsInfo {
             let number_of_applies = if did_heal {
                 let chance = ep.buffer.value.clamp(0, 100) as u64;
                 let roll = get_random_nb(1, 100);
-                if roll <= chance as i64 { ep.sub_value_effect.max(1) } else { 0 }
+                if roll <= chance as i64 {
+                    ep.sub_value_effect.max(1)
+                } else {
+                    0
+                }
             } else {
                 0
             };
@@ -1635,7 +1646,14 @@ mod tests {
         cri.process_effect_type(&ep, "test_atk").unwrap();
         // Only the debuf removed
         assert_eq!(1, cri.all_effects.len());
-        assert_eq!(30, cri.all_effects[0].processed_effect_param.input_effect_param.buffer.value);
+        assert_eq!(
+            30,
+            cri.all_effects[0]
+                .processed_effect_param
+                .input_effect_param
+                .buffer
+                .value
+        );
     }
 
     #[test]
@@ -1656,7 +1674,14 @@ mod tests {
         let ep = make_ep(BufKinds::BoostHotsByPercentage, 20, "", 1);
         cri.process_effect_type(&ep, "test_atk").unwrap();
         // 100 + (100 * 20 / 100) = 120
-        assert_eq!(120, cri.all_effects[0].processed_effect_param.input_effect_param.buffer.value);
+        assert_eq!(
+            120,
+            cri.all_effects[0]
+                .processed_effect_param
+                .input_effect_param
+                .buffer
+                .value
+        );
     }
 
     #[test]
@@ -1667,7 +1692,14 @@ mod tests {
         let ep = make_ep(BufKinds::BoostHotsByPercentage, 20, "", 1);
         cri.process_effect_type(&ep, "test_atk").unwrap();
         // DOT should be unchanged
-        assert_eq!(-50, cri.all_effects[0].processed_effect_param.input_effect_param.buffer.value);
+        assert_eq!(
+            -50,
+            cri.all_effects[0]
+                .processed_effect_param
+                .input_effect_param
+                .buffer
+                .value
+        );
     }
 
     #[test]
@@ -1716,7 +1748,9 @@ mod tests {
         let mut cri = CharacterRoundsInfo::default();
         let ep = make_ep(BufKinds::AddAsMuchAsHp, 0, MAGICAL_POWER, 3);
         cri.process_effect_type(&ep, "test_atk").unwrap();
-        let buf = cri.get_buffer_by_type(&BufKinds::ChangeByHealValue).unwrap();
+        let buf = cri
+            .get_buffer_by_type(&BufKinds::ChangeByHealValue)
+            .unwrap();
         assert!(buf.is_passive_enabled);
         assert_eq!(MAGICAL_POWER, buf.stats_name);
     }
@@ -1726,7 +1760,9 @@ mod tests {
         let mut cri = CharacterRoundsInfo::default();
         let ep = make_ep(BufKinds::IsDamageTxHealNeedyAlly, 0, "", 1);
         cri.process_effect_type(&ep, "test_atk").unwrap();
-        let buf = cri.get_buffer_by_type(&BufKinds::IsDamageTxHealNeedyAlly).unwrap();
+        let buf = cri
+            .get_buffer_by_type(&BufKinds::IsDamageTxHealNeedyAlly)
+            .unwrap();
         assert!(buf.is_passive_enabled);
     }
 
@@ -1806,6 +1842,10 @@ mod tests {
         let mut cri = CharacterRoundsInfo::default();
         let ep = make_ep(BufKinds::CooldownTurnsNumber, 0, "", 7);
         let result = cri.process_effect_type(&ep, "my_atk").unwrap();
-        assert!(result.log.message.contains("7 turns"), "Message: {}", result.log.message);
+        assert!(
+            result.log.message.contains("7 turns"),
+            "Message: {}",
+            result.log.message
+        );
     }
 }

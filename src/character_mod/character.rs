@@ -526,17 +526,26 @@ impl Character {
             .iter()
             .any(|e| e.buffer.kind == BufKinds::RepeatAsManyAsPossible);
         if has_repeat {
-            let cost_per_apply = atk
-                .berseck_cost
-                .max(atk.vigor_cost)
-                .max(atk.mana_cost) as i64;
+            let cost_per_apply = atk.berseck_cost.max(atk.vigor_cost).max(atk.mana_cost) as i64;
             if cost_per_apply > 0 {
                 let remaining = if atk.berseck_cost > 0 {
-                    self.stats.all_stats.get(BERSERK).map(|s| s.current as i64).unwrap_or(0)
+                    self.stats
+                        .all_stats
+                        .get(BERSERK)
+                        .map(|s| s.current as i64)
+                        .unwrap_or(0)
                 } else if atk.vigor_cost > 0 {
-                    self.stats.all_stats.get(VIGOR).map(|s| s.current as i64).unwrap_or(0)
+                    self.stats
+                        .all_stats
+                        .get(VIGOR)
+                        .map(|s| s.current as i64)
+                        .unwrap_or(0)
                 } else {
-                    self.stats.all_stats.get(MANA).map(|s| s.current as i64).unwrap_or(0)
+                    self.stats
+                        .all_stats
+                        .get(MANA)
+                        .map(|s| s.current as i64)
+                        .unwrap_or(0)
                 };
                 let nb_applies = (remaining / cost_per_apply).max(1);
                 self.character_rounds_info.update_buffer(&Buffer {

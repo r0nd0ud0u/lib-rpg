@@ -140,6 +140,9 @@ impl AttackType {
         atk_value: i64,
         nb_of_turns: i64,
     ) -> i64 {
+        if nb_of_turns <= 0 {
+            return 0;
+        }
         let target_armor = target_stats.get_armor_stat(is_magic);
         let launcher_pow = launcher_stats.get_power_stat(is_magic);
 
@@ -241,5 +244,9 @@ mod tests {
         let damage = AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 1);
         // dmg = 50 - 100/1 = -50, protection = 1000/(1000+10) = 0.990099, final dmg = -50*0.990099 = -49.5 -> -50
         assert_eq!(damage, -50);
+
+        // test with nb_of_turns = 0, should return 0 to avoid division by zero
+        let damage = AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 0);
+        assert_eq!(damage, 0);
     }
 }
