@@ -255,7 +255,7 @@ impl GameManager {
                 }],
             );
         }
-        let Ok(logs) = self.pm.update_current_player_on_new_round(
+        let Ok(mut logs) = self.pm.update_current_player_on_new_round(
             &self.game_state,
             &self.game_state.order_to_play[self.game_state.current_round - 1],
         ) else {
@@ -274,6 +274,18 @@ impl GameManager {
         }
 
         self.pm.reset_targeted_character();
+
+        // Insert a round-separator at the front so the log sheet can group events per round
+        logs.insert(
+            0,
+            LogData {
+                message: format!(
+                    "\u{1f501} Turn {} — Round {}",
+                    self.game_state.current_turn_nb, self.game_state.current_round
+                ),
+                color: crate::common::log_data::const_colors::LIGHT_BLUE.to_owned(),
+            },
+        );
 
         (true, logs)
     }

@@ -1291,10 +1291,7 @@ mod tests {
             0,
             processed_effect_param.input_effect_param.sub_value_effect
         );
-        assert_eq!(
-            "Max stat of HP is up by value:15",
-            processed_effect_param.log.message
-        );
+        assert_eq!("Max HP increased by 15", processed_effect_param.log.message);
 
         // conditions - number of died ennemies
         game_state.current_turn_nb = 1;
@@ -1325,10 +1322,7 @@ mod tests {
             10,
             processed_effect_param.input_effect_param.sub_value_effect
         );
-        assert_eq!(
-            "Max stat of HP is up by value:0",
-            processed_effect_param.log.message
-        );
+        assert_eq!("Max HP increased by 0", processed_effect_param.log.message);
     }
 
     #[test]

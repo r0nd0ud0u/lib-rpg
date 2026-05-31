@@ -24,6 +24,9 @@ pub struct CoreGameData {
     /// single-player mode: one real player controls all heroes
     #[serde(default)]
     pub is_single_player: bool,
+    /// universe selected at lobby creation; empty = all universes
+    #[serde(default)]
+    pub universe: String,
 }
 
 impl CoreGameData {
@@ -51,6 +54,7 @@ impl CoreGameData {
             players_nb: 0,
             heroes_chosen: HashMap::new(),
             is_single_player: false,
+            universe: String::new(),
         })
     }
 

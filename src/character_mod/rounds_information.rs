@@ -524,7 +524,7 @@ impl CharacterRoundsInfo {
             BufKinds::ChangeMaxStatByPercentage => {
                 processed_effect_param.log = LogData {
                     message: format!(
-                        "Max stat of {} is up by {}%",
+                        "Max {} increased by {}%",
                         ep.buffer.stats_name, ep.buffer.value
                     ),
                     color: "".to_owned(),
@@ -534,7 +534,7 @@ impl CharacterRoundsInfo {
             BufKinds::ChangeMaxStatByValue => {
                 processed_effect_param.log = LogData {
                     message: format!(
-                        "Max stat of {} is up by value:{}",
+                        "Max {} increased by {}",
                         ep.buffer.stats_name, ep.buffer.value
                     ),
                     color: "".to_owned(),
