@@ -43,6 +43,9 @@ pub struct EquipmentLimit {
 pub struct EquipmentInventory {
     pub unique_name: String,
     pub is_equipped: bool,
+    /// `true` while the player has not yet viewed this item in the inventory tab
+    #[serde(default)]
+    pub is_new: bool,
 }
 
 /// Inventory of a character, contains the equipments and consumables of the character
@@ -125,7 +128,23 @@ impl Inventory {
             .push(EquipmentInventory {
                 unique_name: equipment.unique_name.clone(),
                 is_equipped,
+                is_new: true,
             });
+    }
+
+    /// Clear the `is_new` flag on all equipments in the given category so the
+    /// notification badge is dismissed when the player opens that tab.
+    pub fn mark_equipment_category_seen(&mut self, category: &EquipmentJsonKey) {
+        if let Some(items) = self.equipments.get_mut(category) {
+            for item in items.iter_mut() {
+                item.is_new = false;
+            }
+        }
+    }
+
+    /// Returns `true` when any equipment in the inventory has not been seen yet.
+    pub fn has_unseen_equipment(&self) -> bool {
+        self.equipments.values().flatten().any(|e| e.is_new)
     }
 
     pub fn get_all_equipments(

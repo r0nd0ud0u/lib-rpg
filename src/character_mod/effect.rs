@@ -116,15 +116,21 @@ pub fn is_effect_only_at_atk_launch(buf_types: &BufKinds) -> bool {
 }
 
 pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
+    let total = ep.buffer.value;
+    if total <= 0 {
+        return 0;
+    }
     let mut nb_of_applies = 0;
-    let mut counter = ep.buffer.value;
-    let step_limit = (100 / counter) + 1; // Calculate once
+    let mut counter = total;
 
     let mut rng = rand::rng();
 
     while counter > 0 {
-        let max_limit = step_limit * counter;
-        if rng.random_range(0..=100) <= max_limit {
+        // threshold decreases linearly from 100 % (first apply always succeeds) down to
+        // round(100/total) % on the last apply.
+        // Example for total = 3: 100 %, 67 %, 33 %  (matches "67 % then 33 %" description).
+        let threshold = (counter as f64 / total as f64 * 100.0).round() as i64;
+        if rng.random_range(0..=100) <= threshold {
             nb_of_applies += 1;
         } else {
             break;
