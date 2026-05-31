@@ -255,7 +255,7 @@ impl GameManager {
                 }],
             );
         }
-        let Ok(logs) = self.pm.update_current_player_on_new_round(
+        let Ok(mut logs) = self.pm.update_current_player_on_new_round(
             &self.game_state,
             &self.game_state.order_to_play[self.game_state.current_round - 1],
         ) else {
@@ -274,6 +274,18 @@ impl GameManager {
         }
 
         self.pm.reset_targeted_character();
+
+        // Insert a round-separator at the front so the log sheet can group events per round
+        logs.insert(
+            0,
+            LogData {
+                message: format!(
+                    "\u{1f501} Turn {} — Round {}",
+                    self.game_state.current_turn_nb, self.game_state.current_round
+                ),
+                color: crate::common::log_data::const_colors::LIGHT_BLUE.to_owned(),
+            },
+        );
 
         (true, logs)
     }
@@ -2357,32 +2369,28 @@ mod tests {
 
         let (mut gm, hero_id_name, _) = testing_test_ally1_vs_test_boss1();
 
-        // Build Fracas Marteau: 50 HP self-damage (guaranteed kill at 10 HP)
-        let fracas_marteau =
-            AttackType::try_new_from_json("./offlines/attack/Thraïn/Fracas Marteau .json")
-                .unwrap_or_else(|_| {
-                    use crate::character_mod::buffers::Buffer;
-                    AttackType {
-                        name: "Fracas Marteau".to_owned(),
-                        target: TARGET_HIMSELF.to_owned(),
-                        reach: INDIVIDUAL.to_owned(),
-                        all_effects: vec![EffectParam {
-                            nb_turns: 1,
-                            target_kind: TARGET_HIMSELF.to_owned(),
-                            reach: INDIVIDUAL.to_owned(),
-                            buffer: Buffer {
-                                kind: BufKinds::ChangeCurrentStatByValue,
-                                value: -50,
-                                is_percent: false,
-                                stats_name: HP.to_owned(),
-                                is_passive_enabled: false,
-                                is_passive: false,
-                            },
-                            ..Default::default()
-                        }],
-                        ..Default::default()
-                    }
-                });
+        // Build a self-damage attack: 50 HP self-damage (guaranteed kill at 10 HP)
+        use crate::character_mod::buffers::Buffer;
+        let fracas_marteau = AttackType {
+            name: "Fracas Marteau".to_owned(),
+            target: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            all_effects: vec![EffectParam {
+                nb_turns: 1,
+                target_kind: TARGET_HIMSELF.to_owned(),
+                reach: INDIVIDUAL.to_owned(),
+                buffer: Buffer {
+                    kind: BufKinds::ChangeCurrentStatByValue,
+                    value: -50,
+                    is_percent: false,
+                    stats_name: HP.to_owned(),
+                    is_passive_enabled: false,
+                    is_passive: false,
+                },
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
 
         // Set hero HP to 10 so self-damage is lethal
         for hero in gm.pm.active_heroes.iter_mut() {

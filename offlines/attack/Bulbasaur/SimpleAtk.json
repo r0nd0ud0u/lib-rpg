@@ -1,32 +1,32 @@
 {
-  "Cible": "Enemy",
-  "Coût de mana": 6,
-  "Coût de rage": 0,
-  "Coût de vigueur": 0,
-  "Durée": 1,
-  "Effet": [
-    {
-      "Cible": "Enemy",
-      "Portée": "Individual",
-      "Stat": "HP",
-      "Tours actifs": 1,
-      "Type": "ChangeCurrentStatByValue",
-      "Valeur de l'effet": 0,
-      "Value": -22,
-      "IsMagicEffect": true,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    }
-  ],
-  "Forme": "Standard",
-  "Niveau": 1,
-  "Nom": "SimpleAtk",
-  "Photo": "bulbasaur.png",
-  "Portée": "Individual",
-  "Description": "A basic vine slap dealing light magical damage."
+    "Cible": "Enemy",
+    "Coût de mana": 6,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Durée": 1,
+    "Effet": [
+        {
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "HP",
+            "Tours actifs": 1,
+            "Type": "ChangeCurrentStatByValue",
+            "Valeur de l'effet": 0,
+            "Value": -22,
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -22,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 1,
+    "Nom": "SimpleAtk",
+    "Photo": "bulbasaur.png",
+    "Portée": "Individual",
+    "Description": "A basic vine slap dealing light magical damage."
 }

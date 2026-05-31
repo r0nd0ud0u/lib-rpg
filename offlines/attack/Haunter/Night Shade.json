@@ -1,66 +1,66 @@
 {
-  "Cible": "Enemy",
-  "Coût de mana": 0,
-  "Coût de rage": 0,
-  "Coût de vigueur": 18,
-  "Durée": 1,
-  "Effet": [
-    {
-      "Cible": "Enemy",
-      "Portée": "Individual",
-      "Stat": "HP",
-      "Tours actifs": 4,
-      "Type": "ChangeCurrentStatByValue",
-      "Valeur de l'effet": 0,
-      "Value": -20,
-      "IsMagicEffect": true,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    },
-    {
-      "Cible": "Self",
-      "Portée": "Individual",
-      "Stat": "HP",
-      "Tours actifs": 1,
-      "Type": "ChangeCurrentStatByPercentage",
-      "Valeur de l'effet": 0,
-      "Value": 8,
-      "IsMagicEffect": true,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    },
-    {
-      "Cible": "Self",
-      "Portée": "Individual",
-      "Stat": "",
-      "Tours actifs": 4,
-      "Type": "CooldownTurnsNumber",
-      "Valeur de l'effet": 0,
-      "Value": 0,
-      "IsMagicEffect": false,
-      "Buffer": {
-        "kind": "ChangeCurrentStatByValue",
-        "value": -35,
-        "is-percent": false,
-        "stats-name": "HP",
-        "passive-enabled": false
-      }
-    }
-  ],
-  "Forme": "Standard",
-  "Niveau": 7,
-  "Nom": "Night Shade",
-  "Photo": "Angmar.png",
-  "Portée": "Individual",
-  "Description": "Wraps the enemy in darkness — sustained damage over 4 turns and a small self-heal."
+    "Cible": "Enemy",
+    "Coût de mana": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 18,
+    "Durée": 1,
+    "Effet": [
+        {
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "HP",
+            "Tours actifs": 4,
+            "Type": "ChangeCurrentStatByValue",
+            "Valeur de l'effet": 0,
+            "Value": -20,
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
+                "value": -20,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
+            "Stat": "HP",
+            "Tours actifs": 1,
+            "Type": "ChangeCurrentStatByPercentage",
+            "Valeur de l'effet": 0,
+            "Value": 8,
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": 8,
+                "is-percent": true,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
+            "Stat": "",
+            "Tours actifs": 4,
+            "Type": "CooldownTurnsNumber",
+            "Valeur de l'effet": 0,
+            "Value": 0,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "CooldownTurnsNumber",
+                "value": 0,
+                "is-percent": false,
+                "stats-name": "",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 7,
+    "Nom": "Night Shade",
+    "Photo": "Angmar.png",
+    "Portée": "Individual",
+    "Description": "Wraps the enemy in darkness — sustained damage over 4 turns and a small self-heal."
 }

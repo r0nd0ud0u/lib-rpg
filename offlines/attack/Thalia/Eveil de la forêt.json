@@ -14,10 +14,10 @@
             "Value": 10,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 10,
+                "is-percent": true,
+                "stats-name": "Magic power",
                 "passive-enabled": false
             }
         },
@@ -31,10 +31,10 @@
             "Value": 20,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "BoostBufByHotsNumberInPercentage",
+                "value": 20,
+                "is-percent": true,
+                "stats-name": "",
                 "passive-enabled": false
             }
         },
@@ -48,8 +48,8 @@
             "Value": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "ReinitBuf",
+                "value": 0,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -66,7 +66,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 80,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -82,10 +82,10 @@
             "Value": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "RemoveOneDebuf",
+                "value": 1000,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "",
                 "passive-enabled": false
             }
         },
@@ -99,10 +99,10 @@
             "Value": 10,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "CooldownTurnsNumber",
+                "value": 0,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "",
                 "passive-enabled": false
             }
         },
@@ -116,10 +116,10 @@
             "Value": 33,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "BoostHotsByPercentage",
+                "value": 33,
+                "is-percent": true,
+                "stats-name": "",
                 "passive-enabled": false
             }
         }

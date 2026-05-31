@@ -14,9 +14,9 @@
             "Value": -15,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": -15,
+                "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
             }
@@ -32,7 +32,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 85,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -48,10 +48,10 @@
             "Value": 50,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 50,
+                "is-percent": true,
+                "stats-name": "Magic armor",
                 "passive-enabled": false
             }
         },
@@ -65,10 +65,10 @@
             "Value": 50,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 50,
+                "is-percent": true,
+                "stats-name": "Physical armor",
                 "passive-enabled": false
             }
         },
@@ -82,10 +82,10 @@
             "Value": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "CooldownTurnsNumber",
+                "value": 0,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "",
                 "passive-enabled": false
             }
         }

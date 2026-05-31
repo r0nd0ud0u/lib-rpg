@@ -17,10 +17,10 @@
             "Value": 30,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 30,
+                "is-percent": true,
+                "stats-name": "Physical power",
                 "passive-enabled": false
             }
         },
@@ -34,10 +34,10 @@
             "Value": 15,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 15,
+                "is-percent": true,
+                "stats-name": "Physical power",
                 "passive-enabled": false
             }
         },
@@ -51,10 +51,10 @@
             "Value": 30,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 30,
+                "is-percent": true,
+                "stats-name": "Magic power",
                 "passive-enabled": false
             }
         },
@@ -68,10 +68,10 @@
             "Value": 15,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "ChangeMaxStatByPercentage",
+                "value": 15,
+                "is-percent": true,
+                "stats-name": "Magic power",
                 "passive-enabled": false
             }
         },
@@ -84,10 +84,10 @@
             "Valeur de l'effet": 0,
             "Value": 0,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "CooldownTurnsNumber",
+                "value": 0,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "",
                 "passive-enabled": false
             }
         }

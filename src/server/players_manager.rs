@@ -9,6 +9,7 @@ use crate::{
         character::{Character, CharacterKind},
         effect::{EffectOutcome, ProcessedEffectParam},
         equipment::{Equipment, EquipmentJsonKey},
+        inventory::Consumable,
     },
     common::{
         constants::{
@@ -54,6 +55,9 @@ pub struct PlayerManager {
     pub current_player: Character,
     /// Equipment table mapping character names to their equipped items
     pub equipment_table: HashMap<EquipmentJsonKey, Vec<Equipment>>,
+    /// Shared party consumables pool — available to any hero, consumed when used
+    #[serde(default)]
+    pub party_consumables: Vec<Consumable>,
 }
 
 impl PlayerManager {
@@ -69,6 +73,7 @@ impl PlayerManager {
             all_bosses: Vec::new(),
             current_player: Character::default(),
             equipment_table,
+            party_consumables: Vec::new(),
         }
     }
 
@@ -177,6 +182,30 @@ impl PlayerManager {
 
     pub fn get_mut_active_hero_character(&mut self, id_name: &str) -> Option<&mut Character> {
         self.active_heroes.iter_mut().find(|c| c.id_name == id_name)
+    }
+
+    /// Use a consumable from the shared party bag for the hero identified by `hero_id_name`.
+    /// The consumable is removed from the party pool and applied to the hero.
+    /// Returns an error if the hero or consumable is not found.
+    pub fn use_party_consumable(
+        &mut self,
+        hero_id_name: &str,
+        potion_name: &str,
+        game_state: &GameState,
+    ) -> Result<()> {
+        let idx = self
+            .party_consumables
+            .iter()
+            .position(|c| c.name == potion_name)
+            .ok_or_else(|| anyhow::anyhow!("Party consumable '{}' not found", potion_name))?;
+        let consumable = self.party_consumables.remove(idx);
+        let hero = self
+            .get_mut_active_hero_character(hero_id_name)
+            .ok_or_else(|| anyhow::anyhow!("Hero '{}' not found", hero_id_name))?;
+        let launcher_stats = hero.stats.clone();
+        hero.use_consumable(consumable, game_state, &launcher_stats)
+            .map_err(|e| anyhow::anyhow!("{}", e))?;
+        Ok(())
     }
 
     pub fn get_mut_active_boss_character(&mut self, id_name: &str) -> Option<&mut Character> {

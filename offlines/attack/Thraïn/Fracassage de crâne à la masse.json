@@ -15,7 +15,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -150,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -31,10 +31,10 @@
             "Value": 65,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "ChangeMaxStatByValue",
+                "value": 65,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Dodge",
                 "passive-enabled": false
             }
         },
@@ -48,10 +48,10 @@
             "Value": -20,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
-                "is-percent": false,
-                "stats-name": "HP",
+                "kind": "DamageRxPercent",
+                "value": -20,
+                "is-percent": true,
+                "stats-name": "",
                 "passive-enabled": false
             }
         },
@@ -65,10 +65,10 @@
             "Value": 10,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "kind": "CooldownTurnsNumber",
+                "value": 0,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "",
                 "passive-enabled": false
             }
         },
@@ -82,9 +82,9 @@
             "Value": 25,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": 25,
                 "is-percent": false,
-                "stats-name": "HP",
+                "stats-name": "Berserk",
                 "passive-enabled": false
             }
         }

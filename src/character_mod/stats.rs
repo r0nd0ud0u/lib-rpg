@@ -403,9 +403,10 @@ impl Stats {
             berserk.current_raw = berserk.max_raw * (berserk.current / berserk.max);
         }
 
+        // Speed regeneration only increases the current value (not max/max_raw).
+        // Speed fills up toward the threshold that triggers a character's turn;
+        // the maximum must stay fixed so the turn-order threshold remains stable.
         speed.current += regen_speed.current;
-        speed.max += regen_speed.current;
-        speed.max_raw += regen_speed.current;
         if speed.max > 0 {
             speed.current_raw = speed.max_raw * (speed.current / speed.max);
         }
@@ -708,6 +709,43 @@ mod tests {
         assert_eq!(
             old_stats.all_stats[CRITICAL_STRIKE].max_raw,
             c.stats.all_stats[CRITICAL_STRIKE].max_raw
+        );
+    }
+
+    #[test]
+    fn unit_apply_regen_speed_does_not_update_max() {
+        let mut stats = Stats::default();
+        stats.init();
+
+        // Ensure HP has a non-zero max to avoid divide-by-zero in apply_regen
+        stats.get_mut_value(HP).max = 100;
+        stats.get_mut_value(HP).max_raw = 100;
+        stats.get_mut_value(HP).current = 100;
+
+        // Set up speed with a fixed max and a regen value
+        stats.get_mut_value(SPEED).max = 100;
+        stats.get_mut_value(SPEED).max_raw = 100;
+        stats.get_mut_value(SPEED).current = 10;
+        stats.all_stats.get_mut(SPEED_REGEN).unwrap().current = 15;
+
+        let speed_max_before = stats.all_stats[SPEED].max;
+        let speed_max_raw_before = stats.all_stats[SPEED].max_raw;
+
+        stats.apply_regen();
+
+        // current should have increased by the regen amount
+        assert_eq!(
+            25, stats.all_stats[SPEED].current,
+            "Speed current should increase by regen"
+        );
+        // max and max_raw must NOT be modified by regen
+        assert_eq!(
+            speed_max_before, stats.all_stats[SPEED].max,
+            "Speed max must not change on regen"
+        );
+        assert_eq!(
+            speed_max_raw_before, stats.all_stats[SPEED].max_raw,
+            "Speed max_raw must not change on regen"
         );
     }
 }
