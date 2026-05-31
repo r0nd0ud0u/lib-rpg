@@ -2597,4 +2597,166 @@ mod tests {
             "Aggro must not decrease between consecutive attacks: first={aggro_after_first}, second={aggro_after_second}"
         );
     }
+
+    /// Aggro accumulates correctly across full turn cycles (hero→boss→hero full loop).
+    /// This verifies the real game flow where eval_end_of_round advances all other characters.
+    #[test]
+    fn unit_aggro_accumulates_across_full_turns() {
+        use crate::common::constants::stats_const::AGGRO;
+        use crate::server::game_state::GameStatus;
+
+        let (mut gm, hero_launcher_id_name, target_id_name) = testing_test_ally1_vs_test_boss1();
+
+        // Disable dodge and critical strike variance for determinism.
+        gm.pm.current_player.stats.all_stats[DODGE].current = 0;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(boss) = gm.pm.get_mut_active_boss_character(&target_id_name) {
+            boss.character_rounds_info.is_current_target = true;
+        }
+        for h in gm.pm.active_heroes.iter_mut() {
+            h.stats.all_stats[DODGE].current = 0;
+            h.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        }
+
+        // --- Turn 1: hero attacks ---
+        let _ra1 = gm.launch_attack(Some("SimpleAtk"));
+        let aggro_after_turn1 = gm
+            .pm
+            .active_heroes
+            .iter()
+            .find(|h| h.id_name == hero_launcher_id_name)
+            .map(|h| h.stats.all_stats[AGGRO].current)
+            .unwrap_or(0);
+
+        // Advance through remaining rounds of turn 1 (all non-hero players auto-attack),
+        // then through all of turn 2 until it is hero's turn again.
+        let mut max_rounds = 50; // safety cap to avoid infinite loop
+        while gm.pm.current_player.id_name != hero_launcher_id_name
+            && gm.game_state.status != GameStatus::EndOfGame
+            && gm.game_state.status != GameStatus::EndOfScenario
+            && max_rounds > 0
+        {
+            let _ = gm.launch_attack(None);
+            max_rounds -= 1;
+        }
+
+        // Abort if the game ended early (e.g. hero died to auto-attacks).
+        if gm.game_state.status == GameStatus::EndOfGame
+            || gm.game_state.status == GameStatus::EndOfScenario
+        {
+            return;
+        }
+
+        // Re-enable target so second hero attack hits.
+        if let Some(boss) = gm.pm.get_mut_active_boss_character(&target_id_name) {
+            boss.character_rounds_info.is_current_target = true;
+        }
+
+        // --- Turn 2: hero attacks again ---
+        let _ra2 = gm.launch_attack(Some("SimpleAtk"));
+        let aggro_after_turn2 = gm
+            .pm
+            .active_heroes
+            .iter()
+            .find(|h| h.id_name == hero_launcher_id_name)
+            .map(|h| h.stats.all_stats[AGGRO].current)
+            .unwrap_or(0);
+
+        assert!(
+            aggro_after_turn2 >= aggro_after_turn1,
+            "Aggro should not decrease between turn 1 and turn 2: turn1={aggro_after_turn1}, turn2={aggro_after_turn2}"
+        );
+        assert!(
+            aggro_after_turn2 > 0,
+            "Aggro should be positive after two attacks: turn2={aggro_after_turn2}"
+        );
+    }
+
+    /// Aggro accumulates correctly for a real LOTR hero (Thraïn) using "Frappe Cinglante"
+    /// across two consecutive turns.  Uses dxrpg_game_manager() so actual hero data is tested.
+    #[test]
+    fn unit_aggro_thrain_frappe_cinglante_accumulates() {
+        use crate::common::constants::stats_const::AGGRO;
+        use crate::server::game_state::GameStatus;
+        use crate::testing::testing_all_characters::dxrpg_game_manager;
+
+        let mut gm = dxrpg_game_manager();
+        gm.start_game();
+
+        // Advance until Thraïn is the current player.
+        let mut max_setup = 30;
+        while !gm.pm.current_player.id_name.contains("Thraïn")
+            && gm.game_state.status != GameStatus::EndOfGame
+            && gm.game_state.status != GameStatus::EndOfScenario
+            && max_setup > 0
+        {
+            gm.launch_attack(None);
+            max_setup -= 1;
+        }
+        if !gm.pm.current_player.id_name.contains("Thraïn") {
+            // Thraïn is not in the current scenario or game ended – skip gracefully
+            return;
+        }
+
+        let thrain_id = gm.pm.current_player.id_name.clone();
+        // Disable dodge & critical variance for determinism
+        gm.pm.current_player.stats.all_stats[DODGE].current = 0;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(boss) = gm.pm.active_bosses.iter_mut().find(|b| !b.stats.is_dead().unwrap_or(false)) {
+            boss.character_rounds_info.is_current_target = true;
+        }
+
+        // Turn 1: Thraïn attacks with "Frappe Cinglante " (trailing space matches filename)
+        let ra1 = gm.launch_attack(Some("Frappe Cinglante "));
+        let aggro_t1 = gm
+            .pm
+            .active_heroes
+            .iter()
+            .find(|h| h.id_name == thrain_id)
+            .map(|h| h.stats.all_stats[AGGRO].current)
+            .unwrap_or(0);
+        assert!(
+            !ra1.new_game_atk_effects.is_empty(),
+            "Frappe Cinglante should produce at least one effect"
+        );
+
+        // Advance through all rounds until Thraïn can attack again (next turn).
+        let mut max_rounds = 60;
+        while gm.pm.current_player.id_name != thrain_id
+            && gm.game_state.status != GameStatus::EndOfGame
+            && gm.game_state.status != GameStatus::EndOfScenario
+            && max_rounds > 0
+        {
+            gm.launch_attack(None);
+            max_rounds -= 1;
+        }
+        if gm.game_state.status == GameStatus::EndOfGame
+            || gm.game_state.status == GameStatus::EndOfScenario
+            || gm.pm.current_player.id_name != thrain_id
+        {
+            return; // game ended, skip
+        }
+
+        gm.pm.current_player.stats.all_stats[DODGE].current = 0;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(boss) = gm.pm.active_bosses.iter_mut().find(|b| !b.stats.is_dead().unwrap_or(false)) {
+            boss.character_rounds_info.is_current_target = true;
+        }
+
+        // Turn 2: Thraïn attacks again
+        let _ra2 = gm.launch_attack(Some("Frappe Cinglante "));
+        let aggro_t2 = gm
+            .pm
+            .active_heroes
+            .iter()
+            .find(|h| h.id_name == thrain_id)
+            .map(|h| h.stats.all_stats[AGGRO].current)
+            .unwrap_or(0);
+
+        assert!(
+            aggro_t2 >= aggro_t1,
+            "Thraïn aggro must not decrease between turns: t1={aggro_t1}, t2={aggro_t2}"
+        );
+        assert!(aggro_t2 > 0, "Thraïn aggro must be > 0 after two attacks: {aggro_t2}");
+    }
 }
