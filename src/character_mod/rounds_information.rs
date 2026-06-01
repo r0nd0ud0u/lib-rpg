@@ -209,20 +209,31 @@ impl CharacterRoundsInfo {
         let ep = &gae.processed_effect_param.input_effect_param;
         let nb_turns = ep.nb_turns;
         let atk_name = &gae.atk_type.name;
-        // For HP effects show the full computed amount (real heal/damage), for other stats the raw value.
-        let amount = if ep.buffer.stats_name == HP {
+
+        if ep.buffer.kind == BufKinds::CooldownTurnsNumber {
+            return format!("{}: cooldown ({} turns)", atk_name, nb_turns);
+        }
+
+        let is_max_stat = ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage
+            || ep.buffer.kind == BufKinds::ChangeMaxStatByValue;
+        let is_percent = ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage;
+
+        // For current-HP effects show the full computed amount; for max-stat or other stats use raw value.
+        let amount = if ep.buffer.stats_name == HP && !is_max_stat {
             gae.effect_outcome.full_amount_tx.abs()
         } else {
             ep.buffer.value.abs()
         };
-        if ep.buffer.stats_name.is_empty() {
-            format!("{}: {} × {} turns", atk_name, amount, nb_turns)
+
+        let stat_label = if is_max_stat && is_percent {
+            format!("{}% max {}", amount, ep.buffer.stats_name)
+        } else if is_max_stat {
+            format!("{} max {}", amount, ep.buffer.stats_name)
         } else {
-            format!(
-                "{}: {} {} × {} turns",
-                atk_name, amount, ep.buffer.stats_name, nb_turns
-            )
-        }
+            format!("{} {}", amount, ep.buffer.stats_name)
+        };
+
+        format!("{}: {} × {} turns", atk_name, stat_label.trim(), nb_turns)
     }
 
     pub fn is_dodging(&self, target_kind: &str) -> bool {
@@ -542,24 +553,46 @@ impl CharacterRoundsInfo {
                 return Ok(processed_effect_param);
             }
             BufKinds::ChangeMaxStatByPercentage => {
+                let dir = if ep.buffer.value >= 0 { "increased" } else { "decreased" };
                 processed_effect_param.log = LogData {
                     message: format!(
-                        "Max {} increased by {}%",
-                        ep.buffer.stats_name, ep.buffer.value
+                        "Max {} {} by {}%",
+                        ep.buffer.stats_name, dir, ep.buffer.value.abs()
                     ),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
             }
             BufKinds::ChangeMaxStatByValue => {
+                let dir = if ep.buffer.value >= 0 { "increased" } else { "decreased" };
                 processed_effect_param.log = LogData {
                     message: format!(
-                        "Max {} increased by {}",
-                        ep.buffer.stats_name, ep.buffer.value
+                        "Max {} {} by {}",
+                        ep.buffer.stats_name, dir, ep.buffer.value.abs()
                     ),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
+            }
+            BufKinds::ChangeCurrentStatByValue => {
+                let dir = if ep.buffer.value >= 0 { "increased" } else { "decreased" };
+                processed_effect_param.log = LogData {
+                    message: format!(
+                        "Current {} {} by {}",
+                        ep.buffer.stats_name, dir, ep.buffer.value.abs()
+                    ),
+                    color: "".to_owned(),
+                };
+            }
+            BufKinds::ChangeCurrentStatByPercentage => {
+                let dir = if ep.buffer.value >= 0 { "increased" } else { "decreased" };
+                processed_effect_param.log = LogData {
+                    message: format!(
+                        "Current {} {} by {}%",
+                        ep.buffer.stats_name, dir, ep.buffer.value.abs()
+                    ),
+                    color: "".to_owned(),
+                };
             }
             _ => {}
         }
