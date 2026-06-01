@@ -312,7 +312,7 @@ impl GameManager {
                 if let Some(patterns) = self
                     .current_scenario
                     .boss_patterns
-                    .get(&self.pm.current_player.id_name)
+                    .get(&self.pm.current_player.db_full_name)
                     .cloned()
                 {
                     // fill queue from pattern on first use, then cycle
@@ -1773,7 +1773,7 @@ mod tests {
         // index 2 = third attack in boss's attacks_list
         gm.current_scenario
             .boss_patterns
-            .insert("test_boss1_#1".to_string(), vec![0, 2]);
+            .insert("test_boss1".to_string(), vec![0, 2]);
 
         // start game and navigate to test_boss1_#1's round
         gm.start_game();
@@ -1866,6 +1866,47 @@ mod tests {
             vec![2u64],
             "queue should hold [2] again after cycling"
         );
+    }
+
+    /// Pattern [0] must always use the attack at index 0 — never any other attack.
+    /// This is the regression test for the bug where the pattern lookup used id_name
+    /// ("test_boss1_#1") instead of db_full_name ("test_boss1"), causing the lookup
+    /// to silently fail and fall through to random attack selection.
+    #[test]
+    fn unit_boss_pattern_single_index_always_same_atk() {
+        let mut gm = testing_all_characters::testing_game_manager();
+
+        // Pattern [0] keyed by db_full_name — only the first attack must ever be used.
+        gm.current_scenario
+            .boss_patterns
+            .insert("test_boss1".to_string(), vec![0]);
+
+        gm.start_game();
+
+        let atk_at_index_0 = gm
+            .pm
+            .get_active_boss_character("test_boss1_#1")
+            .unwrap()
+            .attacks_list
+            .get_index(0)
+            .map(|(name, _)| name.clone())
+            .expect("boss must have at least one attack");
+
+        // Run 3 full boss turns and assert the same attack is used each time.
+        for turn in 1..=3 {
+            while gm.pm.current_player.id_name != "test_boss1_#1" {
+                let (ok, _) = gm.new_round();
+                if !ok {
+                    gm.start_new_turn();
+                }
+            }
+            let ra = gm.launch_attack(None);
+            assert_eq!(
+                ra.atk_name, atk_at_index_0,
+                "turn {turn}: expected pattern attack '{}', got '{}'",
+                atk_at_index_0, ra.atk_name
+            );
+        }
     }
 
     #[test]
