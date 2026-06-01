@@ -180,9 +180,20 @@ impl CharacterRoundsInfo {
                 .buffer
                 .stats_name
                 == HP
+                && e.processed_effect_param.input_effect_param.buffer.value < 0
             {
                 hots_bufs.dot_nb += 1;
                 hots_bufs.dot_txt.push(txt);
+            } else if e
+                .processed_effect_param
+                .input_effect_param
+                .buffer
+                .stats_name
+                == HP
+                && e.processed_effect_param.input_effect_param.buffer.value > 0
+            {
+                hots_bufs.hot_nb += 1;
+                hots_bufs.hot_txt.push(txt);
             } else if e.processed_effect_param.input_effect_param.buffer.value > 0 {
                 hots_bufs.buf_nb += 1;
                 hots_bufs.buf_txt.push(txt);
@@ -1493,6 +1504,32 @@ mod tests {
         // so that aggro and damage tracking keep working on the next scenario.
         assert_eq!(AmountType::EnumSize as usize, cri.tx_rx.len());
         assert!(cri.tx_rx.iter().all(|m| m.is_empty()));
+    }
+
+    use crate::testing::testing_effect::build_change_max_hp_by_percent_effect;
+
+    #[test]
+    fn unit_change_max_hp_by_percent_is_hot() {
+        // ChangeMaxStatByPercentage on HP with positive value (Cor d'Erebor style)
+        // must be classified as HOT, not DOT.
+        use crate::character_mod::attack_type::AttackType;
+        let all_effects = vec![GameAtkEffect {
+            processed_effect_param: build_change_max_hp_by_percent_effect(),
+            atk_type: AttackType {
+                name: "Cor d'Erebor".to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }];
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        assert_eq!(
+            result.hot_nb, 1,
+            "ChangeMaxStatByPercentage +HP should be HOT"
+        );
+        assert_eq!(
+            result.dot_nb, 0,
+            "ChangeMaxStatByPercentage +HP should not be DOT"
+        );
     }
 
     // ──────────────────────────────────────────────────────────────────────────

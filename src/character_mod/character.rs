@@ -423,7 +423,11 @@ impl Character {
                 processed_ep.number_of_applies * processed_ep.input_effect_param.buffer.value;
         }
         // Apply buf/debuf, crit, blocking on damages/heal
-        if processed_ep.input_effect_param.buffer.stats_name == HP {
+        // Skip for ChangeMaxStat* effects on HP — those modify max HP, not current HP
+        let is_max_stat_effect = processed_ep.input_effect_param.buffer.kind
+            == BufKinds::ChangeMaxStatByPercentage
+            || processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByValue;
+        if processed_ep.input_effect_param.buffer.stats_name == HP && !is_max_stat_effect {
             full_amount = self.character_rounds_info.apply_buf_debuf(
                 full_amount,
                 &processed_ep.input_effect_param.target_kind,
@@ -441,9 +445,13 @@ impl Character {
 
         // Process stats `HP`
         // Calculation of the real amount of the value of the effect and update the energy stats
-        let real_hp_amount = self
-            .stats
-            .update_hp_process_real_amount(&processed_ep.input_effect_param, full_amount);
+        // ChangeMaxStat* on HP updates max, not current — skip the current-HP update path
+        let real_hp_amount = if is_max_stat_effect {
+            0
+        } else {
+            self.stats
+                .update_hp_process_real_amount(&processed_ep.input_effect_param, full_amount)
+        };
 
         // Apply the effect on the target
         let real_dmg_amount = self.apply_effect_full_amount(processed_ep, full_amount);
@@ -496,11 +504,9 @@ impl Character {
         processed_ep: &ProcessedEffectParam,
         full_amount: i64,
     ) -> i64 {
-        // Process non-stats `HP`
-        // Otherwise update the max value of the stats
-        if processed_ep.input_effect_param.buffer.stats_name != HP
-            && (processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByPercentage
-                || processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByValue)
+        // Update the max value of the stat (applies to HP and non-HP alike)
+        if processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByPercentage
+            || processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByValue
         {
             self.stats.set_stats_on_effect(
                 &processed_ep.input_effect_param.buffer.stats_name,
