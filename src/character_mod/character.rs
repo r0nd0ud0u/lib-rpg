@@ -466,6 +466,12 @@ impl Character {
             let aggro_norm = 20.0;
             if processed_ep.input_effect_param.buffer.stats_name == HP {
                 aggro_generated = (real_hp_amount.abs() as f64 / aggro_norm).round() as u64;
+            } else if processed_ep.input_effect_param.buffer.stats_name == AGGRO
+                && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
+            {
+                // Explicit aggro effects bypass the /20 normalisation so the full value
+                // is tracked in tx_rx and persists across NB_TURN_SUM_AGGRO turns.
+                aggro_generated = processed_ep.input_effect_param.buffer.value.unsigned_abs();
             } else {
                 let v = processed_ep.input_effect_param.buffer.value.abs() as f64;
                 if v > 0.0 {
@@ -504,8 +510,10 @@ impl Character {
             );
         }
         // apply change current stats for non HP stats
+        // Aggro is routed through process_aggro/tx_rx by the caller — skip direct modification.
         let mut overhead_dmg = 0;
         if processed_ep.input_effect_param.buffer.stats_name != HP
+            && processed_ep.input_effect_param.buffer.stats_name != AGGRO
             && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
         {
             overhead_dmg = self.stats.modify_stat_current(

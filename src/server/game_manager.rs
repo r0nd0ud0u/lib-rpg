@@ -36,6 +36,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResultLaunchAttack {
     pub launcher_id_name: String,
+    pub atk_name: String,
     pub new_game_atk_effects: Vec<GameAtkEffect>,
     pub is_crit: bool,
     pub all_dodging: Vec<DodgeInfo>,
@@ -531,6 +532,7 @@ impl GameManager {
         // process end of attack
         let mut result_attack = ResultLaunchAttack {
             launcher_id_name: self.pm.current_player.id_name.clone(),
+            atk_name: atk_name.to_string(),
             is_crit,
             new_game_atk_effects: new_game_atk_effects.clone(),
             all_dodging: all_dodging.clone(),
@@ -2206,7 +2208,6 @@ mod tests {
         }
     }
 
-
     #[test]
     fn unit_end_of_scenario_currency_loot() {
         use crate::character_mod::class::Class;
@@ -2702,7 +2703,12 @@ mod tests {
         // Disable dodge & critical variance for determinism
         gm.pm.current_player.stats.all_stats[DODGE].current = 0;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        if let Some(boss) = gm.pm.active_bosses.iter_mut().find(|b| !b.stats.is_dead().unwrap_or(false)) {
+        if let Some(boss) = gm
+            .pm
+            .active_bosses
+            .iter_mut()
+            .find(|b| !b.stats.is_dead().unwrap_or(false))
+        {
             boss.character_rounds_info.is_current_target = true;
         }
 
@@ -2739,7 +2745,12 @@ mod tests {
 
         gm.pm.current_player.stats.all_stats[DODGE].current = 0;
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        if let Some(boss) = gm.pm.active_bosses.iter_mut().find(|b| !b.stats.is_dead().unwrap_or(false)) {
+        if let Some(boss) = gm
+            .pm
+            .active_bosses
+            .iter_mut()
+            .find(|b| !b.stats.is_dead().unwrap_or(false))
+        {
             boss.character_rounds_info.is_current_target = true;
         }
 
@@ -2757,6 +2768,9 @@ mod tests {
             aggro_t2 >= aggro_t1,
             "Thraïn aggro must not decrease between turns: t1={aggro_t1}, t2={aggro_t2}"
         );
-        assert!(aggro_t2 > 0, "Thraïn aggro must be > 0 after two attacks: {aggro_t2}");
+        assert!(
+            aggro_t2 > 0,
+            "Thraïn aggro must be > 0 after two attacks: {aggro_t2}"
+        );
     }
 }

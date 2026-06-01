@@ -833,9 +833,9 @@ impl CharacterRoundsInfo {
         hot_and_dot: &mut i64,
         gae: &GameAtkEffect,
     ) {
-        *hot_and_dot += gae.processed_effect_param.input_effect_param.buffer.value;
-        let (effect_type, color) = if gae.processed_effect_param.input_effect_param.buffer.value > 0
-        {
+        let amount = gae.effect_outcome.full_amount_tx;
+        *hot_and_dot += amount;
+        let (effect_type, color) = if amount > 0 {
             ("HOT", LIGHT_GREEN)
         } else {
             ("DOT", DARK_RED)
@@ -843,9 +843,7 @@ impl CharacterRoundsInfo {
         local_log.push(LogData {
             message: format!(
                 "\u{1f7e2} {} {} HP from {}",
-                effect_type,
-                gae.processed_effect_param.input_effect_param.buffer.value,
-                gae.atk_type.name
+                effect_type, amount, gae.atk_type.name
             ),
             color: color.to_string(),
         });
@@ -1449,14 +1447,16 @@ mod tests {
         hot.launching_turn = 0;
         cri.all_effects.clear();
         let hot_value = hot.processed_effect_param.input_effect_param.buffer.value;
+        hot.effect_outcome.full_amount_tx = hot_value;
         cri.all_effects.push(hot);
 
-        let dot = GameAtkEffect {
+        let mut dot = GameAtkEffect {
             processed_effect_param: build_dot_effect_individual(),
             launching_turn: 0,
             ..Default::default()
         };
         let dot_value = dot.processed_effect_param.input_effect_param.buffer.value;
+        dot.effect_outcome.full_amount_tx = dot_value;
         cri.all_effects.push(dot);
 
         let (logs, total) = cri.process_hot_and_dot(1);

@@ -34,6 +34,7 @@ pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
         }
     }
 
+    files.sort();
     Ok(files)
 }
 

@@ -87,6 +87,7 @@ impl PlayerManager {
             c.stats.get_mut_value(HP).current = c.stats.all_stats[HP].max;
             c.stats.get_mut_value(MANA).current = c.stats.all_stats[MANA].max;
             c.stats.get_mut_value(VIGOR).current = c.stats.all_stats[VIGOR].max;
+            c.stats.get_mut_value(BERSERK).current = 0;
             // Reset displayed aggro so the new scenario starts from 0.
             if let Some(aggro) = c.stats.all_stats.get_mut(AGGRO) {
                 aggro.current = 0;
@@ -593,7 +594,7 @@ impl PlayerManager {
 #[cfg(test)]
 mod tests {
     use crate::{
-        character_mod::equipment::EquipmentJsonKey,
+        character_mod::{effect::EffectOutcome, equipment::EquipmentJsonKey},
         common::constants::stats_const::*,
         server::game_state::GameState,
         server::players_manager::GameAtkEffect,
@@ -785,6 +786,10 @@ mod tests {
             .all_effects
             .push(GameAtkEffect {
                 processed_effect_param: build_hot_effect_individual(),
+                effect_outcome: EffectOutcome {
+                    full_amount_tx: 30,
+                    ..Default::default()
+                },
                 ..Default::default()
             });
         let (logs, hot_and_dot) = pl
@@ -807,6 +812,10 @@ mod tests {
             .all_effects
             .push(GameAtkEffect {
                 processed_effect_param: build_dot_effect_individual(),
+                effect_outcome: EffectOutcome {
+                    full_amount_tx: -20,
+                    ..Default::default()
+                },
                 ..Default::default()
             });
         let (logs, hot_and_dot) = pl
