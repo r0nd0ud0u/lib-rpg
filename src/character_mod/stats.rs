@@ -274,11 +274,11 @@ impl Stats {
             + stat.buf_equip_percent * stat.max_raw as i64 / 100;
         let new_base =
             base_value + stat.buf_effect_value + stat.buf_effect_percent * base_value / 100;
-        stat.max = new_base.max(0) as u64;
 
-        // Use provided ratio or calculate from current state
+        // Compute ratio against the OLD max before overwriting it
         let ratio =
             ratio.unwrap_or_else(|| utils::calc_ratio(stat.current as i64, stat.max as i64));
+        stat.max = new_base.max(0) as u64;
         stat.current = (stat.max as f64 * ratio).round() as u64;
     }
 
@@ -580,7 +580,7 @@ mod tests {
         assert_eq!(29, c.stats.all_stats[DODGE].current);
         c.stats.set_stats_on_effect(DODGE, 10, false, true);
         assert_eq!(39, c.stats.all_stats[DODGE].max);
-        assert_eq!(29, c.stats.all_stats[DODGE].current);
+        assert_eq!(39, c.stats.all_stats[DODGE].current);
     }
 
     #[test]

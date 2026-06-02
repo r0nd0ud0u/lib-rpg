@@ -553,43 +553,67 @@ impl CharacterRoundsInfo {
                 return Ok(processed_effect_param);
             }
             BufKinds::ChangeMaxStatByPercentage => {
-                let dir = if ep.buffer.value >= 0 { "increased" } else { "decreased" };
+                let dir = if ep.buffer.value >= 0 {
+                    "increased"
+                } else {
+                    "decreased"
+                };
                 processed_effect_param.log = LogData {
                     message: format!(
                         "Max {} {} by {}%",
-                        ep.buffer.stats_name, dir, ep.buffer.value.abs()
+                        ep.buffer.stats_name,
+                        dir,
+                        ep.buffer.value.abs()
                     ),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
             }
             BufKinds::ChangeMaxStatByValue => {
-                let dir = if ep.buffer.value >= 0 { "increased" } else { "decreased" };
+                let dir = if ep.buffer.value >= 0 {
+                    "increased"
+                } else {
+                    "decreased"
+                };
                 processed_effect_param.log = LogData {
                     message: format!(
                         "Max {} {} by {}",
-                        ep.buffer.stats_name, dir, ep.buffer.value.abs()
+                        ep.buffer.stats_name,
+                        dir,
+                        ep.buffer.value.abs()
                     ),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
             }
             BufKinds::ChangeCurrentStatByValue => {
-                let dir = if ep.buffer.value >= 0 { "increased" } else { "decreased" };
+                let dir = if ep.buffer.value >= 0 {
+                    "increased"
+                } else {
+                    "decreased"
+                };
                 processed_effect_param.log = LogData {
                     message: format!(
                         "Current {} {} by {}",
-                        ep.buffer.stats_name, dir, ep.buffer.value.abs()
+                        ep.buffer.stats_name,
+                        dir,
+                        ep.buffer.value.abs()
                     ),
                     color: "".to_owned(),
                 };
             }
             BufKinds::ChangeCurrentStatByPercentage => {
-                let dir = if ep.buffer.value >= 0 { "increased" } else { "decreased" };
+                let dir = if ep.buffer.value >= 0 {
+                    "increased"
+                } else {
+                    "decreased"
+                };
                 processed_effect_param.log = LogData {
                     message: format!(
                         "Current {} {} by {}%",
-                        ep.buffer.stats_name, dir, ep.buffer.value.abs()
+                        ep.buffer.stats_name,
+                        dir,
+                        ep.buffer.value.abs()
                     ),
                     color: "".to_owned(),
                 };
