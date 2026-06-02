@@ -1525,6 +1525,86 @@ mod tests {
     }
 
     #[test]
+    fn unit_eclat_despoir_buffs_thrain_physical_and_magical_power() {
+        use crate::testing::testing_all_characters::dxrpg_game_manager;
+
+        let mut gm = dxrpg_game_manager();
+        gm.start_game();
+
+        // Advance using new_round() (no attacks fired) so Thraïn's stats stay at
+        // their equipment-only baseline with no accumulated combat buffs.
+        let mut max_setup = 30;
+        while !gm.pm.current_player.id_name.contains("Elara") && max_setup > 0 {
+            gm.new_round();
+            max_setup -= 1;
+        }
+        if !gm.pm.current_player.id_name.contains("Elara") {
+            return;
+        }
+
+        // Disable crit and ensure full mana for determinism.
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let mana_max = gm.pm.current_player.stats.all_stats[MANA].max;
+        gm.pm.current_player.stats.all_stats[MANA].current = mana_max;
+
+        let thrain_id = gm
+            .pm
+            .active_heroes
+            .iter()
+            .find(|h| h.id_name.contains("Thraïn"))
+            .map(|h| h.id_name.clone())
+            .expect("Thraïn must be among the lotr heroes");
+
+        let old_phy_pow = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+        let old_mag_pow = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_POWER]
+            .max;
+
+        // Thraïn's magical power comes from equipment (max_raw == 0 but equip buffers
+        // give a non-zero effective max).  Both stats must be non-zero to make this
+        // test meaningful.
+        assert!(
+            old_mag_pow > 0,
+            "Thraïn must have non-zero magical power from equipment"
+        );
+        assert!(old_phy_pow > 0, "Thraïn must have non-zero physical power");
+
+        gm.launch_attack(Some("Eclat d'espoir"));
+
+        // Both stats must be boosted by +15 % (integer arithmetic matches the engine).
+        assert_eq!(
+            old_phy_pow + (0.15 * old_phy_pow as f64) as u64,
+            gm.pm
+                .get_active_hero_character(&thrain_id)
+                .unwrap()
+                .stats
+                .all_stats[PHYSICAL_POWER]
+                .max,
+            "Eclat d'espoir should boost Thraïn physical power by 15 %"
+        );
+        assert_eq!(
+            old_mag_pow + (0.15 * old_mag_pow as f64) as u64,
+            gm.pm
+                .get_active_hero_character(&thrain_id)
+                .unwrap()
+                .stats
+                .all_stats[MAGICAL_POWER]
+                .max,
+            "Eclat d'espoir should boost Thraïn magical power by 15 %"
+        );
+    }
+
+    #[test]
     fn unit_launch_attack_end_of_effect() {
         let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
 

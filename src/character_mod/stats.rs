@@ -252,9 +252,6 @@ impl Stats {
             .all_stats
             .get_mut(attribute_name)
             .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
-        if stat.max_raw == 0 {
-            return;
-        }
         if update_effect {
             if is_percent {
                 stat.buf_effect_percent += value;
