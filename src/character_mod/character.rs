@@ -422,7 +422,8 @@ impl Character {
             && processed_ep.input_effect_param.buffer.stats_name == HP
         {
             // Flat HP restore for resurrection — no power scaling, bypasses dead check
-            full_amount = processed_ep.number_of_applies * processed_ep.input_effect_param.buffer.value;
+            full_amount =
+                processed_ep.number_of_applies * processed_ep.input_effect_param.buffer.value;
         } else {
             full_amount =
                 processed_ep.number_of_applies * processed_ep.input_effect_param.buffer.value;

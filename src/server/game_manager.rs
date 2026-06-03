@@ -686,7 +686,10 @@ impl GameManager {
         }
     }
 
-    fn build_consumable_effects(name: &str, rank: &Rank) -> Vec<crate::character_mod::effect::EffectParam> {
+    fn build_consumable_effects(
+        name: &str,
+        rank: &Rank,
+    ) -> Vec<crate::character_mod::effect::EffectParam> {
         use crate::common::constants::stats_const::{BERSERK, MANA, VIGOR};
         match name {
             "potion of resurrection" => {

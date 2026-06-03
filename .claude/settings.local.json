@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo test *)",
+      "Read(//root/.cargo/**)",
+      "Read(//usr/**)",
+      "Read(//home/**)",
+      "Bash(find / -name \"cargo\" -type f)",
+      "Read(//mnt/c/Users/**)",
+      "Read(//mnt/c/**)",
+      "Bash(python3 -m json.tool)",
+      "Bash(/mnt/c/Users/pontidmc/.rustup/toolchains/1.92-x86_64-pc-windows-gnu/bin/cargo.exe --version)",
+      "Bash(/mnt/c/Users/pontidmc/.rustup/toolchains/1.92-x86_64-pc-windows-gnu/bin/cargo.exe test *)"
+    ]
+  }
+}
