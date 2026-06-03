@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     character_mod::{
         attack_type::AttackType,
+        buffers::BufKinds,
         character::{Character, CharacterKind},
         effect::{EffectOutcome, ProcessedEffectParam},
         equipment::{Equipment, EquipmentJsonKey},
@@ -523,6 +524,12 @@ impl PlayerManager {
 
     /// Helper function to set targets for a given collection of characters
     /// Extracted to avoid code duplication between heroes and bosses targeting
+    fn has_resurrect_effect(atk: &AttackType) -> bool {
+        atk.all_effects
+            .iter()
+            .any(|e| e.buffer.kind == BufKinds::Resurrect)
+    }
+
     fn set_targets_for_collection(
         characters: &mut [Character],
         launcher_id_name: &str,
@@ -530,11 +537,14 @@ impl PlayerManager {
         is_ally_condition: bool,
         is_ennemy_condition: bool,
     ) {
+        let can_target_dead = is_ally_condition && Self::has_resurrect_effect(atk);
         let mut has_at_least_one_target = false;
         characters
             .iter_mut()
             .filter(|c| {
-                c.stats.is_dead() == Some(false)
+                let alive_or_targetable = c.stats.is_dead() == Some(false)
+                    || (can_target_dead && c.stats.is_dead() == Some(true));
+                alive_or_targetable
                     && ((is_ally_condition && c.id_name != launcher_id_name) || is_ennemy_condition)
             })
             .for_each(|c| {
@@ -557,12 +567,15 @@ impl PlayerManager {
         is_ally_condition: bool,
         is_ennemy_condition: bool,
     ) -> u64 {
+        let can_target_dead = is_ally_condition && Self::has_resurrect_effect(atk);
         let mut has_at_least_one_target = false;
         let mut nb = 0;
         characters
             .iter()
             .filter(|c| {
-                c.stats.is_dead() == Some(false)
+                let alive_or_targetable = c.stats.is_dead() == Some(false)
+                    || (can_target_dead && c.stats.is_dead() == Some(true));
+                alive_or_targetable
                     && ((is_ally_condition && c.id_name != launcher_id_name) || is_ennemy_condition)
             })
             .for_each(|_c| {

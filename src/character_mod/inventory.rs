@@ -2,10 +2,13 @@ use std::collections::HashMap;
 
 use strum::IntoEnumIterator;
 
-use crate::character_mod::{
-    effect::{EffectParam, build_hp_effect},
-    equipment::{Equipment, EquipmentJsonKey},
-    rank::Rank,
+use crate::{
+    character_mod::{
+        effect::{EffectParam, build_energy_effect, build_hp_effect, build_resurrect_effect},
+        equipment::{Equipment, EquipmentJsonKey},
+        rank::Rank,
+    },
+    common::constants::stats_const::{BERSERK, MANA, VIGOR},
 };
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -110,6 +113,42 @@ impl Inventory {
 
     pub fn add_hyper_potion(&mut self) {
         self.add_potion("hyper potion", 120, Rank::Advanced);
+    }
+
+    pub fn add_resurrection_potion(&mut self) {
+        self.consumables.push(Consumable {
+            name: "potion of resurrection".to_owned(),
+            effects: vec![build_resurrect_effect(50)],
+            consumable_kind: ConsumableKind::Potion,
+            rank: Rank::Advanced,
+        });
+    }
+
+    pub fn add_mana_potion(&mut self) {
+        self.consumables.push(Consumable {
+            name: "mana potion".to_owned(),
+            effects: vec![build_energy_effect(MANA, 30)],
+            consumable_kind: ConsumableKind::Potion,
+            rank: Rank::Common,
+        });
+    }
+
+    pub fn add_vigor_potion(&mut self) {
+        self.consumables.push(Consumable {
+            name: "vigor potion".to_owned(),
+            effects: vec![build_energy_effect(VIGOR, 30)],
+            consumable_kind: ConsumableKind::Potion,
+            rank: Rank::Common,
+        });
+    }
+
+    pub fn add_berserk_potion(&mut self) {
+        self.consumables.push(Consumable {
+            name: "berserk potion".to_owned(),
+            effects: vec![build_energy_effect(BERSERK, 30)],
+            consumable_kind: ConsumableKind::Potion,
+            rank: Rank::Common,
+        });
     }
 
     pub fn remove_potion(&mut self, name: &str) {

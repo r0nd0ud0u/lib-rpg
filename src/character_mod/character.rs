@@ -418,6 +418,11 @@ impl Character {
                     .max as i64
                 * processed_ep.input_effect_param.buffer.value
                 / 100;
+        } else if processed_ep.input_effect_param.buffer.kind == BufKinds::Resurrect
+            && processed_ep.input_effect_param.buffer.stats_name == HP
+        {
+            // Flat HP restore for resurrection — no power scaling, bypasses dead check
+            full_amount = processed_ep.number_of_applies * processed_ep.input_effect_param.buffer.value;
         } else {
             full_amount =
                 processed_ep.number_of_applies * processed_ep.input_effect_param.buffer.value;
@@ -642,7 +647,9 @@ impl Character {
     ) -> (Option<GameAtkEffect>, Option<Vec<DodgeInfo>>) {
         let mut option_gae: Option<GameAtkEffect> = None;
         let mut di: Vec<DodgeInfo> = Vec::new();
-        if self.stats.is_dead() == Some(true) {
+        if self.stats.is_dead() == Some(true)
+            && processed_ep.input_effect_param.buffer.kind != BufKinds::Resurrect
+        {
             tracing::info!("is_receiving_atk: {} is already dead.", self.id_name);
             return (None, None);
         }

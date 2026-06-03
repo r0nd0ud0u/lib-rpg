@@ -6,7 +6,7 @@ use crate::{
         buffers::BufKinds,
         character::{Character, CharacterKind},
         class::Class,
-        effect::build_hp_effect,
+        effect::{build_energy_effect, build_hp_effect, build_resurrect_effect},
         equipment::{Equipment, EquipmentJsonKey},
         experience::{build_exp_to_next_level, build_experience},
         inventory::{Consumable, ConsumableKind},
@@ -281,6 +281,15 @@ impl GameManager {
         };
 
         if self.pm.current_player.stats.is_dead() == Some(true) {
+            let (all_heroes_dead, all_bosses_dead) = self.pm.check_end_of_game();
+            if all_heroes_dead {
+                self.game_state.status = GameStatus::EndOfGame;
+                return (false, logs);
+            } else if all_bosses_dead {
+                self.game_state.status = GameStatus::EndOfScenario;
+                self.process_end_of_scenario();
+                return (false, logs);
+            }
             return self.new_round();
         }
 
@@ -666,17 +675,59 @@ impl GameManager {
                 loot.classes.contains(&hero.class) || loot.classes.contains(&Class::Standard)
             });
             if any_hero_matches {
-                let hp_amount = match &loot.rank {
+                let effects = Self::build_consumable_effects(&loot.name, &loot.rank);
+                self.pm.party_consumables.push(Consumable {
+                    name: loot.name.clone(),
+                    effects,
+                    consumable_kind: ConsumableKind::Potion,
+                    rank: loot.rank.clone(),
+                });
+            }
+        }
+    }
+
+    fn build_consumable_effects(name: &str, rank: &Rank) -> Vec<crate::character_mod::effect::EffectParam> {
+        use crate::common::constants::stats_const::{BERSERK, MANA, VIGOR};
+        match name {
+            "potion of resurrection" => {
+                let value = match rank {
+                    Rank::Common => 20,
+                    Rank::Intermediate => 50,
+                    Rank::Advanced => 100,
+                };
+                vec![build_resurrect_effect(value)]
+            }
+            "mana potion" => {
+                let value = match rank {
+                    Rank::Common => 30,
+                    Rank::Intermediate => 70,
+                    Rank::Advanced => 150,
+                };
+                vec![build_energy_effect(MANA, value)]
+            }
+            "vigor potion" => {
+                let value = match rank {
+                    Rank::Common => 30,
+                    Rank::Intermediate => 70,
+                    Rank::Advanced => 150,
+                };
+                vec![build_energy_effect(VIGOR, value)]
+            }
+            "berserk potion" => {
+                let value = match rank {
+                    Rank::Common => 30,
+                    Rank::Intermediate => 70,
+                    Rank::Advanced => 150,
+                };
+                vec![build_energy_effect(BERSERK, value)]
+            }
+            _ => {
+                let value = match rank {
                     Rank::Common => 20,
                     Rank::Intermediate => 60,
                     Rank::Advanced => 120,
                 };
-                self.pm.party_consumables.push(Consumable {
-                    name: loot.name.clone(),
-                    effects: vec![build_hp_effect(hp_amount, false)],
-                    consumable_kind: ConsumableKind::Potion,
-                    rank: loot.rank.clone(),
-                });
+                vec![build_hp_effect(value, false)]
             }
         }
     }
@@ -719,12 +770,23 @@ impl GameManager {
         } else {
             let (is_new_round, logs) = self.new_round();
             output_logs.extend(logs);
-            if is_new_round {
+            // new_round may have triggered EndOfScenario/EndOfGame (e.g. boss killed by DOT)
+            if matches!(
+                self.game_state.status,
+                GameStatus::EndOfScenario | GameStatus::EndOfGame
+            ) {
+                // Status already set inside new_round; nothing more to do
+            } else if is_new_round {
                 self.game_state.status = GameStatus::StartRound;
             } else {
                 let (is_new_turn, logs) = self.start_new_turn();
                 output_logs.extend(logs);
-                if is_new_turn {
+                if matches!(
+                    self.game_state.status,
+                    GameStatus::EndOfScenario | GameStatus::EndOfGame
+                ) {
+                    // Status set inside start_new_turn via new_round
+                } else if is_new_turn {
                     self.game_state.status = GameStatus::StartRound;
                 } else {
                     self.game_state.status = GameStatus::EndOfGame;

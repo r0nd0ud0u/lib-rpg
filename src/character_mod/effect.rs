@@ -5,7 +5,7 @@ use crate::{
     character_mod::buffers::{BufKinds, Buffer},
     common::{
         constants::{
-            all_target_const::TARGET_ENNEMY,
+            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
             reach_const::{INDIVIDUAL, ZONE},
             stats_const::HP,
         },
@@ -138,6 +138,36 @@ pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
         counter -= 1;
     }
     nb_of_applies
+}
+
+pub fn build_energy_effect(stat_name: &str, value: i64) -> EffectParam {
+    EffectParam {
+        nb_turns: 1,
+        target_kind: TARGET_ALLY.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        buffer: Buffer {
+            kind: BufKinds::ChangeCurrentStatByValue,
+            value,
+            stats_name: stat_name.to_owned(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+pub fn build_resurrect_effect(value: i64) -> EffectParam {
+    EffectParam {
+        nb_turns: 1,
+        target_kind: TARGET_ALLY.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        buffer: Buffer {
+            kind: BufKinds::Resurrect,
+            value,
+            stats_name: HP.to_owned(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
 }
 
 pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
