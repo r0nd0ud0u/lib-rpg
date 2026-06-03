@@ -25,7 +25,7 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Magical power",
+            "Stat": "Magic power",
             "Tours actifs": 2,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
@@ -35,7 +35,7 @@
                 "kind": "ChangeMaxStatByPercentage",
                 "value": 20,
                 "is-percent": true,
-                "stats-name": "Magical power",
+                "stats-name": "Magic power",
                 "passive-enabled": false
             }
         },

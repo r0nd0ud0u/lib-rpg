@@ -27,7 +27,7 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Regeneration Mana",
+            "Stat": "Mana regeneration",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
@@ -37,7 +37,7 @@
                 "kind": "ChangeMaxStatByPercentage",
                 "value": 100,
                 "is-percent": true,
-                "stats-name": "Regeneration Mana",
+                "stats-name": "Mana regeneration",
                 "passive-enabled": false
             }
         },

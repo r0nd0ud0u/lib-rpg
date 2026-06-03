@@ -163,7 +163,7 @@ impl CharacterRoundsInfo {
             if e.processed_effect_param.input_effect_param.nb_turns < 2 {
                 continue;
             }
-            let txt = Self::get_hot_and_buf_texts(&e.processed_effect_param.input_effect_param);
+            let txt = Self::get_hot_and_buf_texts(e);
             if effect::is_hot(
                 &e.processed_effect_param.input_effect_param.buffer.kind,
                 &e.processed_effect_param
@@ -180,9 +180,20 @@ impl CharacterRoundsInfo {
                 .buffer
                 .stats_name
                 == HP
+                && e.processed_effect_param.input_effect_param.buffer.value < 0
             {
                 hots_bufs.dot_nb += 1;
                 hots_bufs.dot_txt.push(txt);
+            } else if e
+                .processed_effect_param
+                .input_effect_param
+                .buffer
+                .stats_name
+                == HP
+                && e.processed_effect_param.input_effect_param.buffer.value > 0
+            {
+                hots_bufs.hot_nb += 1;
+                hots_bufs.hot_txt.push(txt);
             } else if e.processed_effect_param.input_effect_param.buffer.value > 0 {
                 hots_bufs.buf_nb += 1;
                 hots_bufs.buf_txt.push(txt);
@@ -194,15 +205,35 @@ impl CharacterRoundsInfo {
         hots_bufs
     }
 
-    fn get_hot_and_buf_texts(ep: &EffectParam) -> String {
-        if ep.buffer.stats_name.is_empty() {
-            format!("[{}] {}", ep.buffer.kind, ep.buffer.value)
-        } else {
-            format!(
-                "[{}] {} {}",
-                ep.buffer.kind, ep.buffer.stats_name, ep.buffer.value
-            )
+    fn get_hot_and_buf_texts(gae: &GameAtkEffect) -> String {
+        let ep = &gae.processed_effect_param.input_effect_param;
+        let nb_turns = ep.nb_turns;
+        let atk_name = &gae.atk_type.name;
+
+        if ep.buffer.kind == BufKinds::CooldownTurnsNumber {
+            return format!("{}: cooldown ({} turns)", atk_name, nb_turns);
         }
+
+        let is_max_stat = ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage
+            || ep.buffer.kind == BufKinds::ChangeMaxStatByValue;
+        let is_percent = ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage;
+
+        // For current-HP effects show the full computed amount; for max-stat or other stats use raw value.
+        let amount = if ep.buffer.stats_name == HP && !is_max_stat {
+            gae.effect_outcome.full_amount_tx.abs()
+        } else {
+            ep.buffer.value.abs()
+        };
+
+        let stat_label = if is_max_stat && is_percent {
+            format!("{}% max {}", amount, ep.buffer.stats_name)
+        } else if is_max_stat {
+            format!("{} max {}", amount, ep.buffer.stats_name)
+        } else {
+            format!("{} {}", amount, ep.buffer.stats_name)
+        };
+
+        format!("{}: {} × {} turns", atk_name, stat_label.trim(), nb_turns)
     }
 
     pub fn is_dodging(&self, target_kind: &str) -> bool {
@@ -298,7 +329,7 @@ impl CharacterRoundsInfo {
         match ep.buffer.kind {
             BufKinds::CooldownTurnsNumber => {
                 processed_effect_param.log = LogData {
-                    message: format!("Cooldown on {}: {} turns", atk_name, ep.nb_turns),
+                    message: format!("Cooldown on {}: {} turns", atk_name, ep.buffer.value),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
@@ -522,24 +553,70 @@ impl CharacterRoundsInfo {
                 return Ok(processed_effect_param);
             }
             BufKinds::ChangeMaxStatByPercentage => {
+                let dir = if ep.buffer.value >= 0 {
+                    "increased"
+                } else {
+                    "decreased"
+                };
                 processed_effect_param.log = LogData {
                     message: format!(
-                        "Max {} increased by {}%",
-                        ep.buffer.stats_name, ep.buffer.value
+                        "Max {} {} by {}%",
+                        ep.buffer.stats_name,
+                        dir,
+                        ep.buffer.value.abs()
                     ),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
             }
             BufKinds::ChangeMaxStatByValue => {
+                let dir = if ep.buffer.value >= 0 {
+                    "increased"
+                } else {
+                    "decreased"
+                };
                 processed_effect_param.log = LogData {
                     message: format!(
-                        "Max {} increased by {}",
-                        ep.buffer.stats_name, ep.buffer.value
+                        "Max {} {} by {}",
+                        ep.buffer.stats_name,
+                        dir,
+                        ep.buffer.value.abs()
                     ),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
+            }
+            BufKinds::ChangeCurrentStatByValue => {
+                let dir = if ep.buffer.value >= 0 {
+                    "increased"
+                } else {
+                    "decreased"
+                };
+                processed_effect_param.log = LogData {
+                    message: format!(
+                        "Current {} {} by {}",
+                        ep.buffer.stats_name,
+                        dir,
+                        ep.buffer.value.abs()
+                    ),
+                    color: "".to_owned(),
+                };
+            }
+            BufKinds::ChangeCurrentStatByPercentage => {
+                let dir = if ep.buffer.value >= 0 {
+                    "increased"
+                } else {
+                    "decreased"
+                };
+                processed_effect_param.log = LogData {
+                    message: format!(
+                        "Current {} {} by {}%",
+                        ep.buffer.stats_name,
+                        dir,
+                        ep.buffer.value.abs()
+                    ),
+                    color: "".to_owned(),
+                };
             }
             _ => {}
         }
@@ -824,9 +901,9 @@ impl CharacterRoundsInfo {
         hot_and_dot: &mut i64,
         gae: &GameAtkEffect,
     ) {
-        *hot_and_dot += gae.processed_effect_param.input_effect_param.buffer.value;
-        let (effect_type, color) = if gae.processed_effect_param.input_effect_param.buffer.value > 0
-        {
+        let amount = gae.effect_outcome.full_amount_tx;
+        *hot_and_dot += amount;
+        let (effect_type, color) = if amount > 0 {
             ("HOT", LIGHT_GREEN)
         } else {
             ("DOT", DARK_RED)
@@ -834,9 +911,7 @@ impl CharacterRoundsInfo {
         local_log.push(LogData {
             message: format!(
                 "\u{1f7e2} {} {} HP from {}",
-                effect_type,
-                gae.processed_effect_param.input_effect_param.buffer.value,
-                gae.atk_type.name
+                effect_type, amount, gae.atk_type.name
             ),
             color: color.to_string(),
         });
@@ -880,7 +955,11 @@ impl CharacterRoundsInfo {
         self.is_current_target = false;
         self.is_potential_target = false;
         self.actions_done_in_round = 0;
-        self.tx_rx.clear();
+        // Re-initialize with empty-but-sized slots so init_aggro_on_turn and
+        // process_aggro keep working correctly after a scenario reset.
+        self.tx_rx = (0..AmountType::EnumSize as usize)
+            .map(|_| HashMap::new())
+            .collect();
         self.crit_drought_counter = 0;
         self.dodge_drought_counter = 0;
     }
@@ -913,19 +992,30 @@ mod tests {
 
     #[test]
     fn unit_get_hot_and_buf_nbs() {
+        use crate::character_mod::{attack_type::AttackType, effect::EffectOutcome};
+
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![]);
         assert_eq!(result, HotsBufs::default());
         let mut all_effects: Vec<GameAtkEffect> = vec![];
-        // add a 1-turn-effect
+        // add a 1-turn-effect (nb_turns < 2, should be ignored)
         all_effects.push(GameAtkEffect {
             processed_effect_param: build_dmg_effect_individual(),
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
         assert_eq!(result, HotsBufs::default());
-        // add a 2-turn-effect HOT
+
+        // add a 2-turn HOT: +30 HP
         all_effects.push(GameAtkEffect {
             processed_effect_param: build_hot_effect_individual(),
+            atk_type: AttackType {
+                name: "TestHot".to_owned(),
+                ..Default::default()
+            },
+            effect_outcome: EffectOutcome {
+                full_amount_tx: 30,
+                ..Default::default()
+            },
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -933,23 +1023,22 @@ mod tests {
             result,
             HotsBufs {
                 hot_nb: 1,
-                dot_nb: 0,
-                buf_nb: 0,
-                debuf_nb: 0,
-                hot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    30
-                )],
-                dot_txt: vec![],
-                buf_txt: vec![],
-                debuf_txt: vec![]
+                hot_txt: vec!["TestHot: 30 HP × 2 turns".to_owned()],
+                ..Default::default()
             }
         );
-        // add a 3-turn-effect DOT
+
+        // add a 3-turn DOT: -20 HP
         all_effects.push(GameAtkEffect {
             processed_effect_param: build_dot_effect_individual(),
+            atk_type: AttackType {
+                name: "TestDot".to_owned(),
+                ..Default::default()
+            },
+            effect_outcome: EffectOutcome {
+                full_amount_tx: -20,
+                ..Default::default()
+            },
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -958,27 +1047,19 @@ mod tests {
             HotsBufs {
                 hot_nb: 1,
                 dot_nb: 1,
-                buf_nb: 0,
-                debuf_nb: 0,
-                hot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    30
-                )],
-                dot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    -20
-                )],
-                buf_txt: vec![],
-                debuf_txt: vec![]
+                hot_txt: vec!["TestHot: 30 HP × 2 turns".to_owned()],
+                dot_txt: vec!["TestDot: 20 HP × 3 turns".to_owned()],
+                ..Default::default()
             }
         );
-        // add a 3-turn-effect DOT
+
+        // add a 3-turn buff: +20 Magical armor (non-HP)
         all_effects.push(GameAtkEffect {
             processed_effect_param: build_buf_effect_individual(),
+            atk_type: AttackType {
+                name: "TestBuf".to_owned(),
+                ..Default::default()
+            },
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -988,31 +1069,20 @@ mod tests {
                 hot_nb: 1,
                 dot_nb: 1,
                 buf_nb: 1,
-                debuf_nb: 0,
-                hot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    30
-                )],
-                dot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    -20
-                )],
-                buf_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    MAGICAL_ARMOR,
-                    20
-                )],
-                debuf_txt: vec![]
+                hot_txt: vec!["TestHot: 30 HP × 2 turns".to_owned()],
+                dot_txt: vec!["TestDot: 20 HP × 3 turns".to_owned()],
+                buf_txt: vec![format!("TestBuf: 20 {} × 3 turns", MAGICAL_ARMOR)],
+                ..Default::default()
             }
         );
-        // add a 3-turn-effect DOT
+
+        // add a 3-turn debuff: -20 Magical armor (non-HP)
         all_effects.push(GameAtkEffect {
             processed_effect_param: build_debuf_effect_individual(),
+            atk_type: AttackType {
+                name: "TestDebuf".to_owned(),
+                ..Default::default()
+            },
             ..Default::default()
         });
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
@@ -1023,30 +1093,10 @@ mod tests {
                 dot_nb: 1,
                 buf_nb: 1,
                 debuf_nb: 1,
-                hot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    30
-                )],
-                dot_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    HP,
-                    -20
-                )],
-                buf_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    MAGICAL_ARMOR,
-                    20
-                )],
-                debuf_txt: vec![format!(
-                    "[{}] {} {}",
-                    BufKinds::ChangeCurrentStatByValue,
-                    MAGICAL_ARMOR,
-                    -20
-                )]
+                hot_txt: vec!["TestHot: 30 HP × 2 turns".to_owned()],
+                dot_txt: vec!["TestDot: 20 HP × 3 turns".to_owned()],
+                buf_txt: vec![format!("TestBuf: 20 {} × 3 turns", MAGICAL_ARMOR)],
+                debuf_txt: vec![format!("TestDebuf: 20 {} × 3 turns", MAGICAL_ARMOR)],
             }
         );
     }
@@ -1465,14 +1515,16 @@ mod tests {
         hot.launching_turn = 0;
         cri.all_effects.clear();
         let hot_value = hot.processed_effect_param.input_effect_param.buffer.value;
+        hot.effect_outcome.full_amount_tx = hot_value;
         cri.all_effects.push(hot);
 
-        let dot = GameAtkEffect {
+        let mut dot = GameAtkEffect {
             processed_effect_param: build_dot_effect_individual(),
             launching_turn: 0,
             ..Default::default()
         };
         let dot_value = dot.processed_effect_param.input_effect_param.buffer.value;
+        dot.effect_outcome.full_amount_tx = dot_value;
         cri.all_effects.push(dot);
 
         let (logs, total) = cri.process_hot_and_dot(1);
@@ -1505,7 +1557,36 @@ mod tests {
         assert!(!cri.is_current_target);
         assert!(!cri.is_potential_target);
         assert_eq!(0, cri.actions_done_in_round);
-        assert!(cri.tx_rx.is_empty());
+        // After clear(), tx_rx is re-initialized with AmountType::EnumSize empty slots
+        // so that aggro and damage tracking keep working on the next scenario.
+        assert_eq!(AmountType::EnumSize as usize, cri.tx_rx.len());
+        assert!(cri.tx_rx.iter().all(|m| m.is_empty()));
+    }
+
+    use crate::testing::testing_effect::build_change_max_hp_by_percent_effect;
+
+    #[test]
+    fn unit_change_max_hp_by_percent_is_hot() {
+        // ChangeMaxStatByPercentage on HP with positive value (Cor d'Erebor style)
+        // must be classified as HOT, not DOT.
+        use crate::character_mod::attack_type::AttackType;
+        let all_effects = vec![GameAtkEffect {
+            processed_effect_param: build_change_max_hp_by_percent_effect(),
+            atk_type: AttackType {
+                name: "Cor d'Erebor".to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }];
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        assert_eq!(
+            result.hot_nb, 1,
+            "ChangeMaxStatByPercentage +HP should be HOT"
+        );
+        assert_eq!(
+            result.dot_nb, 0,
+            "ChangeMaxStatByPercentage +HP should not be DOT"
+        );
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -1799,8 +1880,10 @@ mod tests {
         }
         // Damage TX on turn 0
         cri.tx_rx[AmountType::DamageTx as usize].insert(0, 100);
-        let mut gs = GameState::default();
-        gs.current_turn_nb = 1; // prev turn = 0
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        }; // prev turn = 0
 
         let ep = EffectParam {
             nb_turns: 1,
@@ -1821,8 +1904,10 @@ mod tests {
             cri.tx_rx.push(std::collections::HashMap::new());
         }
         // No damage TX on any turn
-        let mut gs = GameState::default();
-        gs.current_turn_nb = 1;
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        };
 
         let ep = EffectParam {
             nb_turns: 1,
@@ -1838,9 +1923,10 @@ mod tests {
     }
 
     #[test]
-    fn unit_process_effect_cooldown_uses_nb_turns() {
+    fn unit_process_effect_cooldown_uses_buffer_value() {
         let mut cri = CharacterRoundsInfo::default();
-        let ep = make_ep(BufKinds::CooldownTurnsNumber, 0, "", 7);
+        // buffer.value=7 is the single source of truth for cooldown duration
+        let ep = make_ep(BufKinds::CooldownTurnsNumber, 7, "", 1);
         let result = cri.process_effect_type(&ep, "my_atk").unwrap();
         assert!(
             result.log.message.contains("7 turns"),

@@ -51,6 +51,8 @@ pub enum BufKinds {
     ConditionDamagePrevTurn,
     /// Repeat the attack with a given % chance if the character healed on the previous turn.
     RepeatIfHeal,
+    /// Revive a dead character and restore a fixed amount of HP.
+    Resurrect,
     EnumSize,
 }
 
@@ -71,8 +73,8 @@ impl fmt::Display for BufKinds {
             BufKinds::ChangeMaxStatByPercentage => "Max stat change %",
             BufKinds::ChangeMaxStatByValue => "Max stat change",
             BufKinds::BlockHealAtk => "Heals blocked",
-            BufKinds::ChangeCurrentStatByValue => "Stat change",
-            BufKinds::ChangeCurrentStatByPercentage => "Stat change %",
+            BufKinds::ChangeCurrentStatByValue => "Current stat change",
+            BufKinds::ChangeCurrentStatByPercentage => "Current stat change %",
             BufKinds::RepeatAsManyAsPossible => "Repeat attack",
             BufKinds::DecreasingRateOnTurn => "Decreasing rate",
             BufKinds::NbDecreasingByTurn => "Decreasing count",
@@ -89,6 +91,7 @@ impl fmt::Display for BufKinds {
             BufKinds::StreakBreakerDodge => "Streak breaker (dodge)",
             BufKinds::ConditionDamagePrevTurn => "Condition: damage last turn",
             BufKinds::RepeatIfHeal => "Repeat if heal",
+            BufKinds::Resurrect => "Resurrect",
             BufKinds::EnumSize => "—",
         };
         write!(f, "{}", s)

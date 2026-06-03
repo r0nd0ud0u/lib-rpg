@@ -2,10 +2,13 @@ use std::collections::HashMap;
 
 use strum::IntoEnumIterator;
 
-use crate::character_mod::{
-    effect::{EffectParam, build_hp_effect},
-    equipment::{Equipment, EquipmentJsonKey},
-    rank::Rank,
+use crate::{
+    character_mod::{
+        effect::{EffectParam, build_energy_effect, build_hp_effect, build_resurrect_effect},
+        equipment::{Equipment, EquipmentJsonKey},
+        rank::Rank,
+    },
+    common::constants::stats_const::{BERSERK, MANA, VIGOR},
 };
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -43,6 +46,9 @@ pub struct EquipmentLimit {
 pub struct EquipmentInventory {
     pub unique_name: String,
     pub is_equipped: bool,
+    /// `true` while the player has not yet viewed this item in the inventory tab
+    #[serde(default)]
+    pub is_new: bool,
 }
 
 /// Inventory of a character, contains the equipments and consumables of the character
@@ -109,6 +115,42 @@ impl Inventory {
         self.add_potion("hyper potion", 120, Rank::Advanced);
     }
 
+    pub fn add_resurrection_potion(&mut self) {
+        self.consumables.push(Consumable {
+            name: "potion of resurrection".to_owned(),
+            effects: vec![build_resurrect_effect(50)],
+            consumable_kind: ConsumableKind::Potion,
+            rank: Rank::Advanced,
+        });
+    }
+
+    pub fn add_mana_potion(&mut self) {
+        self.consumables.push(Consumable {
+            name: "mana potion".to_owned(),
+            effects: vec![build_energy_effect(MANA, 30)],
+            consumable_kind: ConsumableKind::Potion,
+            rank: Rank::Common,
+        });
+    }
+
+    pub fn add_vigor_potion(&mut self) {
+        self.consumables.push(Consumable {
+            name: "vigor potion".to_owned(),
+            effects: vec![build_energy_effect(VIGOR, 30)],
+            consumable_kind: ConsumableKind::Potion,
+            rank: Rank::Common,
+        });
+    }
+
+    pub fn add_berserk_potion(&mut self) {
+        self.consumables.push(Consumable {
+            name: "berserk potion".to_owned(),
+            effects: vec![build_energy_effect(BERSERK, 30)],
+            consumable_kind: ConsumableKind::Potion,
+            rank: Rank::Common,
+        });
+    }
+
     pub fn remove_potion(&mut self, name: &str) {
         self.consumables
             .retain(|consumable| consumable.name != name);
@@ -125,7 +167,23 @@ impl Inventory {
             .push(EquipmentInventory {
                 unique_name: equipment.unique_name.clone(),
                 is_equipped,
+                is_new: true,
             });
+    }
+
+    /// Clear the `is_new` flag on all equipments in the given category so the
+    /// notification badge is dismissed when the player opens that tab.
+    pub fn mark_equipment_category_seen(&mut self, category: &EquipmentJsonKey) {
+        if let Some(items) = self.equipments.get_mut(category) {
+            for item in items.iter_mut() {
+                item.is_new = false;
+            }
+        }
+    }
+
+    /// Returns `true` when any equipment in the inventory has not been seen yet.
+    pub fn has_unseen_equipment(&self) -> bool {
+        self.equipments.values().flatten().any(|e| e.is_new)
     }
 
     pub fn get_all_equipments(

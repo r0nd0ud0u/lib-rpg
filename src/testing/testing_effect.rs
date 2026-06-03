@@ -10,7 +10,7 @@ use crate::common::constants::{all_target_const::*, reach_const::*, stats_const:
 pub fn build_cooldown_effect() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
-            nb_turns: 1,
+            nb_turns: 3,
             sub_value_effect: 0,
             target_kind: TARGET_HIMSELF.to_owned(),
             reach: INDIVIDUAL.to_owned(),
@@ -286,6 +286,31 @@ pub fn build_buf_effect_individual() -> ProcessedEffectParam {
                 value: 20,
                 is_percent: false,
                 stats_name: MAGICAL_ARMOR.to_owned(),
+                is_passive_enabled: false,
+                is_passive: false,
+            },
+            is_magic_atk: false,
+            conditions: vec![],
+            ..Default::default()
+        },
+        number_of_applies: 1,
+        ..Default::default()
+    }
+}
+
+#[cfg(not(tarpaulin_include))]
+pub fn build_change_max_hp_by_percent_effect() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            nb_turns: 2,
+            sub_value_effect: 0,
+            target_kind: TARGET_ALL_ALLIES.to_owned(),
+            reach: ZONE.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::ChangeMaxStatByPercentage,
+                value: 25,
+                is_percent: true,
+                stats_name: HP.to_owned(),
                 is_passive_enabled: false,
                 is_passive: false,
             },

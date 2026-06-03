@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     character_mod::{
         attack_type::AttackType,
+        buffers::BufKinds,
         character::{Character, CharacterKind},
         effect::{EffectOutcome, ProcessedEffectParam},
         equipment::{Equipment, EquipmentJsonKey},
@@ -87,6 +88,11 @@ impl PlayerManager {
             c.stats.get_mut_value(HP).current = c.stats.all_stats[HP].max;
             c.stats.get_mut_value(MANA).current = c.stats.all_stats[MANA].max;
             c.stats.get_mut_value(VIGOR).current = c.stats.all_stats[VIGOR].max;
+            c.stats.get_mut_value(BERSERK).current = 0;
+            // Reset displayed aggro so the new scenario starts from 0.
+            if let Some(aggro) = c.stats.all_stats.get_mut(AGGRO) {
+                aggro.current = 0;
+            }
         });
     }
 
@@ -203,7 +209,7 @@ impl PlayerManager {
             .get_mut_active_hero_character(hero_id_name)
             .ok_or_else(|| anyhow::anyhow!("Hero '{}' not found", hero_id_name))?;
         let launcher_stats = hero.stats.clone();
-        hero.use_consumable(consumable, game_state, &launcher_stats)
+        hero.apply_consumable_effects(&consumable, game_state, &launcher_stats)
             .map_err(|e| anyhow::anyhow!("{}", e))?;
         Ok(())
     }
@@ -518,6 +524,12 @@ impl PlayerManager {
 
     /// Helper function to set targets for a given collection of characters
     /// Extracted to avoid code duplication between heroes and bosses targeting
+    fn has_resurrect_effect(atk: &AttackType) -> bool {
+        atk.all_effects
+            .iter()
+            .any(|e| e.buffer.kind == BufKinds::Resurrect)
+    }
+
     fn set_targets_for_collection(
         characters: &mut [Character],
         launcher_id_name: &str,
@@ -525,11 +537,14 @@ impl PlayerManager {
         is_ally_condition: bool,
         is_ennemy_condition: bool,
     ) {
+        let can_target_dead = is_ally_condition && Self::has_resurrect_effect(atk);
         let mut has_at_least_one_target = false;
         characters
             .iter_mut()
             .filter(|c| {
-                c.stats.is_dead() == Some(false)
+                let alive_or_targetable = c.stats.is_dead() == Some(false)
+                    || (can_target_dead && c.stats.is_dead() == Some(true));
+                alive_or_targetable
                     && ((is_ally_condition && c.id_name != launcher_id_name) || is_ennemy_condition)
             })
             .for_each(|c| {
@@ -552,12 +567,15 @@ impl PlayerManager {
         is_ally_condition: bool,
         is_ennemy_condition: bool,
     ) -> u64 {
+        let can_target_dead = is_ally_condition && Self::has_resurrect_effect(atk);
         let mut has_at_least_one_target = false;
         let mut nb = 0;
         characters
             .iter()
             .filter(|c| {
-                c.stats.is_dead() == Some(false)
+                let alive_or_targetable = c.stats.is_dead() == Some(false)
+                    || (can_target_dead && c.stats.is_dead() == Some(true));
+                alive_or_targetable
                     && ((is_ally_condition && c.id_name != launcher_id_name) || is_ennemy_condition)
             })
             .for_each(|_c| {
@@ -589,7 +607,7 @@ impl PlayerManager {
 #[cfg(test)]
 mod tests {
     use crate::{
-        character_mod::equipment::EquipmentJsonKey,
+        character_mod::{effect::EffectOutcome, equipment::EquipmentJsonKey},
         common::constants::stats_const::*,
         server::game_state::GameState,
         server::players_manager::GameAtkEffect,
@@ -781,6 +799,10 @@ mod tests {
             .all_effects
             .push(GameAtkEffect {
                 processed_effect_param: build_hot_effect_individual(),
+                effect_outcome: EffectOutcome {
+                    full_amount_tx: 30,
+                    ..Default::default()
+                },
                 ..Default::default()
             });
         let (logs, hot_and_dot) = pl
@@ -803,6 +825,10 @@ mod tests {
             .all_effects
             .push(GameAtkEffect {
                 processed_effect_param: build_dot_effect_individual(),
+                effect_outcome: EffectOutcome {
+                    full_amount_tx: -20,
+                    ..Default::default()
+                },
                 ..Default::default()
             });
         let (logs, hot_and_dot) = pl

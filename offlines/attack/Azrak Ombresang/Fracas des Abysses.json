@@ -44,7 +44,7 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Regeneration vigueur",
+            "Stat": "Vigor regeneration",
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
@@ -54,7 +54,7 @@
                 "kind": "ChangeMaxStatByPercentage",
                 "value": 200,
                 "is-percent": true,
-                "stats-name": "Regeneration vigueur",
+                "stats-name": "Vigor regeneration",
                 "passive-enabled": false
             }
         }

@@ -5,7 +5,7 @@ use crate::{
     character_mod::buffers::{BufKinds, Buffer},
     common::{
         constants::{
-            all_target_const::TARGET_ENNEMY,
+            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
             reach_const::{INDIVIDUAL, ZONE},
             stats_const::HP,
         },
@@ -116,15 +116,21 @@ pub fn is_effect_only_at_atk_launch(buf_types: &BufKinds) -> bool {
 }
 
 pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
+    let total = ep.buffer.value;
+    if total <= 0 {
+        return 0;
+    }
     let mut nb_of_applies = 0;
-    let mut counter = ep.buffer.value;
-    let step_limit = (100 / counter) + 1; // Calculate once
+    let mut counter = total;
 
     let mut rng = rand::rng();
 
     while counter > 0 {
-        let max_limit = step_limit * counter;
-        if rng.random_range(0..=100) <= max_limit {
+        // threshold decreases linearly from 100 % (first apply always succeeds) down to
+        // round(100/total) % on the last apply.
+        // Example for total = 3: 100 %, 67 %, 33 %  (matches "67 % then 33 %" description).
+        let threshold = (counter as f64 / total as f64 * 100.0).round() as i64;
+        if rng.random_range(0..=100) <= threshold {
             nb_of_applies += 1;
         } else {
             break;
@@ -132,6 +138,36 @@ pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
         counter -= 1;
     }
     nb_of_applies
+}
+
+pub fn build_energy_effect(stat_name: &str, value: i64) -> EffectParam {
+    EffectParam {
+        nb_turns: 1,
+        target_kind: TARGET_ALLY.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        buffer: Buffer {
+            kind: BufKinds::ChangeCurrentStatByValue,
+            value,
+            stats_name: stat_name.to_owned(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+pub fn build_resurrect_effect(value: i64) -> EffectParam {
+    EffectParam {
+        nb_turns: 1,
+        target_kind: TARGET_ALLY.to_owned(),
+        reach: INDIVIDUAL.to_owned(),
+        buffer: Buffer {
+            kind: BufKinds::Resurrect,
+            value,
+            stats_name: HP.to_owned(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
 }
 
 pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {

@@ -42,6 +42,9 @@ pub struct GameState {
     pub last_result_atk: ResultLaunchAttack,
     /// Stats in game, to display in the stats sheet
     pub stats_in_game: HashMap<String, StatsInGame>,
+    /// Accumulated boss kills across all completed scenarios (never reset between scenarios)
+    #[serde(default)]
+    pub accumulated_kills: usize,
 }
 
 impl GameState {
@@ -64,6 +67,7 @@ impl GameState {
         self.order_to_play.clear();
         self.status = GameStatus::StartGame;
         self.last_result_atk = ResultLaunchAttack::default();
+        // Note: accumulated_kills is intentionally NOT reset here — it persists across scenarios
     }
 
     pub fn start_new_turn(&mut self) {

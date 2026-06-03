@@ -24,7 +24,7 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Regeneration Mana",
+            "Stat": "Mana regeneration",
             "Tours actifs": 5,
             "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
@@ -34,7 +34,7 @@
                 "kind": "ChangeMaxStatByValue",
                 "value": 2,
                 "is-percent": false,
-                "stats-name": "Regeneration Mana",
+                "stats-name": "Mana regeneration",
                 "passive-enabled": false
             }
         },
