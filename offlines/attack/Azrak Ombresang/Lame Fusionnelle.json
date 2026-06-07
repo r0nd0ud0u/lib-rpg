@@ -39,5 +39,6 @@
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
     "Sound": "final-flash.mp3",
-    "Description": "Fusion Blade — a blade imbued with elemental power, dealing boosted damage."
+    "Description": "Fusion Blade — a blade imbued with elemental power, dealing boosted damage.",
+    "DescriptionEffects": "Deals 35 physical damage to one enemy; +10 max Speed regeneration for 6 turns."
 }

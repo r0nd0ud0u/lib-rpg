@@ -44,5 +44,6 @@
     "Nom": "Briseur d'Égide",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
-    "Description": "Shield Breaker — shatters the target's protective barrier, reducing their defenses."
+    "Description": "Shield Breaker — shatters the target's protective barrier, reducing their defenses.",
+    "DescriptionEffects": "Deals 40 magic damage to one enemy; -20% max Magic armor on enemy for 4 turns."
 }

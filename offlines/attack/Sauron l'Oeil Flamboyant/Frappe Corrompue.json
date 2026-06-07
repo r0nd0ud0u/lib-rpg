@@ -26,5 +26,6 @@
     "Nom": "Frappe Corrompue",
     "Photo": "SimpleAtk.png",
     "Portée": "Individual",
-    "Description": "Corrupted Strike — a dark energy strike that corrodes and drains life."
+    "Description": "Corrupted Strike — a dark energy strike that corrodes and drains life.",
+    "DescriptionEffects": "Deals 450 physical damage to one enemy."
 }

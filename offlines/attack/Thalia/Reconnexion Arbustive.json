@@ -61,5 +61,6 @@
     "Nom": "Reconnexion Arbustive",
     "Photo": "Thalia.png",
     "Portée": "Individual",
-    "Description": "Nature Reconnection — re-establishes a bond with the earth to steadily restore HP."
+    "Description": "Nature Reconnection — re-establishes a bond with the earth to steadily restore HP.",
+    "DescriptionEffects": "+20% max Mana; converts part of the healing into damage; 6-turn cooldown."
 }

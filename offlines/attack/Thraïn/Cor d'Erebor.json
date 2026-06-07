@@ -102,5 +102,6 @@
     "Regen rage": 0,
     "Regen vigueur": 0,
     "Soin": 0,
-    "Description": "Horn of Erebor — a rallying war horn that boosts allies' morale and combat effectiveness."
+    "Description": "Horn of Erebor — a rallying war horn that boosts allies' morale and combat effectiveness.",
+    "DescriptionEffects": "+5 Berserk; +25% max HP for all allies for 2 turns; +25% max Magic armor on all allies for 2 turns; +25% max Physical armor on all allies for 2 turns; 5-turn cooldown."
 }

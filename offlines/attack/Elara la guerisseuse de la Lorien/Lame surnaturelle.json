@@ -45,5 +45,6 @@
     "Photo": "Elara la guerisseuse de la Lorien.png",
     "Portée": "Individual",
     "Sound": "",
-    "Description": "Supernatural Blade — a blade of pure light that cuts through darkness."
+    "Description": "Supernatural Blade — a blade of pure light that cuts through darkness.",
+    "DescriptionEffects": "Deals 75 magic damage to one enemy; -10 max Critical strike on enemy for 2 turns."
 }

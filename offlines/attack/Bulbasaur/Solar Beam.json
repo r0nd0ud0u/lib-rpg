@@ -62,5 +62,6 @@
     "Nom": "Solar Beam",
     "Photo": "bulbasaur.png",
     "Portée": "Individual",
-    "Description": "Charges solar energy and unleashes a devastating beam — boosts own magical power afterward."
+    "Description": "Charges solar energy and unleashes a devastating beam — boosts own magical power afterward.",
+    "DescriptionEffects": "Deals 95 magic damage to one enemy; +20% max Magic power for 2 turns; 5-turn cooldown."
 }

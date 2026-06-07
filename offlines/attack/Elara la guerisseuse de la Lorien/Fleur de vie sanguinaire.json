@@ -96,5 +96,6 @@
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",
-    "Description": "Blood Bloom — a life flower that draws on vitality to trigger rapid regeneration."
+    "Description": "Blood Bloom — a life flower that draws on vitality to trigger rapid regeneration.",
+    "DescriptionEffects": "Only triggers if it dealt damage last turn; applies a x3 multiplier; heals all allies for 25 HP per turn for 3 turns; 5-turn cooldown; deals 35 magic damage to one enemy per turn for 2 turns."
 }

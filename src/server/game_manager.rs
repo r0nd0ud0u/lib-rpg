@@ -209,7 +209,7 @@ impl GameManager {
         // Process the order of the players
         self.process_order_to_play();
         self.game_state.start_new_turn();
-        self.pm.start_new_turn();
+        self.pm.start_new_turn(self.game_state.current_turn_nb == 1);
 
         self.new_round()
     }
@@ -964,7 +964,7 @@ impl GameManager {
 
 #[cfg(test)]
 mod tests {
-    use crate::character_mod::buffers::BufKinds;
+    use crate::character_mod::buffers::{BufKinds, Buffer};
     use crate::character_mod::character::CharacterKind;
     use crate::character_mod::class::Class;
     use crate::character_mod::equipment::Equipment;
@@ -1323,18 +1323,30 @@ mod tests {
 
         // # case 4 dmg on individual ennemy
         // No dodging of boss
-        // Blocking
+        // Blocking — guaranteed via streak-breaker
         // No critical of current player
-        gm.pm
-            .get_mut_active_boss_character(&target_id_name)
-            .unwrap()
-            .stats
-            .all_stats[DODGE]
-            .current = 100;
-        gm.pm
-            .get_mut_active_boss_character(&target_id_name)
-            .unwrap()
-            .class = Class::Berserker;
+        //
+        // A Berserker "dodges" by blocking, but its block chance is the softcapped dodge
+        // stat, which can never reach 100%, so relying on the dice roll would be flaky.
+        // A Berserker also has no default dodge streak-breaker, so set a StreakBreakerDodge
+        // buffer and push the drought counter to its threshold to force a deterministic block.
+        {
+            let boss = gm
+                .pm
+                .get_mut_active_boss_character(&target_id_name)
+                .unwrap();
+            boss.class = Class::Berserker;
+            boss.stats.all_stats[DODGE].current = 0;
+            boss.character_rounds_info.update_buffer(&Buffer {
+                is_passive_enabled: false,
+                is_passive: false,
+                value: 1,
+                is_percent: false,
+                stats_name: String::new(),
+                kind: BufKinds::StreakBreakerDodge,
+            });
+            boss.character_rounds_info.dodge_drought_counter = 1;
+        }
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         let old_boss = gm
             .pm

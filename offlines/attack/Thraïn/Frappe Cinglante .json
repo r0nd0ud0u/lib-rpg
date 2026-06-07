@@ -59,5 +59,6 @@
     "Regen rage": 0,
     "Regen vigueur": 0,
     "Soin": 0,
-    "Description": "Stinging Strike — a precise hit that bypasses armor for consistent damage."
+    "Description": "Stinging Strike — a precise hit that bypasses armor for consistent damage.",
+    "DescriptionEffects": "Deals 35 physical damage to one enemy; +5 Berserk; deals 10 physical damage to one enemy per turn for 3 turns."
 }

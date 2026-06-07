@@ -61,5 +61,6 @@
     "Nom": "atk-4",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Description": "Test attack 4."
+    "Description": "Test attack 4.",
+    "DescriptionEffects": "+50 Aggro on all enemies; -100 Aggro on enemy; deals 100 magic damage to one enemy."
 }

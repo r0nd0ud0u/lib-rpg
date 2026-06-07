@@ -79,6 +79,9 @@ pub struct AttackType {
     /// Optional description of the attack, shown as a tooltip in the UI
     #[serde(rename = "Description", default)]
     pub description: String,
+    /// Optional mechanical summary of the attack's effects, shown as a tooltip in the UI
+    #[serde(rename = "DescriptionEffects", default)]
+    pub effects_description: String,
 }
 
 impl Default for AttackType {
@@ -96,6 +99,7 @@ impl Default for AttackType {
             aggro: 0,
             can_be_launched: true,
             description: "".to_owned(),
+            effects_description: "".to_owned(),
         }
     }
 }

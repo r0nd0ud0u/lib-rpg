@@ -61,5 +61,6 @@
     "Nom": "Chaînes de la Rage",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
-    "Description": "Chains of Rage — iron chains infused with dark energy that bind and damage the enemy."
+    "Description": "Chains of Rage — iron chains infused with dark energy that bind and damage the enemy.",
+    "DescriptionEffects": "Deals 80 magic damage to one enemy; -10 Speed regeneration on enemy for 6 turns; deals 35 magic damage to the target."
 }

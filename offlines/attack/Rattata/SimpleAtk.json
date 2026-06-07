@@ -28,5 +28,6 @@
     "Nom": "SimpleAtk",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "A quick bite."
+    "Description": "A quick bite.",
+    "DescriptionEffects": "Deals 22 physical damage to one enemy."
 }

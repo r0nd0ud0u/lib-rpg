@@ -44,5 +44,6 @@
     "Nom": "Rameau Guérisseur ",
     "Photo": "Thalia.png",
     "Portée": "Individual",
-    "Description": "Healing Branch — a branch of the World Tree channeling nature's healing power."
+    "Description": "Healing Branch — a branch of the World Tree channeling nature's healing power.",
+    "DescriptionEffects": "Repeats with a decreasing success rate each turn; +10% max Magic power on all allies for 4 turns."
 }

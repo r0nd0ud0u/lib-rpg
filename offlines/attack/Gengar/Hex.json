@@ -45,5 +45,6 @@
     "Nom": "Hex",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Curses the enemy with dark energy — deals damage over 3 turns."
+    "Description": "Curses the enemy with dark energy — deals damage over 3 turns.",
+    "DescriptionEffects": "Deals 25 magic damage to one enemy per turn for 3 turns; 4-turn cooldown."
 }

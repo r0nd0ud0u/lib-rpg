@@ -26,5 +26,6 @@
     "Nom": "Eclair de l'Obscurite",
     "Photo": "SimpleAtk.png",
     "Portée": "Individual",
-    "Description": "Shadow Bolt — a concentrated bolt of dark magic dealing arcane damage."
+    "Description": "Shadow Bolt — a concentrated bolt of dark magic dealing arcane damage.",
+    "DescriptionEffects": "Deals 200 magic damage to one enemy."
 }

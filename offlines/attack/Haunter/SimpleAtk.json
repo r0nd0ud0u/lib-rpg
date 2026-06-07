@@ -28,5 +28,6 @@
     "Nom": "SimpleAtk",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Ghostly lick."
+    "Description": "Ghostly lick.",
+    "DescriptionEffects": "Deals 32 magic damage to one enemy."
 }

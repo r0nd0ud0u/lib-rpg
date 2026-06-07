@@ -62,5 +62,6 @@
     "Nom": "Flamethrower",
     "Photo": "charmander.png",
     "Portée": "Individual",
-    "Description": "Breathes a stream of intense flames — boosts own physical power after use."
+    "Description": "Breathes a stream of intense flames — boosts own physical power after use.",
+    "DescriptionEffects": "Deals 70 magic damage to one enemy; +15% max Physical power for 2 turns; 4-turn cooldown."
 }

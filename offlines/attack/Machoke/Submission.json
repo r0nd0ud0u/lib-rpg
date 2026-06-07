@@ -62,5 +62,6 @@
     "Nom": "Submission",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Grabs and slams — deals heavy damage but recoils from the impact."
+    "Description": "Grabs and slams — deals heavy damage but recoils from the impact.",
+    "DescriptionEffects": "Deals 75 physical damage to one enemy; deals 12 physical damage to self; 3-turn cooldown."
 }

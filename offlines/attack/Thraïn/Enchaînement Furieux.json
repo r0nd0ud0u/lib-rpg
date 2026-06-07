@@ -27,5 +27,6 @@
     "Nom": "Enchaînement Furieux",
     "Photo": "Thraïn.png",
     "Portée": "Individual",
-    "Description": "Furious Chain — a rapid sequence of blows that overwhelms enemy defenses."
+    "Description": "Furious Chain — a rapid sequence of blows that overwhelms enemy defenses.",
+    "DescriptionEffects": "Repeats as many times as possible."
 }

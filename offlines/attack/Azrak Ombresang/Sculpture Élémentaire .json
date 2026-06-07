@@ -62,5 +62,6 @@
     "Photo": "Azrak Ombresang.png",
     "Portée": "Zone",
     "Sound": "",
-    "Description": "Elemental Sculpting — shapes elemental forces into a precise, multi-elemental strike."
+    "Description": "Elemental Sculpting — shapes elemental forces into a precise, multi-elemental strike.",
+    "DescriptionEffects": "Deals 50 physical damage to all enemies; deals 30 physical damage to all enemies per turn for 3 turns; -10 max Critical strike on all enemies for 3 turns."
 }

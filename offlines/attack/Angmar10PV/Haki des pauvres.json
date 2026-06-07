@@ -61,5 +61,6 @@
     "Nom": "Haki des pauvres",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Description": "A budding warrior's strike."
+    "Description": "A budding warrior's strike.",
+    "DescriptionEffects": "-10 max Dodge on enemy for 4 turns; -30% max Magic power on enemy for 4 turns; -30% max Physical power on enemy for 4 turns."
 }

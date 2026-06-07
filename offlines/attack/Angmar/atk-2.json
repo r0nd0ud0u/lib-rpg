@@ -44,5 +44,6 @@
     "Nom": "atk-2",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Description": "Test attack 2."
+    "Description": "Test attack 2.",
+    "DescriptionEffects": "Deals 75% of max HP as magic damage to one enemy for 2 turns; -300% damage taken by one enemy for 3 turns."
 }

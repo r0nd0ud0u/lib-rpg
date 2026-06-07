@@ -95,5 +95,6 @@
     "Photo": "Thraïn.png",
     "Portée": "Individual",
     "Sound": "gomu-gomu-no-pistol.mp3",
-    "Description": "Skull Crusher — a brutal mace blow aimed at the head for maximum damage."
+    "Description": "Skull Crusher — a brutal mace blow aimed at the head for maximum damage.",
+    "DescriptionEffects": "Deals 150 physical damage to one enemy; +65 max Dodge for 2 turns; -20% damage taken by one enemy for 2 turns; 10-turn cooldown; +25 Berserk."
 }

@@ -95,5 +95,6 @@
     "Nom": "Non sans raison",
     "Photo": "default.png",
     "Portée": "Zone",
-    "Description": "Not Without Reason — cleanses debuffs and heals the target with focused light."
+    "Description": "Not Without Reason — cleanses debuffs and heals the target with focused light.",
+    "DescriptionEffects": "Converts overheal into Magic power on all allies for 3 turns; converts overheal into Physical power on all allies for 3 turns; heals all allies for 100% HP; 10-turn cooldown; blocks self's healing for 3 turns."
 }

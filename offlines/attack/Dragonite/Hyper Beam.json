@@ -45,5 +45,6 @@
     "Nom": "Hyper Beam",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Fires an enormous beam of energy — requires recharge after use."
+    "Description": "Fires an enormous beam of energy — requires recharge after use.",
+    "DescriptionEffects": "Deals 110 physical damage to one enemy; 4-turn cooldown."
 }

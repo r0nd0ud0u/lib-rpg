@@ -45,5 +45,6 @@
     "Nom": "Lick",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "A paralysing lick that drains energy and reduces speed."
+    "Description": "A paralysing lick that drains energy and reduces speed.",
+    "DescriptionEffects": "Deals 40 magic damage to one enemy; -30% max Speed regeneration on enemy for 3 turns."
 }

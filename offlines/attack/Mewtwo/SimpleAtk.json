@@ -28,5 +28,6 @@
     "Nom": "SimpleAtk",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Psychic pulse."
+    "Description": "Psychic pulse.",
+    "DescriptionEffects": "Deals 55 magic damage to one enemy."
 }

@@ -61,5 +61,6 @@
     "Nom": "Protection naine ",
     "Photo": "Thraïn.png",
     "Portée": "Individual",
-    "Description": "Dwarven Protection — dwarven endurance greatly increases an ally's defense."
+    "Description": "Dwarven Protection — dwarven endurance greatly increases an ally's defense.",
+    "DescriptionEffects": "+15 Berserk; +150% max Physical armor for 2 turns; +150% max Magic armor for 2 turns."
 }

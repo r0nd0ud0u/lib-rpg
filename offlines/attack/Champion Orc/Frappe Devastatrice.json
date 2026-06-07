@@ -26,5 +26,6 @@
     "Nom": "Frappe Devastatrice",
     "Photo": "SimpleAtk.png",
     "Portée": "Individual",
-    "Description": "Devastating Strike — an overwhelmingly powerful attack that ignores defenses."
+    "Description": "Devastating Strike — an overwhelmingly powerful attack that ignores defenses.",
+    "DescriptionEffects": "Deals 150 physical damage to one enemy."
 }

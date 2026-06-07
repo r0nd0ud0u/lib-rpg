@@ -68,5 +68,6 @@
     "Regen rage": 0,
     "Regen vigueur": 0,
     "Soin": 0,
-    "Description": "Abyss Crash — a devastating blow channeling the power of the deep."
+    "Description": "Abyss Crash — a devastating blow channeling the power of the deep.",
+    "DescriptionEffects": "Deals 70 physical damage to all enemies; -5 Dodge on all enemies for 3 turns; +200% max Vigor regeneration for 3 turns."
 }

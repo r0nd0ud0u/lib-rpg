@@ -44,5 +44,6 @@
     "Nom": "Sève Régénératrice",
     "Photo": "Thalia.png",
     "Portée": "Individual",
-    "Description": "Regenerative Sap — the sap of ancient trees flows through the target, restoring vitality."
+    "Description": "Regenerative Sap — the sap of ancient trees flows through the target, restoring vitality.",
+    "DescriptionEffects": "Resets its active effects; heals all allies for 120 HP."
 }

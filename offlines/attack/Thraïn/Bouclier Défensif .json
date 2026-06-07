@@ -61,5 +61,6 @@
     "Nom": "Bouclier Défensif ",
     "Photo": "Thraïn.png",
     "Portée": "Individual",
-    "Description": "Defensive Shield — raises a dwarven shield to greatly reduce incoming damage for several turns."
+    "Description": "Defensive Shield — raises a dwarven shield to greatly reduce incoming damage for several turns.",
+    "DescriptionEffects": "+30 Berserk; +20 max Dodge for 2 turns; +40 Aggro."
 }

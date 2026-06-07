@@ -45,5 +45,6 @@
     "Nom": "Dragon Rage",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Unleashes draconic wrath — cracks enemy armour."
+    "Description": "Unleashes draconic wrath — cracks enemy armour.",
+    "DescriptionEffects": "Deals 80 physical damage to one enemy; -20% max Physical armor on enemy for 3 turns."
 }

@@ -65,7 +65,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 153 tests should pass with no warnings.
+All 161 tests should pass with no warnings.
 
 ---
 

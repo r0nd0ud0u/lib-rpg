@@ -96,5 +96,6 @@
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",
-    "Description": "Vital Offering — drains own HP to deliver a massive heal to an ally."
+    "Description": "Vital Offering — drains own HP to deliver a massive heal to an ally.",
+    "DescriptionEffects": "Deals 15% magic damage to self; heals all allies for 85 HP; +50% max Magic armor on all allies for 2 turns; +50% max Physical armor on all allies for 2 turns; 2-turn cooldown."
 }

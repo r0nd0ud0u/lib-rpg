@@ -45,5 +45,6 @@
     "Nom": "Aura Sphere",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "A never-missing ball of aura energy — guaranteed damage."
+    "Description": "A never-missing ball of aura energy — guaranteed damage.",
+    "DescriptionEffects": "Deals 85 magic damage to one enemy; 3-turn cooldown."
 }

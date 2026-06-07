@@ -62,5 +62,6 @@
     "Nom": "Shadow Storm",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Summons a psychic storm — persistent magical damage for 5 turns with armour reduction."
+    "Description": "Summons a psychic storm — persistent magical damage for 5 turns with armour reduction.",
+    "DescriptionEffects": "Deals 20 magic damage to one enemy per turn for 5 turns; -30% max Magic armor on enemy for 4 turns; 6-turn cooldown."
 }

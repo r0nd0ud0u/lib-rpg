@@ -1,22 +1,21 @@
 {
-    "Cible": "Enemy",
-    "Coût de mana": 6,
+    "Cible": "Ally",
+    "Coût de mana": 15,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
-    "Durée": 1,
     "Effet": [
         {
-            "Cible": "Enemy",
+            "Cible": "Ally",
             "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
+            "Type": "Resurrect",
             "Valeur de l'effet": 0,
-            "Value": -22,
+            "Value": 50,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -22,
+                "kind": "Resurrect",
+                "value": 50,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -24,10 +23,10 @@
         }
     ],
     "Forme": "Standard",
-    "Niveau": 1,
-    "Nom": "SimpleAtk",
-    "Photo": "bulbasaur.png",
+    "Niveau": 6,
+    "Nom": "Lumière de la Résurrection",
+    "Photo": "Thalia.png",
     "Portée": "Individual",
-    "Description": "A basic vine slap dealing light magical damage.",
-    "DescriptionEffects": "Deals 22 magic damage to one enemy."
+    "Description": "Light of Resurrection — channels pure nature energy to revive a fallen ally with 50 HP.",
+	"DescriptionEffects": "+50 HP to a dead hero"
 }

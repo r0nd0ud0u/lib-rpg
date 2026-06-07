@@ -62,5 +62,6 @@
     "Nom": "Barrier",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Raises an impenetrable psychic barrier — massively boosts all armour for 4 turns."
+    "Description": "Raises an impenetrable psychic barrier — massively boosts all armour for 4 turns.",
+    "DescriptionEffects": "+40% max Physical armor for 4 turns; +40% max Magic armor for 4 turns; 6-turn cooldown."
 }

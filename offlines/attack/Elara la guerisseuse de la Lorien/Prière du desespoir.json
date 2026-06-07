@@ -113,5 +113,6 @@
     "Photo": "default.png",
     "Portée": "Zone",
     "Sound": "",
-    "Description": "Prayer of Despair — a desperate prayer that channels divine energy for a powerful emergency heal."
+    "Description": "Prayer of Despair — a desperate prayer that channels divine energy for a powerful emergency heal.",
+    "DescriptionEffects": "Deals 49% magic damage to self; +100% max Magic armor on all allies for 3 turns; +100% max Physical armor on all allies for 3 turns; +100% max Magic power on all allies for 3 turns; +100% max Physical power on all allies for 3 turns; 6-turn cooldown."
 }

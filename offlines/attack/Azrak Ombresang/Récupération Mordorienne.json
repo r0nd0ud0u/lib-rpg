@@ -79,5 +79,6 @@
     "Nom": "Récupération Mordorienne",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Zone",
-    "Description": "Mordor Recovery — channels dark energy to restore the caster's HP."
+    "Description": "Mordor Recovery — channels dark energy to restore the caster's HP.",
+    "DescriptionEffects": "+0% max HP for self; +0% max Mana; +0% max Vigor."
 }

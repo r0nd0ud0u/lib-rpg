@@ -95,5 +95,6 @@
     "Nom": "Lame de Morgul",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
-    "Description": "Morgul Blade — a cursed strike dealing damage over time; grants dodge but costs self-HP."
+    "Description": "Morgul Blade — a cursed strike dealing damage over time; grants dodge but costs self-HP.",
+    "DescriptionEffects": "Deals 10 physical damage to one enemy; +40 max Dodge for 2 turns; +30% damage taken by self for 4 turns; deals 110 physical damage to one enemy per turn for 5 turns; 5-turn cooldown."
 }

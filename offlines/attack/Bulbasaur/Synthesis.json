@@ -62,5 +62,6 @@
     "Nom": "Synthesis",
     "Photo": "bulbasaur.png",
     "Portée": "Individual",
-    "Description": "Absorbs solar energy to restore a large amount of an ally's HP."
+    "Description": "Absorbs solar energy to restore a large amount of an ally's HP.",
+    "DescriptionEffects": "Heals all allies for 35% HP; +10% max HP for all allies for 2 turns; 6-turn cooldown."
 }

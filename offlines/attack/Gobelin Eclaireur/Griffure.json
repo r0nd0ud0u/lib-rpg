@@ -26,5 +26,6 @@
     "Nom": "Griffure",
     "Photo": "SimpleAtk.png",
     "Portée": "Individual",
-    "Description": "Scratch — quick claws raking across flesh for minor damage."
+    "Description": "Scratch — quick claws raking across flesh for minor damage.",
+    "DescriptionEffects": "Deals 45 physical damage to one enemy."
 }

@@ -51,5 +51,6 @@
     "Regen rage": 0,
     "Regen vigueur": 0,
     "Soin": 0,
-    "Description": "Angmar's Curse — a dark hex from the Witch-realm that weakens and corrupts the target over time."
+    "Description": "Angmar's Curse — a dark hex from the Witch-realm that weakens and corrupts the target over time.",
+    "DescriptionEffects": "Deals 92 physical damage to one enemy per turn for 3 turns; -20% max Magic armor on enemy for 4 turns."
 }
