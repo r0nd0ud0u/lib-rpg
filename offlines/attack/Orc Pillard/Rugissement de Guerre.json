@@ -26,5 +26,6 @@
     "Nom": "Rugissement de Guerre",
     "Photo": "SimpleAtk.png",
     "Portée": "Zone",
-    "Description": "War Cry — a fearsome battle roar that weakens enemy morale and defenses."
+    "Description": "War Cry — a fearsome battle roar that weakens enemy morale and defenses.",
+    "DescriptionEffects": "Deals 40 physical damage to all enemies."
 }

@@ -26,5 +26,6 @@
     "Nom": "Malediction des Morts",
     "Photo": "SimpleAtk.png",
     "Portée": "Zone",
-    "Description": "Curse of the Dead — a necromantic hex that saps strength and deals ongoing damage."
+    "Description": "Curse of the Dead — a necromantic hex that saps strength and deals ongoing damage.",
+    "DescriptionEffects": "Deals 80 magic damage to all enemies per turn for 3 turns."
 }

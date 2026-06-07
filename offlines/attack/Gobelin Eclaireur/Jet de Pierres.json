@@ -26,5 +26,6 @@
     "Nom": "Jet de Pierres",
     "Photo": "SimpleAtk.png",
     "Portée": "Zone",
-    "Description": "Rock Throw — hurls a heavy stone, dealing moderate physical damage."
+    "Description": "Rock Throw — hurls a heavy stone, dealing moderate physical damage.",
+    "DescriptionEffects": "Deals 25 physical damage to all enemies."
 }

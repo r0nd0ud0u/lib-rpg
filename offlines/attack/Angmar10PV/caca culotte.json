@@ -61,5 +61,6 @@
     "Nom": "caca culotte",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Description": "A basic strike."
+    "Description": "A basic strike.",
+    "DescriptionEffects": "+100 max Critical strike on enemy for 3 turns; -100 max Dodge on enemy for 3 turns; deals 20 magic damage to one enemy."
 }

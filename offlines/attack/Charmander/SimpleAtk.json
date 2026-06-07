@@ -28,5 +28,6 @@
     "Nom": "SimpleAtk",
     "Photo": "charmander.png",
     "Portée": "Individual",
-    "Description": "A fierce scratch dealing physical fire damage."
+    "Description": "A fierce scratch dealing physical fire damage.",
+    "DescriptionEffects": "Deals 28 physical damage to one enemy."
 }

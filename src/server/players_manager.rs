@@ -14,7 +14,10 @@ use crate::{
     },
     common::{
         constants::{
-            all_target_const::{TARGET_ALL_ALLIES, TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF}, character_const::*, reach_const::{INDIVIDUAL, ZONE}, stats_const::*
+            all_target_const::{TARGET_ALL_ALLIES, TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF},
+            character_const::*,
+            reach_const::{INDIVIDUAL, ZONE},
+            stats_const::*,
         },
         log_data::LogData,
     },

@@ -62,5 +62,6 @@
     "Nom": "Ember",
     "Photo": "charmander.png",
     "Portée": "Individual",
-    "Description": "Spits embers that burn the enemy — deals immediate damage and leaves them burning for 3 turns."
+    "Description": "Spits embers that burn the enemy — deals immediate damage and leaves them burning for 3 turns.",
+    "DescriptionEffects": "Deals 42 magic damage to one enemy; deals 10 magic damage to one enemy per turn for 3 turns; 2-turn cooldown."
 }

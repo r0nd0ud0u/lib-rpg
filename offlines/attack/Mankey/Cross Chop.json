@@ -45,5 +45,6 @@
     "Nom": "Cross Chop",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Delivers a powerful double chop with both arms."
+    "Description": "Delivers a powerful double chop with both arms.",
+    "DescriptionEffects": "Deals 60 physical damage to one enemy; 3-turn cooldown."
 }

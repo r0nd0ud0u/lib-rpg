@@ -28,5 +28,6 @@
     "Nom": "Quick Attack",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "A lightning-fast tackle that always strikes first."
+    "Description": "A lightning-fast tackle that always strikes first.",
+    "DescriptionEffects": "Deals 28 physical damage to one enemy."
 }

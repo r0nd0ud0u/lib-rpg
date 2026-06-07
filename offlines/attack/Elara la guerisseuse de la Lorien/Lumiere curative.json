@@ -62,5 +62,6 @@
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",
-    "Description": "Healing Light — a gentle beam of light that restores HP to an ally."
+    "Description": "Healing Light — a gentle beam of light that restores HP to an ally.",
+    "DescriptionEffects": "Heals the most wounded ally for the damage dealt; heals all allies for 130 HP; 5-turn cooldown."
 }

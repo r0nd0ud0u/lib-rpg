@@ -61,5 +61,6 @@
     "Nom": "Marc la petite Tortue",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Description": "A slow but steady strike."
+    "Description": "A slow but steady strike.",
+    "DescriptionEffects": "Deals 150 magic damage to one enemy per turn for 6 turns; -25% Mana on enemy; -25% Vigor on enemy."
 }

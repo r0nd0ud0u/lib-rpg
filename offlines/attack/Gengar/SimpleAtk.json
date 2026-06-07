@@ -28,5 +28,6 @@
     "Nom": "SimpleAtk",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Shadow lick."
+    "Description": "Shadow lick.",
+    "DescriptionEffects": "Deals 35 magic damage to one enemy."
 }

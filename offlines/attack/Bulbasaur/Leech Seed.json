@@ -62,5 +62,6 @@
     "Nom": "Leech Seed",
     "Photo": "bulbasaur.png",
     "Portée": "Individual",
-    "Description": "Plants a seed that drains enemy HP each turn, restoring Bulbasaur's own health."
+    "Description": "Plants a seed that drains enemy HP each turn, restoring Bulbasaur's own health.",
+    "DescriptionEffects": "Deals 18 magic damage to one enemy per turn for 4 turns; heals self for 12% HP per turn for 4 turns; 4-turn cooldown."
 }

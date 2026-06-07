@@ -45,5 +45,6 @@
     "Nom": "Low Kick",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Sweeps the enemy's legs — deals damage and reduces physical armour."
+    "Description": "Sweeps the enemy's legs — deals damage and reduces physical armour.",
+    "DescriptionEffects": "Deals 45 physical damage to one enemy; -15% max Physical armor on enemy for 2 turns."
 }

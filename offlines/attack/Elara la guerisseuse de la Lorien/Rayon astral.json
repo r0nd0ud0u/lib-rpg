@@ -45,5 +45,6 @@
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",
-    "Description": "Astral Ray — fires a beam of starlight dealing magic damage while healing the caster."
+    "Description": "Astral Ray — fires a beam of starlight dealing magic damage while healing the caster.",
+    "DescriptionEffects": "Deals 50 magic damage to one enemy; -20% max Magic armor on enemy for 4 turns."
 }

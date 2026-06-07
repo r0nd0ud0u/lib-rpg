@@ -62,5 +62,6 @@
     "Nom": "Psystrike",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Maximum psychic force — shatters even the strongest armour."
+    "Description": "Maximum psychic force — shatters even the strongest armour.",
+    "DescriptionEffects": "Deals 110 magic damage to one enemy; -35% max Physical armor on enemy for 3 turns; 5-turn cooldown."
 }

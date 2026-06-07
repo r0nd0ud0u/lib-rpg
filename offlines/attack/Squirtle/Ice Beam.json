@@ -62,5 +62,6 @@
     "Nom": "Ice Beam",
     "Photo": "squirtle.png",
     "Portée": "Individual",
-    "Description": "Fires a freezing beam that deals high magical damage and slashes enemy dodge chance."
+    "Description": "Fires a freezing beam that deals high magical damage and slashes enemy dodge chance.",
+    "DescriptionEffects": "Deals 90 magic damage to one enemy; -40% max Dodge on enemy for 3 turns; 5-turn cooldown."
 }

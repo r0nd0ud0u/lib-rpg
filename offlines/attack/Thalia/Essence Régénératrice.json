@@ -52,5 +52,6 @@
     "Nom": "Essence Régénératrice",
     "Photo": "Essence regeneratrice.jpg",
     "Portée": "Individual",
-    "Description": "Regenerative Essence — infuses a target with pure life essence for powerful ongoing regeneration."
+    "Description": "Regenerative Essence — infuses a target with pure life essence for powerful ongoing regeneration.",
+    "DescriptionEffects": "Heals all allies for 20 HP per turn for 5 turns; +10 max Speed regeneration on all allies for 5 turns; +10% max Magic power on all allies for 5 turns."
 }

@@ -56,5 +56,6 @@
     "Photo": "Thraïn.png",
     "Portée": "Zone",
     "Sound": "",
-    "Description": "Destructive Whirlwind — spins the great hammer in a wide arc, dealing damage to all enemies."
+    "Description": "Destructive Whirlwind — spins the great hammer in a wide arc, dealing damage to all enemies.",
+    "DescriptionEffects": "Deals 60 physical damage to all enemies; +5 Aggro; +100% max Berserk rate for 4 turns."
 }

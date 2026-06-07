@@ -78,5 +78,6 @@
     "Nom": "Coup Puissant ",
     "Photo": "Thraïn.png",
     "Portée": "Individual",
-    "Description": "Mighty Blow — a heavy hammer strike dealing massive physical damage."
+    "Description": "Mighty Blow — a heavy hammer strike dealing massive physical damage.",
+    "DescriptionEffects": "Deals 80 physical damage to one enemy; 4-turn cooldown; -25% max Physical armor on enemy for 3 turns; -15 max Speed regeneration on enemy for 3 turns."
 }

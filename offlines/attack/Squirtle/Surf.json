@@ -62,5 +62,6 @@
     "Nom": "Surf",
     "Photo": "squirtle.png",
     "Portée": "Individual",
-    "Description": "Rides a massive wave — deals heavy water damage and absorbs a little health back."
+    "Description": "Rides a massive wave — deals heavy water damage and absorbs a little health back.",
+    "DescriptionEffects": "Deals 75 magic damage to one enemy; heals self for 8% HP; 4-turn cooldown."
 }

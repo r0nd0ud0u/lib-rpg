@@ -745,9 +745,8 @@ impl CharacterRoundsInfo {
                 .map(|t| self.dodge_drought_counter >= t)
                 .unwrap_or(false);
 
-            let eval_dodge = dodge_guaranteed || rand_nb <= effective_dodge;    
-            let is_dodging =
-                *class != Class::Berserker && eval_dodge;
+            let eval_dodge = dodge_guaranteed || rand_nb <= effective_dodge;
+            let is_dodging = *class != Class::Berserker && eval_dodge;
             let is_blocking = *class == Class::Berserker && eval_dodge; // Berserker "dodges" by blocking instead of evading
 
             // Update drought counter

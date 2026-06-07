@@ -62,5 +62,6 @@
     "Nom": "Vine Whip",
     "Photo": "bulbasaur.png",
     "Portée": "Individual",
-    "Description": "Whips the enemy with razor-sharp vines, reducing their physical defence for 2 turns."
+    "Description": "Whips the enemy with razor-sharp vines, reducing their physical defence for 2 turns.",
+    "DescriptionEffects": "Deals 38 magic damage to one enemy; -15% max Physical armor on enemy for 2 turns; 2-turn cooldown."
 }

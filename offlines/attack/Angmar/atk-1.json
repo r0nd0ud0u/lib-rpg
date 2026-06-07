@@ -61,5 +61,6 @@
     "Nom": "atk-1",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Description": "Test attack 1."
+    "Description": "Test attack 1.",
+    "DescriptionEffects": "+80 max Speed regeneration for 3 turns; +180% max Physical armor for 3 turns; +50 max Critical strike for 3 turns."
 }

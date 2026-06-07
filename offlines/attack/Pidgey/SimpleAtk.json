@@ -28,5 +28,6 @@
     "Nom": "SimpleAtk",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Wing slap."
+    "Description": "Wing slap.",
+    "DescriptionEffects": "Deals 25 physical damage to one enemy."
 }

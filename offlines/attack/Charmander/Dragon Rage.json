@@ -62,5 +62,6 @@
     "Nom": "Dragon Rage",
     "Photo": "charmander.png",
     "Portée": "Individual",
-    "Description": "Channels draconic energy into a devastating strike that shreds enemy armour."
+    "Description": "Channels draconic energy into a devastating strike that shreds enemy armour.",
+    "DescriptionEffects": "Deals 85 physical damage to one enemy; -20% max Physical armor on enemy for 3 turns; 4-turn cooldown."
 }

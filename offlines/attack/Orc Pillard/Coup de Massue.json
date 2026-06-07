@@ -26,5 +26,6 @@
     "Nom": "Coup de Massue",
     "Photo": "SimpleAtk.png",
     "Portée": "Individual",
-    "Description": "Club Strike — a crude but effective blow that deals solid physical damage."
+    "Description": "Club Strike — a crude but effective blow that deals solid physical damage.",
+    "DescriptionEffects": "Deals 80 physical damage to one enemy."
 }

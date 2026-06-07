@@ -62,5 +62,6 @@
     "Nom": "Psystrike",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "The ultimate psychic strike — reduces physical armour as psychic power overwhelms the target."
+    "Description": "The ultimate psychic strike — reduces physical armour as psychic power overwhelms the target.",
+    "DescriptionEffects": "Deals 100 magic damage to one enemy; -30% max Physical armor on enemy for 3 turns; 5-turn cooldown."
 }

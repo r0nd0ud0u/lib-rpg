@@ -95,5 +95,6 @@
     "Nom": "Flèche de la Montagne du Destin",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
-    "Description": "Doom Mountain Arrow — an arrow guided by dark fate that deals piercing damage and applies a curse."
+    "Description": "Doom Mountain Arrow — an arrow guided by dark fate that deals piercing damage and applies a curse.",
+    "DescriptionEffects": "Deals 120 physical damage to one enemy; deals 40 physical damage to one enemy per turn for 4 turns; 4-turn cooldown; +100% damage taken by self; +65 Magic power."
 }

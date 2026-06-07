@@ -67,5 +67,7 @@
     "Regen mana": 0,
     "Regen rage": 0,
     "Regen vigueur": 0,
-    "Soin": 0
+    "Soin": 0,
+    "Description": "Unleashed Fury — Thraïn flies into a battle frenzy, sharply boosting his might and lethality.",
+    "DescriptionEffects": "+30% max Physical power for 4 turns; +5 Aggro; +15 Critical strike for 3 turns."
 }

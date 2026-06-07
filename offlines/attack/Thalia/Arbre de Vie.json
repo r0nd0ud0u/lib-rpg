@@ -85,5 +85,6 @@
     "Regen rage": 0,
     "Regen vigueur": 0,
     "Soin": 0,
-    "Description": "Tree of Life — channels nature energy for a powerful multi-turn regeneration."
+    "Description": "Tree of Life — channels nature energy for a powerful multi-turn regeneration.",
+    "DescriptionEffects": "Heals all allies for 35 HP per turn for 3 turns; +100% max Mana regeneration for 3 turns; +20% max Physical power on all allies for 3 turns; +30% max Magic power on all allies for 3 turns."
 }

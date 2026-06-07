@@ -53,5 +53,6 @@
     "Photo": "default.png",
     "Portée": "Zone",
     "Sound": "",
-    "Description": "Spark of Hope — releases a burst of radiant light, healing allies and damaging enemies."
+    "Description": "Spark of Hope — releases a burst of radiant light, healing allies and damaging enemies.",
+    "DescriptionEffects": "Heals all allies for 30% HP; +15% max Magic power on all allies for 2 turns; +15% max Physical power on all allies for 2 turns."
 }

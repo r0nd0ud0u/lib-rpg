@@ -85,5 +85,6 @@
     "Regen rage": 0,
     "Regen vigueur": 0,
     "Soin": 0,
-    "Description": "Awakening of Hope — a radiant bloom of hope that heals the entire group."
+    "Description": "Awakening of Hope — a radiant bloom of hope that heals the entire group.",
+    "DescriptionEffects": "Heals all allies for 100 HP; removes one debuff from all allies; resets its active effects; 5-turn cooldown."
 }

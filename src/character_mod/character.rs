@@ -1455,10 +1455,22 @@ mod tests {
         // counter is reset after a successful dodge
         assert_eq!(0, c.character_rounds_info.dodge_drought_counter);
 
-        // A Berserker blocks instead of dodging (no drought counter for dodge)
+        // A Berserker blocks instead of dodging. Its block chance is the softcapped
+        // dodge stat, which never reaches 100%, so force a deterministic block via a
+        // StreakBreakerDodge buffer (the only streak-breaker a Berserker honours) with
+        // the drought counter at its threshold.
         let atk_level = 1;
         c.class = Class::Berserker;
-        c.stats.all_stats[DODGE].current = 100;
+        c.stats.all_stats[DODGE].current = 0;
+        c.character_rounds_info.update_buffer(&Buffer {
+            is_passive_enabled: false,
+            is_passive: false,
+            value: 1,
+            is_percent: false,
+            stats_name: String::new(),
+            kind: BufKinds::StreakBreakerDodge,
+        });
+        c.character_rounds_info.dodge_drought_counter = 1;
         c.process_dodging(atk_level);
         assert!(!c.character_rounds_info.dodge_info.is_dodging);
         assert!(c.character_rounds_info.dodge_info.is_blocking);

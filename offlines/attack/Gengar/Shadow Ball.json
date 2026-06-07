@@ -45,5 +45,6 @@
     "Nom": "Shadow Ball",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Hurls a ball of shadowy energy that reduces magical armour."
+    "Description": "Hurls a ball of shadowy energy that reduces magical armour.",
+    "DescriptionEffects": "Deals 65 magic damage to one enemy; -20% max Magic armor on enemy for 2 turns."
 }

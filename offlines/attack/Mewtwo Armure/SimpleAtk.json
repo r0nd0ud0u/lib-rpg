@@ -28,5 +28,6 @@
     "Nom": "SimpleAtk",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Armoured pulse."
+    "Description": "Armoured pulse.",
+    "DescriptionEffects": "Deals 60 magic damage to one enemy."
 }

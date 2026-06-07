@@ -61,5 +61,6 @@
     "Nom": "Nova etherée",
     "Photo": "default.png",
     "Portée": "Zone",
-    "Description": "Ethereal Nova — an explosion of ethereal energy dealing AoE magic damage."
+    "Description": "Ethereal Nova — an explosion of ethereal energy dealing AoE magic damage.",
+    "DescriptionEffects": "Deals 150 magic damage to all enemies; -12 Speed regeneration on all enemies for 2 turns; deals 35 magic damage to the target."
 }

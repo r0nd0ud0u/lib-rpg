@@ -28,5 +28,6 @@
     "Nom": "SimpleAtk",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Tail sweep."
+    "Description": "Tail sweep.",
+    "DescriptionEffects": "Deals 50 physical damage to one enemy."
 }

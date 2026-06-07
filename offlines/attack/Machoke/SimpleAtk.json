@@ -28,5 +28,6 @@
     "Nom": "SimpleAtk",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Muscled punch."
+    "Description": "Muscled punch.",
+    "DescriptionEffects": "Deals 40 physical damage to one enemy."
 }

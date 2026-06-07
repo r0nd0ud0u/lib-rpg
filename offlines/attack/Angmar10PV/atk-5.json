@@ -60,5 +60,6 @@
     "Nom": "atk-5",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Description": "Test attack 5."
+    "Description": "Test attack 5.",
+    "DescriptionEffects": "Deals 140 magic damage to one enemy; -400 max Magic armor on enemy for 4 turns; -400 max Physical armor on enemy for 4 turns."
 }

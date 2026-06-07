@@ -62,5 +62,6 @@
     "Nom": "Withdraw",
     "Photo": "squirtle.png",
     "Portée": "Individual",
-    "Description": "Retreats into its shell — greatly boosts physical and magical armour for 3 turns."
+    "Description": "Retreats into its shell — greatly boosts physical and magical armour for 3 turns.",
+    "DescriptionEffects": "+30% max Physical armor for 3 turns; +30% max Magic armor for 3 turns; 5-turn cooldown."
 }

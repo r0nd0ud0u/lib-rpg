@@ -61,5 +61,6 @@
     "Nom": "Feuillage Réparateur",
     "Photo": "Thalia.png",
     "Portée": "Individual",
-    "Description": "Restorative Foliage — healing leaves wrap around the target for gentle ongoing recovery."
+    "Description": "Restorative Foliage — healing leaves wrap around the target for gentle ongoing recovery.",
+    "DescriptionEffects": "Heals all allies for 60 HP per turn for 4 turns; +50% max Mana regeneration on all allies for 4 turns; +10% max Magic power on all allies for 4 turns."
 }

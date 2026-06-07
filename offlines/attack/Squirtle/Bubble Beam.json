@@ -62,5 +62,6 @@
     "Nom": "Bubble Beam",
     "Photo": "squirtle.png",
     "Portée": "Individual",
-    "Description": "Launches a stream of bubbles — deals damage and reduces enemy speed regeneration."
+    "Description": "Launches a stream of bubbles — deals damage and reduces enemy speed regeneration.",
+    "DescriptionEffects": "Deals 50 magic damage to one enemy; -25% max Speed regeneration on enemy for 3 turns; 3-turn cooldown."
 }

@@ -45,5 +45,6 @@
     "Nom": "Wing Attack",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Strikes with powerful wings — boosts own physical power."
+    "Description": "Strikes with powerful wings — boosts own physical power.",
+    "DescriptionEffects": "Deals 65 physical damage to one enemy; +15% max Physical power for 2 turns."
 }

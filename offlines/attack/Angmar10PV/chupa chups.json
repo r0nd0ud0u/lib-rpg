@@ -44,5 +44,6 @@
     "Nom": "chupa chups",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Description": "A sweet strike."
+    "Description": "A sweet strike.",
+    "DescriptionEffects": "+50% max Magic armor for 3 turns; +50% max Physical armor for 3 turns."
 }

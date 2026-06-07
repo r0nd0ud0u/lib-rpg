@@ -28,5 +28,6 @@
     "Nom": "SimpleAtk",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Claws at the target."
+    "Description": "Claws at the target.",
+    "DescriptionEffects": "Deals 30 physical damage to one enemy."
 }

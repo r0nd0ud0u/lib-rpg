@@ -45,5 +45,6 @@
     "Nom": "Gust",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Flaps its wings to generate a gust — deals wind damage and reduces enemy speed."
+    "Description": "Flaps its wings to generate a gust — deals wind damage and reduces enemy speed.",
+    "DescriptionEffects": "Deals 35 magic damage to one enemy; -20% max Speed regeneration on enemy for 2 turns."
 }

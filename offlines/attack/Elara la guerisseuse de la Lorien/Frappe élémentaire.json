@@ -61,5 +61,6 @@
     "Nom": "Frappe élémentaire",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Description": "Elemental Strike — a swift strike channeling elemental magic for bonus damage."
+    "Description": "Elemental Strike — a swift strike channeling elemental magic for bonus damage.",
+    "DescriptionEffects": "Deals 70 magic damage to one enemy; 3-turn cooldown; may repeat if it healed last turn."
 }

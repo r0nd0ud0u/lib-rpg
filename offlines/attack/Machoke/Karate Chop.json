@@ -45,5 +45,6 @@
     "Nom": "Karate Chop",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "A sharp chop that cracks armour."
+    "Description": "A sharp chop that cracks armour.",
+    "DescriptionEffects": "Deals 55 physical damage to one enemy; -20% max Physical armor on enemy for 2 turns."
 }

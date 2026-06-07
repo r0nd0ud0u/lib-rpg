@@ -95,5 +95,6 @@
     "Nom": "Folie des profondeurs de la Moria",
     "Photo": "default.png",
     "Portée": "Individual",
-    "Description": "Moria Madness — a berserk frenzy from the deep, dealing enormous damage."
+    "Description": "Moria Madness — a berserk frenzy from the deep, dealing enormous damage.",
+    "DescriptionEffects": "Deals 55 physical damage to one enemy; deals 30% physical damage to self; -10 Dodge for 2 turns; +45 Berserk; 5-turn cooldown."
 }

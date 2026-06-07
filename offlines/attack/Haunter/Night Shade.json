@@ -62,5 +62,6 @@
     "Nom": "Night Shade",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Wraps the enemy in darkness — sustained damage over 4 turns and a small self-heal."
+    "Description": "Wraps the enemy in darkness — sustained damage over 4 turns and a small self-heal.",
+    "DescriptionEffects": "Deals 20 magic damage to one enemy per turn for 4 turns; heals self for 8% HP; 4-turn cooldown."
 }

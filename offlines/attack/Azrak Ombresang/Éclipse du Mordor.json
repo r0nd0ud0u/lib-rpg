@@ -79,5 +79,6 @@
     "Photo": "Azrak Ombresang.png",
     "Portée": "Zone",
     "Sound": "kamehameha.mp3",
-    "Description": "Mordor Eclipse — cloaks the battlefield in shadow, dealing dark damage and reducing enemy accuracy."
+    "Description": "Mordor Eclipse — cloaks the battlefield in shadow, dealing dark damage and reducing enemy accuracy.",
+    "DescriptionEffects": "Deals 400 physical damage to all enemies; +25% damage taken by all allies for 3 turns; 10-turn cooldown; +25% healing dealt for 3 turns."
 }

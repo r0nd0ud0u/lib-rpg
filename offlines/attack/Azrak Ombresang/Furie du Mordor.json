@@ -101,5 +101,6 @@
     "Regen rage": 0,
     "Regen vigueur": 0,
     "Soin": 0,
-    "Description": "Mordor Fury — channels the rage of Mordor for a powerful, wide-area assault."
+    "Description": "Mordor Fury — channels the rage of Mordor for a powerful, wide-area assault.",
+    "DescriptionEffects": "+30% max Physical power for 4 turns; +15% max Physical power on all allies for 4 turns; +30% max Magic power for 4 turns; +15% max Magic power on all allies for 4 turns; 6-turn cooldown."
 }

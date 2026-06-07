@@ -26,5 +26,6 @@
     "Nom": "Lame du Spectre",
     "Photo": "SimpleAtk.png",
     "Portée": "Individual",
-    "Description": "Wraith Blade — a spectral sword cuts through armor, dealing dark physical damage."
+    "Description": "Wraith Blade — a spectral sword cuts through armor, dealing dark physical damage.",
+    "DescriptionEffects": "Deals 300 physical damage to one enemy."
 }

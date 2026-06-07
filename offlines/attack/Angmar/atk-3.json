@@ -44,5 +44,6 @@
     "Nom": "atk-3",
     "Photo": "default.png",
     "Portée": "Zone",
-    "Description": "Test attack 3."
+    "Description": "Test attack 3.",
+    "DescriptionEffects": "Deals 60 magic damage to all enemies; deals 15 magic damage to all enemies per turn for 5 turns."
 }
