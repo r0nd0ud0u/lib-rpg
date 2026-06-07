@@ -14,10 +14,7 @@ use crate::{
     },
     common::{
         constants::{
-            all_target_const::{TARGET_ALL_ALLIES, TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF},
-            character_const::*,
-            reach_const::{INDIVIDUAL, ZONE},
-            stats_const::*,
+            all_target_const::{TARGET_ALL_ALLIES, TARGET_ALLY, TARGET_ENNEMY, TARGET_HIMSELF}, character_const::*, reach_const::{INDIVIDUAL, ZONE}, stats_const::*
         },
         log_data::LogData,
     },
@@ -89,6 +86,7 @@ impl PlayerManager {
             c.stats.get_mut_value(MANA).current = c.stats.all_stats[MANA].max;
             c.stats.get_mut_value(VIGOR).current = c.stats.all_stats[VIGOR].max;
             c.stats.get_mut_value(BERSERK).current = 0;
+            c.stats.get_mut_value(SPEED).current = 0;
             // Reset displayed aggro so the new scenario starts from 0.
             if let Some(aggro) = c.stats.all_stats.get_mut(AGGRO) {
                 aggro.current = 0;
@@ -251,14 +249,17 @@ impl PlayerManager {
         }
     }
 
-    pub fn start_new_turn(&mut self) {
+    /// Process the start of a new turn by incrementing counter effects, resetting first round booleans and applying regen stats.
+    pub fn start_new_turn(&mut self, is_first_turn: bool) {
         // Increment turn effects
         self.increment_counter_effect();
         // Reset new round boolean for characters
         self.reset_is_first_round();
-        // Apply regen stats
-        self.apply_regen_stats(CharacterKind::Boss);
-        self.apply_regen_stats(CharacterKind::Hero);
+        // Apply regen stats but not in first turn
+        if !is_first_turn {
+            self.apply_regen_stats(CharacterKind::Boss);
+            self.apply_regen_stats(CharacterKind::Hero);
+        }
     }
 
     pub fn process_sup_atk_turn(&mut self, launcher_type: CharacterKind) -> Vec<String> {

@@ -209,7 +209,7 @@ impl GameManager {
         // Process the order of the players
         self.process_order_to_play();
         self.game_state.start_new_turn();
-        self.pm.start_new_turn();
+        self.pm.start_new_turn(self.game_state.current_turn_nb == 1);
 
         self.new_round()
     }

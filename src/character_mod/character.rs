@@ -1458,6 +1458,7 @@ mod tests {
         // A Berserker blocks instead of dodging (no drought counter for dodge)
         let atk_level = 1;
         c.class = Class::Berserker;
+        c.stats.all_stats[DODGE].current = 100;
         c.process_dodging(atk_level);
         assert!(!c.character_rounds_info.dodge_info.is_dodging);
         assert!(c.character_rounds_info.dodge_info.is_blocking);
