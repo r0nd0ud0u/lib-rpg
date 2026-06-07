@@ -1,0 +1,32 @@
+{
+    "Cible": "Ally",
+    "Coût de mana": 15,
+    "Coût de rage": 0,
+    "Coût de vigueur": 0,
+    "Effet": [
+        {
+            "Cible": "Ally",
+            "Portée": "Individual",
+            "Stat": "HP",
+            "Tours actifs": 1,
+            "Type": "Resurrect",
+            "Valeur de l'effet": 0,
+            "Value": 50,
+            "IsMagicEffect": true,
+            "Buffer": {
+                "kind": "Resurrect",
+                "value": 50,
+                "is-percent": false,
+                "stats-name": "HP",
+                "passive-enabled": false
+            }
+        }
+    ],
+    "Forme": "Standard",
+    "Niveau": 6,
+    "Nom": "Lumière de la Résurrection",
+    "Photo": "Thalia.png",
+    "Portée": "Individual",
+    "Description": "Light of Resurrection — channels pure nature energy to revive a fallen ally with 50 HP.",
+	"DescriptionEffects": "+50 HP to a dead hero"
+}
