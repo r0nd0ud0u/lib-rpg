@@ -2984,4 +2984,264 @@ mod tests {
             "Thraïn aggro must be > 0 after two attacks: {aggro_t2}"
         );
     }
+
+    // ── Rameau Guérisseur tests ────────────────────────────────────────────────
+    // The attack applies:
+    //   1. DecreasingRateOnTurn HP HOT on an individual ally (nb_turns=4, value=3)
+    //   2. ChangeMaxStatByPercentage +10% Magic power on the same target (nb_turns=4)
+    //
+    // Test char stats: Magical Power max=30 (20 raw + 10 from starting_gloves equipment),
+    //   HP max=135, Mana 200/200.
+    // HOT per-tick = applies * (buffer.value + magic_power_current / nb_turns)
+    //              = applies * (3 + 30/4) = applies * 10  (integer division)
+    // applies comes from process_decrease_on_turn(value=3): always at least 1
+    // (first threshold is 100%), at most 3.  Per-tick ∈ [10, 30].
+    //
+    // The DecreasingRateOnTurn effect stores its applies count in ApplyEffectInit,
+    // which is then picked up by ALL subsequent effects in the same attack.  So
+    // the ChangeMaxStatByPercentage full_amount = applies * 10, giving a magic
+    // power increase of 30 * (applies*10) / 100 = applies * 3.
+    // New magic power max ∈ [33, 36, 39] for applies ∈ [1, 2, 3].
+
+    #[test]
+    fn unit_rameau_guerisseur_initial_heal_range() {
+        let (mut gm, hero_id, _) = testing_test_ally1_vs_test_boss1();
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
+        {
+            buf.is_passive_enabled = false;
+        }
+        gm.pm.set_targeted_characters(&hero_id, "Rameau Guérisseur");
+        let old_hp = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+
+        let ra = gm.launch_attack(Some("Rameau Guérisseur"));
+
+        // Two effects: HP HOT + Magic power buff
+        assert_eq!(ra.new_game_atk_effects.len(), 2, "expected 2 effects");
+
+        let hot = ra
+            .new_game_atk_effects
+            .iter()
+            .find(|g| g.processed_effect_param.input_effect_param.buffer.stats_name == HP)
+            .expect("HP effect missing");
+        let per_tick = hot.effect_outcome.full_amount_tx;
+
+        // applies ∈ [1, 3], per apply = 10  → per_tick ∈ [10, 30]
+        assert!(
+            per_tick >= 10,
+            "per-tick heal below minimum (1 apply × 10): {per_tick}"
+        );
+        assert!(
+            per_tick <= 30,
+            "per-tick heal above maximum (3 applies × 10): {per_tick}"
+        );
+
+        // HP was immediately increased on launch
+        let new_hp = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let hp_max = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .max;
+        assert_eq!(
+            new_hp,
+            (old_hp as i64 + per_tick).clamp(0, hp_max as i64) as u64
+        );
+    }
+
+    #[test]
+    fn unit_rameau_guerisseur_magic_power_buff() {
+        // The ChangeMaxStatByPercentage effect shares the ApplyEffectInit count
+        // set by DecreasingRateOnTurn, so full_amount = applies * 10.
+        // With old_magic_max = 30 (20 raw + 10 equipment):
+        //   increase = 30 * (applies * 10) / 100 = applies * 3  → new ∈ [33, 39]
+        let (mut gm, hero_id, _) = testing_test_ally1_vs_test_boss1();
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
+        {
+            buf.is_passive_enabled = false;
+        }
+
+        let old_magic_max = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_POWER]
+            .max;
+
+        gm.pm.set_targeted_characters(&hero_id, "Rameau Guérisseur");
+        let ra = gm.launch_attack(Some("Rameau Guérisseur"));
+
+        // Derive number_of_applies from the HOT's per-tick amount:
+        // per_tick = applies * 10  →  applies = per_tick / 10
+        let per_tick = ra
+            .new_game_atk_effects
+            .iter()
+            .find(|g| g.processed_effect_param.input_effect_param.buffer.stats_name == HP)
+            .unwrap()
+            .effect_outcome
+            .full_amount_tx;
+        let applies = per_tick / 10;
+
+        let new_magic_max = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_POWER]
+            .max;
+
+        // full_amount for magic buf = applies * 10 → increase = old * full_amount / 100
+        let full_amount = applies * 10;
+        let expected = old_magic_max + old_magic_max * full_amount as u64 / 100;
+        assert_eq!(
+            new_magic_max, expected,
+            "Magic power should increase by {}% (applies={applies}): {old_magic_max} → {expected}, got {new_magic_max}",
+            applies * 10
+        );
+        // Sanity: increase is proportional to applies (1-3)
+        assert!(
+            new_magic_max >= old_magic_max + old_magic_max * 10 / 100,
+            "min expected +10% increase: got {new_magic_max}"
+        );
+        assert!(
+            new_magic_max <= old_magic_max + old_magic_max * 30 / 100,
+            "max expected +30% increase: got {new_magic_max}"
+        );
+    }
+
+    #[test]
+    fn unit_rameau_guerisseur_hot_lasts_exactly_4_turns() {
+        // The HOT effect fires at T2, T3, T4 (3 ticks after launch) then expires.
+        // Regardless of the probabilistic applies, duration is ALWAYS nb_turns=4.
+        let (mut gm, hero_id, _) = testing_test_ally1_vs_test_boss1();
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
+        {
+            buf.is_passive_enabled = false;
+        }
+        gm.pm.set_targeted_characters(&hero_id, "Rameau Guérisseur");
+        gm.launch_attack(Some("Rameau Guérisseur"));
+
+        // Advance to test2's first round in T1 — HOT skipped (same launch turn)
+        while gm.pm.current_player.id_name != "test2_#1" {
+            gm.new_round();
+        }
+        assert_eq!(
+            gm.pm.current_player.character_rounds_info.all_effects.len(),
+            2,
+            "both effects must be present in T1"
+        );
+
+        // T2, T3, T4: effects still active when test2 plays each turn
+        for turn_idx in 2..=4 {
+            gm.start_new_turn();
+            while gm.pm.current_player.id_name != "test2_#1" {
+                gm.new_round();
+            }
+            assert_eq!(
+                gm.pm.current_player.character_rounds_info.all_effects.len(),
+                2,
+                "both effects must still be active at turn {turn_idx}"
+            );
+        }
+
+        // T5: counter reaches nb_turns=4 → both effects removed before HOT fires
+        gm.start_new_turn();
+        while gm.pm.current_player.id_name != "test2_#1" {
+            gm.new_round();
+        }
+        assert!(
+            gm.pm.current_player.character_rounds_info.all_effects.is_empty(),
+            "effects must expire after exactly 4 turns (nb_turns=4)"
+        );
+    }
+
+    #[test]
+    fn unit_rameau_guerisseur_hot_fires_3_ticks() {
+        // Verifies the HOT fires exactly 3 times (T2, T3, T4) and that each tick
+        // heals the same amount as the initial application, making the total heal
+        // 4 × per_tick over the 4-turn duration.
+        let (mut gm, hero_id, _) = testing_test_ally1_vs_test_boss1();
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
+        {
+            buf.is_passive_enabled = false;
+        }
+        gm.pm.set_targeted_characters(&hero_id, "Rameau Guérisseur");
+        gm.launch_attack(Some("Rameau Guérisseur"));
+
+        // Skip T1 (HOT does not fire same turn as launch)
+        while gm.pm.current_player.id_name != "test2_#1" {
+            gm.new_round();
+        }
+
+        // HP regen per turn for test2 (7); HOT tick ≥10 — any increase > regen means HOT fired
+        let regen = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP_REGEN]
+            .current as i64;
+
+        let mut hot_ticks = 0u32;
+        for _ in 2..=4 {
+            gm.start_new_turn();
+            let hp_before = gm
+                .pm
+                .get_active_hero_character("test2_#1")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current as i64;
+            while gm.pm.current_player.id_name != "test2_#1" {
+                gm.new_round();
+            }
+            let hp_after = gm
+                .pm
+                .get_active_hero_character("test2_#1")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current as i64;
+            // HOT (≥10) + regen (7) >> regen alone (7)
+            if hp_after - hp_before > regen {
+                hot_ticks += 1;
+            }
+        }
+
+        assert_eq!(hot_ticks, 3, "HOT must fire exactly 3 times (T2, T3, T4)");
+    }
 }

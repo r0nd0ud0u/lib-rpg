@@ -1335,7 +1335,7 @@ mod tests {
         // case level under
         pl.current_player.level = 1;
         let launchable_atks = pl.process_launchable_atks();
-        assert_eq!(12, launchable_atks.len()); // 12 on 16 are level 1
+        assert_eq!(13, launchable_atks.len()); // 13 on 17 are level 1
 
         // case is_heal_atk_blocked
         pl.current_player.character_rounds_info.is_heal_atk_blocked = true;

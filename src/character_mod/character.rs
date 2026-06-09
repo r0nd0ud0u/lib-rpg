@@ -1124,7 +1124,7 @@ mod tests {
         // nb-actions-in-round
         assert_eq!(0, c.character_rounds_info.actions_done_in_round);
         // atk
-        assert_eq!(16, c.attacks_list.len());
+        assert_eq!(17, c.attacks_list.len());
         // equipment
         assert_eq!(
             13,
