@@ -116,7 +116,7 @@ pub fn is_effect_only_at_atk_launch(buf_types: &BufKinds) -> bool {
 }
 
 pub fn process_decrease_on_turn(ep: &EffectParam, counter_turn: i64) -> i64 {
-    let total = ep.buffer.value;
+    let total = ep.sub_value_effect;
     if total <= 0 {
         return 0;
     }
@@ -223,7 +223,7 @@ mod tests {
     fn unit_process_decrease_on_turn() {
         let ep = EffectParam {
             nb_turns: 3,
-            sub_value_effect: 0,
+            sub_value_effect: 3,
             target_kind: TARGET_ENNEMY.to_owned(),
             reach: INDIVIDUAL.to_owned(),
             is_magic_atk: false,

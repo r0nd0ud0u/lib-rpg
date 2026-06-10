@@ -8,6 +8,7 @@
             "Cible": "Ally",
             "Portée": "Individual",
             "Tours actifs": 4,
+            "Valeur de l'effet": 3,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "DecreasingRateOnTurn",
