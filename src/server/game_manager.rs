@@ -2997,7 +2997,13 @@ mod tests {
     // applies comes from process_decrease_on_turn(value=3): always at least 1
     // (first threshold is 100%), at most 3.  Per-tick ∈ [10, 30].
     //
-    // The DecreasingRateOnTurn effect stores its applies count in ApplyEffectInit,
+    // The HOT then fires probabilistically on subsequent turns:
+    //   T2 counter=1: threshold = (3−1+1)/3 = 100 % (always)
+    //   T3 counter=2: threshold = (3−2+1)/3 =  67 %
+    //   T4 counter=3: threshold = (3−3+1)/3 =  33 %
+    // So the HOT fires 1–3 ticks after launch (not always 3).
+    //
+    // The DecreasingRateOnTurn effect also stores its applies count in ApplyEffectInit,
     // which is then picked up by ALL subsequent effects in the same attack.  So
     // the ChangeMaxStatByPercentage full_amount = applies * 10, giving a magic
     // power increase of 30 * (applies*10) / 100 = applies * 3.
@@ -3032,7 +3038,13 @@ mod tests {
         let hot = ra
             .new_game_atk_effects
             .iter()
-            .find(|g| g.processed_effect_param.input_effect_param.buffer.stats_name == HP)
+            .find(|g| {
+                g.processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == HP
+            })
             .expect("HP effect missing");
         let per_tick = hot.effect_outcome.full_amount_tx;
 
@@ -3100,7 +3112,13 @@ mod tests {
         let per_tick = ra
             .new_game_atk_effects
             .iter()
-            .find(|g| g.processed_effect_param.input_effect_param.buffer.stats_name == HP)
+            .find(|g| {
+                g.processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == HP
+            })
             .unwrap()
             .effect_outcome
             .full_amount_tx;
@@ -3118,7 +3136,8 @@ mod tests {
         let full_amount = applies * 10;
         let expected = old_magic_max + old_magic_max * full_amount as u64 / 100;
         assert_eq!(
-            new_magic_max, expected,
+            new_magic_max,
+            expected,
             "Magic power should increase by {}% (applies={applies}): {old_magic_max} → {expected}, got {new_magic_max}",
             applies * 10
         );
@@ -3135,8 +3154,8 @@ mod tests {
 
     #[test]
     fn unit_rameau_guerisseur_hot_lasts_exactly_4_turns() {
-        // The HOT effect fires at T2, T3, T4 (3 ticks after launch) then expires.
-        // Regardless of the probabilistic applies, duration is ALWAYS nb_turns=4.
+        // The effect entry persists for exactly nb_turns=4 turns regardless of how many
+        // ticks actually fired (which is probabilistic: 1–3). Expiry is always at T5.
         let (mut gm, hero_id, _) = testing_test_ally1_vs_test_boss1();
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         if let Some(buf) = gm
@@ -3179,16 +3198,20 @@ mod tests {
             gm.new_round();
         }
         assert!(
-            gm.pm.current_player.character_rounds_info.all_effects.is_empty(),
+            gm.pm
+                .current_player
+                .character_rounds_info
+                .all_effects
+                .is_empty(),
             "effects must expire after exactly 4 turns (nb_turns=4)"
         );
     }
 
     #[test]
-    fn unit_rameau_guerisseur_hot_fires_3_ticks() {
-        // Verifies the HOT fires exactly 3 times (T2, T3, T4) and that each tick
-        // heals the same amount as the initial application, making the total heal
-        // 4 × per_tick over the 4-turn duration.
+    fn unit_rameau_guerisseur_hot_fires_at_most_3_ticks() {
+        // Verifies the HOT fires AT MOST 3 times (T2, T3, T4) but not necessarily
+        // exactly 3: the DecreasingRateOnTurn probability means T2=100%, T3=67%,
+        // T4=33%. So the HOT fires 1–3 times depending on the random rolls.
         let (mut gm, hero_id, _) = testing_test_ally1_vs_test_boss1();
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         if let Some(buf) = gm
@@ -3242,6 +3265,13 @@ mod tests {
             }
         }
 
-        assert_eq!(hot_ticks, 3, "HOT must fire exactly 3 times (T2, T3, T4)");
+        assert!(
+            hot_ticks >= 1,
+            "HOT must fire at least once (T2 is always 100%): fired {hot_ticks} times"
+        );
+        assert!(
+            hot_ticks <= 3,
+            "HOT must fire at most 3 times (T2–T4): fired {hot_ticks} times"
+        );
     }
 }

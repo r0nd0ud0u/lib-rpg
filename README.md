@@ -36,6 +36,19 @@ The check in `can_be_launched` uses `buffer.value - counter_turn > 0`.  All log 
 game_state.accumulated_kills + pm.active_bosses.iter().filter(|b| b.stats.is_dead().unwrap_or(false)).count()
 ```
 
+### `DecreasingRateOnTurn` HOT
+
+An effect with `buffer.kind = DecreasingRateOnTurn` on HP applies a **probabilistic healing-over-time** (HOT):
+
+- **Launch turn** — `process_decrease_on_turn` rolls 1–`value` *applies* (first roll is always 100 %; each subsequent roll decreases linearly).  `full_amount = applies × (buffer.value + magical_power / nb_turns)`.
+- **Subsequent ticks** — for each turn `counter_turn ∈ [1, value]`, the tick fires with probability `(value − counter_turn + 1) / value`:
+  - counter 1 → 100 %
+  - counter 2 → 67 % (for value = 3)
+  - counter 3 → 33 % (for value = 3)
+- Ticks with `counter_turn > value` never fire; the effect still expires normally at `counter_turn == nb_turns`.
+
+This means the HOT fires **at most** `value` ticks after launch, not always `value` times.
+
 ### `loaded_from_save`
 
 `CoreGameData.loaded_from_save` is `false` for fresh games and `true` when a game is restored from a save file.  UI layers use this flag to lock the universe selector once a save has been loaded.
@@ -65,7 +78,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 161 tests should pass with no warnings.
+All 165 tests should pass with no warnings.
 
 ---
 

@@ -934,6 +934,23 @@ impl CharacterRoundsInfo {
                 == HP
                 && is_effet_hot_or_dot(&gae.processed_effect_param.input_effect_param.buffer.kind)
             {
+                // DecreasingRateOnTurn: each subsequent tick has a decreasing probability.
+                // With value=N: tick at counter 1 fires at 100%, counter 2 at (N-1)/N %, etc.
+                // Once counter > value the probability is 0 (all ticks exhausted).
+                if gae.processed_effect_param.input_effect_param.buffer.kind
+                    == BufKinds::DecreasingRateOnTurn
+                {
+                    let value = gae.processed_effect_param.input_effect_param.buffer.value;
+                    let counter = gae.processed_effect_param.counter_turn;
+                    if value <= 0 || counter > value {
+                        continue;
+                    }
+                    let threshold =
+                        ((value - counter + 1) as f64 / value as f64 * 100.0).round() as i64;
+                    if get_random_nb(0, 100) > threshold {
+                        continue;
+                    }
+                }
                 Self::process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
             }
         }
