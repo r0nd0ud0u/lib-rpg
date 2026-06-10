@@ -236,14 +236,15 @@ impl CharacterRoundsInfo {
         if ep.buffer.kind == BufKinds::DecreasingRateOnTurn
             && gae.processed_effect_param.number_of_applies > 0
         {
-            let remaining_ticks =
-                (ep.sub_value_effect - gae.processed_effect_param.counter_turn).max(0);
+            let remaining_applies = (gae.processed_effect_param.number_of_applies
+                - gae.processed_effect_param.counter_turn)
+                .max(0);
             format!(
                 "{}: {} × {} applies × {} ticks",
                 atk_name,
                 stat_label.trim(),
-                gae.processed_effect_param.number_of_applies,
-                remaining_ticks
+                ep.sub_value_effect,
+                remaining_applies
             )
         } else {
             format!("{}: {} × {} turns", atk_name, stat_label.trim(), nb_turns)
