@@ -504,6 +504,33 @@ impl GameManager {
             );
         }
 
+        // Accumulate the damage transmitted by the launcher this turn so effects that
+        // depend on prior damage dealt (e.g. ConditionDamagePrevTurn) can read it back.
+        // real_amount_tx is negative on a damaging HP effect; store the magnitude.
+        let total_damage_tx: i64 = new_gaes
+            .iter()
+            .filter(|g| {
+                g.processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == HP
+                    && g.effect_outcome.real_amount_tx < 0
+            })
+            .map(|g| g.effect_outcome.real_amount_tx.abs())
+            .sum();
+        if total_damage_tx > 0
+            && let Some(map) = self
+                .pm
+                .current_player
+                .character_rounds_info
+                .tx_rx
+                .get_mut(AmountType::DamageTx as usize)
+        {
+            *map.entry(self.game_state.current_turn_nb as u64)
+                .or_insert(0) += total_damage_tx;
+        }
+
         // update tx rx
         if is_crit
             && let Some(map) = self
@@ -2739,6 +2766,58 @@ mod tests {
         assert!(
             aggro_after > aggro_before,
             "Aggro should increase after a damage attack: before={aggro_before}, after={aggro_after}"
+        );
+    }
+
+    /// After a damage attack the launcher's DamageTx for the current turn should reflect
+    /// the magnitude of the damage dealt.
+    #[test]
+    fn unit_damage_tx_filled_after_damage_attack() {
+        use crate::character_mod::rounds_information::AmountType;
+
+        let (mut gm, hero_launcher_id_name, target_id_name) = testing_test_ally1_vs_test_boss1();
+
+        // Disable dodge & crit so the attack lands cleanly.
+        gm.pm
+            .get_mut_active_boss_character(&target_id_name)
+            .unwrap()
+            .stats
+            .all_stats[DODGE]
+            .current = 0;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        gm.pm
+            .get_mut_active_boss_character(&target_id_name)
+            .unwrap()
+            .character_rounds_info
+            .is_current_target = true;
+
+        let turn_nb = gm.game_state.current_turn_nb as u64;
+
+        let ra = gm.launch_attack(Some("SimpleAtk"));
+        assert!(
+            !ra.new_game_atk_effects.is_empty(),
+            "SimpleAtk should produce at least one effect"
+        );
+
+        // The turn advances after the attack, so read the launcher from active_heroes
+        // (current_player now points to the next acting character).
+        let damage_tx = gm
+            .pm
+            .active_heroes
+            .iter()
+            .find(|h| h.id_name == hero_launcher_id_name)
+            .and_then(|h| {
+                h.character_rounds_info
+                    .tx_rx
+                    .get(AmountType::DamageTx as usize)
+                    .and_then(|m| m.get(&turn_nb))
+                    .copied()
+            })
+            .unwrap_or(0);
+
+        assert!(
+            damage_tx > 0,
+            "DamageTx should be filled with the damage dealt this turn, got {damage_tx}"
         );
     }
 
