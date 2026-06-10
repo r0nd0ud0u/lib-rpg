@@ -237,7 +237,7 @@ impl CharacterRoundsInfo {
             && gae.processed_effect_param.number_of_applies > 0
         {
             format!(
-                "{}: {} × {} applied × {} ticks",
+                "{}: {} × {} applied × {} turns",
                 atk_name,
                 stat_label.trim(),
                 gae.processed_effect_param.number_of_applies,
