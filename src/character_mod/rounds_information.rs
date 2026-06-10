@@ -241,10 +241,10 @@ impl CharacterRoundsInfo {
                 + 1)
             .max(0);
             format!(
-                "{}: {} × {} applies × {} ticks",
+                "{}: {} × {} applied × {} ticks",
                 atk_name,
                 stat_label.trim(),
-                ep.sub_value_effect,
+                 gae.processed_effect_param.number_of_applies,
                 remaining_applies
             )
         } else {
