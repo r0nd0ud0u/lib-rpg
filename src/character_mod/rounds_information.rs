@@ -207,7 +207,7 @@ impl CharacterRoundsInfo {
 
     fn get_hot_and_buf_texts(gae: &GameAtkEffect) -> String {
         let ep = &gae.processed_effect_param.input_effect_param;
-        let nb_turns = ep.nb_turns;
+        let nb_turns = ep.nb_turns - gae.processed_effect_param.counter_turn;
         let atk_name = &gae.atk_type.name;
 
         if ep.buffer.kind == BufKinds::CooldownTurnsNumber {
