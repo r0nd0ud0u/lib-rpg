@@ -233,7 +233,19 @@ impl CharacterRoundsInfo {
             format!("{} {}", amount, ep.buffer.stats_name)
         };
 
-        format!("{}: {} × {} turns", atk_name, stat_label.trim(), nb_turns)
+        if ep.buffer.kind == BufKinds::DecreasingRateOnTurn
+            && gae.processed_effect_param.number_of_applies > 0
+        {
+            format!(
+                "{}: {} × {} applies × {} turns",
+                atk_name,
+                stat_label.trim(),
+                gae.processed_effect_param.number_of_applies,
+                nb_turns
+            )
+        } else {
+            format!("{}: {} × {} turns", atk_name, stat_label.trim(), nb_turns)
+        }
     }
 
     pub fn is_dodging(&self, target_kind: &str) -> bool {
