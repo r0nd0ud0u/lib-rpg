@@ -237,8 +237,9 @@ impl CharacterRoundsInfo {
             && gae.processed_effect_param.number_of_applies > 0
         {
             let remaining_applies = (gae.processed_effect_param.number_of_applies
-                - gae.processed_effect_param.counter_turn + 1)
-                .max(0);
+                - gae.processed_effect_param.counter_turn
+                + 1)
+            .max(0);
             format!(
                 "{}: {} × {} applies × {} ticks",
                 atk_name,
