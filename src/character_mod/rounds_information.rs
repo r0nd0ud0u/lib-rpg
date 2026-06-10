@@ -335,7 +335,7 @@ impl CharacterRoundsInfo {
                 return Ok(processed_effect_param);
             }
             BufKinds::DecreasingRateOnTurn => {
-                processed_effect_param.number_of_applies = process_decrease_on_turn(ep);
+                processed_effect_param.number_of_applies = process_decrease_on_turn(ep, 0);
                 self.update_buffer(&Buffer {
                     value: processed_effect_param.number_of_applies,
                     is_percent: false,
@@ -934,22 +934,14 @@ impl CharacterRoundsInfo {
                 == HP
                 && is_effet_hot_or_dot(&gae.processed_effect_param.input_effect_param.buffer.kind)
             {
-                // DecreasingRateOnTurn: each subsequent tick has a decreasing probability.
-                // With value=N: tick at counter 1 fires at 100%, counter 2 at (N-1)/N %, etc.
-                // Once counter > value the probability is 0 (all ticks exhausted).
                 if gae.processed_effect_param.input_effect_param.buffer.kind
                     == BufKinds::DecreasingRateOnTurn
+                    && process_decrease_on_turn(
+                        &gae.processed_effect_param.input_effect_param,
+                        gae.processed_effect_param.counter_turn,
+                    ) == 0
                 {
-                    let value = gae.processed_effect_param.input_effect_param.buffer.value;
-                    let counter = gae.processed_effect_param.counter_turn;
-                    if value <= 0 || counter > value {
-                        continue;
-                    }
-                    let threshold =
-                        ((value - counter + 1) as f64 / value as f64 * 100.0).round() as i64;
-                    if get_random_nb(0, 100) > threshold {
-                        continue;
-                    }
+                    continue;
                 }
                 Self::process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
             }
