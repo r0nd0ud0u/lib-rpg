@@ -221,10 +221,10 @@ impl GameManager {
         self.game_state.order_to_play.clear();
 
         // add heroes
-        // sort by speed
+        // sort by speed descending (highest speed acts first)
         self.pm
             .active_heroes
-            .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
+            .sort_by(|a, b| b.stats.all_stats[SPEED].cmp(&a.stats.all_stats[SPEED]));
         let mut dead_heroes = Vec::new();
         for hero in &self.pm.active_heroes {
             if !hero.stats.is_dead().unwrap_or(false) {
@@ -238,10 +238,10 @@ impl GameManager {
             self.game_state.order_to_play.push(name);
         }
         // add bosses
-        // sort by speed
+        // sort by speed descending (highest speed acts first)
         self.pm
             .active_bosses
-            .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
+            .sort_by(|a, b| b.stats.all_stats[SPEED].cmp(&a.stats.all_stats[SPEED]));
         for boss in &self.pm.active_bosses {
             if !boss.stats.is_dead().unwrap_or(false) {
                 self.game_state.order_to_play.push(boss.id_name.clone());
@@ -1003,31 +1003,44 @@ mod tests {
             .all_stats[SPEED]
             .clone();
         assert_eq!(gm.game_state.order_to_play.len(), 6);
-        assert_eq!(gm.game_state.order_to_play[0], "test_#1");
-        assert_eq!(gm.game_state.order_to_play[1], "test2_#1");
-        assert_eq!(gm.game_state.order_to_play[2], "test_boss1_#1");
-        assert_eq!(gm.game_state.order_to_play[3], "test_boss2_#1");
-        // supplementary atk
-        assert_eq!(gm.game_state.order_to_play[4], "test_#1");
-        assert_eq!(gm.game_state.order_to_play[5], "test2_#1");
+        // descending speed sort: test2_#1 (312) before test_#1 (212)
+        assert_eq!(gm.game_state.order_to_play[0], "test2_#1");
+        assert_eq!(gm.game_state.order_to_play[1], "test_#1");
+        // descending speed sort: boss2 (15) before boss1 (11)
+        assert_eq!(gm.game_state.order_to_play[2], "test_boss2_#1");
+        assert_eq!(gm.game_state.order_to_play[3], "test_boss1_#1");
+        // supplementary atk (same descending order)
+        assert_eq!(gm.game_state.order_to_play[4], "test2_#1");
+        assert_eq!(gm.game_state.order_to_play[5], "test_#1");
         assert_eq!(old_speed.current - SPEED_THRESHOLD, new_speed.current);
-        assert_eq!(old_speed.max - SPEED_THRESHOLD, new_speed.max);
-        assert_eq!(old_speed.max_raw - SPEED_THRESHOLD, new_speed.max_raw);
+        // reset_speed must NOT touch max/max_raw (would saturate to 0 and break apply_regen)
+        assert_eq!(old_speed.max, new_speed.max);
+        assert_eq!(old_speed.max_raw, new_speed.max_raw);
         assert_eq!(
             old_speed.current_raw - SPEED_THRESHOLD,
             new_speed.current_raw
         );
-        // one hero player is dead
-        gm.pm.active_heroes[0].stats.all_stats[HP].current = 0;
+        // one hero player is dead — use name-based kill so the index stays stable after sort
+        gm.pm
+            .get_mut_active_hero_character("test_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current = 0;
         gm.process_order_to_play();
         assert_eq!(gm.game_state.order_to_play.len(), 5);
         assert_eq!(gm.game_state.order_to_play[0], "test2_#1");
         assert_eq!(gm.game_state.order_to_play[1], "test_#1");
-        assert_eq!(gm.game_state.order_to_play[2], "test_boss1_#1");
-        assert_eq!(gm.game_state.order_to_play[3], "test_boss2_#1");
+        assert_eq!(gm.game_state.order_to_play[2], "test_boss2_#1");
+        assert_eq!(gm.game_state.order_to_play[3], "test_boss1_#1");
         assert_eq!(gm.game_state.order_to_play[4], "test2_#1");
-        // boss is dead
-        gm.pm.active_bosses[0].stats.all_stats[HP].current = 0;
+        // boss is dead — use name-based kill; descending sort puts boss2 at index 0
+        gm.pm
+            .get_mut_active_boss_character("test_boss1_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current = 0;
         gm.process_order_to_play();
         assert_eq!(gm.game_state.order_to_play.len(), 4);
         assert_eq!(gm.game_state.order_to_play[0], "test2_#1");
@@ -1685,57 +1698,50 @@ mod tests {
     fn unit_launch_attack_end_of_effect() {
         let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
 
-        // turn 1 round 1 (test)
+        // New descending-speed order: test2_#1(312) > test_#1(212) > test_boss2_#1(15) > test_boss1_#1(11)
+        // testing_test_ally1_vs_test_boss1 advanced to round 2 (test_#1); test2_#1 already played round 1.
         assert_eq!(gm.game_state.order_to_play.len(), 6);
         assert_eq!(gm.pm.current_player.id_name, hero_launcher_id_name);
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        // apply effect Magic power - up by % for 2 turns (for turn1 and turn2 and is ending on turn 3)
+        // apply effect Magic power - up by % for 2 turns (active turn1+turn2, ends on turn 3)
         gm.launch_attack(Some("Eclat d'espoir"));
-        // turn 1 round 2 (test2)
-        while gm.pm.current_player.id_name != "test2_#1" {
-            gm.new_round();
-        }
-        assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
-        // turn 1 round 3 (boss1)
-        gm.new_round();
-        assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
-        // turn 1 round 4 (boss2)
+        // turn 1 round 3 (boss2 — higher speed than boss1)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test_boss2_#1".to_owned());
-        // turn 1 round 5 (test)
+        // turn 1 round 4 (boss1)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
-        // turn 1 round 6 (test2)
+        assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
+        // turn 1 round 5 (test2 supplementary)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
-        // turn 2 round 1
+        // turn 1 round 6 (test supplementary)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
+        // turn 2 round 1 (test2 — highest speed, acts first)
         gm.start_new_turn();
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
-        // turn 2 round 2 (test2)
-        gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
-        // 2 effects received from eclat d espoir (counter turn 1/2, 1 on 2 )
+        // 2 effects received from eclat d espoir (counter turn 1/2, still active)
         assert_eq!(
             gm.pm.current_player.character_rounds_info.all_effects.len(),
             2
         );
-        // turn 2 round 3 (boss1)
+        // turn 2 round 2 (test)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
-        // turn 2 round 4 (boss2)
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
+        // turn 2 round 3 (boss2)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test_boss2_#1".to_owned());
-        // turn 2 round 5 (test)
+        // turn 2 round 4 (boss1)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
-        // turn 2 round 6 (test2)
+        assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
+        // turn 2 round 5 (test2 supplementary)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
-        // turn 3 round 1 test
-        gm.start_new_turn();
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
-        // turn 3 round 2 (test2)
+        // turn 2 round 6 (test supplementary)
         gm.new_round();
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
+        // turn 3 round 1 (test2 — highest speed)
+        gm.start_new_turn();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // effects ended after 2 turns
         assert!(

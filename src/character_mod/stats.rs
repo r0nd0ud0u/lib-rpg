@@ -234,9 +234,11 @@ impl Stats {
     pub fn reset_speed(&mut self) {
         let speed_pl1 = self.get_mut_value(SPEED);
         speed_pl1.current = speed_pl1.current.saturating_sub(SPEED_THRESHOLD);
-        speed_pl1.max = speed_pl1.max.saturating_sub(SPEED_THRESHOLD);
-        speed_pl1.max_raw = speed_pl1.max_raw.saturating_sub(SPEED_THRESHOLD);
         speed_pl1.current_raw = speed_pl1.current_raw.saturating_sub(SPEED_THRESHOLD);
+        // max and max_raw must NOT be modified: the comment in apply_regen notes that
+        // "the maximum must stay fixed so the turn-order threshold remains stable".
+        // Reducing them by SPEED_THRESHOLD would saturate to 0 (since initial max ≈ 12),
+        // breaking the speed bar display and the regen guard (`if speed.max > 0`).
     }
 
     /// stat.m_RawMaxValue of a stat cannot be equal to 0.
