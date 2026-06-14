@@ -79,11 +79,11 @@
             "Tours actifs": 2,
             "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 0,
+            "Value": 2,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
-                "value": 0,
+                "value": 2,
                 "is-percent": false,
                 "stats-name": "",
                 "passive-enabled": false
@@ -97,5 +97,5 @@
     "Portée": "Individual",
     "Sound": "",
     "Description": "Vital Offering — drains own HP to deliver a massive heal to an ally.",
-    "DescriptionEffects": "Deals 15% magic damage to self; heals all allies for 85 HP; +50% max Magic armor on all allies for 2 turns; +50% max Physical armor on all allies for 2 turns; 2-turn cooldown."
+    "DescriptionEffects": "Deals 15% magic damage to himself; heals all allies for 85; +50% max Magic armor on all allies for 2 turns; +50% max Physical armor on all allies for 2 turns; 2-turn cooldown."
 }
