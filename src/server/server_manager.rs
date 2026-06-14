@@ -206,12 +206,15 @@ mod tests {
         sm.add_server_data("srv", &cgd, "owner");
 
         // Put server in InitGame phase
-        sm.servers_data.get_mut("srv").unwrap().core_game_data.game_phase = GamePhase::InitGame;
+        sm.servers_data
+            .get_mut("srv")
+            .unwrap()
+            .core_game_data
+            .game_phase = GamePhase::InitGame;
 
         sm.add_player_to_server("srv", "alice", 10);
         assert_eq!(
-            sm.servers_data["srv"].core_game_data.players_nb,
-            1,
+            sm.servers_data["srv"].core_game_data.players_nb, 1,
             "players_nb incremented in InitGame phase"
         );
     }

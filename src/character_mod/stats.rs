@@ -756,8 +756,14 @@ mod tests {
 
     #[test]
     fn unit_attribute_ord() {
-        let a1 = Attribute { current: 10, ..Default::default() };
-        let a2 = Attribute { current: 20, ..Default::default() };
+        let a1 = Attribute {
+            current: 10,
+            ..Default::default()
+        };
+        let a2 = Attribute {
+            current: 20,
+            ..Default::default()
+        };
         assert!(a1 < a2);
         assert!(a1.partial_cmp(&a2) == Some(std::cmp::Ordering::Less));
     }

@@ -229,7 +229,9 @@ mod tests {
     #[test]
     fn unit_read_from_json() {
         // read_from_json is exercised via character loading, but test it directly
-        let result = super::read_from_json::<_, serde_json::Value>("./tests/offlines/scenarios/stage_1.json");
+        let result = super::read_from_json::<_, serde_json::Value>(
+            "./tests/offlines/scenarios/stage_1.json",
+        );
         assert!(result.is_ok());
         // error path: file not found
         let err: anyhow::Result<serde_json::Value> = super::read_from_json("./nonexistent.json");

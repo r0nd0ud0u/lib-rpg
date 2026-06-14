@@ -2137,9 +2137,7 @@ mod tests {
 
         // Guarantee a crit via streak-breaker with current_critical > 60 → DamageCritCapped
         cri.crit_drought_counter = 5;
-        let result = cri
-            .process_critical_strike(&atk, 80, Some(5))
-            .unwrap();
+        let result = cri.process_critical_strike(&atk, 80, Some(5)).unwrap();
         assert!(result, "Should be a critical strike via streak-breaker");
         // Check that DamageCritCapped buffer was set (since 80 > 60 → delta=20)
         let capped_buf = cri.get_buffer_by_type(&BufKinds::DamageCritCapped);

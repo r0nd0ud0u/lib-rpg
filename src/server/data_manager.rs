@@ -322,7 +322,10 @@ mod tests {
     fn unit_list_universes() {
         let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
         let universes = dm.list_universes();
-        assert!(universes.contains(&"".to_owned()), "default universe present");
+        assert!(
+            universes.contains(&"".to_owned()),
+            "default universe present"
+        );
     }
 
     #[test]

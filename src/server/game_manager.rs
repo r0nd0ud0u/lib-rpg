@@ -3337,7 +3337,10 @@ mod tests {
         // Make round 1 point to the first hero (who is dead)
         gm.game_state.current_round = 0;
         let (is_new_round, _logs) = gm.new_round();
-        assert!(!is_new_round, "dead player → should not start a new round normally");
+        assert!(
+            !is_new_round,
+            "dead player → should not start a new round normally"
+        );
         assert_eq!(
             gm.game_state.status,
             GameStatus::EndOfGame,

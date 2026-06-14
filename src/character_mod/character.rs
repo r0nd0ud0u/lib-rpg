@@ -1895,7 +1895,9 @@ mod tests {
         assert!(!c.has_energy_kind(&EnergyKind::Mana));
         assert!(!c.has_energy_kind(&EnergyKind::Vigor));
         assert!(!c.has_energy_kind(&EnergyKind::Berserk));
-        c.energies.push(Energy { kind: EnergyKind::Mana });
+        c.energies.push(Energy {
+            kind: EnergyKind::Mana,
+        });
         assert!(c.has_energy_kind(&EnergyKind::Mana));
         assert!(!c.has_energy_kind(&EnergyKind::Vigor));
     }
@@ -1919,9 +1921,10 @@ mod tests {
             name: "ghost potion".to_string(),
             ..Default::default()
         };
-        assert!(c
-            .use_consumable(fake_consumable, &game_state, &launcher_stats)
-            .is_err());
+        assert!(
+            c.use_consumable(fake_consumable, &game_state, &launcher_stats)
+                .is_err()
+        );
 
         // success: add a small potion to inventory and use it
         c.inventory.add_small_potion();
@@ -1971,7 +1974,9 @@ mod tests {
         c.character_rounds_info.new_buffers();
         // Initialize tx_rx
         for _ in 0..crate::character_mod::rounds_information::AmountType::EnumSize as usize {
-            c.character_rounds_info.tx_rx.push(std::collections::HashMap::new());
+            c.character_rounds_info
+                .tx_rx
+                .push(std::collections::HashMap::new());
         }
 
         // Attack with ConditionDamagePrevTurn (will fail since no prior damage)
@@ -2035,7 +2040,10 @@ mod tests {
         let gs = GameState::default();
         // process_atk should compute nb_applies from remaining/cost_per_apply
         let result = c.process_atk(&gs, false, &atk);
-        assert!(result.is_ok(), "process_atk with RepeatAsManyAsPossible should succeed");
+        assert!(
+            result.is_ok(),
+            "process_atk with RepeatAsManyAsPossible should succeed"
+        );
     }
 
     #[test]
@@ -2050,6 +2058,9 @@ mod tests {
         // use an atk name that exists in the character's attacks_list
         let atk = build_atk_damage_indiv();
         let result = c.process_critical_strike(&atk.name).unwrap();
-        assert!(result, "Berserker should get guaranteed crit at STREAK_BREAKER_BERSERKER threshold");
+        assert!(
+            result,
+            "Berserker should get guaranteed crit at STREAK_BREAKER_BERSERKER threshold"
+        );
     }
 }
