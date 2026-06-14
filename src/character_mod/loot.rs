@@ -86,6 +86,18 @@ mod tests {
     }
 
     #[test]
+    fn unit_format_loot_equipment() {
+        let loot = Loot {
+            name: "Iron Sword".to_string(),
+            kind: LootType::Equipment,
+            rank: Rank::Common,
+            level: 1,
+            classes: vec![],
+        };
+        assert!(loot.format_loot().contains("Equipment"));
+    }
+
+    #[test]
     fn unit_format_loot_material_and_currency() {
         let loot_mat = Loot {
             name: "Iron Ore".to_string(),

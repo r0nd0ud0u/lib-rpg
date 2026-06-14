@@ -747,4 +747,27 @@ mod tests {
             "Speed max_raw must not change on regen"
         );
     }
+
+    #[test]
+    fn unit_is_dead_no_hp_stat() {
+        let stats = Stats::default();
+        assert!(stats.is_dead().is_none());
+    }
+
+    #[test]
+    fn unit_attribute_ord() {
+        let a1 = Attribute { current: 10, ..Default::default() };
+        let a2 = Attribute { current: 20, ..Default::default() };
+        assert!(a1 < a2);
+        assert!(a1.partial_cmp(&a2) == Some(std::cmp::Ordering::Less));
+    }
+
+    #[test]
+    fn unit_reset_speed() {
+        let mut stats = Stats::default();
+        stats.init();
+        let initial_speed = stats.all_stats[SPEED].current;
+        stats.reset_speed();
+        assert!(stats.all_stats[SPEED].current <= initial_speed);
+    }
 }

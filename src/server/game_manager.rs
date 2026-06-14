@@ -2423,6 +2423,51 @@ mod tests {
     }
 
     #[test]
+    fn unit_build_consumable_effects_named_potions() {
+        use crate::character_mod::class::Class;
+        use crate::character_mod::loot::{Loot, LootType};
+        use crate::character_mod::rank::Rank;
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+
+        for (potion_name, rank) in [
+            ("potion of resurrection", Rank::Advanced),
+            ("mana potion", Rank::Intermediate),
+            ("vigor potion", Rank::Common),
+            ("berserk potion", Rank::Advanced),
+        ] {
+            let original_len = gm.pm.party_consumables.len();
+            gm.current_scenario = Scenario {
+                name: "test".to_string(),
+                description: "test".to_string(),
+                boss_patterns: HashMap::new(),
+                level: 1,
+                loots: vec![Loot {
+                    name: potion_name.to_string(),
+                    kind: LootType::Consumable,
+                    rank,
+                    level: 1,
+                    classes: vec![Class::Standard],
+                }],
+                universe: String::new(),
+            };
+            gm.process_end_of_scenario();
+            let found = gm
+                .pm
+                .party_consumables
+                .iter()
+                .skip(original_len)
+                .any(|c| c.name == potion_name);
+            assert!(
+                found,
+                "'{potion_name}' should be in party bag after end_of_scenario"
+            );
+        }
+    }
+
+    #[test]
     fn unit_end_of_scenario_currency_loot() {
         use crate::character_mod::class::Class;
         use crate::character_mod::loot::{Loot, LootType};
@@ -3278,6 +3323,25 @@ mod tests {
         assert!(
             hot_ticks <= 3,
             "HOT must fire at most 3 times (T2–T4): fired {hot_ticks} times"
+        );
+    }
+
+    #[test]
+    fn unit_new_round_all_heroes_dead_end_of_game() {
+        let mut gm = testing_game_manager();
+        gm.start_game();
+        // Kill ALL heroes
+        for hero in &mut gm.pm.active_heroes {
+            hero.stats.all_stats[HP].current = 0;
+        }
+        // Make round 1 point to the first hero (who is dead)
+        gm.game_state.current_round = 0;
+        let (is_new_round, _logs) = gm.new_round();
+        assert!(!is_new_round, "dead player → should not start a new round normally");
+        assert_eq!(
+            gm.game_state.status,
+            GameStatus::EndOfGame,
+            "all heroes dead → EndOfGame"
         );
     }
 }

@@ -190,4 +190,49 @@ mod tests {
         let ratio = super::calc_ratio(10, 0);
         assert_eq!(1.0, ratio);
     }
+
+    #[test]
+    fn unit_softcap_percent() {
+        assert_eq!(super::softcap_percent(0), 0);
+        assert_eq!(super::softcap_percent(100), 50);
+        assert_eq!(super::softcap_percent(200), 67);
+    }
+
+    #[test]
+    fn unit_get_random_nb() {
+        for _ in 0..20 {
+            let n = super::get_random_nb(1, 10);
+            assert!((1..=10).contains(&n));
+        }
+    }
+
+    #[test]
+    fn unit_format_string_with_timestamp() {
+        let s = super::format_string_with_timestamp("test");
+        assert!(s.contains("test"));
+        assert!(s.starts_with('['));
+    }
+
+    #[test]
+    fn unit_write_to_json() {
+        use std::fs;
+        let path = "./target/test_write_to_json.json";
+        let value = vec![1i32, 2, 3];
+        let result = super::_write_to_json(&value, path);
+        assert!(result.is_ok());
+        // verify the file was written and is valid JSON
+        let content = fs::read_to_string(path).unwrap();
+        assert!(content.contains("1"));
+        fs::remove_file(path).ok();
+    }
+
+    #[test]
+    fn unit_read_from_json() {
+        // read_from_json is exercised via character loading, but test it directly
+        let result = super::read_from_json::<_, serde_json::Value>("./tests/offlines/scenarios/stage_1.json");
+        assert!(result.is_ok());
+        // error path: file not found
+        let err: anyhow::Result<serde_json::Value> = super::read_from_json("./nonexistent.json");
+        assert!(err.is_err());
+    }
 }

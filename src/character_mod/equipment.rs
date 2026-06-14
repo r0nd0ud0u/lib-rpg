@@ -110,11 +110,11 @@ mod tests {
         assert_eq!(format!("{}", EquipmentJsonKey::LeftRing), "LeftRing");
         assert_eq!(format!("{}", EquipmentJsonKey::Chest), "Chest");
         assert_eq!(format!("{}", EquipmentJsonKey::Head), "Head");
-        assert_eq!(format!("{}", EquipmentJsonKey::Legs), "Legs");
+        assert_eq!(format!("{}", EquipmentJsonKey::Pants), "Pants");
         assert_eq!(format!("{}", EquipmentJsonKey::Belt), "Belt");
-        assert_eq!(format!("{}", EquipmentJsonKey::Feet), "Feet");
-        assert_eq!(format!("{}", EquipmentJsonKey::Necklace), "Necklace");
-        assert_eq!(format!("{}", EquipmentJsonKey::Earrings), "Earrings");
+        assert_eq!(format!("{}", EquipmentJsonKey::Shoes), "Shoes");
+        assert_eq!(format!("{}", EquipmentJsonKey::Amulet), "Amulet");
+        assert_eq!(format!("{}", EquipmentJsonKey::Cape), "Cape");
         assert_eq!(format!("{}", EquipmentJsonKey::Tattoes), "Tattoes");
         assert_eq!(format!("{}", EquipmentJsonKey::Gloves), "Gloves");
     }

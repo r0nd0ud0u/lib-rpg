@@ -74,6 +74,14 @@ mod tests {
     use crate::server::data_manager::DataManager;
 
     #[test]
+    fn unit_core_game_data_load_next_scenario() {
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core_game_data = CoreGameData::new(&dm, "Default").unwrap();
+        let result = core_game_data.load_next_scenario();
+        assert!(result.is_ok());
+    }
+
+    #[test]
     fn unit_core_game_data_new() {
         let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
         let core_game_data = CoreGameData::new(&dm, "Default");

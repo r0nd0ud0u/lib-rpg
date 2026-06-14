@@ -1886,4 +1886,170 @@ mod tests {
         // effect still the same
         assert_eq!(32, c.stats.all_stats[SPEED_REGEN].max);
     }
+
+    #[test]
+    fn unit_has_energy_kind() {
+        use crate::character_mod::energy::{Energy, EnergyKind};
+        // Default character has no energies
+        let mut c = Character::default();
+        assert!(!c.has_energy_kind(&EnergyKind::Mana));
+        assert!(!c.has_energy_kind(&EnergyKind::Vigor));
+        assert!(!c.has_energy_kind(&EnergyKind::Berserk));
+        c.energies.push(Energy { kind: EnergyKind::Mana });
+        assert!(c.has_energy_kind(&EnergyKind::Mana));
+        assert!(!c.has_energy_kind(&EnergyKind::Vigor));
+    }
+
+    #[test]
+    fn unit_use_consumable() {
+        use crate::character_mod::inventory::Consumable;
+        use crate::server::game_state::GameState;
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let game_state = GameState::default();
+        let launcher_stats = c.stats.clone();
+
+        // error: potion not in inventory
+        let fake_consumable = Consumable {
+            name: "ghost potion".to_string(),
+            ..Default::default()
+        };
+        assert!(c
+            .use_consumable(fake_consumable, &game_state, &launcher_stats)
+            .is_err());
+
+        // success: add a small potion to inventory and use it
+        c.inventory.add_small_potion();
+        let hp_before = c.stats.all_stats[HP].current;
+        // drain some HP first so the heal has room
+        c.stats.all_stats[HP].current = 10;
+        let small_potion = c.inventory.consumables[0].clone();
+        let result = c.use_consumable(small_potion, &game_state, &launcher_stats);
+        assert!(result.is_ok());
+        // potion should be removed from inventory
+        assert!(c.inventory.consumables.is_empty());
+        // HP should have increased
+        assert!(c.stats.all_stats[HP].current > 10);
+        let _ = hp_before; // suppress unused warning
+    }
+
+    #[test]
+    fn unit_apply_consumable_effects() {
+        use crate::character_mod::inventory::Consumable;
+        use crate::server::game_state::GameState;
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let game_state = GameState::default();
+        let launcher_stats = c.stats.clone();
+
+        // apply_consumable_effects does NOT require the consumable to be in inventory
+        c.stats.all_stats[HP].current = 10;
+        c.inventory.add_small_potion();
+        let consumable = c.inventory.consumables[0].clone();
+        // inventory should still have the potion (apply_consumable_effects doesn't remove it)
+        let result = c.apply_consumable_effects(&consumable, &game_state, &launcher_stats);
+        assert!(result.is_ok());
+        assert!(!c.inventory.consumables.is_empty());
+        assert!(c.stats.all_stats[HP].current > 10);
+    }
+
+    #[test]
+    fn unit_process_all_effects_condition_damage_break() {
+        use crate::character_mod::effect::EffectParam;
+        use crate::server::game_state::GameState;
+        let mut c = testing_character();
+        c.character_rounds_info.new_buffers();
+        // Initialize tx_rx
+        for _ in 0..crate::character_mod::rounds_information::AmountType::EnumSize as usize {
+            c.character_rounds_info.tx_rx.push(std::collections::HashMap::new());
+        }
+
+        // Attack with ConditionDamagePrevTurn (will fail since no prior damage)
+        // followed by a second effect that should be skipped
+        let mut atk = crate::testing::testing_atk::build_atk_damage_indiv();
+        let cond_ep = EffectParam {
+            nb_turns: 1,
+            buffer: Buffer {
+                kind: BufKinds::ConditionDamagePrevTurn,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        // Put ConditionDamagePrevTurn first, then a normal effect
+        atk.all_effects.insert(0, cond_ep);
+        c.attacks_list.insert(atk.name.clone(), atk.clone());
+
+        let gs = GameState {
+            current_turn_nb: 1, // prev turn = 0, no damage → condition fails
+            ..Default::default()
+        };
+        let result = c.process_atk(&gs, false, &atk);
+        assert!(result.is_ok());
+        // Only the ConditionDamagePrevTurn should be processed (0 applies), rest skipped
+        let processed = result.unwrap();
+        assert!(
+            processed[0].number_of_applies == 0,
+            "ConditionDamagePrevTurn should have 0 applies"
+        );
+        assert_eq!(processed.len(), 1, "remaining effects should be skipped");
+    }
+
+    #[test]
+    fn unit_process_atk_repeat_as_many_as_possible() {
+        use crate::character_mod::effect::EffectParam;
+        use crate::server::game_state::GameState;
+        let mut c = testing_character();
+        // Set up vigor energy so cost_per_apply > 0 hits the vigor branch
+        c.stats.all_stats.insert(
+            VIGOR.to_owned(),
+            crate::character_mod::stats::Attribute {
+                current: 30,
+                max: 100,
+                ..Default::default()
+            },
+        );
+        // Build an attack with RepeatAsManyAsPossible effect and vigor_cost=10
+        let mut atk = crate::testing::testing_atk::build_atk_damage_indiv();
+        atk.vigor_cost = 10;
+        atk.all_effects.push(EffectParam {
+            nb_turns: 1,
+            buffer: Buffer {
+                kind: BufKinds::RepeatAsManyAsPossible,
+                value: 1,
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+        c.attacks_list.insert(atk.name.clone(), atk.clone());
+        c.character_rounds_info.new_buffers();
+        let gs = GameState::default();
+        // process_atk should compute nb_applies from remaining/cost_per_apply
+        let result = c.process_atk(&gs, false, &atk);
+        assert!(result.is_ok(), "process_atk with RepeatAsManyAsPossible should succeed");
+    }
+
+    #[test]
+    fn unit_drought_threshold_crit_berserker() {
+        use crate::common::constants::streak_breaker_const::STREAK_BREAKER_BERSERKER;
+        use crate::testing::testing_atk::build_atk_damage_indiv;
+        let mut c = testing_character();
+        // Berserker class → always gets STREAK_BREAKER_BERSERKER crit threshold
+        c.class = Class::Berserker;
+        c.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        c.character_rounds_info.crit_drought_counter = STREAK_BREAKER_BERSERKER;
+        // use an atk name that exists in the character's attacks_list
+        let atk = build_atk_damage_indiv();
+        let result = c.process_critical_strike(&atk.name).unwrap();
+        assert!(result, "Berserker should get guaranteed crit at STREAK_BREAKER_BERSERKER threshold");
+    }
 }
