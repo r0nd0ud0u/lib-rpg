@@ -35,7 +35,7 @@ mod tests {
     use crate::character_mod::{class::Class, rank::Rank};
 
     #[test]
-    fn test_build_experience() {
+    fn unit_build_experience() {
         assert_eq!(build_experience(&Rank::Common, 1), 100);
         assert_eq!(build_experience(&Rank::Common, 5), 500);
         assert_eq!(build_experience(&Rank::Intermediate, 1), 200);
@@ -45,7 +45,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build_exp_to_next_level_standard() {
+    fn unit_build_exp_to_next_level_standard() {
         // Standard/Berserker: same as build_experience base
         assert_eq!(
             build_exp_to_next_level(&Rank::Common, &Class::Standard, 1),
@@ -66,7 +66,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build_exp_to_next_level_class_factors() {
+    fn unit_build_exp_to_next_level_class_factors() {
         // Common rank, level 1, base = 100
         assert_eq!(
             build_exp_to_next_level(&Rank::Common, &Class::Warrior, 1),
@@ -80,7 +80,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build_exp_to_next_level_scales_with_level() {
+    fn unit_build_exp_to_next_level_scales_with_level() {
         // Common Mage: base * 1.5, level 5 → 500 * 1.5 = 750
         assert_eq!(build_exp_to_next_level(&Rank::Common, &Class::Mage, 5), 750);
         // Intermediate Warrior: base 200, level 2 → 400 * 1.2 = 480

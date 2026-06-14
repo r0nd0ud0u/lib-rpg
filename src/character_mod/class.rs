@@ -51,3 +51,36 @@ impl Class {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_from_str() {
+        assert_eq!(Class::from_str("Standard").unwrap(), Class::Standard);
+        assert_eq!(Class::from_str("Berserker").unwrap(), Class::Berserker);
+        assert_eq!(Class::from_str("Healer").unwrap(), Class::Healer);
+        assert_eq!(Class::from_str("Mage").unwrap(), Class::Mage);
+        assert_eq!(Class::from_str("Warrior").unwrap(), Class::Warrior);
+        assert!(Class::from_str("Unknown").is_err());
+    }
+
+    #[test]
+    fn unit_to_str() {
+        assert_eq!(Class::Standard.to_str(), "Standard");
+        assert_eq!(Class::Berserker.to_str(), "Berserker");
+        assert_eq!(Class::Healer.to_str(), "Healer");
+        assert_eq!(Class::Mage.to_str(), "Mage");
+        assert_eq!(Class::Warrior.to_str(), "Warrior");
+    }
+
+    #[test]
+    fn unit_to_emoji() {
+        assert!(!Class::Standard.to_emoji().is_empty());
+        assert!(!Class::Berserker.to_emoji().is_empty());
+        assert!(!Class::Healer.to_emoji().is_empty());
+        assert!(!Class::Mage.to_emoji().is_empty());
+        assert!(!Class::Warrior.to_emoji().is_empty());
+    }
+}

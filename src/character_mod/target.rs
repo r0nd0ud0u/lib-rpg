@@ -84,4 +84,130 @@ pub fn is_target_ally(target: &str) -> bool {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use crate::character_mod::{buffers::Buffer, effect::EffectParam};
+
+    use super::*;
+    use crate::common::constants::{all_target_const::*, reach_const::ZONE};
+
+    fn make_target(
+        target_kind: &str,
+        reach: &str,
+        launcher_id: &str,
+        target_id: &str,
+        launcher_kind: CharacterKind,
+        target_kind_chara: CharacterKind,
+    ) -> TargetData {
+        TargetData {
+            launcher_id_name: launcher_id.to_string(),
+            target_id_name: target_id.to_string(),
+            launcher_chara_kind: launcher_kind,
+            target_chara_kind: target_kind_chara,
+            effect_param: EffectParam {
+                target_kind: target_kind.to_string(),
+                reach: reach.to_string(),
+                ..Default::default()
+            },
+        }
+    }
+
+    #[test]
+    fn unit_is_potential_target_himself_wrong_id() {
+        let td = make_target(
+            TARGET_HIMSELF,
+            "",
+            "hero1",
+            "hero2",
+            CharacterKind::Hero,
+            CharacterKind::Hero,
+        );
+        assert!(!td.is_potential_target_on_effect());
+    }
+
+    #[test]
+    fn unit_is_potential_target_himself_same_id() {
+        let td = make_target(
+            TARGET_HIMSELF,
+            "",
+            "hero1",
+            "hero1",
+            CharacterKind::Hero,
+            CharacterKind::Hero,
+        );
+        assert!(td.is_potential_target_on_effect());
+    }
+
+    #[test]
+    fn unit_is_potential_target_only_ally_same_id() {
+        let td = make_target(
+            TARGET_ONLY_ALLY,
+            "",
+            "hero1",
+            "hero1",
+            CharacterKind::Hero,
+            CharacterKind::Hero,
+        );
+        assert!(!td.is_potential_target_on_effect());
+    }
+
+    #[test]
+    fn unit_is_potential_target_only_ally_diff_id() {
+        let td = make_target(
+            TARGET_ONLY_ALLY,
+            "",
+            "hero1",
+            "hero2",
+            CharacterKind::Hero,
+            CharacterKind::Hero,
+        );
+        assert!(td.is_potential_target_on_effect());
+    }
+
+    #[test]
+    fn unit_is_potential_target_ally_effect_on_enemy() {
+        let td = make_target(
+            TARGET_ALLY,
+            "",
+            "hero1",
+            "boss1",
+            CharacterKind::Hero,
+            CharacterKind::Boss,
+        );
+        assert!(!td.is_potential_target_on_effect());
+    }
+
+    #[test]
+    fn unit_is_potential_target_enemy_effect_on_ally() {
+        let td = make_target(
+            TARGET_ENNEMY,
+            "",
+            "hero1",
+            "hero2",
+            CharacterKind::Hero,
+            CharacterKind::Hero,
+        );
+        assert!(!td.is_potential_target_on_effect());
+    }
+
+    #[test]
+    fn unit_is_potential_target_ally_zone_self() {
+        let td = make_target(
+            TARGET_ALLY,
+            ZONE,
+            "hero1",
+            "hero1",
+            CharacterKind::Hero,
+            CharacterKind::Hero,
+        );
+        assert!(!td.is_potential_target_on_effect());
+    }
+
+    #[test]
+    fn unit_is_target_ally() {
+        assert!(is_target_ally(TARGET_ALLY));
+        assert!(is_target_ally(TARGET_ALL_ALLIES));
+        assert!(is_target_ally(TARGET_HIMSELF));
+        assert!(is_target_ally(TARGET_ONLY_ALLY));
+        assert!(!is_target_ally(TARGET_ENNEMY));
+    }
+}

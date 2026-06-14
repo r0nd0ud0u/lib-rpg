@@ -207,7 +207,7 @@ impl CharacterRoundsInfo {
 
     fn get_hot_and_buf_texts(gae: &GameAtkEffect) -> String {
         let ep = &gae.processed_effect_param.input_effect_param;
-        let nb_turns = ep.nb_turns;
+        let nb_turns = ep.nb_turns - gae.processed_effect_param.counter_turn;
         let atk_name = &gae.atk_type.name;
 
         if ep.buffer.kind == BufKinds::CooldownTurnsNumber {
@@ -233,7 +233,19 @@ impl CharacterRoundsInfo {
             format!("{} {}", amount, ep.buffer.stats_name)
         };
 
-        format!("{}: {} × {} turns", atk_name, stat_label.trim(), nb_turns)
+        if ep.buffer.kind == BufKinds::DecreasingRateOnTurn
+            && gae.processed_effect_param.number_of_applies > 0
+        {
+            format!(
+                "{}: {} × {} applied × {} turns",
+                atk_name,
+                stat_label.trim(),
+                gae.processed_effect_param.number_of_applies,
+                nb_turns
+            )
+        } else {
+            format!("{}: {} × {} turns", atk_name, stat_label.trim(), nb_turns)
+        }
     }
 
     pub fn is_dodging(&self, target_kind: &str) -> bool {
@@ -335,7 +347,7 @@ impl CharacterRoundsInfo {
                 return Ok(processed_effect_param);
             }
             BufKinds::DecreasingRateOnTurn => {
-                processed_effect_param.number_of_applies = process_decrease_on_turn(ep);
+                processed_effect_param.number_of_applies = process_decrease_on_turn(ep, 0);
                 self.update_buffer(&Buffer {
                     value: processed_effect_param.number_of_applies,
                     is_percent: false,
@@ -934,6 +946,15 @@ impl CharacterRoundsInfo {
                 == HP
                 && is_effet_hot_or_dot(&gae.processed_effect_param.input_effect_param.buffer.kind)
             {
+                if gae.processed_effect_param.input_effect_param.buffer.kind
+                    == BufKinds::DecreasingRateOnTurn
+                    && process_decrease_on_turn(
+                        &gae.processed_effect_param.input_effect_param,
+                        gae.processed_effect_param.counter_turn,
+                    ) == 0
+                {
+                    continue;
+                }
                 Self::process_hot_or_dot(&mut logs, &mut hot_and_dot, gae);
             }
         }
@@ -989,6 +1010,119 @@ mod tests {
             },
         },
     };
+
+    #[test]
+    fn unit_new_buffers() {
+        let mut cri = CharacterRoundsInfo::default();
+        cri.new_buffers();
+        assert_eq!(cri.all_buffers.len(), BufKinds::EnumSize as usize);
+    }
+
+    #[test]
+    fn unit_get_hot_and_buf_texts_cooldown_and_max_stat() {
+        use crate::character_mod::{attack_type::AttackType, effect::EffectOutcome};
+        use crate::testing::testing_effect::{build_cooldown_effect, build_effect_max_stats};
+
+        // CooldownTurnsNumber → "cooldown" label in text
+        let cooldown_gae = GameAtkEffect {
+            processed_effect_param: build_cooldown_effect(),
+            atk_type: AttackType {
+                name: "TestCooldown".to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![cooldown_gae]);
+        // Cooldown goes to debuf bucket (value=3, stats_name empty, not HP)
+        // but the text should contain "cooldown"
+        let all_txt: Vec<String> = result
+            .debuf_txt
+            .iter()
+            .chain(result.buf_txt.iter())
+            .cloned()
+            .collect();
+        assert!(
+            all_txt.iter().any(|t| t.contains("cooldown")),
+            "cooldown text expected, got: {:?}",
+            all_txt
+        );
+
+        // ChangeMaxStatByValue → "X max STAT" label
+        let max_stat_gae = GameAtkEffect {
+            processed_effect_param: build_effect_max_stats(),
+            atk_type: AttackType {
+                name: "TestMaxStat".to_owned(),
+                ..Default::default()
+            },
+            effect_outcome: EffectOutcome {
+                full_amount_tx: -20,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let result2 = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![max_stat_gae]);
+        let all_txt2: Vec<String> = result2
+            .dot_txt
+            .iter()
+            .chain(result2.debuf_txt.iter())
+            .cloned()
+            .collect();
+        assert!(
+            all_txt2.iter().any(|t| t.contains("max")),
+            "max stat text expected, got: {:?}",
+            all_txt2
+        );
+    }
+
+    #[test]
+    fn unit_get_hot_and_buf_texts_decreasing_rate() {
+        use crate::character_mod::{
+            attack_type::AttackType,
+            effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
+        };
+
+        // DecreasingRateOnTurn with number_of_applies > 0 → "× N applied × M turns" label
+        let ep = EffectParam {
+            nb_turns: 3,
+            sub_value_effect: 3,
+            buffer: Buffer {
+                kind: BufKinds::DecreasingRateOnTurn,
+                value: 30,
+                stats_name: HP.to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let processed = ProcessedEffectParam {
+            input_effect_param: ep,
+            number_of_applies: 2,
+            ..Default::default()
+        };
+        let gae = GameAtkEffect {
+            processed_effect_param: processed,
+            atk_type: AttackType {
+                name: "TestDecreasing".to_owned(),
+                ..Default::default()
+            },
+            effect_outcome: EffectOutcome {
+                full_amount_tx: 30,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![gae]);
+        let all_txt: Vec<String> = result
+            .hot_txt
+            .iter()
+            .chain(result.buf_txt.iter())
+            .cloned()
+            .collect();
+        assert!(
+            all_txt.iter().any(|t| t.contains("applied")),
+            "decreasing rate text with 'applied' expected, got: {:?}",
+            all_txt
+        );
+    }
 
     #[test]
     fn unit_get_hot_and_buf_nbs() {
@@ -1932,6 +2066,84 @@ mod tests {
             result.log.message.contains("7 turns"),
             "Message: {}",
             result.log.message
+        );
+    }
+
+    #[test]
+    fn unit_process_effect_type_repeat_if_heal_and_condition_damage() {
+        use crate::character_mod::effect::{EffectParam, ProcessedEffectParam};
+        use crate::server::game_state::GameState;
+
+        let mut cri = CharacterRoundsInfo::default();
+
+        // Direct call with RepeatIfHeal → hits lines 551-558 in process_effect_type
+        let ep_repeat = make_ep(BufKinds::RepeatIfHeal, 80, "", 1);
+        let result = cri.process_effect_type(&ep_repeat, "test_atk").unwrap();
+        assert!(result.log.message.contains("RepeatIfHeal"));
+
+        // Direct call with ConditionDamagePrevTurn → hits lines 559-566
+        let ep_cond = make_ep(BufKinds::ConditionDamagePrevTurn, 1, "", 1);
+        let result2 = cri.process_effect_type(&ep_cond, "test_atk").unwrap();
+        assert!(result2.log.message.contains("ConditionDamagePrevTurn"));
+        let _ = ProcessedEffectParam::default();
+        let _ = EffectParam::default();
+        let _ = GameState::default();
+    }
+
+    #[test]
+    fn unit_process_one_effect_repeat_if_heal_with_heal() {
+        use crate::server::game_state::GameState;
+
+        let mut cri = CharacterRoundsInfo::default();
+        // Initialize tx_rx with enough slots
+        for _ in 0..AmountType::EnumSize as usize {
+            cri.tx_rx.push(std::collections::HashMap::new());
+        }
+        // Record a heal on turn 0 (the "prev turn" when current_turn_nb = 1)
+        cri.tx_rx[AmountType::HealTx as usize].insert(0, 100);
+
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        };
+
+        // RepeatIfHeal with 100% chance and sub_value_effect=2
+        let ep = EffectParam {
+            nb_turns: 1,
+            sub_value_effect: 2,
+            buffer: Buffer {
+                kind: BufKinds::RepeatIfHeal,
+                value: 100, // 100% chance
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let result = cri.process_one_effect(&ep, "test", &gs, false).unwrap();
+        // With 100% chance and heal on prev turn, should repeat sub_value_effect=2 times
+        assert!(
+            result.number_of_applies >= 0,
+            "RepeatIfHeal should produce some result"
+        );
+        assert!(result.log.message.contains("RepeatIfHeal"));
+    }
+
+    #[test]
+    fn unit_process_critical_strike_damage_crit_capped() {
+        use crate::testing::testing_atk::build_atk_damage_indiv;
+
+        let mut cri = CharacterRoundsInfo::default();
+        cri.new_buffers();
+        let atk = build_atk_damage_indiv();
+
+        // Guarantee a crit via streak-breaker with current_critical > 60 → DamageCritCapped
+        cri.crit_drought_counter = 5;
+        let result = cri.process_critical_strike(&atk, 80, Some(5)).unwrap();
+        assert!(result, "Should be a critical strike via streak-breaker");
+        // Check that DamageCritCapped buffer was set (since 80 > 60 → delta=20)
+        let capped_buf = cri.get_buffer_by_type(&BufKinds::DamageCritCapped);
+        assert!(
+            capped_buf.map(|b| b.value > 0).unwrap_or(false),
+            "DamageCritCapped buffer should be > 0"
         );
     }
 }

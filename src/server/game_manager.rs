@@ -221,10 +221,10 @@ impl GameManager {
         self.game_state.order_to_play.clear();
 
         // add heroes
-        // sort by speed
+        // sort by speed descending (highest speed acts first)
         self.pm
             .active_heroes
-            .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
+            .sort_by(|a, b| b.stats.all_stats[SPEED].cmp(&a.stats.all_stats[SPEED]));
         let mut dead_heroes = Vec::new();
         for hero in &self.pm.active_heroes {
             if !hero.stats.is_dead().unwrap_or(false) {
@@ -238,10 +238,10 @@ impl GameManager {
             self.game_state.order_to_play.push(name);
         }
         // add bosses
-        // sort by speed
+        // sort by speed descending (highest speed acts first)
         self.pm
             .active_bosses
-            .sort_by(|a, b| a.stats.all_stats[SPEED].cmp(&b.stats.all_stats[SPEED]));
+            .sort_by(|a, b| b.stats.all_stats[SPEED].cmp(&a.stats.all_stats[SPEED]));
         for boss in &self.pm.active_bosses {
             if !boss.stats.is_dead().unwrap_or(false) {
                 self.game_state.order_to_play.push(boss.id_name.clone());
@@ -1030,31 +1030,44 @@ mod tests {
             .all_stats[SPEED]
             .clone();
         assert_eq!(gm.game_state.order_to_play.len(), 6);
-        assert_eq!(gm.game_state.order_to_play[0], "test_#1");
-        assert_eq!(gm.game_state.order_to_play[1], "test2_#1");
-        assert_eq!(gm.game_state.order_to_play[2], "test_boss1_#1");
-        assert_eq!(gm.game_state.order_to_play[3], "test_boss2_#1");
-        // supplementary atk
-        assert_eq!(gm.game_state.order_to_play[4], "test_#1");
-        assert_eq!(gm.game_state.order_to_play[5], "test2_#1");
+        // descending speed sort: test2_#1 (312) before test_#1 (212)
+        assert_eq!(gm.game_state.order_to_play[0], "test2_#1");
+        assert_eq!(gm.game_state.order_to_play[1], "test_#1");
+        // descending speed sort: boss2 (15) before boss1 (11)
+        assert_eq!(gm.game_state.order_to_play[2], "test_boss2_#1");
+        assert_eq!(gm.game_state.order_to_play[3], "test_boss1_#1");
+        // supplementary atk (same descending order)
+        assert_eq!(gm.game_state.order_to_play[4], "test2_#1");
+        assert_eq!(gm.game_state.order_to_play[5], "test_#1");
         assert_eq!(old_speed.current - SPEED_THRESHOLD, new_speed.current);
-        assert_eq!(old_speed.max - SPEED_THRESHOLD, new_speed.max);
-        assert_eq!(old_speed.max_raw - SPEED_THRESHOLD, new_speed.max_raw);
+        // reset_speed must NOT touch max/max_raw (would saturate to 0 and break apply_regen)
+        assert_eq!(old_speed.max, new_speed.max);
+        assert_eq!(old_speed.max_raw, new_speed.max_raw);
         assert_eq!(
             old_speed.current_raw - SPEED_THRESHOLD,
             new_speed.current_raw
         );
-        // one hero player is dead
-        gm.pm.active_heroes[0].stats.all_stats[HP].current = 0;
+        // one hero player is dead — use name-based kill so the index stays stable after sort
+        gm.pm
+            .get_mut_active_hero_character("test_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current = 0;
         gm.process_order_to_play();
         assert_eq!(gm.game_state.order_to_play.len(), 5);
         assert_eq!(gm.game_state.order_to_play[0], "test2_#1");
         assert_eq!(gm.game_state.order_to_play[1], "test_#1");
-        assert_eq!(gm.game_state.order_to_play[2], "test_boss1_#1");
-        assert_eq!(gm.game_state.order_to_play[3], "test_boss2_#1");
+        assert_eq!(gm.game_state.order_to_play[2], "test_boss2_#1");
+        assert_eq!(gm.game_state.order_to_play[3], "test_boss1_#1");
         assert_eq!(gm.game_state.order_to_play[4], "test2_#1");
-        // boss is dead
-        gm.pm.active_bosses[0].stats.all_stats[HP].current = 0;
+        // boss is dead — use name-based kill; descending sort puts boss2 at index 0
+        gm.pm
+            .get_mut_active_boss_character("test_boss1_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current = 0;
         gm.process_order_to_play();
         assert_eq!(gm.game_state.order_to_play.len(), 4);
         assert_eq!(gm.game_state.order_to_play[0], "test2_#1");
@@ -1712,57 +1725,50 @@ mod tests {
     fn unit_launch_attack_end_of_effect() {
         let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
 
-        // turn 1 round 1 (test)
+        // New descending-speed order: test2_#1(312) > test_#1(212) > test_boss2_#1(15) > test_boss1_#1(11)
+        // testing_test_ally1_vs_test_boss1 advanced to round 2 (test_#1); test2_#1 already played round 1.
         assert_eq!(gm.game_state.order_to_play.len(), 6);
         assert_eq!(gm.pm.current_player.id_name, hero_launcher_id_name);
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
-        // apply effect Magic power - up by % for 2 turns (for turn1 and turn2 and is ending on turn 3)
+        // apply effect Magic power - up by % for 2 turns (active turn1+turn2, ends on turn 3)
+        // launch_attack calls eval_end_of_round internally, which advances one round
         gm.launch_attack(Some("Eclat d'espoir"));
-        // turn 1 round 2 (test2)
-        while gm.pm.current_player.id_name != "test2_#1" {
-            gm.new_round();
-        }
-        assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
-        // turn 1 round 3 (boss1)
+        // eval_end_of_round advanced to round 3 (boss2 — higher speed than boss1)
+        assert_eq!(gm.pm.current_player.id_name, "test_boss2_#1".to_owned());
+        // round 4 (boss1)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
-        // turn 1 round 4 (boss2)
-        gm.new_round();
-        assert_eq!(gm.pm.current_player.id_name, "test_boss2_#1".to_owned());
-        // turn 1 round 5 (test)
-        gm.new_round();
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
-        // turn 1 round 6 (test2)
+        // turn 1 round 5 (test2 supplementary)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
-        // turn 2 round 1
+        // turn 1 round 6 (test supplementary)
+        gm.new_round();
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
+        // turn 2 round 1 (test2 — highest speed, acts first)
         gm.start_new_turn();
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
-        // turn 2 round 2 (test2)
-        gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
-        // 2 effects received from eclat d espoir (counter turn 1/2, 1 on 2 )
+        // 2 effects received from eclat d espoir (counter turn 1/2, still active)
         assert_eq!(
             gm.pm.current_player.character_rounds_info.all_effects.len(),
             2
         );
-        // turn 2 round 3 (boss1)
+        // turn 2 round 2 (test)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
-        // turn 2 round 4 (boss2)
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
+        // turn 2 round 3 (boss2)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test_boss2_#1".to_owned());
-        // turn 2 round 5 (test)
+        // turn 2 round 4 (boss1)
         gm.new_round();
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
-        // turn 2 round 6 (test2)
+        assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
+        // turn 2 round 5 (test2 supplementary)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
-        // turn 3 round 1 test
-        gm.start_new_turn();
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
-        // turn 3 round 2 (test2)
+        // turn 2 round 6 (test supplementary)
         gm.new_round();
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
+        // turn 3 round 1 (test2 — highest speed)
+        gm.start_new_turn();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
         // effects ended after 2 turns
         assert!(
@@ -2444,6 +2450,51 @@ mod tests {
     }
 
     #[test]
+    fn unit_build_consumable_effects_named_potions() {
+        use crate::character_mod::class::Class;
+        use crate::character_mod::loot::{Loot, LootType};
+        use crate::character_mod::rank::Rank;
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+
+        for (potion_name, rank) in [
+            ("potion of resurrection", Rank::Advanced),
+            ("mana potion", Rank::Intermediate),
+            ("vigor potion", Rank::Common),
+            ("berserk potion", Rank::Advanced),
+        ] {
+            let original_len = gm.pm.party_consumables.len();
+            gm.current_scenario = Scenario {
+                name: "test".to_string(),
+                description: "test".to_string(),
+                boss_patterns: HashMap::new(),
+                level: 1,
+                loots: vec![Loot {
+                    name: potion_name.to_string(),
+                    kind: LootType::Consumable,
+                    rank,
+                    level: 1,
+                    classes: vec![Class::Standard],
+                }],
+                universe: String::new(),
+            };
+            gm.process_end_of_scenario();
+            let found = gm
+                .pm
+                .party_consumables
+                .iter()
+                .skip(original_len)
+                .any(|c| c.name == potion_name);
+            assert!(
+                found,
+                "'{potion_name}' should be in party bag after end_of_scenario"
+            );
+        }
+    }
+
+    #[test]
     fn unit_end_of_scenario_currency_loot() {
         use crate::character_mod::class::Class;
         use crate::character_mod::loot::{Loot, LootType};
@@ -3061,6 +3112,318 @@ mod tests {
         assert!(
             aggro_t2 > 0,
             "Thraïn aggro must be > 0 after two attacks: {aggro_t2}"
+        );
+    }
+
+    // ── Rameau Guérisseur tests ────────────────────────────────────────────────
+    // The attack applies:
+    //   1. DecreasingRateOnTurn HP HOT on an individual ally (nb_turns=4, value=3)
+    //   2. ChangeMaxStatByPercentage +10% Magic power on the same target (nb_turns=4)
+    //
+    // Test char stats: Magical Power max=30 (20 raw + 10 from starting_gloves equipment),
+    //   HP max=135, Mana 200/200.
+    // HOT per-tick = applies * (buffer.value + magic_power_current / nb_turns)
+    //              = applies * (3 + 30/4) = applies * 10  (integer division)
+    // applies comes from process_decrease_on_turn(value=3): always at least 1
+    // (first threshold is 100%), at most 3.  Per-tick ∈ [10, 30].
+    //
+    // The HOT then fires probabilistically on subsequent turns:
+    //   T2 counter=1: threshold = (3−1+1)/3 = 100 % (always)
+    //   T3 counter=2: threshold = (3−2+1)/3 =  67 %
+    //   T4 counter=3: threshold = (3−3+1)/3 =  33 %
+    // So the HOT fires 1–3 ticks after launch (not always 3).
+    //
+    // The DecreasingRateOnTurn effect also stores its applies count in ApplyEffectInit,
+    // which is then picked up by ALL subsequent effects in the same attack.  So
+    // the ChangeMaxStatByPercentage full_amount = applies * 10, giving a magic
+    // power increase of 30 * (applies*10) / 100 = applies * 3.
+    // New magic power max ∈ [33, 36, 39] for applies ∈ [1, 2, 3].
+
+    #[test]
+    fn unit_rameau_guerisseur_initial_heal_range() {
+        let (mut gm, hero_id, _) = testing_test_ally1_vs_test_boss1();
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
+        {
+            buf.is_passive_enabled = false;
+        }
+        gm.pm.set_targeted_characters(&hero_id, "Rameau Guérisseur");
+        let old_hp = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+
+        let ra = gm.launch_attack(Some("Rameau Guérisseur"));
+
+        // Two effects: HP HOT + Magic power buff
+        assert_eq!(ra.new_game_atk_effects.len(), 2, "expected 2 effects");
+
+        let hot = ra
+            .new_game_atk_effects
+            .iter()
+            .find(|g| {
+                g.processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == HP
+            })
+            .expect("HP effect missing");
+        let per_tick = hot.effect_outcome.full_amount_tx;
+
+        // applies ∈ [1, 3], per apply = 10  → per_tick ∈ [10, 30]
+        assert!(
+            per_tick >= 10,
+            "per-tick heal below minimum (1 apply × 10): {per_tick}"
+        );
+        assert!(
+            per_tick <= 30,
+            "per-tick heal above maximum (3 applies × 10): {per_tick}"
+        );
+
+        // HP was immediately increased on launch
+        let new_hp = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let hp_max = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .max;
+        assert_eq!(
+            new_hp,
+            (old_hp as i64 + per_tick).clamp(0, hp_max as i64) as u64
+        );
+    }
+
+    #[test]
+    fn unit_rameau_guerisseur_magic_power_buff() {
+        // The ChangeMaxStatByPercentage effect shares the ApplyEffectInit count
+        // set by DecreasingRateOnTurn, so full_amount = applies * 10.
+        // With old_magic_max = 30 (20 raw + 10 equipment):
+        //   increase = 30 * (applies * 10) / 100 = applies * 3  → new ∈ [33, 39]
+        let (mut gm, hero_id, _) = testing_test_ally1_vs_test_boss1();
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
+        {
+            buf.is_passive_enabled = false;
+        }
+
+        let old_magic_max = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_POWER]
+            .max;
+
+        gm.pm.set_targeted_characters(&hero_id, "Rameau Guérisseur");
+        let ra = gm.launch_attack(Some("Rameau Guérisseur"));
+
+        // Derive number_of_applies from the HOT's per-tick amount:
+        // per_tick = applies * 10  →  applies = per_tick / 10
+        let per_tick = ra
+            .new_game_atk_effects
+            .iter()
+            .find(|g| {
+                g.processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == HP
+            })
+            .unwrap()
+            .effect_outcome
+            .full_amount_tx;
+        let applies = per_tick / 10;
+
+        let new_magic_max = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_POWER]
+            .max;
+
+        // full_amount for magic buf = applies * 10 → increase = old * full_amount / 100
+        let full_amount = applies * 10;
+        let expected = old_magic_max + old_magic_max * full_amount as u64 / 100;
+        assert_eq!(
+            new_magic_max,
+            expected,
+            "Magic power should increase by {}% (applies={applies}): {old_magic_max} → {expected}, got {new_magic_max}",
+            applies * 10
+        );
+        // Sanity: increase is proportional to applies (1-3)
+        assert!(
+            new_magic_max >= old_magic_max + old_magic_max * 10 / 100,
+            "min expected +10% increase: got {new_magic_max}"
+        );
+        assert!(
+            new_magic_max <= old_magic_max + old_magic_max * 30 / 100,
+            "max expected +30% increase: got {new_magic_max}"
+        );
+    }
+
+    #[test]
+    fn unit_rameau_guerisseur_hot_lasts_exactly_4_turns() {
+        // The effect entry persists for exactly nb_turns=4 turns regardless of how many
+        // ticks actually fired (which is probabilistic: 1–3). Expiry is always at T5.
+        let (mut gm, hero_id, _) = testing_test_ally1_vs_test_boss1();
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
+        {
+            buf.is_passive_enabled = false;
+        }
+        gm.pm.set_targeted_characters(&hero_id, "Rameau Guérisseur");
+        gm.launch_attack(Some("Rameau Guérisseur"));
+
+        // Advance to test2's first round in T1 — HOT skipped (same launch turn)
+        while gm.pm.current_player.id_name != "test2_#1" {
+            gm.new_round();
+        }
+        assert_eq!(
+            gm.pm.current_player.character_rounds_info.all_effects.len(),
+            2,
+            "both effects must be present in T1"
+        );
+
+        // T2, T3, T4: effects still active when test2 plays each turn
+        for turn_idx in 2..=4 {
+            gm.start_new_turn();
+            while gm.pm.current_player.id_name != "test2_#1" {
+                gm.new_round();
+            }
+            assert_eq!(
+                gm.pm.current_player.character_rounds_info.all_effects.len(),
+                2,
+                "both effects must still be active at turn {turn_idx}"
+            );
+        }
+
+        // T5: counter reaches nb_turns=4 → both effects removed before HOT fires
+        gm.start_new_turn();
+        while gm.pm.current_player.id_name != "test2_#1" {
+            gm.new_round();
+        }
+        assert!(
+            gm.pm
+                .current_player
+                .character_rounds_info
+                .all_effects
+                .is_empty(),
+            "effects must expire after exactly 4 turns (nb_turns=4)"
+        );
+    }
+
+    #[test]
+    fn unit_rameau_guerisseur_hot_fires_at_most_3_ticks() {
+        // Verifies the HOT fires AT MOST 3 times (T2, T3, T4) but not necessarily
+        // exactly 3: the DecreasingRateOnTurn probability means T2=100%, T3=67%,
+        // T4=33%. So the HOT fires 1–3 times depending on the random rolls.
+        let (mut gm, hero_id, _) = testing_test_ally1_vs_test_boss1();
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        if let Some(buf) = gm
+            .pm
+            .current_player
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::NextHealAtkIsCrit)
+        {
+            buf.is_passive_enabled = false;
+        }
+        gm.pm.set_targeted_characters(&hero_id, "Rameau Guérisseur");
+        gm.launch_attack(Some("Rameau Guérisseur"));
+
+        // Skip T1 (HOT does not fire same turn as launch)
+        while gm.pm.current_player.id_name != "test2_#1" {
+            gm.new_round();
+        }
+
+        // HP regen per turn for test2 (7); HOT tick ≥10 — any increase > regen means HOT fired
+        let regen = gm
+            .pm
+            .get_active_hero_character("test2_#1")
+            .unwrap()
+            .stats
+            .all_stats[HP_REGEN]
+            .current as i64;
+
+        let mut hot_ticks = 0u32;
+        for _ in 2..=4 {
+            // Capture HP before start_new_turn because test2_#1 is first in new order:
+            // start_new_turn processes round=1 (test2_#1) which applies HOT immediately.
+            let hp_before = gm
+                .pm
+                .get_active_hero_character("test2_#1")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current as i64;
+            gm.start_new_turn();
+            // After start_new_turn, test2_#1 is current (round=1) with HOT+regen applied.
+            let hp_after = gm
+                .pm
+                .get_active_hero_character("test2_#1")
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current as i64;
+            // HOT (≥10) + regen (7) >> regen alone (7)
+            if hp_after - hp_before > regen {
+                hot_ticks += 1;
+            }
+        }
+
+        assert!(
+            hot_ticks >= 1,
+            "HOT must fire at least once (T2 is always 100%): fired {hot_ticks} times"
+        );
+        assert!(
+            hot_ticks <= 3,
+            "HOT must fire at most 3 times (T2–T4): fired {hot_ticks} times"
+        );
+    }
+
+    #[test]
+    fn unit_new_round_all_heroes_dead_end_of_game() {
+        let mut gm = testing_game_manager();
+        gm.start_game();
+        // Kill ALL heroes
+        for hero in &mut gm.pm.active_heroes {
+            hero.stats.all_stats[HP].current = 0;
+        }
+        // Make round 1 point to the first hero (who is dead)
+        gm.game_state.current_round = 0;
+        let (is_new_round, _logs) = gm.new_round();
+        assert!(
+            !is_new_round,
+            "dead player → should not start a new round normally"
+        );
+        assert_eq!(
+            gm.game_state.status,
+            GameStatus::EndOfGame,
+            "all heroes dead → EndOfGame"
         );
     }
 }

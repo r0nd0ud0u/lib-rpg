@@ -115,20 +115,30 @@ pub fn is_effect_only_at_atk_launch(buf_types: &BufKinds) -> bool {
     effects.contains(buf_types)
 }
 
-pub fn process_decrease_on_turn(ep: &EffectParam) -> i64 {
-    let total = ep.buffer.value;
+pub fn process_decrease_on_turn(ep: &EffectParam, counter_turn: i64) -> i64 {
+    let total = ep.sub_value_effect;
     if total <= 0 {
         return 0;
     }
+    if counter_turn > 0 {
+        // Per-tick check: probability decreases as counter_turn increases.
+        // counter 1 → 100%, counter 2 → 67%, counter 3 → 33% (for total=3).
+        if counter_turn > total {
+            return 0;
+        }
+        let threshold = ((total - counter_turn + 1) as f64 / total as f64 * 100.0).round() as i64;
+        let mut rng = rand::rng();
+        return if rng.random_range(0..=100) <= threshold {
+            1
+        } else {
+            0
+        };
+    }
+    // Launch: cumulative applies — first roll always succeeds, each subsequent roll less likely.
     let mut nb_of_applies = 0;
     let mut counter = total;
-
     let mut rng = rand::rng();
-
     while counter > 0 {
-        // threshold decreases linearly from 100 % (first apply always succeeds) down to
-        // round(100/total) % on the last apply.
-        // Example for total = 3: 100 %, 67 %, 33 %  (matches "67 % then 33 %" description).
         let threshold = (counter as f64 / total as f64 * 100.0).round() as i64;
         if rng.random_range(0..=100) <= threshold {
             nb_of_applies += 1;
@@ -192,7 +202,8 @@ pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
 #[cfg(test)]
 mod tests {
     use crate::{
-        character_mod::target::is_target_ally, common::constants::all_target_const::TARGET_ALLY,
+        character_mod::target::is_target_ally,
+        common::constants::{all_target_const::TARGET_ALLY, reach_const::ZONE},
     };
 
     use super::*;
@@ -213,7 +224,7 @@ mod tests {
     fn unit_process_decrease_on_turn() {
         let ep = EffectParam {
             nb_turns: 3,
-            sub_value_effect: 0,
+            sub_value_effect: 3,
             target_kind: TARGET_ENNEMY.to_owned(),
             reach: INDIVIDUAL.to_owned(),
             is_magic_atk: false,
@@ -226,8 +237,49 @@ mod tests {
             },
             is_passive: false,
         };
-        let result = process_decrease_on_turn(&ep);
+        let result = process_decrease_on_turn(&ep, 0);
         assert!((0..=3).contains(&result));
+
+        // total <= 0: always returns 0
+        let ep_zero = EffectParam {
+            sub_value_effect: 0,
+            ..Default::default()
+        };
+        assert_eq!(process_decrease_on_turn(&ep_zero, 0), 0);
+        assert_eq!(process_decrease_on_turn(&ep_zero, 1), 0);
+
+        // counter_turn > total: returns 0
+        let ep_small = EffectParam {
+            sub_value_effect: 2,
+            ..Default::default()
+        };
+        assert_eq!(process_decrease_on_turn(&ep_small, 3), 0);
+    }
+
+    #[test]
+    fn unit_build_energy_effect() {
+        use crate::common::constants::stats_const::MANA;
+        let ep = build_energy_effect(MANA, 30);
+        assert_eq!(ep.buffer.value, 30);
+        assert_eq!(ep.buffer.stats_name, MANA);
+        assert_eq!(ep.nb_turns, 1);
+        assert_eq!(ep.target_kind, TARGET_ALLY);
+    }
+
+    #[test]
+    fn unit_build_resurrect_effect() {
+        let ep = build_resurrect_effect(50);
+        assert_eq!(ep.buffer.value, 50);
+        assert_eq!(ep.buffer.kind, BufKinds::Resurrect);
+        assert_eq!(ep.target_kind, TARGET_ALLY);
+    }
+
+    #[test]
+    fn unit_build_hp_effect() {
+        let ep = build_hp_effect(20, false);
+        assert_eq!(ep.buffer.value, 20);
+        let ep_zone = build_hp_effect(20, true);
+        assert_eq!(ep_zone.reach, ZONE);
     }
 
     #[test]

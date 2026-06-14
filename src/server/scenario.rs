@@ -48,3 +48,58 @@ impl Scenario {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+
+    fn write_temp_scenario(content: &str) -> std::path::PathBuf {
+        let mut tmp = std::env::temp_dir();
+        tmp.push(format!(
+            "scenario_test_{}.json",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .subsec_nanos()
+        ));
+        let mut f = std::fs::File::create(&tmp).unwrap();
+        f.write_all(content.as_bytes()).unwrap();
+        tmp
+    }
+
+    #[test]
+    fn unit_try_new_from_json_not_found() {
+        let result = Scenario::try_new_from_json("/nonexistent/path/scenario.json");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn unit_try_new_from_json_empty_name() {
+        let path = write_temp_scenario(r#"{"name":"","description":"Some desc","level":1}"#);
+        let result = Scenario::try_new_from_json(&path);
+        assert!(result.is_err());
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn unit_try_new_from_json_empty_description() {
+        let path = write_temp_scenario(r#"{"name":"Stage 1","description":"","level":1}"#);
+        let result = Scenario::try_new_from_json(&path);
+        assert!(result.is_err());
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn unit_try_new_from_json_valid() {
+        let path = write_temp_scenario(
+            r#"{"name":"Stage 1","description":"A test stage","level":1,"boss_patterns":{}}"#,
+        );
+        let result = Scenario::try_new_from_json(&path);
+        assert!(result.is_ok());
+        let s = result.unwrap();
+        assert_eq!(s.name, "Stage 1");
+        assert_eq!(s.level, 1);
+        let _ = std::fs::remove_file(path);
+    }
+}

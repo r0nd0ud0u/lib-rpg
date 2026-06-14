@@ -307,6 +307,36 @@ mod tests {
     }
 
     #[test]
+    fn unit_load_all_equipments_err() {
+        let mut dm = DataManager::default();
+        assert!(dm.load_all_equipments("").is_err());
+    }
+
+    #[test]
+    fn unit_load_all_scenarios_err() {
+        let mut dm = DataManager::default();
+        assert!(dm.load_all_scenarios("").is_err());
+    }
+
+    #[test]
+    fn unit_list_universes() {
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let universes = dm.list_universes();
+        assert!(
+            universes.contains(&"".to_owned()),
+            "default universe present"
+        );
+    }
+
+    #[test]
+    fn unit_scenarios_by_universe() {
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let default_scenarios = dm.scenarios_by_universe("");
+        assert_eq!(default_scenarios.len(), 2);
+        assert!(dm.scenarios_by_universe("nonexistent").is_empty());
+    }
+
+    #[test]
     fn unit_load_all_characters() {
         let mut dm = DataManager::default();
         dm.load_all_characters(*TEST_OFFLINE_ROOT).unwrap();

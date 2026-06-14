@@ -160,6 +160,115 @@ mod tests {
     use super::update_damage_by_buf;
 
     #[test]
+    fn unit_buf_kinds_display() {
+        assert_eq!(format!("{}", BufKinds::DefaultBuf), "Default");
+        assert_eq!(
+            format!("{}", BufKinds::DamageRxPercent),
+            "Damage received %"
+        );
+        assert_eq!(format!("{}", BufKinds::DamageTxPercent), "Damage dealt %");
+        assert_eq!(format!("{}", BufKinds::HealTxPercent), "Healing dealt %");
+        assert_eq!(format!("{}", BufKinds::HealRxPercent), "Healing received %");
+        assert_eq!(format!("{}", BufKinds::DamageCritCapped), "Crit damage cap");
+        assert_eq!(
+            format!("{}", BufKinds::NextHealAtkIsCrit),
+            "Next heal is critical"
+        );
+        assert_eq!(format!("{}", BufKinds::MultiValue), "Multiplier");
+        assert_eq!(
+            format!("{}", BufKinds::ApplyEffectInit),
+            "Effect applications"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::ChangeByHealValue),
+            "Stat boosted by heal"
+        );
+        assert_eq!(format!("{}", BufKinds::BoostedByHots), "Boosted by HoTs");
+        assert_eq!(
+            format!("{}", BufKinds::ChangeMaxStatByPercentage),
+            "Max stat change %"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::ChangeMaxStatByValue),
+            "Max stat change"
+        );
+        assert_eq!(format!("{}", BufKinds::BlockHealAtk), "Heals blocked");
+        assert_eq!(
+            format!("{}", BufKinds::ChangeCurrentStatByValue),
+            "Current stat change"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::ChangeCurrentStatByPercentage),
+            "Current stat change %"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::RepeatAsManyAsPossible),
+            "Repeat attack"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::DecreasingRateOnTurn),
+            "Decreasing rate"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::NbDecreasingByTurn),
+            "Decreasing count"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::IsDamageTxHealNeedyAlly),
+            "Damage converts to ally heal"
+        );
+        assert_eq!(format!("{}", BufKinds::CooldownTurnsNumber), "Cooldown");
+        assert_eq!(format!("{}", BufKinds::ReinitBuf), "Effect reset");
+        assert_eq!(format!("{}", BufKinds::RemoveOneDebuf), "Remove debuff");
+        assert_eq!(
+            format!("{}", BufKinds::BoostHotsByPercentage),
+            "Boost HoTs %"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::BoostBufByHotsNumberInPercentage),
+            "HoT stack bonus"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::PercentageIntoDamages),
+            "Convert heal to damage"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::NextHealAtkIsCritical),
+            "Next heal is critical"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::AddAsMuchAsHp),
+            "Overheal stat boost"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::StreakBreakerCrit),
+            "Streak breaker (crit)"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::StreakBreakerDodge),
+            "Streak breaker (dodge)"
+        );
+        assert_eq!(
+            format!("{}", BufKinds::ConditionDamagePrevTurn),
+            "Condition: damage last turn"
+        );
+        assert_eq!(format!("{}", BufKinds::RepeatIfHeal), "Repeat if heal");
+        assert_eq!(format!("{}", BufKinds::Resurrect), "Resurrect");
+        assert_eq!(format!("{}", BufKinds::EnumSize), "—");
+    }
+
+    #[test]
+    fn unit_update_buf() {
+        let mut buff = Buffer::default();
+        buff.update_buf(5, true, "HP");
+        assert_eq!(buff.value, 5);
+        assert!(buff.is_percent);
+        assert_eq!(buff.stats_name, "HP");
+        buff.update_buf(10, false, "Mana");
+        assert_eq!(buff.value, 15);
+    }
+
+    #[test]
     pub fn unit_update_damage_by_buf() {
         // default buffer
         let result = update_damage_by_buf(0, false, 0);

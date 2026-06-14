@@ -81,6 +81,12 @@ mod tests {
     };
 
     use super::*;
+
+    #[test]
+    fn unit_stats_info_kind_display() {
+        assert_eq!(format!("{}", StatsInfoKind::AtksCount), "Count");
+        assert_eq!(format!("{}", StatsInfoKind::AtksAmount), "Amount");
+    }
     #[test]
     fn unit_process_all_game_stats() {
         let mut stats_in_game = StatsInGame::default();
