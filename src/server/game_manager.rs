@@ -3426,4 +3426,126 @@ mod tests {
             "all heroes dead → EndOfGame"
         );
     }
+
+    /// Offrande vitale must boost Thraïn's magical and physical armor max by +50%.
+    #[test]
+    fn unit_offrande_vitale_buffs_thrain_armor() {
+        use crate::testing::testing_all_characters::dxrpg_game_manager;
+
+        let mut gm = dxrpg_game_manager();
+        gm.start_game();
+
+        // Advance to Elara's turn
+        let mut max_setup = 30;
+        while !gm.pm.current_player.id_name.contains("Elara") && max_setup > 0 {
+            gm.new_round();
+            max_setup -= 1;
+        }
+        if !gm.pm.current_player.id_name.contains("Elara") {
+            return;
+        }
+
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        let mana_max = gm.pm.current_player.stats.all_stats[MANA].max;
+        gm.pm.current_player.stats.all_stats[MANA].current = mana_max;
+
+        let thrain_id = gm
+            .pm
+            .active_heroes
+            .iter()
+            .find(|h| h.id_name.contains("Thraïn"))
+            .map(|h| h.id_name.clone())
+            .expect("Thraïn must be present");
+
+        let old_mag_armor = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_ARMOR]
+            .max;
+        let old_phy_armor = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_ARMOR]
+            .max;
+
+        // Offrande vitale targets a single ally — manually mark Thraïn as the current target.
+        gm.pm
+            .get_mut_active_hero_character(&thrain_id)
+            .unwrap()
+            .character_rounds_info
+            .is_current_target = true;
+
+        gm.launch_attack(Some("Offrande vitale"));
+
+        let new_mag_armor = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[MAGICAL_ARMOR]
+            .max;
+        let new_phy_armor = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_ARMOR]
+            .max;
+
+        assert_eq!(
+            old_mag_armor + old_mag_armor * 50 / 100,
+            new_mag_armor,
+            "Offrande vitale must boost Thraïn magic armor max by 50%"
+        );
+        assert_eq!(
+            old_phy_armor + old_phy_armor * 50 / 100,
+            new_phy_armor,
+            "Offrande vitale must boost Thraïn physical armor max by 50%"
+        );
+    }
+
+    /// Bouclier Défensif must give exactly +40 aggro to Thraïn (not +42 from implicit Berserk aggro).
+    #[test]
+    fn unit_bouclier_defensif_exact_aggro() {
+        use crate::testing::testing_all_characters::dxrpg_game_manager;
+
+        let mut gm = dxrpg_game_manager();
+        gm.start_game();
+
+        // Advance to Thraïn's turn
+        let mut max_setup = 30;
+        while !gm.pm.current_player.id_name.contains("Thraïn") && max_setup > 0 {
+            gm.new_round();
+            max_setup -= 1;
+        }
+        if !gm.pm.current_player.id_name.contains("Thraïn") {
+            return;
+        }
+
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+
+        let thrain_id = gm.pm.current_player.id_name.clone();
+        let aggro_before = gm.pm.current_player.stats.all_stats[AGGRO].current;
+
+        // Bouclier Défensif targets Self — no explicit target setting needed.
+        gm.launch_attack(Some("Bouclier Défensif "));
+
+        let aggro_after = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[AGGRO]
+            .current;
+
+        assert_eq!(
+            aggro_before + 40,
+            aggro_after,
+            "Bouclier Défensif must give exactly +40 aggro (not inflated by Berserk implicit aggro)"
+        );
+    }
 }
