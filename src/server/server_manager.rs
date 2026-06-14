@@ -148,10 +148,10 @@ pub enum GamePhase {
 
 #[cfg(test)]
 mod tests {
-    use crate::server::server_manager::{PlayerInfo, PlayersData};
+    use crate::server::server_manager::{GamePhase, PlayerInfo, PlayersData, ServerManager};
 
     #[test]
-    fn test_get_first_character_name() {
+    fn unit_get_first_character_name() {
         let mut players_data = PlayersData::default();
         players_data.players_info.insert(
             "player1".to_string(),
@@ -160,11 +160,106 @@ mod tests {
                 player_ids: vec![1, 2],
             },
         );
-
         assert_eq!(
             players_data.get_first_character_name("player1"),
             Some("character1".to_string())
         );
         assert_eq!(players_data.get_first_character_name("player2"), None);
+    }
+
+    #[test]
+    fn unit_server_manager_new() {
+        let sm = ServerManager::new();
+        assert!(sm.players.is_empty());
+        assert!(sm.servers_data.is_empty());
+        assert!(sm.ongoing_games.is_empty());
+        assert!(sm.saved_games_list.is_empty());
+    }
+
+    #[test]
+    fn unit_add_player() {
+        let mut sm = ServerManager::new();
+        sm.add_player("alice".to_string(), 1);
+        sm.add_player("alice".to_string(), 2);
+        sm.add_player("bob".to_string(), 3);
+        assert_eq!(sm.players["alice"], vec![1, 2]);
+        assert_eq!(sm.players["bob"], vec![3]);
+    }
+
+    #[test]
+    fn unit_server_data_reset() {
+        use crate::server::server_manager::ServerData;
+        let sd = ServerData::reset(GamePhase::Running);
+        assert_eq!(sd.core_game_data.game_phase, GamePhase::Running);
+        assert_eq!(sd.core_game_data.players_nb, 0);
+    }
+
+    #[test]
+    fn unit_add_player_to_server_init_phase() {
+        use crate::{
+            common::constants::paths_const::TEST_OFFLINE_ROOT,
+            server::{core_game_data::CoreGameData, data_manager::DataManager},
+        };
+        let mut sm = ServerManager::new();
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let cgd = CoreGameData::new(&dm, "test").unwrap();
+        sm.add_server_data("srv", &cgd, "owner");
+
+        // Put server in InitGame phase
+        sm.servers_data.get_mut("srv").unwrap().core_game_data.game_phase = GamePhase::InitGame;
+
+        sm.add_player_to_server("srv", "alice", 10);
+        assert_eq!(
+            sm.servers_data["srv"].core_game_data.players_nb,
+            1,
+            "players_nb incremented in InitGame phase"
+        );
+    }
+
+    #[test]
+    fn unit_add_player_to_server_loading_phase() {
+        use crate::{
+            common::constants::paths_const::TEST_OFFLINE_ROOT,
+            server::{core_game_data::CoreGameData, data_manager::DataManager},
+        };
+        let mut sm = ServerManager::new();
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let cgd = CoreGameData::new(&dm, "test").unwrap();
+        sm.add_server_data("srv", &cgd, "owner");
+
+        // Put server in Loading phase with a chosen hero
+        {
+            let sd = sm.servers_data.get_mut("srv").unwrap();
+            sd.core_game_data.game_phase = GamePhase::Loading;
+            sd.core_game_data
+                .heroes_chosen
+                .insert("alice".to_string(), "HeroA".to_string());
+        }
+        sm.add_player_to_server("srv", "alice", 20);
+        let names = &sm.servers_data["srv"].players_data.players_info["alice"].character_id_names;
+        assert!(names.contains(&"HeroA".to_string()));
+    }
+
+    #[test]
+    fn unit_add_player_to_server_unknown_server() {
+        let mut sm = ServerManager::new();
+        sm.add_player_to_server("nonexistent", "alice", 1);
+        assert!(sm.servers_data.is_empty());
+    }
+
+    #[test]
+    fn unit_get_server_data_by_player_id() {
+        use crate::{
+            common::constants::paths_const::TEST_OFFLINE_ROOT,
+            server::{core_game_data::CoreGameData, data_manager::DataManager},
+        };
+        let mut sm = ServerManager::new();
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let cgd = CoreGameData::new(&dm, "test").unwrap();
+        sm.add_server_data("srv", &cgd, "owner");
+        sm.add_player_to_server("srv", "alice", 99);
+
+        assert!(sm.get_server_data_by_player_id(99).is_some());
+        assert!(sm.get_server_data_by_player_id(0).is_none());
     }
 }

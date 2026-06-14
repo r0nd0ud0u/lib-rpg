@@ -1704,11 +1704,11 @@ mod tests {
         assert_eq!(gm.pm.current_player.id_name, hero_launcher_id_name);
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         // apply effect Magic power - up by % for 2 turns (active turn1+turn2, ends on turn 3)
+        // launch_attack calls eval_end_of_round internally, which advances one round
         gm.launch_attack(Some("Eclat d'espoir"));
-        // turn 1 round 3 (boss2 — higher speed than boss1)
-        gm.new_round();
+        // eval_end_of_round advanced to round 3 (boss2 — higher speed than boss1)
         assert_eq!(gm.pm.current_player.id_name, "test_boss2_#1".to_owned());
-        // turn 1 round 4 (boss1)
+        // round 4 (boss1)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
         // turn 1 round 5 (test2 supplementary)
@@ -3247,7 +3247,8 @@ mod tests {
 
         let mut hot_ticks = 0u32;
         for _ in 2..=4 {
-            gm.start_new_turn();
+            // Capture HP before start_new_turn because test2_#1 is first in new order:
+            // start_new_turn processes round=1 (test2_#1) which applies HOT immediately.
             let hp_before = gm
                 .pm
                 .get_active_hero_character("test2_#1")
@@ -3255,9 +3256,8 @@ mod tests {
                 .stats
                 .all_stats[HP]
                 .current as i64;
-            while gm.pm.current_player.id_name != "test2_#1" {
-                gm.new_round();
-            }
+            gm.start_new_turn();
+            // After start_new_turn, test2_#1 is current (round=1) with HOT+regen applied.
             let hp_after = gm
                 .pm
                 .get_active_hero_character("test2_#1")

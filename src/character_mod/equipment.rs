@@ -103,6 +103,36 @@ mod tests {
     use super::*;
 
     #[test]
+    fn unit_equipment_json_key_display() {
+        assert_eq!(format!("{}", EquipmentJsonKey::LeftWeapon), "LeftWeapon");
+        assert_eq!(format!("{}", EquipmentJsonKey::RightWeapon), "RightWeapon");
+        assert_eq!(format!("{}", EquipmentJsonKey::RightRing), "RightRing");
+        assert_eq!(format!("{}", EquipmentJsonKey::LeftRing), "LeftRing");
+        assert_eq!(format!("{}", EquipmentJsonKey::Chest), "Chest");
+        assert_eq!(format!("{}", EquipmentJsonKey::Head), "Head");
+        assert_eq!(format!("{}", EquipmentJsonKey::Legs), "Legs");
+        assert_eq!(format!("{}", EquipmentJsonKey::Belt), "Belt");
+        assert_eq!(format!("{}", EquipmentJsonKey::Feet), "Feet");
+        assert_eq!(format!("{}", EquipmentJsonKey::Necklace), "Necklace");
+        assert_eq!(format!("{}", EquipmentJsonKey::Earrings), "Earrings");
+        assert_eq!(format!("{}", EquipmentJsonKey::Tattoes), "Tattoes");
+        assert_eq!(format!("{}", EquipmentJsonKey::Gloves), "Gloves");
+    }
+
+    #[test]
+    fn unit_equipment_json_key_ord() {
+        let mut keys = vec![
+            EquipmentJsonKey::RightRing,
+            EquipmentJsonKey::LeftWeapon,
+            EquipmentJsonKey::Chest,
+        ];
+        keys.sort();
+        assert_eq!(keys[0], EquipmentJsonKey::Chest);
+        assert_eq!(keys[1], EquipmentJsonKey::LeftWeapon);
+        assert_eq!(keys[2], EquipmentJsonKey::RightRing);
+    }
+
+    #[test]
     fn unit_try_new_from_json() {
         let file_path = "./tests/offlines/equipment/body/RightRing/starting_right_ring.json"; // Path to the JSON file
         let equipment = Equipment::try_new_from_json(file_path);

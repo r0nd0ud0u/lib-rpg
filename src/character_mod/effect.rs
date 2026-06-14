@@ -202,7 +202,8 @@ pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
 #[cfg(test)]
 mod tests {
     use crate::{
-        character_mod::target::is_target_ally, common::constants::all_target_const::TARGET_ALLY,
+        character_mod::target::is_target_ally,
+        common::constants::{all_target_const::TARGET_ALLY, reach_const::ZONE},
     };
 
     use super::*;
@@ -238,6 +239,47 @@ mod tests {
         };
         let result = process_decrease_on_turn(&ep, 0);
         assert!((0..=3).contains(&result));
+
+        // total <= 0: always returns 0
+        let ep_zero = EffectParam {
+            sub_value_effect: 0,
+            ..Default::default()
+        };
+        assert_eq!(process_decrease_on_turn(&ep_zero, 0), 0);
+        assert_eq!(process_decrease_on_turn(&ep_zero, 1), 0);
+
+        // counter_turn > total: returns 0
+        let ep_small = EffectParam {
+            sub_value_effect: 2,
+            ..Default::default()
+        };
+        assert_eq!(process_decrease_on_turn(&ep_small, 3), 0);
+    }
+
+    #[test]
+    fn unit_build_energy_effect() {
+        use crate::common::constants::stats_const::MANA;
+        let ep = build_energy_effect(MANA, 30);
+        assert_eq!(ep.buffer.value, 30);
+        assert_eq!(ep.buffer.stats_name, MANA);
+        assert_eq!(ep.nb_turns, 1);
+        assert_eq!(ep.target_kind, TARGET_ALLY);
+    }
+
+    #[test]
+    fn unit_build_resurrect_effect() {
+        let ep = build_resurrect_effect(50);
+        assert_eq!(ep.buffer.value, 50);
+        assert_eq!(ep.buffer.kind, BufKinds::Resurrect);
+        assert_eq!(ep.target_kind, TARGET_ALLY);
+    }
+
+    #[test]
+    fn unit_build_hp_effect() {
+        let ep = build_hp_effect(20, false);
+        assert_eq!(ep.buffer.value, 20);
+        let ep_zone = build_hp_effect(20, true);
+        assert_eq!(ep_zone.reach, ZONE);
     }
 
     #[test]

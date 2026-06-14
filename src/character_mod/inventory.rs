@@ -528,6 +528,41 @@ mod tests {
     }
 
     #[test]
+    fn unit_add_special_potions() {
+        let mut inventory = Inventory::default();
+        inventory.add_resurrection_potion();
+        inventory.add_mana_potion();
+        inventory.add_vigor_potion();
+        inventory.add_berserk_potion();
+
+        assert!(inventory.contains_potion("potion of resurrection"));
+        assert!(inventory.contains_potion("mana potion"));
+        assert!(inventory.contains_potion("vigor potion"));
+        assert!(inventory.contains_potion("berserk potion"));
+    }
+
+    #[test]
+    fn unit_mark_equipment_seen_and_unseen() {
+        let mut inventory = Inventory::default();
+        let equipment = Equipment {
+            name: "Test Ring".to_owned(),
+            unique_name: "test_ring".to_owned(),
+            category: EquipmentJsonKey::RightRing,
+            stats: crate::character_mod::stats::Stats::default(),
+        };
+        inventory.add_equipment(&equipment, false);
+        assert!(inventory.has_unseen_equipment());
+        inventory.mark_equipment_category_seen(&EquipmentJsonKey::RightRing);
+        assert!(!inventory.has_unseen_equipment());
+    }
+
+    #[test]
+    fn unit_toggle_equipment_empty_name() {
+        let mut inventory = Inventory::default();
+        inventory.toggle_equipment("");
+    }
+
+    #[test]
     fn unit_toggle_equipment_with_limit() {
         let mut inventory = Inventory::default();
         let equipment1 = Equipment {

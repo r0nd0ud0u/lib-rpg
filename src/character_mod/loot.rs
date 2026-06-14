@@ -50,7 +50,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_format_classes() {
+    fn unit_format_classes() {
         let loot = Loot {
             name: "Test Loot".to_string(),
             kind: LootType::Equipment,
@@ -62,7 +62,16 @@ mod tests {
     }
 
     #[test]
-    fn test_format_loot() {
+    fn unit_format_classes_empty() {
+        let loot = Loot {
+            classes: vec![],
+            ..Default::default()
+        };
+        assert_eq!(loot.format_classes(), "");
+    }
+
+    #[test]
+    fn unit_format_loot_consumable() {
         let loot = Loot {
             name: "Test Loot".to_string(),
             kind: LootType::Consumable,
@@ -74,5 +83,28 @@ mod tests {
             loot.format_loot(),
             "Test Loot (Consumable), 🎖️: Intermediate, #️⃣: 5, 🏷️: Healer"
         );
+    }
+
+    #[test]
+    fn unit_format_loot_material_and_currency() {
+        let loot_mat = Loot {
+            name: "Iron Ore".to_string(),
+            kind: LootType::Material,
+            rank: Rank::Common,
+            level: 1,
+            classes: vec![],
+        };
+        assert!(loot_mat.format_loot().contains("Material"));
+
+        let loot_cur = Loot {
+            name: "Gold Coin".to_string(),
+            kind: LootType::Currency,
+            rank: Rank::Advanced,
+            level: 10,
+            classes: vec![],
+        };
+        let formatted = loot_cur.format_loot();
+        assert!(formatted.contains("Currency"));
+        assert!(formatted.contains("Advanced"));
     }
 }

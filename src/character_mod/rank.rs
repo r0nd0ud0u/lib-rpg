@@ -16,3 +16,15 @@ impl Rank {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_to_str() {
+        assert_eq!(Rank::Common.to_str(), "Common");
+        assert_eq!(Rank::Intermediate.to_str(), "Intermediate");
+        assert_eq!(Rank::Advanced.to_str(), "Advanced");
+    }
+}

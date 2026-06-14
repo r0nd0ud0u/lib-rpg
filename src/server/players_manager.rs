@@ -1323,6 +1323,40 @@ mod tests {
     }
 
     #[test]
+    fn unit_use_party_consumable_ok_and_err() {
+        use crate::character_mod::inventory::Consumable;
+        let mut pl = testing_pm();
+
+        // error: consumable not found
+        assert!(
+            pl.use_party_consumable("test_#1", "NoSuchPotion", &GameState::default())
+                .is_err()
+        );
+
+        // success: valid hero + valid potion
+        pl.party_consumables.push(Consumable {
+            name: "TestPotion".to_string(),
+            ..Default::default()
+        });
+        assert!(
+            pl.use_party_consumable("test_#1", "TestPotion", &GameState::default())
+                .is_ok()
+        );
+        // consumable removed after use
+        assert!(pl.party_consumables.is_empty());
+
+        // error: hero not found (consumable removed by the function before hero check)
+        pl.party_consumables.push(Consumable {
+            name: "TestPotion2".to_string(),
+            ..Default::default()
+        });
+        assert!(
+            pl.use_party_consumable("no_hero", "TestPotion2", &GameState::default())
+                .is_err()
+        );
+    }
+
+    #[test]
     fn unit_process_launchable_atks() {
         let mut pl = testing_all_characters::testing_pm();
         // no problem of level
