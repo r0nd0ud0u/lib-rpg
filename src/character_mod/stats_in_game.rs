@@ -96,6 +96,7 @@ mod tests {
         };
         let game_atk_effect = GameAtkEffect {
             effect_outcome: EffectOutcome {
+                pre_armor_amount_tx: 0,
                 full_amount_tx: 100,
                 real_amount_tx: 50,
                 target_id_name: "Target1".to_string(),

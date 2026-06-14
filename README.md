@@ -70,6 +70,33 @@ Scenarios are filtered by universe at game initialisation and when the universe 
 
 ---
 
+## Damage Formula
+
+### `AttackType::damage_by_atk`
+
+Returns `(raw_damage, effective_damage)`:
+
+```
+raw_damage     = atk_value − (launcher_power / nb_turns)
+effective      = round(raw_damage × ARMOR_FACTOR / (ARMOR_FACTOR + target_armor))
+```
+
+- `ARMOR_FACTOR = 100.0` — armor equal to this value halves incoming damage
+- Both values are **negative** for damage, **positive** for healing
+- `raw_damage` is logged as "full" damage (before armor); `effective_damage` is applied to HP
+
+**Armor scaling:** at ARMOR_FACTOR = 100 and hero armor in the 0–90 range, a 50 % armor buff gives ~9–10 % less damage taken (vs ~2 % with the former constant of 1000).
+
+**Boss armor** is scaled to preserve hero–boss balance at the new constant (e.g. Angmar 800 → 80 still absorbs ~44 % of hero attacks).
+
+### Combat log
+
+HP damage effects are logged as:
+- `"{target} ← {real} HP"` when no mitigation occurred
+- `"{target} ← {real} HP (full: {pre_armor}, real: {real})"` when armor, blocking, or HP cap reduced the raw hit
+
+---
+
 ## Building & Testing
 
 ```bash

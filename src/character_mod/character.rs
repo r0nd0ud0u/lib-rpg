@@ -372,6 +372,7 @@ impl Character {
 
         // eval `full_amount`
         let mut full_amount;
+        let mut pre_armor_amount_tx = 0i64;
         let mut processed_effect_param = processed_ep.clone();
         let pow_current =
             launcher_stats.get_power_stat(processed_ep.input_effect_param.is_magic_atk);
@@ -395,15 +396,16 @@ impl Character {
                     * (processed_ep.input_effect_param.buffer.value + pow_current)
                     / processed_ep.input_effect_param.nb_turns;
             } else {
-                // DOT
-                full_amount = processed_ep.number_of_applies
-                    * AttackType::damage_by_atk(
-                        &self.stats,
-                        launcher_stats,
-                        processed_ep.input_effect_param.is_magic_atk,
-                        processed_ep.input_effect_param.buffer.value,
-                        processed_ep.input_effect_param.nb_turns,
-                    );
+                // DOT: track pre-armor damage for logging
+                let (raw, eff) = AttackType::damage_by_atk(
+                    &self.stats,
+                    launcher_stats,
+                    processed_ep.input_effect_param.is_magic_atk,
+                    processed_ep.input_effect_param.buffer.value,
+                    processed_ep.input_effect_param.nb_turns,
+                );
+                full_amount = processed_ep.number_of_applies * eff;
+                pre_armor_amount_tx = processed_ep.number_of_applies * raw;
             }
         } else if processed_ep.input_effect_param.buffer.kind
             == BufKinds::ChangeCurrentStatByPercentage
@@ -493,6 +495,7 @@ impl Character {
 
         // update stats in game
         EffectOutcome {
+            pre_armor_amount_tx,
             full_amount_tx: full_amount,
             real_amount_tx: real_dmg_amount,
             target_id_name: self.id_name.clone(),
@@ -1540,6 +1543,7 @@ mod tests {
         assert_eq!(
             eo,
             EffectOutcome {
+                pre_armor_amount_tx: 0,
                 full_amount_tx: 0,
                 real_amount_tx: 0,
                 target_id_name: c.id_name.clone(),
@@ -1564,15 +1568,15 @@ mod tests {
             &testing_all_equipment(),
         )
         .unwrap();
-        // dmg: -30(dmg) - 10(phy pow stats character) -10*7(phy pow equipment) 0 -70
-        // * 1000/1000+ [5(def phy armor) + 25] = 0.97
-        // => -70 * 0.97 = -67.9 ~ -68
+        // raw = -30 - 40(total phy pow) = -70
+        // protection = 100/(100 + 30(total phy armor)) = 100/130 ≈ 0.769
+        // effective = round(-70 * 0.769) = round(-53.85) = -54
         processed_ep = build_dmg_effect_individual();
         let old_hp = boss1.stats.all_stats[HP].current;
         let eo = boss1.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
-        assert_eq!(eo.full_amount_tx, -68);
-        assert_eq!(eo.real_amount_tx, -68);
-        assert_eq!(old_hp - 68, boss1.stats.all_stats[HP].current);
+        assert_eq!(eo.full_amount_tx, -54);
+        assert_eq!(eo.real_amount_tx, -54);
+        assert_eq!(old_hp - 54, boss1.stats.all_stats[HP].current);
 
         processed_ep = build_buf_effect_individual_speed_regen();
         let launcher_stats = c.stats.clone();

@@ -69,7 +69,11 @@ pub struct ProcessedEffectParam {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct EffectOutcome {
+    /// Raw damage before armor mitigation (0 for non-damage effects).
+    pub pre_armor_amount_tx: i64,
+    /// Damage/heal after armor, buf/debuf, and blocking — before HP cap.
     pub full_amount_tx: i64,
+    /// Actual HP change after HP cap (real amount applied to the target).
     pub real_amount_tx: i64,
     pub target_id_name: String,
     pub is_critical: bool,

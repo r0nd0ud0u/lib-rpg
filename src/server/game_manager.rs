@@ -905,10 +905,19 @@ impl GameManager {
                         ),
                     });
                 } else if is_hp_effect {
-                    // Show both the raw (full) amount and the real amount after mitigation
+                    let pre = gae.effect_outcome.pre_armor_amount_tx;
                     let full = gae.effect_outcome.full_amount_tx;
                     let real = gae.effect_outcome.real_amount_tx;
-                    let msg = if full == real {
+                    let msg = if is_damage {
+                        if pre == real {
+                            format!("{} ← {} HP", gae.effect_outcome.target_id_name, real)
+                        } else {
+                            format!(
+                                "{} ← {} HP (full: {}, real: {})",
+                                gae.effect_outcome.target_id_name, real, pre, real
+                            )
+                        }
+                    } else if full == real {
                         format!(
                             "{} ← {} HP ({})",
                             gae.effect_outcome.target_id_name,
@@ -917,7 +926,7 @@ impl GameManager {
                         )
                     } else {
                         format!(
-                            "{} ← {} HP (raw: {}, after mitigation: {})",
+                            "{} ← {} HP (full: {}, real: {})",
                             gae.effect_outcome.target_id_name, real, full, real
                         )
                     };
@@ -993,8 +1002,8 @@ impl GameManager {
 mod tests {
     use crate::character_mod::buffers::{BufKinds, Buffer};
     use crate::character_mod::character::CharacterKind;
+    use crate::character_mod::attack_type::AttackType;
     use crate::character_mod::class::Class;
-    use crate::character_mod::equipment::Equipment;
     use crate::character_mod::rank::Rank;
     use crate::common::constants::attak_const::COEFF_CRIT_DMG;
     use crate::common::constants::streak_breaker_const::STREAK_BREAKER_ADVANCED;
@@ -1161,34 +1170,15 @@ mod tests {
         assert!(!ra.logs_atk.is_empty());
         // not dead boss : end of game
         assert!(gm.game_state.status != GameStatus::EndOfGame);
-        // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
-        let old_hero_sum_phy_power = gm
-            .pm
-            .current_player
-            .inventory
-            .sum_all_equipped_equipment_stat(
-                PHYSICAL_POWER,
-                &gm.pm
-                    .equipment_table
-                    .values()
-                    .flatten()
-                    .cloned()
-                    .collect::<Vec<Equipment>>(),
-            );
-        let old_boss_sum_phy_armor = old_boss.inventory.sum_all_equipped_equipment_stat(
-            PHYSICAL_ARMOR,
-            &gm.pm
-                .equipment_table
-                .values()
-                .flatten()
-                .cloned()
-                .collect::<Vec<Equipment>>(),
-        );
-        let dmg = (45 + old_hero_sum_phy_power.0) as f64;
-        let protection = 1000.0 / (1000.0 + old_boss_sum_phy_armor.0 as f64);
-        let atk_amount = dmg * protection;
+        // raw = -35(atk) - total_phy_pow, protection = ARMOR_FACTOR/(ARMOR_FACTOR + total_phy_armor)
+        let hero_total_pow = gm.pm.current_player.stats.get_power_stat(false);
+        let boss_total_armor = old_boss.stats.get_armor_stat(false);
+        let raw_dmg = (35 + hero_total_pow) as f64;
+        let protection =
+            AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + boss_total_armor as f64);
+        let atk_amount = (raw_dmg * protection).round() as i64;
         assert_eq!(
-            std::cmp::max(0, old_hp_boss as i64 - atk_amount as i64) as u64,
+            std::cmp::max(0, old_hp_boss as i64 - atk_amount) as u64,
             gm.pm
                 .get_active_boss_character(&target_id_name)
                 .unwrap()
@@ -1309,35 +1299,16 @@ mod tests {
         gm.launch_attack(Some("SimpleAtk"));
         // 1 dead boss : end of game
         assert!(gm.game_state.status != GameStatus::EndOfGame); // still one boss
-        // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
-        // at least coeff critical strike = 2.0 (-45 * 2.0 = -90)
-        let old_hero_sum_phy_power = gm
-            .pm
-            .current_player
-            .inventory
-            .sum_all_equipped_equipment_stat(
-                PHYSICAL_POWER,
-                &gm.pm
-                    .equipment_table
-                    .values()
-                    .flatten()
-                    .cloned()
-                    .collect::<Vec<Equipment>>(),
-            );
-        let old_boss_sum_phy_armor = old_boss.inventory.sum_all_equipped_equipment_stat(
-            PHYSICAL_ARMOR,
-            &gm.pm
-                .equipment_table
-                .values()
-                .flatten()
-                .cloned()
-                .collect::<Vec<Equipment>>(),
-        );
-        let dmg = (45 + old_hero_sum_phy_power.0) as f64;
-        let protection = 1000.0 / (1000.0 + old_boss_sum_phy_armor.0 as f64);
-        let atk_amount = dmg * COEFF_CRIT_DMG * protection;
+        // raw = -35(atk) - total_phy_pow; armor and crit applied in sequence (rounded each step)
+        let hero_total_pow = gm.pm.current_player.stats.get_power_stat(false);
+        let boss_total_armor = old_boss.stats.get_armor_stat(false);
+        let raw_dmg = (35 + hero_total_pow) as f64;
+        let protection =
+            AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + boss_total_armor as f64);
+        let effective = (raw_dmg * protection).round() as i64;
+        let atk_amount = (effective as f64 * COEFF_CRIT_DMG).round() as i64;
         assert_eq!(
-            std::cmp::max(0, old_hp_boss as i64 - atk_amount as i64) as u64,
+            std::cmp::max(0, old_hp_boss as i64 - atk_amount) as u64,
             gm.pm
                 .get_active_boss_character(&target_id_name)
                 .unwrap()
@@ -1395,28 +1366,6 @@ mod tests {
             .clone();
         let old_hp_boss = old_boss.stats.all_stats[HP].current;
         let old_vigor_hero = gm.pm.current_player.stats.all_stats[MANA].current;
-        let old_hero_sum_phy_power = gm
-            .pm
-            .current_player
-            .inventory
-            .sum_all_equipped_equipment_stat(
-                PHYSICAL_POWER,
-                &gm.pm
-                    .equipment_table
-                    .values()
-                    .flatten()
-                    .cloned()
-                    .collect::<Vec<Equipment>>(),
-            );
-        let old_boss_sum_phy_armor = old_boss.inventory.sum_all_equipped_equipment_stat(
-            PHYSICAL_ARMOR,
-            &gm.pm
-                .equipment_table
-                .values()
-                .flatten()
-                .cloned()
-                .collect::<Vec<Equipment>>(),
-        );
         gm.pm
             .get_mut_active_boss_character(&target_id_name)
             .unwrap()
@@ -1425,13 +1374,16 @@ mod tests {
         gm.launch_attack(Some("SimpleAtk"));
         // not dead boss : end of game
         assert!(gm.game_state.status != GameStatus::EndOfGame);
-        // vigor dmg: -35(dmg) - 10(phy pow) * 1000/1000+ 5(def phy armor) = -45
-        // blocking 10% of the damage is received (10% of 45)
-        let dmg = (45 + old_hero_sum_phy_power.0) as f64;
-        let protection = 1000.0 / (1000.0 + old_boss_sum_phy_armor.0 as f64);
-        let blocking = dmg * protection * 10.0 / 100.0;
+        // raw = -35(atk) - total_phy_pow; 10% of effective damage passes through on block
+        let hero_total_pow = gm.pm.current_player.stats.get_power_stat(false);
+        let boss_total_armor = old_boss.stats.get_armor_stat(false);
+        let raw_dmg = (35 + hero_total_pow) as f64;
+        let protection =
+            AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + boss_total_armor as f64);
+        let effective = (raw_dmg * protection).round() as i64;
+        let blocking = 10 * effective / 100;
         assert_eq!(
-            old_hp_boss - blocking as u64,
+            (old_hp_boss as i64 - blocking) as u64,
             gm.pm
                 .get_active_boss_character(&target_id_name)
                 .unwrap()

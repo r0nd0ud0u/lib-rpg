@@ -137,24 +137,37 @@ impl AttackType {
         launchable_atks.get(nb as usize).map(|atk| atk.name.clone())
     }
 
+    /// Armor mitigation constant. At this armor value, damage is halved.
+    pub const ARMOR_FACTOR: f64 = 100.0;
+
+    /// Returns `(raw_damage, effective_damage)`:
+    /// - `raw_damage`: damage before armor (attack value boosted by launcher power)
+    /// - `effective_damage`: damage after armor mitigation (diminishing-returns formula)
+    ///
+    /// Both values are negative for damage, positive for healing.
+    /// Returns `(0, 0)` if `nb_of_turns <= 0` to avoid division by zero.
     pub fn damage_by_atk(
         target_stats: &Stats,
         launcher_stats: &Stats,
         is_magic: bool,
         atk_value: i64,
         nb_of_turns: i64,
-    ) -> i64 {
+    ) -> (i64, i64) {
         if nb_of_turns <= 0 {
-            return 0;
+            return (0, 0);
         }
         let target_armor = target_stats.get_armor_stat(is_magic);
         let launcher_pow = launcher_stats.get_power_stat(is_magic);
 
-        // dmg is negative towards ennemy (atk outcome, is positive while healing >< dmg)
-        let damage = atk_value - launcher_pow / nb_of_turns;
-        let protection = 1000.0 / (1000.0 + target_armor as f64);
+        // Raw damage: attack value boosted by launcher power (negative = damage)
+        let raw_damage = atk_value - launcher_pow / nb_of_turns;
 
-        (damage as f64 * protection).round() as i64
+        // Armor mitigation: diminishing-returns formula.
+        // At ARMOR_FACTOR armor the damage is halved; effective for hero-scale values (0–90).
+        let protection = Self::ARMOR_FACTOR / (Self::ARMOR_FACTOR + target_armor as f64);
+        let effective_damage = (raw_damage as f64 * protection).round() as i64;
+
+        (raw_damage, effective_damage)
     }
 }
 
@@ -245,12 +258,15 @@ mod tests {
         launcher_stats.init();
         launcher_stats.get_mut_value(MAGICAL_POWER).current = 100;
 
-        let damage = AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 1);
-        // dmg = 50 - 100/1 = -50, protection = 1000/(1000+10) = 0.990099, final dmg = -50*0.990099 = -49.5 -> -50
-        assert_eq!(damage, -50);
+        // raw = 50 - 100/1 = -50
+        // protection = 100/(100+10) = 0.9091, effective = round(-50 * 0.9091) = round(-45.45) = -45
+        let (raw, effective) = AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 1);
+        assert_eq!(raw, -50);
+        assert_eq!(effective, -45);
 
-        // test with nb_of_turns = 0, should return 0 to avoid division by zero
-        let damage = AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 0);
-        assert_eq!(damage, 0);
+        // nb_of_turns = 0 → (0, 0) to avoid division by zero
+        let (raw0, eff0) = AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 0);
+        assert_eq!(raw0, 0);
+        assert_eq!(eff0, 0);
     }
 }
