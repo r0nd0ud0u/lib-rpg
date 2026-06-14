@@ -542,6 +542,14 @@ impl Character {
         is_crit: bool,
         atk: &AttackType,
     ) -> Result<Vec<ProcessedEffectParam>> {
+        // Reset ApplyEffectInit so a value left by a previous attack (e.g. DecreasingRateOnTurn)
+        // does not bleed into unrelated attacks and inflate their number_of_applies.
+        if let Some(buf) = self
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::ApplyEffectInit)
+        {
+            buf.value = 0;
+        }
         // Pre-compute number of applies for RepeatAsManyAsPossible effects
         // (must happen after process_atk_cost has already deducted the energy)
         let has_repeat = atk
