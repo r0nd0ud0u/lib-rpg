@@ -78,7 +78,21 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 165 tests should pass with no warnings.
+All 233 tests should pass with no warnings.
+
+---
+
+## Bug Fixes
+
+### Bouclier Défensif — aggro overcounting (+42 instead of +40)
+
+**Root cause:** An `else` branch in `apply_processed_effect_param` generated implicit aggro from any `ChangeCurrentStatByValue` effect on a non-HP, non-Aggro stat. Bouclier Défensif applies Berserk +30, which rounded to 2 extra aggro, giving 42 total.
+
+**Fix:** Removed the `else` branch. Only HP changes (heals/damage) and explicit Aggro stat effects now generate aggro.
+
+### Offrande vitale — apparent lack of armor buff impact
+
+The +50% magic/physical armor buff on the target is applied correctly: `set_stats_on_effect` updates `buf_effect_percent` and `recompute_stat_max_and_current` raises the max from 50 → 75. The limited visible damage reduction (~2%) is by design — the armor formula `1000 / (1000 + armor)` yields diminishing returns at low armor values.
 
 ---
 

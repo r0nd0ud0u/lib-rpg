@@ -486,12 +486,9 @@ impl Character {
                 // Explicit aggro effects bypass the /20 normalisation so the full value
                 // is tracked in tx_rx and persists across NB_TURN_SUM_AGGRO turns.
                 aggro_generated = processed_ep.input_effect_param.buffer.value.unsigned_abs();
-            } else {
-                let v = processed_ep.input_effect_param.buffer.value.abs() as f64;
-                if v > 0.0 {
-                    aggro_generated = (v / aggro_norm).round() as u64;
-                }
             }
+            // Non-HP, non-Aggro stat effects (Berserk, Dodge, etc.) do not generate
+            // implicit aggro; only HP changes and explicit Aggro effects do.
         }
 
         // update stats in game
