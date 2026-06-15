@@ -87,6 +87,9 @@ pub struct Character {
     /// Universe/theme the character belongs to (e.g. "lotr", "pokemon").
     #[serde(default)]
     pub universe: String,
+    /// Name of the last attack this character launched (not persisted in JSON).
+    #[serde(skip)]
+    pub last_atk_name: String,
 }
 
 impl Default for Character {
@@ -108,6 +111,7 @@ impl Default for Character {
             rank: Rank::default(),
             description: String::new(),
             universe: String::new(),
+            last_atk_name: String::new(),
         }
     }
 }

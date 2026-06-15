@@ -268,31 +268,27 @@ impl PlayerManager {
     }
 
     pub fn process_sup_atk_turn(&mut self, launcher_type: CharacterKind) -> Vec<String> {
-        let mut output = Vec::new();
-        let (player_list1, player_list2) = if launcher_type == CharacterKind::Hero {
-            (&mut self.active_heroes, &self.active_bosses)
+        let player_list = if launcher_type == CharacterKind::Hero {
+            &mut self.active_heroes
         } else {
-            (&mut self.active_bosses, &self.active_heroes)
+            &mut self.active_bosses
         };
-        for pl1 in player_list1 {
-            if pl1.stats.is_dead().unwrap_or(false) {
+        for pl in player_list {
+            if pl.stats.is_dead().unwrap_or(false) {
                 continue;
             }
-            let speed_pl1 = match pl1.stats.all_stats.get(SPEED) {
-                Some(speed) => speed,
-                None => continue,
-            };
-            for pl2 in player_list2 {
-                let speed_pl2_current = pl2.stats.all_stats[SPEED].current;
-                let delta = speed_pl1.current.saturating_sub(speed_pl2_current);
-                if delta >= SPEED_THRESHOLD {
-                    pl1.stats.reset_speed();
-                    output.push(pl1.id_name.clone());
-                    break;
-                }
+            let speed = pl
+                .stats
+                .all_stats
+                .get(SPEED)
+                .map(|s| s.current)
+                .unwrap_or(0);
+            if speed >= SPEED_THRESHOLD {
+                pl.stats.reset_speed();
+                return vec![pl.id_name.clone()];
             }
         }
-        output
+        vec![]
     }
 
     pub fn process_all_dodging(
