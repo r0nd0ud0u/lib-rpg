@@ -2047,6 +2047,196 @@ mod tests {
         );
     }
 
+    fn make_tx_rx() -> Vec<std::collections::HashMap<u64, i64>> {
+        (0..crate::character_mod::rounds_information::AmountType::EnumSize as usize)
+            .map(|_| std::collections::HashMap::new())
+            .collect()
+    }
+
+    #[test]
+    fn unit_fleur_de_vie_condition_gate_fails() {
+        use crate::common::constants::all_target_const::TARGET_HIMSELF;
+        use crate::common::constants::reach_const::INDIVIDUAL;
+        use crate::server::game_state::GameState;
+
+        let mut c = testing_character();
+        c.character_rounds_info.new_buffers();
+        c.character_rounds_info.tx_rx = make_tx_rx();
+
+        let cond_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::ConditionDamagePrevTurn,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let multi_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::MultiValue,
+                value: 3,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut atk = crate::testing::testing_atk::build_atk_heal1_indiv();
+        atk.all_effects.insert(0, multi_ep);
+        atk.all_effects.insert(0, cond_ep);
+
+        // Turn 1, prev_turn=0 has no damage → condition must fail and gate all following effects
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        };
+        let result = c.process_atk(&gs, false, &atk).unwrap();
+        assert_eq!(
+            result[0].number_of_applies, 0,
+            "condition must fail (no damage prev turn)"
+        );
+        assert_eq!(result.len(), 1, "gate must stop remaining effects");
+        assert!(
+            c.character_rounds_info
+                .get_buffer_by_type(&BufKinds::MultiValue)
+                .is_none(),
+            "multiplier must not be set when condition fails"
+        );
+    }
+
+    #[test]
+    fn unit_fleur_de_vie_condition_gate_passes_and_multiplier_set() {
+        use crate::character_mod::rounds_information::AmountType;
+        use crate::common::constants::all_target_const::TARGET_HIMSELF;
+        use crate::common::constants::reach_const::INDIVIDUAL;
+        use crate::server::game_state::GameState;
+
+        let mut c = testing_character();
+        c.character_rounds_info.new_buffers();
+        c.character_rounds_info.tx_rx = make_tx_rx();
+
+        // Record damage on turn 0 so the condition passes on turn 1
+        c.character_rounds_info.tx_rx[AmountType::DamageTx as usize].insert(0, 50);
+
+        let cond_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::ConditionDamagePrevTurn,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let multi_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::MultiValue,
+                value: 3,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut atk = crate::testing::testing_atk::build_atk_heal1_indiv();
+        atk.all_effects.insert(0, multi_ep);
+        atk.all_effects.insert(0, cond_ep);
+
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        };
+        let result = c.process_atk(&gs, false, &atk).unwrap();
+        assert_eq!(
+            result[0].number_of_applies, 1,
+            "condition must pass when damage was dealt prev turn"
+        );
+        assert!(result.len() > 1, "remaining effects must be processed");
+
+        // The MultiValue buffer must now be set on the launcher
+        let multi_buf = c
+            .character_rounds_info
+            .get_buffer_by_type(&BufKinds::MultiValue);
+        assert!(multi_buf.is_some(), "multiplier buffer must be stored");
+        assert_eq!(
+            multi_buf.unwrap().value,
+            3,
+            "multiplier must equal the configured value"
+        );
+    }
+
+    #[test]
+    fn unit_lame_fusionnelle_speed_regen_accumulation() {
+        use crate::common::constants::all_target_const::TARGET_HIMSELF;
+        use crate::common::constants::reach_const::INDIVIDUAL;
+
+        let mut c = testing_character();
+        let launcher_stats = c.stats.clone();
+        let base_max = c.stats.all_stats[SPEED_REGEN].max;
+
+        let make_ep = || EffectParam {
+            nb_turns: 6,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::ChangeMaxStatByValue,
+                value: 10,
+                stats_name: SPEED_REGEN.to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let make_processed = || crate::character_mod::effect::ProcessedEffectParam {
+            input_effect_param: make_ep(),
+            number_of_applies: 1,
+            ..Default::default()
+        };
+
+        // --- First application ---
+        let pep1 = make_processed();
+        let eo1 = c.apply_processed_effect_param(&pep1, &launcher_stats, false, 0);
+        assert_eq!(eo1.full_amount_tx, 10);
+        assert_eq!(c.stats.all_stats[SPEED_REGEN].max, base_max + 10);
+
+        // --- Second application (stacks) ---
+        let pep2 = make_processed();
+        let eo2 = c.apply_processed_effect_param(&pep2, &launcher_stats, false, 0);
+        assert_eq!(eo2.full_amount_tx, 10);
+        assert_eq!(c.stats.all_stats[SPEED_REGEN].max, base_max + 20);
+
+        // --- Third application ---
+        let eo3 = c.apply_processed_effect_param(&make_processed(), &launcher_stats, false, 0);
+        assert_eq!(eo3.full_amount_tx, 10);
+        assert_eq!(c.stats.all_stats[SPEED_REGEN].max, base_max + 30);
+
+        // --- Revert first application (simulates effect expiry) ---
+        c.remove_malus_effect(&make_ep()).unwrap();
+        assert_eq!(
+            c.stats.all_stats[SPEED_REGEN].max,
+            base_max + 20,
+            "first expiry must remove exactly one stack"
+        );
+
+        // --- Revert second application ---
+        c.remove_malus_effect(&make_ep()).unwrap();
+        assert_eq!(
+            c.stats.all_stats[SPEED_REGEN].max,
+            base_max + 10,
+            "second expiry must remove one more stack"
+        );
+
+        // --- Revert third application → back to baseline ---
+        c.remove_malus_effect(&make_ep()).unwrap();
+        assert_eq!(
+            c.stats.all_stats[SPEED_REGEN].max, base_max,
+            "all stacks expired: speed regen must return to base"
+        );
+    }
+
     #[test]
     fn unit_drought_threshold_crit_berserker() {
         use crate::common::constants::streak_breaker_const::STREAK_BREAKER_BERSERKER;

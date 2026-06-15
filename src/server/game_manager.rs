@@ -934,7 +934,13 @@ impl GameManager {
                         color: colortext.to_string(),
                         message: msg,
                     });
-                } else {
+                } else if !gae
+                    .processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    .is_empty()
+                {
                     logs.push(LogData {
                         color: colortext.to_string(),
                         message: format!(
