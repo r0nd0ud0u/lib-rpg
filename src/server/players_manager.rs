@@ -82,9 +82,11 @@ impl PlayerManager {
         self.active_bosses.clear();
         self.current_player = Character::default();
         self.active_heroes.iter_mut().for_each(|c| {
-            c.character_rounds_info.clear();
+            // Reverse active ChangeMaxStat* effects before clearing so buf_effect_*
+            // fields are reset to zero and the next scenario starts from the correct base.
             c.reset_all_effects_on_player()
                 .expect("failed to reset all effects");
+            c.character_rounds_info.clear();
             c.stats.get_mut_value(HP).current = c.stats.all_stats[HP].max;
             c.stats.get_mut_value(MANA).current = c.stats.all_stats[MANA].max;
             c.stats.get_mut_value(VIGOR).current = c.stats.all_stats[VIGOR].max;
@@ -1376,5 +1378,134 @@ mod tests {
         pl.current_player.level = 100;
         let launchable_atks = pl.process_launchable_atks();
         assert_eq!(10, launchable_atks.len()); // 6 attacks are HP and linked to is_heal_atk_blocked condition
+    }
+
+    /// clear_scenario must reset speed to 0, restore stat maxima inflated by active
+    /// ChangeMaxStat* effects (e.g. speed_regen, dodge), and set HP/Mana/Vigor to full.
+    #[test]
+    fn unit_clear_scenario_resets_stats() {
+        use crate::character_mod::{
+            buffers::{BufKinds, Buffer},
+            effect::{EffectParam, ProcessedEffectParam},
+        };
+        use crate::common::constants::{all_target_const::TARGET_HIMSELF, reach_const::INDIVIDUAL};
+
+        let mut pm = testing_pm();
+
+        let old_dodge_max = pm.active_heroes[0].stats.all_stats[DODGE].max;
+        let old_speed_regen_max = pm.active_heroes[0].stats.all_stats[SPEED_REGEN].max;
+        let old_hp_max = pm.active_heroes[0].stats.all_stats[HP].max;
+        let old_mana_max = pm.active_heroes[0].stats.all_stats[MANA].max;
+
+        // Inject ChangeMaxStatByValue +20 on Dodge (simulates an active mid-scenario buff).
+        let dodge_ep = EffectParam {
+            buffer: Buffer {
+                kind: BufKinds::ChangeMaxStatByValue,
+                value: 20,
+                is_percent: false,
+                stats_name: DODGE.to_string(),
+                ..Default::default()
+            },
+            nb_turns: 3,
+            target_kind: TARGET_HIMSELF.to_string(),
+            reach: INDIVIDUAL.to_string(),
+            ..Default::default()
+        };
+        pm.active_heroes[0]
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: ProcessedEffectParam {
+                    input_effect_param: dodge_ep,
+                    number_of_applies: 1,
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+        pm.active_heroes[0]
+            .stats
+            .set_stats_on_effect(DODGE, 20, false, true);
+
+        // Inject ChangeMaxStatByValue +5 on SPEED_REGEN (simulates a speed-regen buff).
+        let sr_ep = EffectParam {
+            buffer: Buffer {
+                kind: BufKinds::ChangeMaxStatByValue,
+                value: 5,
+                is_percent: false,
+                stats_name: SPEED_REGEN.to_string(),
+                ..Default::default()
+            },
+            nb_turns: 3,
+            target_kind: TARGET_HIMSELF.to_string(),
+            reach: INDIVIDUAL.to_string(),
+            ..Default::default()
+        };
+        pm.active_heroes[0]
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: ProcessedEffectParam {
+                    input_effect_param: sr_ep,
+                    number_of_applies: 1,
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+        pm.active_heroes[0]
+            .stats
+            .set_stats_on_effect(SPEED_REGEN, 5, false, true);
+
+        // Confirm effects are live before the clear.
+        assert_eq!(
+            old_dodge_max + 20,
+            pm.active_heroes[0].stats.all_stats[DODGE].max,
+            "pre-check: Dodge should be buffed"
+        );
+        assert_eq!(
+            old_speed_regen_max + 5,
+            pm.active_heroes[0].stats.all_stats[SPEED_REGEN].max,
+            "pre-check: Speed regen should be buffed"
+        );
+
+        // Simulate accumulated speed (e.g. after a supplementary-attack reset_speed call).
+        pm.active_heroes[0].stats.get_mut_value(SPEED).current = 50;
+        // Partially drain HP and Mana.
+        pm.active_heroes[0].stats.get_mut_value(HP).current = 10;
+        pm.active_heroes[0].stats.get_mut_value(MANA).current = 5;
+
+        // --- Act ---
+        pm.clear_scenario();
+
+        // --- Assert ---
+        let hero = &pm.active_heroes[0];
+
+        assert_eq!(
+            0, hero.stats.all_stats[SPEED].current,
+            "Speed must be 0 after clear_scenario"
+        );
+        assert_eq!(
+            old_dodge_max, hero.stats.all_stats[DODGE].max,
+            "Dodge max must be restored after clear_scenario"
+        );
+        assert_eq!(
+            old_speed_regen_max, hero.stats.all_stats[SPEED_REGEN].max,
+            "Speed regen max must be restored after clear_scenario"
+        );
+        assert_eq!(
+            old_hp_max, hero.stats.all_stats[HP].current,
+            "HP must be restored to max after clear_scenario"
+        );
+        assert_eq!(
+            old_mana_max, hero.stats.all_stats[MANA].current,
+            "Mana must be restored to max after clear_scenario"
+        );
+        assert_eq!(
+            0, hero.stats.all_stats[BERSERK].current,
+            "Berserk must be 0 after clear_scenario"
+        );
+        assert_eq!(
+            0, hero.stats.all_stats[AGGRO].current,
+            "Aggro must be 0 after clear_scenario"
+        );
     }
 }

@@ -260,7 +260,8 @@ mod tests {
 
         // raw = 50 - 100/1 = -50
         // protection = 100/(100+10) = 0.9091, effective = round(-50 * 0.9091) = round(-45.45) = -45
-        let (raw, effective) = AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 1);
+        let (raw, effective) =
+            AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 1);
         assert_eq!(raw, -50);
         assert_eq!(effective, -45);
 

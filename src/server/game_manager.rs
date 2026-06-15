@@ -1000,9 +1000,9 @@ impl GameManager {
 
 #[cfg(test)]
 mod tests {
+    use crate::character_mod::attack_type::AttackType;
     use crate::character_mod::buffers::{BufKinds, Buffer};
     use crate::character_mod::character::CharacterKind;
-    use crate::character_mod::attack_type::AttackType;
     use crate::character_mod::class::Class;
     use crate::character_mod::rank::Rank;
     use crate::common::constants::attak_const::COEFF_CRIT_DMG;
@@ -3498,6 +3498,109 @@ mod tests {
             aggro_before + 40,
             aggro_after,
             "Bouclier Défensif must give exactly +40 aggro (not inflated by Berserk implicit aggro)"
+        );
+    }
+
+    /// Fureur Déchaînée targets Self: no enemy is harmed, Thraïn's Physical power
+    /// max increases by 30 %, and his aggro increases by the explicit +5 aggro effect.
+    #[test]
+    fn unit_fureur_dechainee_self_only() {
+        use crate::testing::testing_all_characters::dxrpg_game_manager;
+
+        let mut gm = dxrpg_game_manager();
+        gm.start_game();
+
+        // Advance to Thraïn's turn (hard limit to avoid an infinite loop).
+        let mut max_rounds = 30;
+        while !gm.pm.current_player.id_name.contains("Thraïn") && max_rounds > 0 {
+            gm.new_round();
+            max_rounds -= 1;
+        }
+        if !gm.pm.current_player.id_name.contains("Thraïn") {
+            return;
+        }
+
+        // No crit so the result is deterministic.
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        // Ensure enough Berserk for the attack (cost = 12).
+        gm.pm.current_player.stats.all_stats[BERSERK].current = 50;
+
+        let thrain_id = gm.pm.current_player.id_name.clone();
+
+        let old_phy_pow_max = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+        let old_aggro = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[AGGRO]
+            .current;
+
+        // Record every boss HP before the attack.
+        let boss_hp_before: Vec<(String, u64)> = gm
+            .pm
+            .active_bosses
+            .iter()
+            .map(|b| (b.id_name.clone(), b.stats.all_stats[HP].current))
+            .collect();
+
+        // Launch Fureur Déchaînée (target: Self — attack name has two trailing spaces).
+        let result = gm.launch_attack(Some("Fureur Déchaînée  "));
+
+        // --- No effect must land on any enemy ---
+        for gae in &result.new_game_atk_effects {
+            let target = &gae.effect_outcome.target_id_name;
+            assert!(
+                gm.pm.get_active_boss_character(target).is_none(),
+                "Fureur Déchaînée must not affect any boss; got effect on '{target}'"
+            );
+        }
+
+        // Boss HP must be unchanged.
+        for (boss_id, hp_before) in &boss_hp_before {
+            let hp_after = gm
+                .pm
+                .get_active_boss_character(boss_id)
+                .map(|b| b.stats.all_stats[HP].current)
+                .unwrap_or(*hp_before);
+            assert_eq!(
+                *hp_before, hp_after,
+                "Boss '{boss_id}' HP must be unchanged after Fureur Déchaînée"
+            );
+        }
+
+        // --- Self-buff: Physical power max must be +30 % ---
+        let new_phy_pow_max = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+        assert_eq!(
+            old_phy_pow_max + old_phy_pow_max * 30 / 100,
+            new_phy_pow_max,
+            "Fureur Déchaînée must boost Thraïn's Physical power max by 30 %"
+        );
+
+        // --- Explicit aggro effect: +5 aggro on Thraïn ---
+        let new_aggro = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[AGGRO]
+            .current;
+        assert_eq!(
+            old_aggro + 5,
+            new_aggro,
+            "Fureur Déchaînée must give Thraïn exactly +5 aggro"
         );
     }
 }
