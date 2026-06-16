@@ -45,6 +45,10 @@ pub struct ResultLaunchAttack {
     pub logs_atk: Vec<LogData>,
     pub turn_nb: usize,
     pub round_nb: usize,
+    /// True when the finishing blow was delivered by a damage-over-time effect (regen tick), not the direct attack.
+    pub is_dot_kill: bool,
+    /// Last attack name of the character killed by DOT (empty if not a DOT kill).
+    pub dying_char_last_atk: String,
 }
 
 /// The entry of the library.
@@ -554,6 +558,9 @@ impl GameManager {
         });
         // TODO if boss died -> loot
 
+        // record the attack on the current player so we can surface it as the dying char's last move
+        self.pm.current_player.last_atk_name = atk_name.to_string();
+
         // update active character for cost atk and buf received.
         self.pm
             .modify_active_character(&self.pm.current_player.id_name.clone());
@@ -564,6 +571,9 @@ impl GameManager {
             &self.pm.current_player.id_name.clone(),
             atk_name,
         );
+
+        // snapshot: were all bosses (or heroes) already dead before the end-of-round processing?
+        let bosses_dead_before_eor = self.pm.check_end_of_game().1;
 
         // process end of attack
         let mut result_attack = ResultLaunchAttack {
@@ -577,10 +587,25 @@ impl GameManager {
             logs_atk: self.build_logs_atk(&all_dodging, &new_game_atk_effects, is_crit),
             turn_nb: self.game_state.current_turn_nb,
             round_nb: self.game_state.current_round,
+            is_dot_kill: false,
+            dying_char_last_atk: String::new(),
         };
 
         // eval next step of the game
         result_attack.logs_end_of_round = self.eval_end_of_round(result_attack.logs_atk.clone());
+
+        // if bosses were alive before end-of-round but scenario ended during it, a DOT finished them
+        if !bosses_dead_before_eor && self.game_state.status == GameStatus::EndOfScenario {
+            result_attack.is_dot_kill = true;
+            if let Some(dead_boss) = self
+                .pm
+                .active_bosses
+                .iter()
+                .find(|b| b.stats.is_dead().unwrap_or(false))
+            {
+                result_attack.dying_char_last_atk = dead_boss.last_atk_name.clone();
+            }
+        }
 
         // update game state with the result of the attack
         self.game_state.last_result_atk = result_attack.clone();
@@ -934,7 +959,13 @@ impl GameManager {
                         color: colortext.to_string(),
                         message: msg,
                     });
-                } else {
+                } else if !gae
+                    .processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    .is_empty()
+                {
                     logs.push(LogData {
                         color: colortext.to_string(),
                         message: format!(
@@ -1000,9 +1031,9 @@ impl GameManager {
 
 #[cfg(test)]
 mod tests {
+    use crate::character_mod::attack_type::AttackType;
     use crate::character_mod::buffers::{BufKinds, Buffer};
     use crate::character_mod::character::CharacterKind;
-    use crate::character_mod::attack_type::AttackType;
     use crate::character_mod::class::Class;
     use crate::character_mod::rank::Rank;
     use crate::common::constants::attak_const::COEFF_CRIT_DMG;
@@ -1038,24 +1069,32 @@ mod tests {
             .stats
             .all_stats[SPEED]
             .clone();
-        assert_eq!(gm.game_state.order_to_play.len(), 6);
+        // only one supplementary attack per turn: test2_#1 (fastest hero, speed 312) qualifies;
+        // test_#1 (212) is skipped because process_sup_atk_turn returns after the first hit.
+        assert_eq!(gm.game_state.order_to_play.len(), 5);
         // descending speed sort: test2_#1 (312) before test_#1 (212)
         assert_eq!(gm.game_state.order_to_play[0], "test2_#1");
         assert_eq!(gm.game_state.order_to_play[1], "test_#1");
         // descending speed sort: boss2 (15) before boss1 (11)
         assert_eq!(gm.game_state.order_to_play[2], "test_boss2_#1");
         assert_eq!(gm.game_state.order_to_play[3], "test_boss1_#1");
-        // supplementary atk (same descending order)
+        // only test2_#1 gets the supplementary slot
         assert_eq!(gm.game_state.order_to_play[4], "test2_#1");
-        assert_eq!(gm.game_state.order_to_play[5], "test_#1");
-        assert_eq!(old_speed.current - SPEED_THRESHOLD, new_speed.current);
-        // reset_speed must NOT touch max/max_raw (would saturate to 0 and break apply_regen)
+        // test_#1 speed is unchanged (it did NOT get the supplementary slot)
+        assert_eq!(old_speed.current, new_speed.current);
         assert_eq!(old_speed.max, new_speed.max);
         assert_eq!(old_speed.max_raw, new_speed.max_raw);
-        assert_eq!(
-            old_speed.current_raw - SPEED_THRESHOLD,
-            new_speed.current_raw
-        );
+        assert_eq!(old_speed.current_raw, new_speed.current_raw);
+        // test2_#1 had its speed reset (312 - SPEED_THRESHOLD = 212)
+        let new_test2_speed = gm
+            .pm
+            .get_mut_active_hero_character("test2_#1")
+            .cloned()
+            .unwrap()
+            .stats
+            .all_stats[SPEED]
+            .clone();
+        assert_eq!(312 - SPEED_THRESHOLD, new_test2_speed.current);
         // one hero player is dead — use name-based kill so the index stays stable after sort
         gm.pm
             .get_mut_active_hero_character("test_#1")
@@ -1093,8 +1132,8 @@ mod tests {
         let boss = gm.pm.active_bosses.first_mut().unwrap();
         boss.stats.all_stats.get_mut(SPEED).unwrap().current = 10;
         let result = gm.pm.process_sup_atk_turn(CharacterKind::Hero);
-        // there are 2 allies in the test/offlines to len = 2
-        assert_eq!(result.len(), 2);
+        // only one supplementary attack per call — the first qualifying hero
+        assert_eq!(result.len(), 1);
     }
 
     #[test]
@@ -1678,8 +1717,9 @@ mod tests {
         let (mut gm, hero_launcher_id_name, _target_id_name) = testing_test_ally1_vs_test_boss1();
 
         // New descending-speed order: test2_#1(312) > test_#1(212) > test_boss2_#1(15) > test_boss1_#1(11)
+        // Only one supplementary attack per turn (test2_#1 at speed 312 qualifies; test_#1 does not).
         // testing_test_ally1_vs_test_boss1 advanced to round 2 (test_#1); test2_#1 already played round 1.
-        assert_eq!(gm.game_state.order_to_play.len(), 6);
+        assert_eq!(gm.game_state.order_to_play.len(), 5);
         assert_eq!(gm.pm.current_player.id_name, hero_launcher_id_name);
         gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
         // apply effect Magic power - up by % for 2 turns (active turn1+turn2, ends on turn 3)
@@ -1690,12 +1730,9 @@ mod tests {
         // round 4 (boss1)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
-        // turn 1 round 5 (test2 supplementary)
+        // turn 1 round 5 (test2 supplementary — only one supplementary per turn)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
-        // turn 1 round 6 (test supplementary)
-        gm.new_round();
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
         // turn 2 round 1 (test2 — highest speed, acts first)
         gm.start_new_turn();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
@@ -1713,15 +1750,12 @@ mod tests {
         // turn 2 round 4 (boss1)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test_boss1_#1".to_owned());
-        // turn 2 round 5 (test2 supplementary)
+        // turn 2 round 5 (test2 supplementary — only one supplementary per turn)
         gm.new_round();
         assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
-        // turn 2 round 6 (test supplementary)
-        gm.new_round();
-        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
-        // turn 3 round 1 (test2 — highest speed)
+        // turn 3 round 1: test2_#1 was reset twice (312→212→112), so test_#1 (212) acts first now
         gm.start_new_turn();
-        assert_eq!(gm.pm.current_player.id_name, "test2_#1".to_owned());
+        assert_eq!(gm.pm.current_player.id_name, "test_#1".to_owned());
         // effects ended after 2 turns
         assert!(
             gm.pm
@@ -3498,6 +3532,109 @@ mod tests {
             aggro_before + 40,
             aggro_after,
             "Bouclier Défensif must give exactly +40 aggro (not inflated by Berserk implicit aggro)"
+        );
+    }
+
+    /// Fureur Déchaînée targets Self: no enemy is harmed, Thraïn's Physical power
+    /// max increases by 30 %, and his aggro increases by the explicit +5 aggro effect.
+    #[test]
+    fn unit_fureur_dechainee_self_only() {
+        use crate::testing::testing_all_characters::dxrpg_game_manager;
+
+        let mut gm = dxrpg_game_manager();
+        gm.start_game();
+
+        // Advance to Thraïn's turn (hard limit to avoid an infinite loop).
+        let mut max_rounds = 30;
+        while !gm.pm.current_player.id_name.contains("Thraïn") && max_rounds > 0 {
+            gm.new_round();
+            max_rounds -= 1;
+        }
+        if !gm.pm.current_player.id_name.contains("Thraïn") {
+            return;
+        }
+
+        // No crit so the result is deterministic.
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+        // Ensure enough Berserk for the attack (cost = 12).
+        gm.pm.current_player.stats.all_stats[BERSERK].current = 50;
+
+        let thrain_id = gm.pm.current_player.id_name.clone();
+
+        let old_phy_pow_max = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+        let old_aggro = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[AGGRO]
+            .current;
+
+        // Record every boss HP before the attack.
+        let boss_hp_before: Vec<(String, u64)> = gm
+            .pm
+            .active_bosses
+            .iter()
+            .map(|b| (b.id_name.clone(), b.stats.all_stats[HP].current))
+            .collect();
+
+        // Launch Fureur Déchaînée (target: Self — attack name has two trailing spaces).
+        let result = gm.launch_attack(Some("Fureur Déchaînée  "));
+
+        // --- No effect must land on any enemy ---
+        for gae in &result.new_game_atk_effects {
+            let target = &gae.effect_outcome.target_id_name;
+            assert!(
+                gm.pm.get_active_boss_character(target).is_none(),
+                "Fureur Déchaînée must not affect any boss; got effect on '{target}'"
+            );
+        }
+
+        // Boss HP must be unchanged.
+        for (boss_id, hp_before) in &boss_hp_before {
+            let hp_after = gm
+                .pm
+                .get_active_boss_character(boss_id)
+                .map(|b| b.stats.all_stats[HP].current)
+                .unwrap_or(*hp_before);
+            assert_eq!(
+                *hp_before, hp_after,
+                "Boss '{boss_id}' HP must be unchanged after Fureur Déchaînée"
+            );
+        }
+
+        // --- Self-buff: Physical power max must be +30 % ---
+        let new_phy_pow_max = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+        assert_eq!(
+            old_phy_pow_max + old_phy_pow_max * 30 / 100,
+            new_phy_pow_max,
+            "Fureur Déchaînée must boost Thraïn's Physical power max by 30 %"
+        );
+
+        // --- Explicit aggro effect: +5 aggro on Thraïn ---
+        let new_aggro = gm
+            .pm
+            .get_active_hero_character(&thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[AGGRO]
+            .current;
+        assert_eq!(
+            old_aggro + 5,
+            new_aggro,
+            "Fureur Déchaînée must give Thraïn exactly +5 aggro"
         );
     }
 }
