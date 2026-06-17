@@ -33,6 +33,68 @@ pub struct GameAtkEffect {
     pub effect_outcome: EffectOutcome,
 }
 
+impl GameAtkEffect {
+    /// Returns the text line for the attack log, or `None` if this effect should be hidden.
+    pub fn log_text(&self) -> Option<String> {
+        let kind = &self.processed_effect_param.input_effect_param.buffer.kind;
+        let target = &self.effect_outcome.target_id_name;
+        let amount = self.effect_outcome.real_amount_tx;
+        let full = self.effect_outcome.full_amount_tx;
+        let stat = &self
+            .processed_effect_param
+            .input_effect_param
+            .buffer
+            .stats_name;
+        let nb_turns = self.processed_effect_param.input_effect_param.nb_turns;
+        let number_of_applies = self.processed_effect_param.number_of_applies;
+        let buf_value = self.processed_effect_param.input_effect_param.buffer.value;
+
+        match kind {
+            BufKinds::CooldownTurnsNumber => {
+                Some(format!("Cooldown on {target}: {nb_turns} turns"))
+            }
+            BufKinds::ConditionDamagePrevTurn => {
+                if number_of_applies > 0 {
+                    Some(format!("{target} → ✓ Condition: damage last turn"))
+                } else {
+                    Some(format!(
+                        "{target} → ✗ Condition: damage last turn (attack stopped)"
+                    ))
+                }
+            }
+            BufKinds::MultiValue => Some(format!("{target} → Heal ×{buf_value}")),
+            BufKinds::RemoveOneDebuf => {
+                if self.effect_outcome.debuff_removed {
+                    Some(format!("{target} → debuff removed"))
+                } else {
+                    None
+                }
+            }
+            BufKinds::ReinitBuf => {
+                if stat.is_empty() {
+                    None
+                } else {
+                    Some(format!("{target} → {stat} effects reset"))
+                }
+            }
+            _ => {
+                if stat == HP
+                    && *kind != BufKinds::ChangeMaxStatByPercentage
+                    && *kind != BufKinds::ChangeMaxStatByValue
+                {
+                    if full == amount {
+                        Some(format!("{target} → {amount} HP"))
+                    } else {
+                        Some(format!("{target} → {amount} HP (raw: {full})"))
+                    }
+                } else {
+                    Some(format!("{target} → {stat} {full} ({kind})"))
+                }
+            }
+        }
+    }
+}
+
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DodgeInfo {
     pub name: String,

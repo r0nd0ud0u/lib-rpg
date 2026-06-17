@@ -102,6 +102,7 @@ mod tests {
                 target_id_name: "Target1".to_string(),
                 is_critical: false,
                 aggro_generated: 10,
+                debuff_removed: false,
             },
             ..Default::default()
         };

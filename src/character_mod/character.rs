@@ -357,16 +357,20 @@ impl Character {
     ) -> EffectOutcome {
         // RemoveOneDebuf: remove the oldest debuff from this character's active effects
         if processed_ep.input_effect_param.buffer.kind == BufKinds::RemoveOneDebuf {
-            if let Some(pos) = self
+            let debuff_removed = if let Some(pos) = self
                 .character_rounds_info
                 .all_effects
                 .iter()
                 .position(|gae| is_debuf_effect(&gae.processed_effect_param.input_effect_param))
             {
                 self.character_rounds_info.all_effects.remove(pos);
-            }
+                true
+            } else {
+                false
+            };
             return EffectOutcome {
                 target_id_name: self.id_name.clone(),
+                debuff_removed,
                 ..Default::default()
             };
         }
@@ -521,6 +525,7 @@ impl Character {
             target_id_name: self.id_name.clone(),
             is_critical: is_crit,
             aggro_generated,
+            debuff_removed: false,
         }
     }
 
@@ -1569,6 +1574,7 @@ mod tests {
                 target_id_name: c.id_name.clone(),
                 is_critical: false,
                 aggro_generated: 0,
+                debuff_removed: false,
             }
         );
 

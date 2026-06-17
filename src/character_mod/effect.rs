@@ -78,6 +78,8 @@ pub struct EffectOutcome {
     pub target_id_name: String,
     pub is_critical: bool,
     pub aggro_generated: u64,
+    /// Set to true when RemoveOneDebuf successfully removed a debuff.
+    pub debuff_removed: bool,
 }
 
 pub fn is_effet_hot_or_dot(buf_types: &BufKinds) -> bool {
