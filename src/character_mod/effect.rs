@@ -95,6 +95,24 @@ pub fn is_hot(buf_types: &BufKinds, stats: &str, value: i64) -> bool {
     is_effet_hot_or_dot(buf_types) && stats == HP && value > 0
 }
 
+/// Returns true if the given effect represents a debuff (harmful to the character who has it).
+///
+/// Used by RemoveOneDebuf to identify which effects should be removed.
+pub fn is_debuf_effect(ep: &EffectParam) -> bool {
+    match ep.buffer.kind {
+        // Blocks healing — always harmful regardless of value
+        BufKinds::BlockHealAtk => true,
+        // Positive value = takes MORE damage = debuff
+        BufKinds::DamageRxPercent => ep.buffer.value > 0,
+        // Negative value = deals/receives less healing or damage = debuff
+        BufKinds::DamageTxPercent | BufKinds::HealTxPercent | BufKinds::HealRxPercent => {
+            ep.buffer.value < 0
+        }
+        // For all other kinds (DOTs, stat reductions, etc.): negative value = harmful
+        _ => ep.buffer.value < 0,
+    }
+}
+
 pub fn is_boosted_by_crit(buf_types: &BufKinds) -> bool {
     let boosted_effects_by_crit: Vec<BufKinds> = [
         BufKinds::ChangeMaxStatByPercentage,
@@ -310,5 +328,62 @@ mod tests {
         assert!(result);
         let result = is_hot(&BufKinds::ChangeCurrentStatByValue, HP, -10);
         assert!(!result);
+    }
+
+    #[test]
+    fn unit_is_debuf_effect() {
+        let make = |kind: BufKinds, value: i64| EffectParam {
+            buffer: Buffer {
+                kind,
+                value,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+
+        // DOT on HP — classic debuf
+        assert!(is_debuf_effect(&make(
+            BufKinds::ChangeCurrentStatByValue,
+            -10
+        )));
+        // Positive value on HP — HOT, not a debuf
+        assert!(!is_debuf_effect(&make(
+            BufKinds::ChangeCurrentStatByValue,
+            10
+        )));
+
+        // BlockHealAtk is always a debuf regardless of value
+        assert!(is_debuf_effect(&make(BufKinds::BlockHealAtk, 0)));
+        assert!(is_debuf_effect(&make(BufKinds::BlockHealAtk, 1)));
+
+        // DamageRxPercent: positive = takes MORE damage = debuf
+        assert!(is_debuf_effect(&make(BufKinds::DamageRxPercent, 20)));
+        // DamageRxPercent: negative = takes LESS damage = buff
+        assert!(!is_debuf_effect(&make(BufKinds::DamageRxPercent, -20)));
+
+        // DamageTxPercent: negative = deals LESS damage = debuf
+        assert!(is_debuf_effect(&make(BufKinds::DamageTxPercent, -15)));
+        // DamageTxPercent: positive = deals MORE damage = buff
+        assert!(!is_debuf_effect(&make(BufKinds::DamageTxPercent, 15)));
+
+        // HealTxPercent: negative = heals LESS = debuf
+        assert!(is_debuf_effect(&make(BufKinds::HealTxPercent, -10)));
+        assert!(!is_debuf_effect(&make(BufKinds::HealTxPercent, 10)));
+
+        // HealRxPercent: negative = receives LESS healing = debuf
+        assert!(is_debuf_effect(&make(BufKinds::HealRxPercent, -10)));
+        assert!(!is_debuf_effect(&make(BufKinds::HealRxPercent, 10)));
+
+        // Generic negative = debuf, positive = buff
+        assert!(is_debuf_effect(&make(
+            BufKinds::ChangeCurrentStatByPercentage,
+            -5
+        )));
+        assert!(!is_debuf_effect(&make(
+            BufKinds::ChangeCurrentStatByPercentage,
+            5
+        )));
+        assert!(is_debuf_effect(&make(BufKinds::ChangeMaxStatByValue, -50)));
+        assert!(!is_debuf_effect(&make(BufKinds::ChangeMaxStatByValue, 50)));
     }
 }

@@ -105,11 +105,17 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 233 tests should pass with no warnings.
+All 243 tests should pass with no warnings.
 
 ---
 
 ## Bug Fixes
+
+### RemoveOneDebuf — debuff not removed from target (e.g. Éveil de l'Espérance)
+
+**Root cause:** `process_effect_type` for `RemoveOneDebuf` operated on the **launcher's** `all_effects`, not the target's. Additionally, `apply_processed_effect_param` returned early (empty `stats_name` guard) before ever touching the target's effect list, so no debuff was ever removed from the character receiving the heal.
+
+**Fix:** `process_effect_type` is now a no-op for `RemoveOneDebuf` on the launcher side. The actual removal runs in `apply_processed_effect_param` on the target character, which removes the oldest debuff from the target's `all_effects`. A new `is_debuf_effect` helper in `effect.rs` classifies effects properly — covering DOTs, stat reductions, `BlockHealAtk`, and percent modifiers like `DamageRxPercent`.
 
 ### Bouclier Défensif — aggro overcounting (+42 instead of +40)
 

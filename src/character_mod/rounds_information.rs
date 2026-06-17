@@ -403,16 +403,9 @@ impl CharacterRoundsInfo {
                 return Ok(processed_effect_param);
             }
             BufKinds::RemoveOneDebuf => {
-                // Remove the first (oldest) active debuf effect (negative value)
-                if let Some(pos) = self
-                    .all_effects
-                    .iter()
-                    .position(|gae| gae.processed_effect_param.input_effect_param.buffer.value < 0)
-                {
-                    self.all_effects.remove(pos);
-                }
+                // Actual removal happens on the target side in Character::apply_processed_effect_param
                 processed_effect_param.log = LogData {
-                    message: "One debuf removed".to_owned(),
+                    message: "Remove debuf (applied to target)".to_owned(),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
@@ -1853,21 +1846,19 @@ mod tests {
 
     #[test]
     fn unit_process_effect_remove_one_debuf() {
+        // process_effect_type is a no-op for RemoveOneDebuf on the launcher side;
+        // actual removal happens in Character::apply_processed_effect_param on the target.
         let mut cri = CharacterRoundsInfo::default();
-        cri.all_effects.push(make_hot_gae(30)); // positive — NOT a debuf
-        cri.all_effects.push(make_debuf_gae(-20)); // negative — IS a debuf
+        cri.all_effects.push(make_hot_gae(30));
+        cri.all_effects.push(make_debuf_gae(-20));
         assert_eq!(2, cri.all_effects.len());
         let ep = make_ep(BufKinds::RemoveOneDebuf, 0, "", 1);
-        cri.process_effect_type(&ep, "test_atk").unwrap();
-        // Only the debuf removed
-        assert_eq!(1, cri.all_effects.len());
+        let result = cri.process_effect_type(&ep, "test_atk").unwrap();
+        // Launcher's all_effects untouched — no removal here
+        assert_eq!(2, cri.all_effects.len());
         assert_eq!(
-            30,
-            cri.all_effects[0]
-                .processed_effect_param
-                .input_effect_param
-                .buffer
-                .value
+            BufKinds::RemoveOneDebuf,
+            result.input_effect_param.buffer.kind
         );
     }
 
@@ -1876,9 +1867,13 @@ mod tests {
         let mut cri = CharacterRoundsInfo::default();
         cri.all_effects.push(make_hot_gae(30));
         let ep = make_ep(BufKinds::RemoveOneDebuf, 0, "", 1);
-        cri.process_effect_type(&ep, "test_atk").unwrap();
-        // No debuf to remove — HOT should remain
+        let result = cri.process_effect_type(&ep, "test_atk").unwrap();
+        // HOT stays — no removal on the launcher side
         assert_eq!(1, cri.all_effects.len());
+        assert_eq!(
+            BufKinds::RemoveOneDebuf,
+            result.input_effect_param.buffer.kind
+        );
     }
 
     #[test]

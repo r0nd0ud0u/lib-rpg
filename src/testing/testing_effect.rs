@@ -345,3 +345,25 @@ pub fn build_buf_effect_individual_speed_regen() -> ProcessedEffectParam {
         ..Default::default()
     }
 }
+
+#[cfg(not(tarpaulin_include))]
+pub fn build_remove_one_debuf_effect() -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_ALLY.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::RemoveOneDebuf,
+                value: 0,
+                is_percent: false,
+                stats_name: String::new(),
+                is_passive_enabled: false,
+                is_passive: false,
+            },
+            ..Default::default()
+        },
+        number_of_applies: 1,
+        ..Default::default()
+    }
+}
