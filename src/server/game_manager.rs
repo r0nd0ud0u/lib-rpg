@@ -3681,13 +3681,8 @@ mod tests {
         gm.launch_attack(Some("Eveil de la forêt"));
 
         for (id, old_val) in &old_mag_pow {
-            let new_val = gm
-                .pm
-                .get_active_hero_character(id)
-                .unwrap()
-                .stats
-                .all_stats[MAGICAL_POWER]
-                .max;
+            let new_val =
+                gm.pm.get_active_hero_character(id).unwrap().stats.all_stats[MAGICAL_POWER].max;
             assert_eq!(
                 old_val + old_val * 10 / 100,
                 new_val,
@@ -3722,7 +3717,12 @@ mod tests {
 
         gm.launch_attack(Some("Eveil de la forêt"));
 
-        for hero in gm.pm.active_heroes.iter().filter(|h| h.id_name != thalia_id) {
+        for hero in gm
+            .pm
+            .active_heroes
+            .iter()
+            .filter(|h| h.id_name != thalia_id)
+        {
             let hp_hot_count = hero
                 .character_rounds_info
                 .all_effects
@@ -3730,7 +3730,10 @@ mod tests {
                 .filter(|gae| {
                     is_hot(
                         &gae.processed_effect_param.input_effect_param.buffer.kind,
-                        &gae.processed_effect_param.input_effect_param.buffer.stats_name,
+                        &gae.processed_effect_param
+                            .input_effect_param
+                            .buffer
+                            .stats_name,
                         gae.processed_effect_param.input_effect_param.buffer.value,
                     )
                 })
@@ -3748,13 +3751,19 @@ mod tests {
                 .find(|gae| {
                     is_hot(
                         &gae.processed_effect_param.input_effect_param.buffer.kind,
-                        &gae.processed_effect_param.input_effect_param.buffer.stats_name,
+                        &gae.processed_effect_param
+                            .input_effect_param
+                            .buffer
+                            .stats_name,
                         gae.processed_effect_param.input_effect_param.buffer.value,
                     )
                 })
                 .unwrap();
             assert_eq!(
-                hot_effect.processed_effect_param.input_effect_param.nb_turns,
+                hot_effect
+                    .processed_effect_param
+                    .input_effect_param
+                    .nb_turns,
                 4,
                 "HOT from Eveil de la forêt must last 4 turns on {}",
                 hero.id_name
@@ -3806,7 +3815,12 @@ mod tests {
         }
 
         // Verify each ally now has a debuff.
-        for hero in gm.pm.active_heroes.iter().filter(|h| !h.id_name.contains("Thalia")) {
+        for hero in gm
+            .pm
+            .active_heroes
+            .iter()
+            .filter(|h| !h.id_name.contains("Thalia"))
+        {
             assert!(
                 hero.character_rounds_info
                     .all_effects
@@ -3827,9 +3841,7 @@ mod tests {
                     .character_rounds_info
                     .all_effects
                     .iter()
-                    .filter(|gae| {
-                        is_debuf_effect(&gae.processed_effect_param.input_effect_param)
-                    })
+                    .filter(|gae| is_debuf_effect(&gae.processed_effect_param.input_effect_param))
                     .count();
                 (h.id_name.clone(), count)
             })
@@ -3867,24 +3879,21 @@ mod tests {
 
         gm.launch_attack(Some("Eveil de la forêt"));
 
-        let thalia = gm
-            .pm
-            .get_active_hero_character(&thalia_id)
-            .unwrap();
-        let cooldown_effect = thalia
-            .character_rounds_info
-            .all_effects
-            .iter()
-            .find(|gae| {
-                gae.processed_effect_param.input_effect_param.buffer.kind
-                    == BufKinds::CooldownTurnsNumber
-            });
+        let thalia = gm.pm.get_active_hero_character(&thalia_id).unwrap();
+        let cooldown_effect = thalia.character_rounds_info.all_effects.iter().find(|gae| {
+            gae.processed_effect_param.input_effect_param.buffer.kind
+                == BufKinds::CooldownTurnsNumber
+        });
         assert!(
             cooldown_effect.is_some(),
             "Eveil de la forêt must apply a CooldownTurnsNumber effect on Thalia"
         );
         assert_eq!(
-            cooldown_effect.unwrap().processed_effect_param.input_effect_param.nb_turns,
+            cooldown_effect
+                .unwrap()
+                .processed_effect_param
+                .input_effect_param
+                .nb_turns,
             10,
             "Eveil de la forêt cooldown must last 10 turns"
         );
@@ -3929,9 +3938,15 @@ mod tests {
             effect_outcome: Default::default(),
         };
         for hero in gm.pm.active_heroes.iter_mut() {
-            hero.character_rounds_info.all_effects.push(pre_hot_gae.clone());
+            hero.character_rounds_info
+                .all_effects
+                .push(pre_hot_gae.clone());
         }
-        gm.pm.current_player.character_rounds_info.all_effects.push(pre_hot_gae);
+        gm.pm
+            .current_player
+            .character_rounds_info
+            .all_effects
+            .push(pre_hot_gae);
 
         gm.launch_attack(Some("Eveil de la forêt"));
 
@@ -3939,7 +3954,12 @@ mod tests {
         // (60 + 33% of 60 = 79 floor). The BoostHotsByPercentage effect has "All allies"
         // zone, so it fires for Thalia too — but we only check non-caster heroes here since
         // the Eveil HOT (value=80) lands only on non-caster allies.
-        for hero in gm.pm.active_heroes.iter().filter(|h| h.id_name != thalia_id) {
+        for hero in gm
+            .pm
+            .active_heroes
+            .iter()
+            .filter(|h| h.id_name != thalia_id)
+        {
             let boosted_hot = hero
                 .character_rounds_info
                 .all_effects
@@ -3947,7 +3967,10 @@ mod tests {
                 .filter(|gae| {
                     is_hot(
                         &gae.processed_effect_param.input_effect_param.buffer.kind,
-                        &gae.processed_effect_param.input_effect_param.buffer.stats_name,
+                        &gae.processed_effect_param
+                            .input_effect_param
+                            .buffer
+                            .stats_name,
                         gae.processed_effect_param.input_effect_param.buffer.value,
                     ) && gae.processed_effect_param.input_effect_param.buffer.value >= 79
                         && gae.processed_effect_param.input_effect_param.buffer.value < 100
@@ -4001,25 +4024,32 @@ mod tests {
             effect_outcome: Default::default(),
         };
         for hero in gm.pm.active_heroes.iter_mut() {
-            hero.character_rounds_info.all_effects.push(aged_hot_gae.clone());
+            hero.character_rounds_info
+                .all_effects
+                .push(aged_hot_gae.clone());
         }
-        gm.pm.current_player.character_rounds_info.all_effects.push(aged_hot_gae);
+        gm.pm
+            .current_player
+            .character_rounds_info
+            .all_effects
+            .push(aged_hot_gae);
 
         gm.launch_attack(Some("Eveil de la forêt"));
 
         // ReinitBuf resets counter_turn to 0 on every HP HOT for all allies.
         for hero in &gm.pm.active_heroes {
-            let reset = hero
-                .character_rounds_info
-                .all_effects
-                .iter()
-                .any(|gae| {
-                    gae.processed_effect_param.input_effect_param.buffer.kind
-                        == BufKinds::ChangeCurrentStatByValue
-                        && gae.processed_effect_param.input_effect_param.buffer.stats_name == HP
-                        && gae.processed_effect_param.input_effect_param.buffer.value > 0
-                        && gae.processed_effect_param.counter_turn == 0
-                });
+            let reset = hero.character_rounds_info.all_effects.iter().any(|gae| {
+                gae.processed_effect_param.input_effect_param.buffer.kind
+                    == BufKinds::ChangeCurrentStatByValue
+                    && gae
+                        .processed_effect_param
+                        .input_effect_param
+                        .buffer
+                        .stats_name
+                        == HP
+                    && gae.processed_effect_param.input_effect_param.buffer.value > 0
+                    && gae.processed_effect_param.counter_turn == 0
+            });
             assert!(
                 reset,
                 "Eveil de la forêt ReinitBuf must reset counter_turn=0 on HP HOT for {}",
@@ -4049,7 +4079,10 @@ mod tests {
             .filter(|gae| {
                 is_hot(
                     &gae.processed_effect_param.input_effect_param.buffer.kind,
-                    &gae.processed_effect_param.input_effect_param.buffer.stats_name,
+                    &gae.processed_effect_param
+                        .input_effect_param
+                        .buffer
+                        .stats_name,
                     gae.processed_effect_param.input_effect_param.buffer.value,
                 )
             })
@@ -4071,6 +4104,94 @@ mod tests {
             hot_count_before * 20,
             boosted.unwrap().value,
             "BoostedByHots value must equal number_of_hots × 20"
+        );
+    }
+
+    /// Eveil de la forêt (BoostHotsByPercentage +33%) must boost a pre-existing HOT on
+    /// Azrak Ombresang — simulating the HOT he would have received from Essence Régénératrice.
+    /// This covers the zone-target bug where only the caster's HOTs were previously boosted.
+    #[test]
+    fn unit_eveil_foret_boosts_azrak_existing_hot() {
+        use crate::character_mod::buffers::BufKinds;
+        use crate::character_mod::effect::is_hot;
+
+        let (mut gm, thalia_id) = setup_thalia_turn();
+        if !thalia_id.contains("Thalia") {
+            return;
+        }
+
+        let azrak_id = gm
+            .pm
+            .active_heroes
+            .iter()
+            .find(|h| h.id_name.contains("Azrak"))
+            .map(|h| h.id_name.clone())
+            .expect("Azrak Ombresang must be in the lotr party");
+
+        // Seed a +12 HP HOT on Azrak (as Essence Régénératrice would give).
+        let hot_value: i64 = 12;
+        let hot_ep = crate::character_mod::effect::ProcessedEffectParam {
+            input_effect_param: crate::character_mod::effect::EffectParam {
+                nb_turns: 4,
+                buffer: crate::character_mod::buffers::Buffer {
+                    kind: BufKinds::ChangeCurrentStatByValue,
+                    value: hot_value,
+                    is_percent: false,
+                    stats_name: HP.to_owned(),
+                    is_passive_enabled: false,
+                    is_passive: false,
+                },
+                ..Default::default()
+            },
+            number_of_applies: 1,
+            ..Default::default()
+        };
+        let hot_gae = crate::server::players_manager::GameAtkEffect {
+            processed_effect_param: hot_ep,
+            atk_type: Default::default(),
+            launching_turn: 1,
+            launching_round: 1,
+            effect_outcome: Default::default(),
+        };
+        gm.pm
+            .get_mut_active_hero_character(&azrak_id)
+            .unwrap()
+            .character_rounds_info
+            .all_effects
+            .push(hot_gae);
+
+        gm.launch_attack(Some("Eveil de la forêt"));
+
+        // After Eveil de la forêt, Azrak's HOT value must be boosted by +33%.
+        let azrak = gm.pm.get_active_hero_character(&azrak_id).unwrap();
+        let azrak_hot = azrak
+            .character_rounds_info
+            .all_effects
+            .iter()
+            .find(|gae| {
+                is_hot(
+                    &gae.processed_effect_param.input_effect_param.buffer.kind,
+                    &gae.processed_effect_param
+                        .input_effect_param
+                        .buffer
+                        .stats_name,
+                    gae.processed_effect_param.input_effect_param.buffer.value,
+                ) && gae.processed_effect_param.input_effect_param.buffer.value
+                    >= hot_value + hot_value * 33 / 100
+                    && gae.processed_effect_param.input_effect_param.buffer.value
+                        <= hot_value + hot_value * 33 / 100 + 1
+            })
+            .expect("Azrak's HOT must be boosted by +33% by Eveil de la forêt");
+
+        assert_eq!(
+            hot_value + hot_value * 33 / 100,
+            azrak_hot
+                .processed_effect_param
+                .input_effect_param
+                .buffer
+                .value,
+            "Azrak's HOT must be boosted from {hot_value} to {} (+33%)",
+            hot_value + hot_value * 33 / 100
         );
     }
 }
