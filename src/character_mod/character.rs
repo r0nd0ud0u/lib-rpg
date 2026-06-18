@@ -393,6 +393,9 @@ impl Character {
                     let cur = gae.processed_effect_param.input_effect_param.buffer.value;
                     let increase = cur * boost_percent / 100;
                     gae.processed_effect_param.input_effect_param.buffer.value += increase;
+                    // Keep effect_outcome in sync so HOT ticks and log_text() show the boosted value.
+                    gae.effect_outcome.full_amount_tx += increase;
+                    gae.effect_outcome.real_amount_tx += increase;
                     total_increase += increase;
                 }
             }

@@ -4151,7 +4151,12 @@ mod tests {
             atk_type: Default::default(),
             launching_turn: 1,
             launching_round: 1,
-            effect_outcome: Default::default(),
+            effect_outcome: crate::character_mod::effect::EffectOutcome {
+                full_amount_tx: hot_value,
+                real_amount_tx: hot_value,
+                target_id_name: azrak_id.clone(),
+                ..Default::default()
+            },
         };
         gm.pm
             .get_mut_active_hero_character(&azrak_id)
@@ -4183,15 +4188,23 @@ mod tests {
             })
             .expect("Azrak's HOT must be boosted by +33% by Eveil de la forêt");
 
+        let boosted = hot_value + hot_value * 33 / 100;
         assert_eq!(
-            hot_value + hot_value * 33 / 100,
+            boosted,
             azrak_hot
                 .processed_effect_param
                 .input_effect_param
                 .buffer
                 .value,
-            "Azrak's HOT must be boosted from {hot_value} to {} (+33%)",
-            hot_value + hot_value * 33 / 100
+            "Azrak's HOT buffer.value must be boosted from {hot_value} to {boosted} (+33%)"
+        );
+        assert_eq!(
+            boosted, azrak_hot.effect_outcome.full_amount_tx,
+            "Azrak's HOT effect_outcome.full_amount_tx must be boosted so ticks heal {boosted} HP"
+        );
+        assert_eq!(
+            boosted, azrak_hot.effect_outcome.real_amount_tx,
+            "Azrak's HOT effect_outcome.real_amount_tx must be boosted so log_text() shows {boosted} HP"
         );
     }
 }
