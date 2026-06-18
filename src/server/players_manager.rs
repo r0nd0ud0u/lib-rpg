@@ -77,7 +77,13 @@ impl GameAtkEffect {
                     Some(format!("{target} → {stat} effects reset"))
                 }
             }
-            BufKinds::BoostHotsByPercentage => Some(format!("{target} → HOTs +{buf_value}%")),
+            BufKinds::BoostHotsByPercentage => {
+                if full > 0 {
+                    Some(format!("{target} → HOTs +{buf_value}% (+{full} HP/turn)"))
+                } else {
+                    Some(format!("{target} → HOTs +{buf_value}%"))
+                }
+            }
             BufKinds::BoostBufByHotsNumberInPercentage => Some(format!(
                 "{target} → +{buf_value}% heal boost per active HOT"
             )),

@@ -380,6 +380,7 @@ impl Character {
         // attacks correctly boost HOTs on every receiving target, not only on the caster.
         if processed_ep.input_effect_param.buffer.kind == BufKinds::BoostHotsByPercentage {
             let boost_percent = processed_ep.input_effect_param.buffer.value;
+            let mut total_increase: i64 = 0;
             for gae in self.character_rounds_info.all_effects.iter_mut() {
                 if is_hot(
                     &gae.processed_effect_param.input_effect_param.buffer.kind,
@@ -390,12 +391,15 @@ impl Character {
                     gae.processed_effect_param.input_effect_param.buffer.value,
                 ) {
                     let cur = gae.processed_effect_param.input_effect_param.buffer.value;
-                    gae.processed_effect_param.input_effect_param.buffer.value +=
-                        cur * boost_percent / 100;
+                    let increase = cur * boost_percent / 100;
+                    gae.processed_effect_param.input_effect_param.buffer.value += increase;
+                    total_increase += increase;
                 }
             }
             return EffectOutcome {
                 target_id_name: self.id_name.clone(),
+                full_amount_tx: total_increase,
+                real_amount_tx: total_increase,
                 ..Default::default()
             };
         }
