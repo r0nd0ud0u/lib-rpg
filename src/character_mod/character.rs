@@ -8,7 +8,7 @@ use crate::{
         attack_type::{AttackType, LauncherAtkInfo},
         buffers::{BufKinds, Buffer},
         class::Class,
-        effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
+        effect::{EffectOutcome, EffectParam, ProcessedEffectParam, is_debuf_effect},
         energy::{Energy, EnergyKind},
         equipment::{Equipment, EquipmentJsonKey},
         experience::build_exp_to_next_level,
@@ -355,6 +355,26 @@ impl Character {
         is_crit: bool,
         _current_turn: usize, // kept in signature for API compatibility; aggro is now applied to the launcher by the caller
     ) -> EffectOutcome {
+        // RemoveOneDebuf: remove the oldest debuff from this character's active effects
+        if processed_ep.input_effect_param.buffer.kind == BufKinds::RemoveOneDebuf {
+            let debuff_removed = if let Some(pos) = self
+                .character_rounds_info
+                .all_effects
+                .iter()
+                .position(|gae| is_debuf_effect(&gae.processed_effect_param.input_effect_param))
+            {
+                self.character_rounds_info.all_effects.remove(pos);
+                true
+            } else {
+                false
+            };
+            return EffectOutcome {
+                target_id_name: self.id_name.clone(),
+                debuff_removed,
+                ..Default::default()
+            };
+        }
+
         // eval if the effect can be applied on the target
         if processed_ep.input_effect_param.buffer.stats_name.is_empty()
             || !self
@@ -505,6 +525,7 @@ impl Character {
             target_id_name: self.id_name.clone(),
             is_critical: is_crit,
             aggro_generated,
+            debuff_removed: false,
         }
     }
 
@@ -1553,6 +1574,7 @@ mod tests {
                 target_id_name: c.id_name.clone(),
                 is_critical: false,
                 aggro_generated: 0,
+                debuff_removed: false,
             }
         );
 
@@ -1588,6 +1610,155 @@ mod tests {
         assert_eq!(eo.full_amount_tx, 60);
         assert_eq!(eo.real_amount_tx, 0);
         assert_eq!(eo.aggro_generated, 0);
+    }
+
+    #[test]
+    fn unit_apply_effect_remove_one_debuf_removes_dot() {
+        // A hero has a DOT (damage-over-time) applied by an enemy.
+        // When RemoveOneDebuf is applied (e.g. from Thalia's Éveil de l'Espérance),
+        // the DOT must be removed from the target's all_effects.
+        let mut target = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let launcher_stats = target.stats.clone();
+
+        // Add a HOT (should NOT be removed)
+        target
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: build_hot_effect_individual(),
+                ..Default::default()
+            });
+        // Add a DOT (should be removed by RemoveOneDebuf)
+        target
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: build_dot_effect_individual(),
+                ..Default::default()
+            });
+        assert_eq!(2, target.character_rounds_info.all_effects.len());
+
+        let remove_ep = build_remove_one_debuf_effect();
+        let eo = target.apply_processed_effect_param(&remove_ep, &launcher_stats, false, 0);
+
+        // DOT removed, HOT kept
+        assert_eq!(1, target.character_rounds_info.all_effects.len());
+        assert_eq!(
+            30,
+            target.character_rounds_info.all_effects[0]
+                .processed_effect_param
+                .input_effect_param
+                .buffer
+                .value
+        );
+        assert_eq!(target.id_name, eo.target_id_name);
+    }
+
+    #[test]
+    fn unit_apply_effect_remove_one_debuf_stat_debuf() {
+        // RemoveOneDebuf also removes stat debuffs (e.g. reduced magical armor)
+        // and debuffs like BlockHealAtk and DamageRxPercent.
+        let mut target = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let launcher_stats = target.stats.clone();
+
+        // Add a stat debuf (ChangeCurrentStatByValue on a non-HP stat, negative = debuf)
+        target
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: build_debuf_effect_individual(),
+                ..Default::default()
+            });
+        // Add a HOT — should not be removed
+        target
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: build_hot_effect_individual(),
+                ..Default::default()
+            });
+        assert_eq!(2, target.character_rounds_info.all_effects.len());
+
+        let remove_ep = build_remove_one_debuf_effect();
+        target.apply_processed_effect_param(&remove_ep, &launcher_stats, false, 0);
+
+        // Stat debuf removed, HOT remains
+        assert_eq!(1, target.character_rounds_info.all_effects.len());
+        assert_eq!(
+            30,
+            target.character_rounds_info.all_effects[0]
+                .processed_effect_param
+                .input_effect_param
+                .buffer
+                .value
+        );
+    }
+
+    #[test]
+    fn unit_apply_effect_remove_one_debuf_block_heal() {
+        // BlockHealAtk is a debuf (value = 0, but always harmful); RemoveOneDebuf must remove it.
+        let mut target = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let launcher_stats = target.stats.clone();
+
+        target
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: build_heal_atk_blocked(),
+                ..Default::default()
+            });
+        assert_eq!(1, target.character_rounds_info.all_effects.len());
+
+        let remove_ep = build_remove_one_debuf_effect();
+        target.apply_processed_effect_param(&remove_ep, &launcher_stats, false, 0);
+
+        assert_eq!(0, target.character_rounds_info.all_effects.len());
+    }
+
+    #[test]
+    fn unit_apply_effect_remove_one_debuf_no_debuf() {
+        // When there is no debuf, RemoveOneDebuf is a no-op.
+        let mut target = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let launcher_stats = target.stats.clone();
+
+        target
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: build_hot_effect_individual(),
+                ..Default::default()
+            });
+        assert_eq!(1, target.character_rounds_info.all_effects.len());
+
+        let remove_ep = build_remove_one_debuf_effect();
+        target.apply_processed_effect_param(&remove_ep, &launcher_stats, false, 0);
+
+        // HOT still there — nothing removed
+        assert_eq!(1, target.character_rounds_info.all_effects.len());
     }
 
     #[test]
