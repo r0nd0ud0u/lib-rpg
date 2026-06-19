@@ -59,7 +59,11 @@ A passive power is a `Buffer` entry in a character's `Buf-debuf` list (`Characte
 
 #### `OverHealBoostStat` (overheal → stat boost)
 
-`BufKinds::OverHealBoostStat` — at the start of each turn, reads the overheal amount recorded for the **previous turn** in `tx_rx[AmountType::OverHealRx]` (populated by `apply_hot_or_dot` when HOT ticks push HP past max) and adds that amount to the stat named in `buffer.stats_name`.
+`BufKinds::OverHealBoostStat` — at the start of each turn, reads the overheal amount recorded for the **previous turn** in `tx_rx[AmountType::OverHealRx]` and adds it to the stat named in `buffer.stats_name`.  The boost bypasses the stat's max cap (physical power can exceed its base max).
+
+`tx_rx[AmountType::OverHealRx]` is populated by two paths:
+- **HOT ticks** — `apply_hot_or_dot` writes any HP excess when HOTs push HP past max.
+- **Regular heal attacks** — `apply_processed_effect_param` accumulates any HP excess when a direct heal overflows max HP.
 
 This same buffer kind is also enabled dynamically by the `AddAsMuchAsHp` attack effect, so it serves both as a static character passive and as an attack-triggered passive.
 

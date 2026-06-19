@@ -353,7 +353,7 @@ impl Character {
         processed_ep: &ProcessedEffectParam,
         launcher_stats: &Stats,
         is_crit: bool,
-        _current_turn: usize, // kept in signature for API compatibility; aggro is now applied to the launcher by the caller
+        current_turn: usize,
     ) -> EffectOutcome {
         // RemoveOneDebuf: remove the oldest debuff from this character's active effects
         if processed_ep.input_effect_param.buffer.kind == BufKinds::RemoveOneDebuf {
@@ -516,6 +516,22 @@ impl Character {
             self.stats
                 .update_hp_process_real_amount(&processed_ep.input_effect_param, full_amount)
         };
+
+        // Track overheal: any HP heal that exceeds the remaining HP room is overheal.
+        // This covers regular attack heals; HOT overheal is tracked separately in apply_hot_or_dot.
+        if processed_ep.input_effect_param.buffer.stats_name == HP
+            && full_amount > 0
+            && real_hp_amount < full_amount
+        {
+            let overheal = full_amount - real_hp_amount;
+            if let Some(map) = self
+                .character_rounds_info
+                .tx_rx
+                .get_mut(AmountType::OverHealRx as usize)
+            {
+                *map.entry(current_turn as u64).or_insert(0) += overheal;
+            }
+        }
 
         // Apply the effect on the target
         let real_dmg_amount = self.apply_effect_full_amount(processed_ep, full_amount);
@@ -906,7 +922,10 @@ impl Character {
                     .copied()
                     .unwrap_or(0);
                 if overheal > 0 {
-                    self.stats.modify_stat_current(&buf.stats_name, overheal);
+                    // Bypass the max-cap: the passive bonus is an uncapped temporary boost.
+                    if let Some(stat) = self.stats.all_stats.get_mut(&buf.stats_name) {
+                        stat.current = stat.current.saturating_add(overheal as u64);
+                    }
                     output_logs_data.push(LogData {
                         message: format!(
                             "\u{26a1} Passive: {} +{} from overheal",
@@ -2508,8 +2527,6 @@ mod tests {
             is_percent: false,
         });
 
-        // Raise the Physical power max so the +50 boost is not capped
-        c.stats.all_stats.get_mut(PHYSICAL_POWER).unwrap().max = 200;
         let base_pp = c.stats.all_stats[PHYSICAL_POWER].current;
 
         // Fire new_round on turn 1 — prev_turn = 0 has 50 overheal
@@ -2572,6 +2589,63 @@ mod tests {
         assert_eq!(
             c.stats.all_stats[PHYSICAL_POWER].current, base_pp,
             "Disabled passive must not boost Physical power"
+        );
+    }
+
+    // Bug-regression: passive must be able to raise current above max (no cap)
+    #[test]
+    fn unit_passive_overheal_boost_exceeds_max() {
+        let mut c = testing_character();
+        while c.character_rounds_info.tx_rx.len() <= AmountType::OverHealRx as usize {
+            c.character_rounds_info.tx_rx.push(Default::default());
+        }
+        // Physical power is 40/40 — adding 30 must NOT be silently capped to 40
+        c.character_rounds_info.tx_rx[AmountType::OverHealRx as usize].insert(0, 30);
+
+        c.character_rounds_info.update_buffer(&Buffer {
+            kind: BufKinds::OverHealBoostStat,
+            stats_name: PHYSICAL_POWER.to_owned(),
+            is_passive_enabled: true,
+            is_passive: true,
+            value: 0,
+            is_percent: false,
+        });
+
+        let base_pp = c.stats.all_stats[PHYSICAL_POWER].current; // 40
+        let base_max = c.stats.all_stats[PHYSICAL_POWER].max; // 40
+        c.new_round(1, vec![]);
+
+        assert_eq!(
+            c.stats.all_stats[PHYSICAL_POWER].current,
+            base_pp + 30,
+            "Passive boost must push current above max ({base_max})"
+        );
+    }
+
+    // Bug-regression: regular heal attack overheal must be tracked in tx_rx[OverHealRx]
+    #[test]
+    fn unit_overheal_tracked_on_heal_attack() {
+        let mut c = testing_character();
+        let launcher_stats = c.stats.clone();
+
+        // HP already at max — any heal is pure overheal
+        let hp_max = c.stats.all_stats[HP].max;
+        c.stats.all_stats.get_mut(HP).unwrap().current = hp_max;
+
+        let heal_ep = build_hot_effect_individual(); // +30 HP, 1 apply
+        c.apply_processed_effect_param(&heal_ep, &launcher_stats, false, 0);
+
+        let recorded = c
+            .character_rounds_info
+            .tx_rx
+            .get(AmountType::OverHealRx as usize)
+            .and_then(|m| m.get(&0))
+            .copied()
+            .unwrap_or(0);
+
+        assert!(
+            recorded > 0,
+            "Overheal from a heal attack must be recorded in tx_rx[OverHealRx], got 0"
         );
     }
 }
