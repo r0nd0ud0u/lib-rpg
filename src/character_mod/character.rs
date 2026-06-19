@@ -1587,6 +1587,59 @@ mod tests {
     }
 
     #[test]
+    fn unit_passive_change_current_stat_boosts_dodge() {
+        // A passive ChangeCurrentStatByValue on Dodge adds to buf_effect_value,
+        // raising the effective Dodge stat used in the block roll.
+        // Use a clean Dodge attribute (no equipment) to test the passive in isolation.
+        let mut c = testing_character();
+        let dodge = c.stats.all_stats.get_mut(DODGE).unwrap();
+        dodge.current = 5;
+        dodge.max = 5;
+        dodge.max_raw = 5;
+        dodge.buf_equip_value = 0;
+        dodge.buf_equip_percent = 0;
+        dodge.buf_effect_value = 0;
+        c.character_rounds_info.all_buffers.push(Buffer {
+            kind: BufKinds::ChangeCurrentStatByValue,
+            stats_name: DODGE.to_string(),
+            value: 10,
+            is_passive: true,
+            is_passive_enabled: true,
+            ..Default::default()
+        });
+        c.stats
+            .apply_buf_debuf_on_stats(&c.character_rounds_info.all_buffers.clone());
+        assert_eq!(15, c.stats.all_stats[DODGE].max);
+        assert_eq!(15, c.stats.all_stats[DODGE].current);
+    }
+
+    #[test]
+    fn unit_passive_change_current_stat_disabled_no_boost() {
+        // Passive disabled → stat unchanged
+        let mut c = testing_character();
+        let dodge = c.stats.all_stats.get_mut(DODGE).unwrap();
+        dodge.current = 5;
+        dodge.max = 5;
+        dodge.max_raw = 5;
+        dodge.buf_equip_value = 0;
+        dodge.buf_equip_percent = 0;
+        dodge.buf_effect_value = 0;
+        c.character_rounds_info.all_buffers.push(Buffer {
+            kind: BufKinds::ChangeCurrentStatByValue,
+            stats_name: DODGE.to_string(),
+            value: 10,
+            is_passive: true,
+            is_passive_enabled: false,
+            ..Default::default()
+        });
+        c.stats
+            .apply_buf_debuf_on_stats(&c.character_rounds_info.all_buffers.clone());
+        // disabled passive → stat must stay at base values
+        assert_eq!(5, c.stats.all_stats[DODGE].max);
+        assert_eq!(5, c.stats.all_stats[DODGE].current);
+    }
+
+    #[test]
     fn unit_process_critical_strike() {
         // no critical strike stat → softcap(0) = 0% → never crits
         let mut c = testing_character();

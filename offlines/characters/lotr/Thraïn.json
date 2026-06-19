@@ -13,6 +13,14 @@
                 "passive-enabled": false,
                 "kind": "DamageRxPercent",
                 "value": 100
+            },
+            {
+                "stats-name": "Dodge",
+                "is-percent": false,
+                "passive-enabled": true,
+                "passive": true,
+                "kind": "ChangeCurrentStatByValue",
+                "value": 10
             }
         ]
     },

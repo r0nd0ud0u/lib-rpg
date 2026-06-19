@@ -103,6 +103,25 @@ JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
 
 > This passive kind can also be enabled dynamically by an attack effect (any attack carrying an `IsDamageTxHealNeedyAlly` effect adds the passive buffer via `process_effect_type` in `rounds_information.rs`), allowing temporary versions on other heroes.
 
+#### Passive stat bonus via `ChangeCurrentStatByValue`
+
+A passive `ChangeCurrentStatByValue` buffer with a non-empty `stats-name` permanently raises that stat at character load time.  The bonus is stored in `buf_effect_value` inside `recompute_stat_max_and_current`, so it is automatically included whenever equipment is equipped or removed — no separate re-application is needed.
+
+**Thraïn** carries a passive `ChangeCurrentStatByValue` on `Dodge` with `value = 10`: his base Dodge of 5 is raised to 15 (before further equipment bonuses), giving him an additional ~8 percentage points of block chance through the softcap curve.
+
+JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
+
+```json
+{
+  "stats-name": "Dodge",
+  "is-percent": false,
+  "passive-enabled": true,
+  "passive": true,
+  "kind": "ChangeCurrentStatByValue",
+  "value": 10
+}
+```
+
 ---
 
 ## Data Files
@@ -155,7 +174,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 261 tests should pass with no warnings.
+All 264 tests should pass with no warnings.
 
 ---
 

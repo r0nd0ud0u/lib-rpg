@@ -298,12 +298,9 @@ impl Stats {
                 attr.buf_equip_value += multiplier * stat_effect.buf_equip_value;
                 attr.buf_equip_percent += multiplier * stat_effect.buf_equip_percent;
 
-                let ratio = utils::calc_ratio(attr.current as i64, attr.max as i64);
-                attr.max = attr.max_raw
-                    + attr.buf_equip_value as u64
-                    + attr.max_raw * attr.buf_equip_percent as u64 / 100;
-
-                attr.current = (attr.max as f64 * ratio).round() as u64;
+                // recompute_stat_max_and_current includes buf_effect_value (passive stat bonuses),
+                // so passive contributions are preserved across equipment changes.
+                Self::recompute_stat_max_and_current(attr, None);
             }
         }
     }
