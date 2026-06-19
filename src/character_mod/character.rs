@@ -889,7 +889,33 @@ impl Character {
                 }),
             }
 
-            // TODO apply passive power
+            // Apply passive powers
+            if let Some(buf) = self
+                .character_rounds_info
+                .get_buffer_by_type(&BufKinds::OverHealBoostStat)
+                .cloned()
+                && buf.is_passive_enabled
+                && !buf.stats_name.is_empty()
+            {
+                let prev_turn = current_turn_nb.saturating_sub(1) as u64;
+                let overheal = self
+                    .character_rounds_info
+                    .tx_rx
+                    .get(AmountType::OverHealRx as usize)
+                    .and_then(|m| m.get(&prev_turn))
+                    .copied()
+                    .unwrap_or(0);
+                if overheal > 0 {
+                    self.stats.modify_stat_current(&buf.stats_name, overheal);
+                    output_logs_data.push(LogData {
+                        message: format!(
+                            "\u{26a1} Passive: {} +{} from overheal",
+                            buf.stats_name, overheal
+                        ),
+                        color: LIGHT_GREEN.to_string(),
+                    });
+                }
+            }
 
             // atk assessment to be launched
             self.character_rounds_info
@@ -2459,6 +2485,93 @@ mod tests {
         assert!(
             result,
             "Berserker should get guaranteed crit at STREAK_BREAKER_BERSERKER threshold"
+        );
+    }
+
+    #[test]
+    fn unit_passive_overheal_rx_update_stat_fires_when_overheal() {
+        let mut c = testing_character();
+        // Ensure enough tx_rx slots
+        while c.character_rounds_info.tx_rx.len() <= AmountType::OverHealRx as usize {
+            c.character_rounds_info.tx_rx.push(Default::default());
+        }
+        // Record an overheal of 50 on turn 0
+        c.character_rounds_info.tx_rx[AmountType::OverHealRx as usize].insert(0, 50);
+
+        // Install the passive buffer
+        c.character_rounds_info.update_buffer(&Buffer {
+            kind: BufKinds::OverHealBoostStat,
+            stats_name: PHYSICAL_POWER.to_owned(),
+            is_passive_enabled: true,
+            is_passive: true,
+            value: 0,
+            is_percent: false,
+        });
+
+        // Raise the Physical power max so the +50 boost is not capped
+        c.stats.all_stats.get_mut(PHYSICAL_POWER).unwrap().max = 200;
+        let base_pp = c.stats.all_stats[PHYSICAL_POWER].current;
+
+        // Fire new_round on turn 1 — prev_turn = 0 has 50 overheal
+        c.new_round(1, vec![]);
+
+        assert_eq!(
+            c.stats.all_stats[PHYSICAL_POWER].current,
+            base_pp + 50,
+            "Physical power should be boosted by the prev-turn overheal"
+        );
+    }
+
+    #[test]
+    fn unit_passive_overheal_rx_update_stat_noop_when_no_overheal() {
+        let mut c = testing_character();
+        while c.character_rounds_info.tx_rx.len() <= AmountType::OverHealRx as usize {
+            c.character_rounds_info.tx_rx.push(Default::default());
+        }
+        // No overheal recorded on turn 0
+
+        c.character_rounds_info.update_buffer(&Buffer {
+            kind: BufKinds::OverHealBoostStat,
+            stats_name: PHYSICAL_POWER.to_owned(),
+            is_passive_enabled: true,
+            is_passive: true,
+            value: 0,
+            is_percent: false,
+        });
+
+        let base_pp = c.stats.all_stats[PHYSICAL_POWER].current;
+        c.new_round(1, vec![]);
+
+        assert_eq!(
+            c.stats.all_stats[PHYSICAL_POWER].current, base_pp,
+            "Physical power must not change when there was no overheal"
+        );
+    }
+
+    #[test]
+    fn unit_passive_overheal_rx_update_stat_disabled_when_passive_not_enabled() {
+        let mut c = testing_character();
+        while c.character_rounds_info.tx_rx.len() <= AmountType::OverHealRx as usize {
+            c.character_rounds_info.tx_rx.push(Default::default());
+        }
+        c.character_rounds_info.tx_rx[AmountType::OverHealRx as usize].insert(0, 50);
+
+        // Passive present but disabled
+        c.character_rounds_info.update_buffer(&Buffer {
+            kind: BufKinds::OverHealBoostStat,
+            stats_name: PHYSICAL_POWER.to_owned(),
+            is_passive_enabled: false,
+            is_passive: true,
+            value: 0,
+            is_percent: false,
+        });
+
+        let base_pp = c.stats.all_stats[PHYSICAL_POWER].current;
+        c.new_round(1, vec![]);
+
+        assert_eq!(
+            c.stats.all_stats[PHYSICAL_POWER].current, base_pp,
+            "Disabled passive must not boost Physical power"
         );
     }
 }

@@ -13,6 +13,14 @@
                 "passive-enabled": false,
                 "kind": "DamageRxPercent",
                 "value": 100
+            },
+            {
+                "stats-name": "Physical power",
+                "is-percent": false,
+                "passive-enabled": true,
+                "passive": true,
+                "kind": "OverHealBoostStat",
+                "value": 0
             }
         ]
     },

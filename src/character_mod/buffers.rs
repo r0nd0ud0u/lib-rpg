@@ -14,7 +14,7 @@ pub enum BufKinds {
     NextHealAtkIsCrit,
     MultiValue,
     ApplyEffectInit,
-    ChangeByHealValue,
+    OverHealBoostStat,
     BoostedByHots,
     /// Effect to improve max value of a stat by percent (current value is updated by ratio)
     ChangeMaxStatByPercentage,
@@ -68,7 +68,7 @@ impl fmt::Display for BufKinds {
             BufKinds::NextHealAtkIsCrit => "Next heal is critical",
             BufKinds::MultiValue => "Multiplier",
             BufKinds::ApplyEffectInit => "Effect applications",
-            BufKinds::ChangeByHealValue => "Stat boosted by heal",
+            BufKinds::OverHealBoostStat => "Overheal boosts stat",
             BufKinds::BoostedByHots => "Boosted by HoTs",
             BufKinds::ChangeMaxStatByPercentage => "Max stat change %",
             BufKinds::ChangeMaxStatByValue => "Max stat change",
@@ -180,8 +180,8 @@ mod tests {
             "Effect applications"
         );
         assert_eq!(
-            format!("{}", BufKinds::ChangeByHealValue),
-            "Stat boosted by heal"
+            format!("{}", BufKinds::OverHealBoostStat),
+            "Overheal boosts stat"
         );
         assert_eq!(format!("{}", BufKinds::BoostedByHots), "Boosted by HoTs");
         assert_eq!(

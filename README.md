@@ -53,6 +53,31 @@ This means the HOT fires **at most** `value` ticks after launch, not always `val
 
 `CoreGameData.loaded_from_save` is `false` for fresh games and `true` when a game is restored from a save file.  UI layers use this flag to lock the universe selector once a save has been loaded.
 
+### Passive Powers
+
+A passive power is a `Buffer` entry in a character's `Buf-debuf` list (`CharacterRoundsInfo.all_buffers`) with `"passive": true` and `"passive-enabled": true`.  Unlike attack-triggered effects, passives are defined statically in the character JSON and fire automatically at the start of each turn inside `Character::new_round`.
+
+#### `OverHealBoostStat` (overheal → stat boost)
+
+`BufKinds::OverHealBoostStat` — at the start of each turn, reads the overheal amount recorded for the **previous turn** in `tx_rx[AmountType::OverHealRx]` (populated by `apply_hot_or_dot` when HOT ticks push HP past max) and adds that amount to the stat named in `buffer.stats_name`.
+
+This same buffer kind is also enabled dynamically by the `AddAsMuchAsHp` attack effect, so it serves both as a static character passive and as an attack-triggered passive.
+
+**Azrak Ombresang** carries this passive with `stats_name = "Physical power"`: each point of overheal he received on the previous turn is converted into a bonus to his current Physical power, rewarding sustained healing beyond his HP cap.
+
+JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
+
+```json
+{
+  "stats-name": "Physical power",
+  "is-percent": false,
+  "passive-enabled": true,
+  "passive": true,
+  "kind": "OverHealBoostStat",
+  "value": 0
+}
+```
+
 ---
 
 ## Data Files
