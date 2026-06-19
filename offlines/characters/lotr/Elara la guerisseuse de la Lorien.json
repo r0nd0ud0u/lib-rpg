@@ -9,10 +9,11 @@
         "Buf-debuf": [
             {
                 "stats-name": "",
-                "is-percent": true,
-                "passive-enabled": false,
-                "kind": "DamageRxPercent",
-                "value": 100
+                "is-percent": false,
+                "passive-enabled": true,
+                "passive": true,
+                "kind": "IsDamageTxHealNeedyAlly",
+                "value": 25
             }
         ]
     },

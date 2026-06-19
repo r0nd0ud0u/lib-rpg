@@ -4207,4 +4207,68 @@ mod tests {
             "Azrak's HOT effect_outcome.real_amount_tx must be boosted so log_text() shows {boosted} HP"
         );
     }
+
+    /// Integration test: 3 heroes (Elara, Azrak, Thalia) + 1 enemy.
+    /// Elara's IsDamageTxHealNeedyAlly passive reads DamageTx from the previous turn
+    /// and heals the most-needy alive hero by 25%.
+    #[test]
+    fn unit_passive_damage_tx_heal_needy_3_heroes_1_enemy() {
+        use crate::character_mod::rounds_information::AmountType;
+        use crate::server::game_state::GameState;
+
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+        // Keep 3 heroes: Elara, Azrak, Thalia
+        gm.pm.active_heroes.retain(|h| {
+            matches!(
+                h.id_name.as_str(),
+                "Elara_la_guerisseuse_de_la_Lorien_#1" | "Azrak_Ombresang_#1" | "Thalia_#1"
+            )
+        });
+        // Keep 1 boss
+        gm.pm.active_bosses.truncate(1);
+
+        let elara_id = "Elara_la_guerisseuse_de_la_Lorien_#1";
+        let azrak_id = "Azrak_Ombresang_#1";
+
+        // Drain Azrak to 10 HP — lowest ratio → most needy
+        gm.pm
+            .get_mut_active_hero_character(azrak_id)
+            .unwrap()
+            .stats
+            .all_stats
+            .get_mut(HP)
+            .unwrap()
+            .current = 10;
+
+        // Inject DamageTx[turn 1] = 200 on Elara (simulates a damage attack on previous turn)
+        gm.pm
+            .get_mut_active_hero_character(elara_id)
+            .unwrap()
+            .character_rounds_info
+            .tx_rx[AmountType::DamageTx as usize]
+            .insert(1, 200);
+
+        // Process Elara's round at turn 2 (prev_turn = 1 → reads DamageTx[1])
+        gm.pm.reset_is_first_round();
+        let gs = GameState {
+            current_turn_nb: 2,
+            ..Default::default()
+        };
+        gm.pm
+            .update_current_player_on_new_round(&gs, elara_id)
+            .unwrap();
+
+        // Passive: 200 * 25 / 100 = 50 HP heal on Azrak (most needy at 10 HP)
+        let azrak_hp = gm
+            .pm
+            .get_active_hero_character(azrak_id)
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        assert_eq!(
+            azrak_hp, 60,
+            "Azrak must be healed to 10 + 50 = 60 HP by Elara's passive"
+        );
+    }
 }
