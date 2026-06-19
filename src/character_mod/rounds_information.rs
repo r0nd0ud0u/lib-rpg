@@ -411,24 +411,10 @@ impl CharacterRoundsInfo {
                 return Ok(processed_effect_param);
             }
             BufKinds::BoostHotsByPercentage => {
-                // Boost all active HOT values by value%
-                let boost_percent = ep.buffer.value;
-                for gae in self.all_effects.iter_mut() {
-                    if effect::is_hot(
-                        &gae.processed_effect_param.input_effect_param.buffer.kind,
-                        &gae.processed_effect_param
-                            .input_effect_param
-                            .buffer
-                            .stats_name,
-                        gae.processed_effect_param.input_effect_param.buffer.value,
-                    ) {
-                        let cur_val = gae.processed_effect_param.input_effect_param.buffer.value;
-                        gae.processed_effect_param.input_effect_param.buffer.value +=
-                            cur_val * boost_percent / 100;
-                    }
-                }
+                // Actual HOT mutation happens in Character::apply_processed_effect_param
+                // so every receiving target (not just the caster) gets its HOTs boosted.
                 processed_effect_param.log = LogData {
-                    message: format!("HOTs boosted by {}%", boost_percent),
+                    message: format!("HOTs boosted by {}%", ep.buffer.value),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
@@ -1878,20 +1864,24 @@ mod tests {
 
     #[test]
     fn unit_process_effect_boost_hots_by_percentage() {
+        // process_effect_type no longer mutates HOTs directly; it just produces the
+        // ProcessedEffectParam. The actual boost is applied in
+        // Character::apply_processed_effect_param so every receiving target is covered.
         let mut cri = CharacterRoundsInfo::default();
         cri.all_effects.push(make_hot_gae(100));
-        // Boost HOTs by 20%
         let ep = make_ep(BufKinds::BoostHotsByPercentage, 20, "", 1);
-        cri.process_effect_type(&ep, "test_atk").unwrap();
-        // 100 + (100 * 20 / 100) = 120
+        let result = cri.process_effect_type(&ep, "test_atk").unwrap();
+        // HOT value is unchanged here — mutation happens on the target side
         assert_eq!(
-            120,
+            100,
             cri.all_effects[0]
                 .processed_effect_param
                 .input_effect_param
                 .buffer
                 .value
         );
+        // The returned effect carries the correct boost percentage for the target to apply
+        assert_eq!(20, result.input_effect_param.buffer.value);
     }
 
     #[test]

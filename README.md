@@ -105,7 +105,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 243 tests should pass with no warnings.
+All 251 tests should pass with no warnings.
 
 ---
 
@@ -122,6 +122,12 @@ All 243 tests should pass with no warnings.
 **Root cause:** An `else` branch in `apply_processed_effect_param` generated implicit aggro from any `ChangeCurrentStatByValue` effect on a non-HP, non-Aggro stat. Bouclier Défensif applies Berserk +30, which rounded to 2 extra aggro, giving 42 total.
 
 **Fix:** Removed the `else` branch. Only HP changes (heals/damage) and explicit Aggro stat effects now generate aggro.
+
+### BoostHotsByPercentage — HOT boost only applied to the caster, not to other allies
+
+**Root cause:** `process_effect_type` for `BoostHotsByPercentage` mutated `self.all_effects` on the **launcher's** `CharacterRoundsInfo`. For zone / "All allies" attacks (e.g. Thalia's *Éveil de la forêt*), `is_receiving_atk` / `apply_processed_effect_param` returned early (empty `stats_name` guard) without ever touching the other allies' HOTs.
+
+**Fix:** `process_effect_type` is now a no-op for `BoostHotsByPercentage` on the launcher side (only sets the log message). The actual boost iterates over `self.character_rounds_info.all_effects` in `apply_processed_effect_param`, which runs for every receiving target including the caster.
 
 ### Offrande vitale — apparent lack of armor buff impact
 

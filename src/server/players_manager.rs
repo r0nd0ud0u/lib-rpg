@@ -77,6 +77,16 @@ impl GameAtkEffect {
                     Some(format!("{target} → {stat} effects reset"))
                 }
             }
+            BufKinds::BoostHotsByPercentage => {
+                if full > 0 {
+                    Some(format!("{target} → HOTs +{buf_value}% (+{full} HP/turn)"))
+                } else {
+                    Some(format!("{target} → HOTs +{buf_value}%"))
+                }
+            }
+            BufKinds::BoostBufByHotsNumberInPercentage => Some(format!(
+                "{target} → +{buf_value}% heal boost per active HOT"
+            )),
             _ => {
                 if stat == HP
                     && *kind != BufKinds::ChangeMaxStatByPercentage
@@ -87,6 +97,10 @@ impl GameAtkEffect {
                     } else {
                         Some(format!("{target} → {amount} HP (raw: {full})"))
                     }
+                } else if *kind == BufKinds::ChangeMaxStatByPercentage {
+                    Some(format!("{target} → {stat} max +{full}%"))
+                } else if stat.is_empty() {
+                    Some(format!("{target} → {full} ({kind})"))
                 } else {
                     Some(format!("{target} → {stat} {full} ({kind})"))
                 }
