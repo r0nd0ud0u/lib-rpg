@@ -963,8 +963,8 @@ impl Character {
                     }
                     output_logs_data.push(LogData {
                         message: format!(
-                            "\u{26a1} Passive: {} +{} from overheal",
-                            buf.stats_name, overheal
+                            "\u{26a1} Passive({}): {} +{} from overheal",
+                            self.id_name, buf.stats_name, overheal
                         ),
                         color: LIGHT_GREEN.to_string(),
                     });
