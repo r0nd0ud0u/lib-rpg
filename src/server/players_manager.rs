@@ -162,6 +162,11 @@ impl PlayerManager {
             // fields are reset to zero and the next scenario starts from the correct base.
             c.reset_all_effects_on_player()
                 .expect("failed to reset all effects");
+            // Clamp any stat inflated above its max by uncapped passive boosts
+            // (e.g. OverHealBoostStat writes directly to stat.current without a cap).
+            for stat in c.stats.all_stats.values_mut() {
+                stat.current = stat.current.min(stat.max);
+            }
             c.character_rounds_info.clear();
             c.stats.get_mut_value(HP).current = c.stats.all_stats[HP].max;
             c.stats.get_mut_value(MANA).current = c.stats.all_stats[MANA].max;
@@ -1661,6 +1666,42 @@ mod tests {
         assert_eq!(
             0, hero.stats.all_stats[AGGRO].current,
             "Aggro must be 0 after clear_scenario"
+        );
+    }
+
+    /// clear_scenario must clamp any stat inflated above max by the OverHealBoostStat passive.
+    #[test]
+    fn unit_clear_scenario_resets_overheal_passive_stat_boost() {
+        use crate::common::constants::stats_const::PHYSICAL_POWER;
+
+        let mut pm = testing_all_characters::dxrpg_pm();
+        // Use Azrak who carries the OverHealBoostStat passive on Physical power.
+        let azrak_id = "Azrak_Ombresang_#1";
+        let phys_pow_max = pm
+            .get_active_hero_character(azrak_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+
+        // Simulate the passive having accumulated a large uncapped boost across a scenario.
+        pm.get_mut_active_hero_character(azrak_id)
+            .unwrap()
+            .stats
+            .get_mut_value(PHYSICAL_POWER)
+            .current = phys_pow_max + 200;
+
+        pm.clear_scenario();
+
+        let after = pm
+            .get_active_hero_character(azrak_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .current;
+        assert_eq!(
+            after, phys_pow_max,
+            "Physical power current must be clamped back to max after clear_scenario"
         );
     }
 
