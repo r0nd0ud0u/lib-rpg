@@ -144,11 +144,12 @@ impl GameManager {
             *state = ScenarioState::Completed;
         }
         let current_level = self.current_scenario.level;
-        // get the next scenario with the next level
+        let current_universe = self.current_scenario.universe.clone();
+        // get the next scenario with the next level in the same universe
         let Some(scenario) = self
             .all_scenarios
             .iter()
-            .find(|s| s.level == current_level + 1)
+            .find(|s| s.level == current_level + 1 && s.universe == current_universe)
             .cloned()
         else {
             return Err(anyhow::anyhow!(
