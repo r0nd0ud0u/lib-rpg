@@ -419,7 +419,7 @@ impl PlayerManager {
             logs.push(LogData {
                 message: format!(
                     "\u{26a1} Passive({}): {} \u{2190} +{} HP ({}% of {} damage TX)",
-                    launcher_id_name,short_name, real_heal, pct, damage_tx
+                    launcher_id_name, short_name, real_heal, pct, damage_tx
                 ),
                 color: LIGHT_GREEN.to_string(),
             });
