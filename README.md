@@ -84,9 +84,9 @@ JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
 
 #### `IsDamageTxHealNeedyAlly` (damage converts to ally heal)
 
-`BufKinds::IsDamageTxHealNeedyAlly` — at the start of each turn, reads the total HP damage the character dealt on the **previous turn** from `tx_rx[AmountType::DamageTx]` and converts `value`% of it into a HP heal for the **most needy alive ally** (the hero with the lowest current-HP/max-HP ratio).  The heal is capped at the target's HP max.
+`BufKinds::IsDamageTxHealNeedyAlly` — fires immediately when the character deals HP damage, converting `value`% of the damage dealt into a HP heal for the **most needy alive ally** (the hero with the lowest current-HP/max-HP ratio).  The heal is capped at the target's HP max.  A log entry is appended to `ResultLaunchAttack.logs_atk` in the same turn so the heal is visible immediately.
 
-**Elara la guerisseuse de la Lorien** carries this passive with `value = 25`: 25% of her previous turn's damage output is redistributed as healing to whichever ally is lowest on HP.
+**Elara la guerisseuse de la Lorien** carries this passive with `value = 25`: 25% of her damage is redistributed as healing to whichever ally is lowest on HP, within the same attack turn.
 
 JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
 

@@ -535,6 +535,14 @@ impl GameManager {
                 .or_insert(0) += total_damage_tx;
         }
 
+        // Fire IsDamageTxHealNeedyAlly passive immediately after damage is dealt.
+        let passive_logs = if !self.pm.current_player.is_boss_atk() && total_damage_tx > 0 {
+            self.pm
+                .apply_damage_tx_heal_passive(&id_name.clone(), total_damage_tx)
+        } else {
+            Vec::new()
+        };
+
         // update tx rx
         if is_crit
             && let Some(map) = self
@@ -576,6 +584,8 @@ impl GameManager {
         let bosses_dead_before_eor = self.pm.check_end_of_game().1;
 
         // process end of attack
+        let mut logs_atk = self.build_logs_atk(&all_dodging, &new_game_atk_effects, is_crit);
+        logs_atk.extend(passive_logs);
         let mut result_attack = ResultLaunchAttack {
             launcher_id_name: self.pm.current_player.id_name.clone(),
             atk_name: atk_name.to_string(),
@@ -584,7 +594,7 @@ impl GameManager {
             all_dodging: all_dodging.clone(),
             is_boss_atk: self.pm.current_player.is_boss_atk(),
             logs_end_of_round: Vec::new(),
-            logs_atk: self.build_logs_atk(&all_dodging, &new_game_atk_effects, is_crit),
+            logs_atk,
             turn_nb: self.game_state.current_turn_nb,
             round_nb: self.game_state.current_round,
             is_dot_kill: false,
@@ -4209,22 +4219,17 @@ mod tests {
     }
 
     /// Integration test: 3 heroes (Elara, Azrak, Thalia) + 1 enemy.
-    /// Elara's IsDamageTxHealNeedyAlly passive reads DamageTx from the previous turn
-    /// and heals the most-needy alive hero by 25%.
+    /// Elara's IsDamageTxHealNeedyAlly passive fires immediately when she deals damage,
+    /// healing the most-needy alive ally and emitting a log in the same turn.
     #[test]
     fn unit_passive_damage_tx_heal_needy_3_heroes_1_enemy() {
-        use crate::character_mod::rounds_information::AmountType;
-        use crate::server::game_state::GameState;
-
         let mut gm = testing_all_characters::dxrpg_game_manager();
-        // Keep 3 heroes: Elara, Azrak, Thalia
         gm.pm.active_heroes.retain(|h| {
             matches!(
                 h.id_name.as_str(),
                 "Elara_la_guerisseuse_de_la_Lorien_#1" | "Azrak_Ombresang_#1" | "Thalia_#1"
             )
         });
-        // Keep 1 boss
         gm.pm.active_bosses.truncate(1);
 
         let elara_id = "Elara_la_guerisseuse_de_la_Lorien_#1";
@@ -4239,27 +4244,51 @@ mod tests {
             .get_mut(HP)
             .unwrap()
             .current = 10;
-
-        // Inject DamageTx[turn 1] = 200 on Elara (simulates a damage attack on previous turn)
-        gm.pm
-            .get_mut_active_hero_character(elara_id)
+        let azrak_hp_max = gm
+            .pm
+            .get_active_hero_character(azrak_id)
             .unwrap()
+            .stats
+            .all_stats[HP]
+            .max;
+
+        // Set Elara as current player, no crit
+        let elara = gm.pm.get_active_hero_character(elara_id).unwrap().clone();
+        gm.pm.current_player = elara;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+
+        // Boss: no dodge, no armor bonus, no DamageRxPercent
+        let boss_id = gm.pm.active_bosses[0].id_name.clone();
+        gm.pm.active_bosses[0].stats.all_stats[DODGE].current = 0;
+        gm.pm.active_bosses[0].stats.all_stats[MAGICAL_ARMOR].current = 0;
+        gm.pm.active_bosses[0]
             .character_rounds_info
-            .tx_rx[AmountType::DamageTx as usize]
-            .insert(1, 200);
+            .is_current_target = true;
+        if let Some(buf) = gm.pm.active_bosses[0]
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::DamageRxPercent)
+        {
+            buf.value = 0;
+        }
 
-        // Process Elara's round at turn 2 (prev_turn = 1 → reads DamageTx[1])
-        gm.pm.reset_is_first_round();
-        let gs = GameState {
-            current_turn_nb: 2,
-            ..Default::default()
-        };
-        gm.pm
-            .update_current_player_on_new_round(&gs, elara_id)
-            .unwrap();
+        let old_boss_hp = gm.pm.active_bosses[0].stats.all_stats[HP].current;
 
-        // Passive: 200 * 25 / 100 = 50 HP heal on Azrak (most needy at 10 HP)
-        let azrak_hp = gm
+        let result = gm.launch_attack(Some("SimpleAtk"));
+
+        // Derive actual damage from boss HP delta (avoids hardcoding hero magic power)
+        let new_boss_hp = gm
+            .pm
+            .get_active_boss_character(&boss_id)
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let actual_damage = old_boss_hp as i64 - new_boss_hp as i64;
+        assert!(actual_damage > 0, "SimpleAtk must deal damage to the boss");
+
+        // Passive fires in the same turn: 25% of damage heals Azrak (most needy)
+        let expected_heal = ((actual_damage as u64 * 25 / 100) as u64).min(azrak_hp_max - 10);
+        let new_azrak_hp = gm
             .pm
             .get_active_hero_character(azrak_id)
             .unwrap()
@@ -4267,8 +4296,18 @@ mod tests {
             .all_stats[HP]
             .current;
         assert_eq!(
-            azrak_hp, 60,
-            "Azrak must be healed to 10 + 50 = 60 HP by Elara's passive"
+            new_azrak_hp,
+            10 + expected_heal,
+            "Elara's passive must heal Azrak by 25% of damage dealt in the same turn"
+        );
+
+        // Passive log must appear in logs_atk of this attack result
+        assert!(
+            result
+                .logs_atk
+                .iter()
+                .any(|l| l.message.contains("Passive")),
+            "passive heal log must appear in logs_atk"
         );
     }
 
