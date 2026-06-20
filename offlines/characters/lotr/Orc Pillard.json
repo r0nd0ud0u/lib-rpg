@@ -6,15 +6,7 @@
         "is_first_round": false,
         "is_heal_atk_blocked": false,
         "is_random_target": false,
-        "Buf-debuf": [
-            {
-                "stats-name": "",
-                "is-percent": true,
-                "passive-enabled": false,
-                "kind": "DamageRxPercent",
-                "value": 100
-            }
-        ]
+        "Buf-debuf": []
     },
     "Level": 3,
     "Name": "Orc Pillard",
@@ -57,12 +49,12 @@
             "Max": 0
         },
         "Magical armor": {
-            "Current": 80,
-            "Max": 80
+            "Current": 8,
+            "Max": 8
         },
         "Magical power": {
-            "Current": 80,
-            "Max": 80
+            "Current": 40,
+            "Max": 40
         },
         "Mana": {
             "Current": 0,
@@ -73,12 +65,12 @@
             "Max": 0
         },
         "Physical armor": {
-            "Current": 200,
-            "Max": 200
+            "Current": 20,
+            "Max": 20
         },
         "Physical power": {
-            "Current": 120,
-            "Max": 120
+            "Current": 60,
+            "Max": 60
         },
         "Speed": {
             "Current": 0,

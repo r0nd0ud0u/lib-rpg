@@ -14,7 +14,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -80,
+                "value": -40,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -24,8 +24,8 @@
     "Forme": "Standard",
     "Niveau": 2,
     "Nom": "Coup de Massue",
-    "Photo": "SimpleAtk.png",
+    "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "Club Strike — a crude but effective blow that deals solid physical damage.",
-    "DescriptionEffects": "Deals 80 physical damage to one enemy."
+    "DescriptionEffects": "Deals 40 physical damage to one enemy."
 }

@@ -27,6 +27,6 @@
     "Nom": "Lumière de la Résurrection",
     "Photo": "Thalia.png",
     "Portée": "Individual",
-    "Description": "Light of Resurrection — channels pure nature energy to revive a fallen ally with 50 HP.",
-	"DescriptionEffects": "+50 HP to a dead hero"
+    "Description": "Light of Resurrection — channels pure nature energy to revive a fallen ally with 50 vitality.",
+    "DescriptionEffects": "Resurrects a dead hero with 50 vitality."
 }

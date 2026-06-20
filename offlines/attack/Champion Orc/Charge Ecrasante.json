@@ -14,7 +14,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -70,
+                "value": -40,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -24,8 +24,8 @@
     "Forme": "Standard",
     "Niveau": 3,
     "Nom": "Charge Ecrasante",
-    "Photo": "SimpleAtk.png",
+    "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Crushing Charge — a fierce charge that deals heavy damage on impact.",
-    "DescriptionEffects": "Deals 70 physical damage to all enemies."
+    "DescriptionEffects": "Deals 40 physical damage to all enemies."
 }

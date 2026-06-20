@@ -24,7 +24,7 @@
     "Forme": "Standard",
     "Niveau": 5,
     "Nom": "Cri de la Mort",
-    "Photo": "SimpleAtk.png",
+    "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Death Shriek — a terrifying cry that drains life and causes fear.",
     "DescriptionEffects": "Deals 150 magic damage to all enemies."

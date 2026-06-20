@@ -2,7 +2,7 @@
     "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
-    "Coût de vigueur": 12,
+    "Coût de vigueur": 10,
     "Durée": 1,
     "Effet": [
         {
@@ -12,11 +12,11 @@
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -40,
+            "Value": -30,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -40,
+                "value": -30,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -24,10 +24,10 @@
         }
     ],
     "Forme": "Standard",
-    "Niveau": 5,
-    "Nom": "SimpleAtk",
+    "Niveau": 3,
+    "Nom": "Charge",
     "Photo": "Angmar.png",
     "Portée": "Individual",
-    "Description": "Muscled punch.",
-    "DescriptionEffects": "Deals 40 physical damage to one enemy."
+    "Description": "Claws at the target.",
+    "DescriptionEffects": "Deals 30 physical damage to one enemy."
 }

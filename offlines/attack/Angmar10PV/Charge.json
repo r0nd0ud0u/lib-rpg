@@ -3,7 +3,7 @@
     "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
-    "Coût de vigueur": 10,
+    "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
@@ -11,9 +11,9 @@
             "Portée": "Individual",
             "Tours actifs": 1,
             "Valeur de l'effet": 0,
-            "Value": -35,
-            "IsMagicEffect": false,
+            "IsMagicEffect": true,
             "Buffer": {
+                "kind": "ChangeCurrentStatByValue",
                 "value": -35,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -23,9 +23,9 @@
     ],
     "Forme": "Standard",
     "Niveau": 1,
-    "Nom": "SimpleAtk",
-    "Photo": "SimpleAtk.png",
+    "Nom": "Charge",
+    "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "A basic strike dealing physical damage.",
-    "DescriptionEffects": "Deals 35 physical damage to one enemy."
+    "DescriptionEffects": "Deals 35 magic damage to one enemy."
 }

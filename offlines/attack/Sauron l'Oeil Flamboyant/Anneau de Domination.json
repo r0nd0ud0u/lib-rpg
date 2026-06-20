@@ -24,7 +24,7 @@
     "Forme": "Standard",
     "Niveau": 6,
     "Nom": "Anneau de Domination",
-    "Photo": "SimpleAtk.png",
+    "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Ring of Domination — corrupts and dominates a hero, weakening their will.",
     "DescriptionEffects": "Deals 250 magic damage to all enemies."

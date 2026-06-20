@@ -1,8 +1,8 @@
 {
     "Cible": "Enemy",
     "Coût de mana": 0,
-    "Coût de rage": 0,
-    "Coût de vigueur": 10,
+    "Coût de rage": 2,
+    "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
@@ -12,11 +12,11 @@
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -30,
+            "Value": -28,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -30,
+                "value": -28,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -24,10 +24,10 @@
         }
     ],
     "Forme": "Standard",
-    "Niveau": 3,
-    "Nom": "SimpleAtk",
-    "Photo": "Angmar.png",
+    "Niveau": 1,
+    "Nom": "Charge",
+    "Photo": "charmander.png",
     "Portée": "Individual",
-    "Description": "Claws at the target.",
-    "DescriptionEffects": "Deals 30 physical damage to one enemy."
+    "Description": "A fierce scratch dealing physical fire damage.",
+    "DescriptionEffects": "Deals 28 physical damage to one enemy."
 }

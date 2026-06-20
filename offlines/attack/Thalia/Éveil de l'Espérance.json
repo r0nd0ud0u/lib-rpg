@@ -65,11 +65,11 @@
             "Tours actifs": 5,
             "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 1000,
-            "Value": 10,
+            "Value": 5,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
-                "value": 0,
+                "value": 5,
                 "is-percent": false,
                 "stats-name": "",
                 "passive-enabled": false
@@ -85,6 +85,6 @@
     "Regen rage": 0,
     "Regen vigueur": 0,
     "Soin": 0,
-    "Description": "Awakening of Hope — a radiant bloom of hope that heals the entire group.",
-    "DescriptionEffects": "Heals all allies for 100 HP; removes one debuff from all allies; resets its active effects; 5-turn cooldown."
+    "Description": "Awakening of Hope — a radiant bloom of hope that heals the targeted ally.",
+    "DescriptionEffects": "Heals on the targeted ally for 100; removes the oldest debuff on the targeted ally; resets its active effects; 5-turn cooldown."
 }

@@ -12,7 +12,7 @@
                 "is-percent": true,
                 "passive-enabled": true,
                 "passive": true,
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStatByValue",
                 "value": 10
             }
         ]
@@ -54,8 +54,8 @@
             "Max": 155
         },
         "HP regeneration": {
-            "Current": 7,
-            "Max": 7
+            "Current": 0,
+            "Max": 0
         },
         "Magical armor": {
             "Current": 50,

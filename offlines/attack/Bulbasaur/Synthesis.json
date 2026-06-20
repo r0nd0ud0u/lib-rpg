@@ -46,11 +46,11 @@
             "Tours actifs": 6,
             "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 0,
+            "Value": 6,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
-                "value": 0,
+                "value": 6,
                 "is-percent": false,
                 "stats-name": "",
                 "passive-enabled": false
@@ -62,6 +62,6 @@
     "Nom": "Synthesis",
     "Photo": "bulbasaur.png",
     "Portée": "Individual",
-    "Description": "Absorbs solar energy to restore a large amount of an ally's HP.",
-    "DescriptionEffects": "Heals all allies for 35% HP; +10% max HP for all allies for 2 turns; 6-turn cooldown."
+    "Description": "Absorbs solar energy to restore a large amount of an ally's vitality.",
+    "DescriptionEffects": "Heals targeted ally for 35% health; +10% max health for targeted ally for 2 turns; 6-turn cooldown."
 }

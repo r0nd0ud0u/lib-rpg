@@ -100,7 +100,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
-                "value": 0,
+                "value": 10,
                 "is-percent": false,
                 "stats-name": "",
                 "passive-enabled": false
@@ -131,5 +131,5 @@
     "Portée": "Zone",
     "Sound": "super-saiyan.mp3",
     "Description": "Forest Awakening — awakens the spirit of the forest for a wide area group heal.",
-    "DescriptionEffects": "+10% max Magic power on all allies for 4 turns; scales with the number of active heal-over-time effects; resets its active effects; heals all allies for 80 HP per turn for 4 turns; removes one debuff from all allies; 10-turn cooldown; boosts heal-over-time effects by 33%."
+    "DescriptionEffects": "+10% max Magic power on all allies for 4 turns; scales with the number of active heal-over-time effects; resets its active effects; heals all allies for 80 per turn for 4 turns; removes one debuff from all allies; 10-turn cooldown; boosts heal-over-time effects by 33%."
 }

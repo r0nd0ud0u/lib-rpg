@@ -7,13 +7,6 @@
     "is_heal_atk_blocked": false,
     "is_random_target": true,
     "Buf-debuf": [
-      {
-        "stats-name": "",
-        "is-percent": true,
-        "passive-enabled": false,
-        "kind": "DamageRxPercent",
-        "value": 100
-      }
     ]
   },
   "Level": 2,

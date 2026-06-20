@@ -1,8 +1,8 @@
 {
     "Cible": "Enemy",
     "Coût de mana": 0,
-    "Coût de rage": 2,
-    "Coût de vigueur": 0,
+    "Coût de rage": 0,
+    "Coût de vigueur": 8,
     "Durée": 1,
     "Effet": [
         {
@@ -12,11 +12,11 @@
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -28,
+            "Value": -25,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -28,
+                "value": -25,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -25,9 +25,9 @@
     ],
     "Forme": "Standard",
     "Niveau": 1,
-    "Nom": "SimpleAtk",
-    "Photo": "charmander.png",
+    "Nom": "Charge",
+    "Photo": "squirtle.png",
     "Portée": "Individual",
-    "Description": "A fierce scratch dealing physical fire damage.",
-    "DescriptionEffects": "Deals 28 physical damage to one enemy."
+    "Description": "A sturdy tackle using its shell as a battering ram.",
+    "DescriptionEffects": "Deals 25 physical damage to one enemy."
 }

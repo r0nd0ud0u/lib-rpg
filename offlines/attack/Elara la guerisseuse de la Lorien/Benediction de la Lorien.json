@@ -26,6 +26,7 @@
             "Portée": "Individual",
             "Stat": "Mana regeneration",
             "Tours actifs": 4,
+            "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeMaxStatByValue",
@@ -42,11 +43,11 @@
             "Tours actifs": 8,
             "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 0,
+            "Value": 8,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
-                "value": 0,
+                "value": 8,
                 "is-percent": false,
                 "stats-name": "",
                 "passive-enabled": false
