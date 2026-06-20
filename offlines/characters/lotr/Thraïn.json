@@ -9,10 +9,10 @@
         "Buf-debuf": [
             {
                 "stats-name": "Dodge",
-                "is-percent": false,
+                "is-percent": true,
                 "passive-enabled": true,
                 "passive": true,
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStatByPercentage",
                 "value": 10
             }
         ]

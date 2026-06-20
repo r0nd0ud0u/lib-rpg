@@ -1588,29 +1588,31 @@ mod tests {
 
     #[test]
     fn unit_passive_change_current_stat_boosts_dodge() {
-        // A passive ChangeCurrentStatByValue on Dodge adds to buf_effect_value,
+        // A passive ChangeCurrentStatByPercentage on Dodge adds to buf_effect_percent,
         // raising the effective Dodge stat used in the block roll.
-        // Use a clean Dodge attribute (no equipment) to test the passive in isolation.
+        // Use max_raw=100 so 10% yields a non-zero integer result.
         let mut c = testing_character();
         let dodge = c.stats.all_stats.get_mut(DODGE).unwrap();
-        dodge.current = 5;
-        dodge.max = 5;
-        dodge.max_raw = 5;
+        dodge.current = 100;
+        dodge.max = 100;
+        dodge.max_raw = 100;
         dodge.buf_equip_value = 0;
         dodge.buf_equip_percent = 0;
         dodge.buf_effect_value = 0;
         c.character_rounds_info.all_buffers.push(Buffer {
-            kind: BufKinds::ChangeCurrentStatByValue,
+            kind: BufKinds::ChangeCurrentStatByPercentage,
             stats_name: DODGE.to_string(),
             value: 10,
+            is_percent: true,
             is_passive: true,
             is_passive_enabled: true,
             ..Default::default()
         });
         c.stats
             .apply_buf_debuf_on_stats(&c.character_rounds_info.all_buffers.clone());
-        assert_eq!(15, c.stats.all_stats[DODGE].max);
-        assert_eq!(15, c.stats.all_stats[DODGE].current);
+        // 100 + 10% of 100 = 110
+        assert_eq!(110, c.stats.all_stats[DODGE].max);
+        assert_eq!(110, c.stats.all_stats[DODGE].current);
     }
 
     #[test]
@@ -1618,16 +1620,17 @@ mod tests {
         // Passive disabled → stat unchanged
         let mut c = testing_character();
         let dodge = c.stats.all_stats.get_mut(DODGE).unwrap();
-        dodge.current = 5;
-        dodge.max = 5;
-        dodge.max_raw = 5;
+        dodge.current = 100;
+        dodge.max = 100;
+        dodge.max_raw = 100;
         dodge.buf_equip_value = 0;
         dodge.buf_equip_percent = 0;
         dodge.buf_effect_value = 0;
         c.character_rounds_info.all_buffers.push(Buffer {
-            kind: BufKinds::ChangeCurrentStatByValue,
+            kind: BufKinds::ChangeCurrentStatByPercentage,
             stats_name: DODGE.to_string(),
             value: 10,
+            is_percent: true,
             is_passive: true,
             is_passive_enabled: false,
             ..Default::default()
@@ -1635,8 +1638,8 @@ mod tests {
         c.stats
             .apply_buf_debuf_on_stats(&c.character_rounds_info.all_buffers.clone());
         // disabled passive → stat must stay at base values
-        assert_eq!(5, c.stats.all_stats[DODGE].max);
-        assert_eq!(5, c.stats.all_stats[DODGE].current);
+        assert_eq!(100, c.stats.all_stats[DODGE].max);
+        assert_eq!(100, c.stats.all_stats[DODGE].current);
     }
 
     #[test]

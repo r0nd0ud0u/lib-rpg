@@ -4272,7 +4272,7 @@ mod tests {
         );
     }
 
-    /// Integration test: Thraïn's passive ChangeCurrentStatByValue(Dodge, 10) raises his
+    /// Integration test: Thraïn's passive ChangeCurrentStatByPercentage(Dodge, 10) raises his
     /// effective Dodge from 5 to 15 at load time and survives an equipment toggle.
     #[test]
     fn unit_passive_dodge_stat_thrain_3_heroes_1_enemy() {
@@ -4289,7 +4289,8 @@ mod tests {
 
         let thrain_id = "Thraïn_#1";
 
-        // At load: base(5) + equip(24: amulet+4, cape+10, shoes+10) + passive(+10) = 39
+        // At load: base_value = max_raw(5) + equip(24: amulet+4, cape+10, shoes+10) = 29
+        // passive: +10% of 29 = 2 (integer) → total = 31
         let dodge_after_load = gm
             .pm
             .get_active_hero_character(thrain_id)
@@ -4297,16 +4298,16 @@ mod tests {
             .stats
             .all_stats[DODGE]
             .current;
-        assert_eq!(39, dodge_after_load, "passive must be included at load");
+        assert_eq!(31, dodge_after_load, "passive must be included at load");
 
-        // After removing the starting amulet (Dodge +4), Dodge drops by 4.
-        // The passive (+10) must still be included.
+        // After removing the starting amulet (Dodge +4), base_value drops to 25.
+        // passive: +10% of 25 = 2 (integer) → total = 27
         let thrain = gm.pm.get_mut_active_hero_character(thrain_id).unwrap();
         thrain.toggle_equipment("starting amulet", &testing_all_equipment());
         let dodge_after_toggle = thrain.stats.all_stats[DODGE].current;
         assert_eq!(
-            35, dodge_after_toggle,
-            "Dodge must be 35 after removing amulet (passive still applies)"
+            27, dodge_after_toggle,
+            "Dodge must be 27 after removing amulet (passive still applies)"
         );
     }
 }
