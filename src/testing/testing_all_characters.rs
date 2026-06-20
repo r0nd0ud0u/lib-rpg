@@ -131,19 +131,19 @@ mod tests {
         );
         assert!(gm.pm.active_bosses.len() >= 2, "expected at least 2 bosses");
 
-        // test all_buffer length
+        // bosses no longer carry static passive buffers (DamageRxPercent was removed in offlines rework)
         assert_eq!(
             gm.pm.active_bosses[0]
                 .character_rounds_info
                 .all_buffers
                 .len(),
-            1
+            0
         );
     }
 
     #[test]
     fn unit_dxrpg_dm() {
         let dm: DataManager = dxrpg_dm();
-        assert_eq!(dm.all_bosses[0].character_rounds_info.all_buffers.len(), 1);
+        assert_eq!(dm.all_bosses[0].character_rounds_info.all_buffers.len(), 0);
     }
 }

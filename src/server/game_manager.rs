@@ -1876,7 +1876,7 @@ mod tests {
         // thrain
         // game is starting, ennemy is not playing
         assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
-        let ra = gm.launch_attack(Some("SimpleAtk"));
+        let ra = gm.launch_attack(Some("Charge"));
         if !ra.all_dodging.is_empty() && ra.all_dodging[0].is_dodging {
             assert_eq!(
                 old_hp_boss,
@@ -1905,15 +1905,15 @@ mod tests {
         }
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(2, gm.game_state.current_round);
-        // elara
+        // remaining lotr heroes (Elara, Azrak, Thalia) — Charge exists, target not set so no damage
         assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
-        let _ra = gm.launch_attack(Some("SimpleAtk"));
+        let _ra = gm.launch_attack(Some("Charge"));
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(3, gm.game_state.current_round);
-        let _ra = gm.launch_attack(Some("SimpleAtk"));
+        let _ra = gm.launch_attack(Some("Charge"));
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
-        let _ra = gm.launch_attack(Some("SimpleAtk"));
+        let _ra = gm.launch_attack(Some("Charge"));
         assert!(gm.game_state.status != GameStatus::EndOfGame);
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(1, gm.game_state.current_turn_nb);
@@ -1945,7 +1945,30 @@ mod tests {
 
         // ensure there is no dead lock -> game can be ended
         while gm.game_state.status == GameStatus::StartRound {
-            let _ra = gm.launch_attack(Some("SimpleAtk"));
+            if gm.is_round_auto() {
+                // boss round: set a living hero as target so the individual attack lands
+                if let Some(h) = gm
+                    .pm
+                    .active_heroes
+                    .iter_mut()
+                    .find(|h| h.stats.is_dead() != Some(true))
+                {
+                    h.character_rounds_info.is_current_target = true;
+                }
+                let _ = gm.process_nb_bosses_atk_in_a_row();
+                let _ = gm.launch_attack(None);
+            } else {
+                // hero round: set a living boss as target so Charge lands
+                if let Some(b) = gm
+                    .pm
+                    .active_bosses
+                    .iter_mut()
+                    .find(|b| b.stats.is_dead() != Some(true))
+                {
+                    b.character_rounds_info.is_current_target = true;
+                }
+                let _ = gm.launch_attack(Some("Charge"));
+            }
         }
         // On Linux and Windows the RNG differs, so the game may end because all heroes
         // die (EndOfGame) or because the last boss is killed first (EndOfScenario).
@@ -2111,9 +2134,9 @@ mod tests {
 
         let mut gm = testing_all_characters::dxrpg_game_manager();
 
-        // dxrpg loads stage_1 and stage_2; states start as NotStarted
-        let stage1_name = "Stage 1".to_owned();
-        let stage2_name = "Stage 2".to_owned();
+        // dxrpg loads lotr scenarios; states start as NotStarted
+        let stage1_name = "Patrouille Gobeline".to_owned();
+        let stage2_name = "Embuscade Gobeline".to_owned();
         assert_eq!(gm.states_scenarios[&stage1_name], ScenarioState::NotStarted);
         assert_eq!(gm.states_scenarios[&stage2_name], ScenarioState::NotStarted);
 
@@ -4273,7 +4296,7 @@ mod tests {
 
         let old_boss_hp = gm.pm.active_bosses[0].stats.all_stats[HP].current;
 
-        let result = gm.launch_attack(Some("SimpleAtk"));
+        let result = gm.launch_attack(Some("Frappe élémentaire"));
 
         // Derive actual damage from boss HP delta (avoids hardcoding hero magic power)
         let new_boss_hp = gm
