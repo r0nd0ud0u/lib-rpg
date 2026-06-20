@@ -317,9 +317,10 @@ impl PlayerManager {
                 self.current_player = c.clone();
 
                 // update the shadow current player
-                logs = self
-                    .current_player
-                    .new_round(game_state.current_turn_nb, self.process_launchable_atks());
+                logs = self.current_player.new_round(
+                    game_state.current_turn_nb,
+                    self.process_launchable_atks(game_state.current_turn_nb),
+                );
 
                 // update the active character
                 self.modify_active_character(id_name);
@@ -676,12 +677,12 @@ impl PlayerManager {
             .for_each(|c| c.character_rounds_info.is_potential_target = false);
     }
 
-    pub fn process_launchable_atks(&self) -> Vec<AttackType> {
+    pub fn process_launchable_atks(&self, current_turn_nb: usize) -> Vec<AttackType> {
         // assess potential target
         let mut launchable_attacks = Vec::new();
 
         for atk in self.current_player.attacks_list.values() {
-            let can_be_launched = self.current_player.can_be_launched(atk);
+            let can_be_launched = self.current_player.can_be_launched(atk, current_turn_nb);
             let whatif_nb =
                 self.whatif_set_targeted_characters(&self.current_player.id_name, &atk.name);
             if can_be_launched && whatif_nb > 0 {
@@ -1528,18 +1529,18 @@ mod tests {
         pl.current_player.level = 100;
         // no problem of is_heal_atk_blocked
         pl.current_player.character_rounds_info.is_heal_atk_blocked = false;
-        let launchable_atks = pl.process_launchable_atks();
+        let launchable_atks = pl.process_launchable_atks(0);
         assert_eq!(pl.current_player.attacks_list.len(), launchable_atks.len()); // in the list, one is berserk atk type and test.json has not the berserk energy!!
 
         // case level under
         pl.current_player.level = 1;
-        let launchable_atks = pl.process_launchable_atks();
+        let launchable_atks = pl.process_launchable_atks(0);
         assert_eq!(13, launchable_atks.len()); // 13 on 17 are level 1
 
         // case is_heal_atk_blocked
         pl.current_player.character_rounds_info.is_heal_atk_blocked = true;
         pl.current_player.level = 100;
-        let launchable_atks = pl.process_launchable_atks();
+        let launchable_atks = pl.process_launchable_atks(0);
         assert_eq!(10, launchable_atks.len()); // 6 attacks are HP and linked to is_heal_atk_blocked condition
     }
 

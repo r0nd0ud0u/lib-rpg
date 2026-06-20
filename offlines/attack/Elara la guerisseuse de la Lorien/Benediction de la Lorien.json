@@ -26,14 +26,11 @@
             "Portée": "Individual",
             "Stat": "Mana regeneration",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStatByPercentage",
-            "Valeur de l'effet": 0,
-            "Value": 500,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStatByValue",
                 "value": 500,
-                "is-percent": true,
+                "is-percent": false,
                 "stats-name": "Mana regeneration",
                 "passive-enabled": false
             }
@@ -63,5 +60,5 @@
     "Portée": "Individual",
     "Sound": "",
     "Description": "Lorien Blessing — bathes an ally in golden light, restoring significant HP.",
-    "DescriptionEffects": "Heals all allies for 100% HP; +500% max Mana regeneration for 4 turns; 8-turn cooldown."
+    "DescriptionEffects": "Heals all allies + 100%; +500 max Mana regeneration for 4 turns; 8-turn cooldown."
 }

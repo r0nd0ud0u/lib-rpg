@@ -121,7 +121,7 @@ mod tests {
 
     #[test]
     fn unit_equipment_json_key_ord() {
-        let mut keys = vec![
+        let mut keys = [
             EquipmentJsonKey::RightRing,
             EquipmentJsonKey::LeftWeapon,
             EquipmentJsonKey::Chest,

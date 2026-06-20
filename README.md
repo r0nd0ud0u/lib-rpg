@@ -103,24 +103,45 @@ JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
 
 > This passive kind can also be enabled dynamically by an attack effect (any attack carrying an `IsDamageTxHealNeedyAlly` effect adds the passive buffer via `process_effect_type` in `rounds_information.rs`), allowing temporary versions on other heroes.
 
-#### Passive stat bonus via `ChangeCurrentStatByValue`
+#### Passive stat bonus via `ChangeCurrentStatByPercentage`
 
-A passive `ChangeCurrentStatByValue` buffer with a non-empty `stats-name` permanently raises that stat at character load time.  The bonus is stored in `buf_effect_value` inside `recompute_stat_max_and_current`, so it is automatically included whenever equipment is equipped or removed — no separate re-application is needed.
+A passive `ChangeCurrentStatByPercentage` buffer with a non-empty `stats-name` permanently raises that stat as a percentage of its base value at character load time.  The bonus is stored in `buf_effect_percent` inside `recompute_stat_max_and_current`, so it is automatically included whenever equipment is equipped or removed — no separate re-application is needed.
 
-**Thraïn** carries a passive `ChangeCurrentStatByValue` on `Dodge` with `value = 10`: his base Dodge of 5 is raised to 15 (before further equipment bonuses), giving him an additional ~8 percentage points of block chance through the softcap curve.
+**Thraïn** carries a passive `ChangeCurrentStatByPercentage` on `Dodge` with `value = 10` (`is-percent: true`): his base Dodge of 5 gains +10 % → +0.5, or with full starting equipment Dodge ≈ 27 → +2.7 ≈ 29 effective Dodge, giving him an additional block chance through the softcap curve.
 
 JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
 
 ```json
 {
   "stats-name": "Dodge",
-  "is-percent": false,
+  "is-percent": true,
   "passive-enabled": true,
   "passive": true,
-  "kind": "ChangeCurrentStatByValue",
+  "kind": "ChangeCurrentStatByPercentage",
   "value": 10
 }
 ```
+
+#### Attack launch condition: `ConditionDamagePrevTurn`
+
+When an attack contains an effect with `Buffer.kind = "ConditionDamagePrevTurn"`, the attack may only be launched if the character dealt HP damage on the **previous turn**.  The check mirrors the `process_one_effect` logic:
+
+```
+can_be_launched = current_turn_nb > 0 && tx_rx[DamageTx][current_turn_nb − 1] > 0
+```
+
+If the condition is not met, `can_be_launched` returns `false` and the attack is hidden from the launchable-attack list.  At processing time, `process_all_effects` also breaks early (no effects are applied) so the attack costs no mana.
+
+**Elara la guerisseuse de la Lorien** — *Lumiere curative* uses this condition: the heal is only available after she dealt damage the previous turn, incentivising a mixed attack/heal play style.
+
+#### Elara's attacks
+
+| Attack | Target | Key mechanics |
+|---|---|---|
+| **Frappe élémentaire** | 1 Enemy | −70 magic HP; may repeat with 50 % chance if Elara healed last turn (`RepeatIfHeal`) |
+| **Don de vie** | 1 Ally | `DecreasingRateOnTurn` (1–3 × decreasing rate); ally +30 % HP, self −15 % HP, ally +25 % max mag/phy power |
+| **Lumiere curative** | 1 Ally | Requires `ConditionDamagePrevTurn`; ally +(130 + Elara's magical power) HP |
+| **Non sans raison** | All Allies | All allies +100 % HP; `AddAsMuchAsHp` power boost 3 t; `BlockHealAtk` on Elara 3 t; free (0 mana) |
 
 ---
 
@@ -174,7 +195,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 264 tests should pass with no warnings.
+All 268 tests should pass with no warnings.
 
 ---
 
