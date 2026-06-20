@@ -471,9 +471,9 @@ impl CharacterRoundsInfo {
                 return Ok(processed_effect_param);
             }
             BufKinds::AddAsMuchAsHp => {
-                // Enable ChangeByHealValue passive: overheal boosts the given stat
+                // Enable OverHealBoostStat passive: overheal boosts the given stat
                 self.update_buffer(&Buffer {
-                    kind: BufKinds::ChangeByHealValue,
+                    kind: BufKinds::OverHealBoostStat,
                     value: 0,
                     is_percent: false,
                     stats_name: ep.buffer.stats_name.clone(),
@@ -738,7 +738,7 @@ impl CharacterRoundsInfo {
 
             let eval_dodge = dodge_guaranteed || rand_nb <= effective_dodge;
             let is_dodging = *class != Class::Berserker && eval_dodge;
-            let is_blocking = *class == Class::Berserker && eval_dodge; // Berserker "dodges" by blocking instead of evading
+            let is_blocking = *class == Class::Berserker && eval_dodge;
 
             // Update drought counter
             if is_dodging {
@@ -1949,7 +1949,7 @@ mod tests {
         let ep = make_ep(BufKinds::AddAsMuchAsHp, 0, MAGICAL_POWER, 3);
         cri.process_effect_type(&ep, "test_atk").unwrap();
         let buf = cri
-            .get_buffer_by_type(&BufKinds::ChangeByHealValue)
+            .get_buffer_by_type(&BufKinds::OverHealBoostStat)
             .unwrap();
         assert!(buf.is_passive_enabled);
         assert_eq!(MAGICAL_POWER, buf.stats_name);

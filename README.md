@@ -53,6 +53,75 @@ This means the HOT fires **at most** `value` ticks after launch, not always `val
 
 `CoreGameData.loaded_from_save` is `false` for fresh games and `true` when a game is restored from a save file.  UI layers use this flag to lock the universe selector once a save has been loaded.
 
+### Passive Powers
+
+A passive power is a `Buffer` entry in a character's `Buf-debuf` list (`CharacterRoundsInfo.all_buffers`) with `"passive": true` and `"passive-enabled": true`.  Unlike attack-triggered effects, passives are defined statically in the character JSON and fire automatically at the start of each turn inside `Character::new_round`.
+
+#### `OverHealBoostStat` (overheal → stat boost)
+
+`BufKinds::OverHealBoostStat` — at the start of each turn, reads the overheal amount recorded for the **previous turn** in `tx_rx[AmountType::OverHealRx]` and adds it to the stat named in `buffer.stats_name`.  The boost bypasses the stat's max cap (physical power can exceed its base max).
+
+`tx_rx[AmountType::OverHealRx]` is populated by two paths:
+- **HOT ticks** — `apply_hot_or_dot` writes any HP excess when HOTs push HP past max.
+- **Regular heal attacks** — `apply_processed_effect_param` accumulates any HP excess when a direct heal overflows max HP.
+
+This same buffer kind is also enabled dynamically by the `AddAsMuchAsHp` attack effect, so it serves both as a static character passive and as an attack-triggered passive.
+
+**Azrak Ombresang** carries this passive with `stats_name = "Physical power"`: each point of overheal he received on the previous turn is converted into a bonus to his current Physical power, rewarding sustained healing beyond his HP cap.
+
+JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
+
+```json
+{
+  "stats-name": "Physical power",
+  "is-percent": false,
+  "passive-enabled": true,
+  "passive": true,
+  "kind": "OverHealBoostStat",
+  "value": 0
+}
+```
+
+#### `IsDamageTxHealNeedyAlly` (damage converts to ally heal)
+
+`BufKinds::IsDamageTxHealNeedyAlly` — at the start of each turn, reads the total HP damage the character dealt on the **previous turn** from `tx_rx[AmountType::DamageTx]` and converts `value`% of it into a HP heal for the **most needy alive ally** (the hero with the lowest current-HP/max-HP ratio).  The heal is capped at the target's HP max.
+
+**Elara la guerisseuse de la Lorien** carries this passive with `value = 25`: 25% of her previous turn's damage output is redistributed as healing to whichever ally is lowest on HP.
+
+JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
+
+```json
+{
+  "stats-name": "",
+  "is-percent": false,
+  "passive-enabled": true,
+  "passive": true,
+  "kind": "IsDamageTxHealNeedyAlly",
+  "value": 25
+}
+```
+
+> This passive kind can also be enabled dynamically by an attack effect (any attack carrying an `IsDamageTxHealNeedyAlly` effect adds the passive buffer via `process_effect_type` in `rounds_information.rs`), allowing temporary versions on other heroes.
+
+#### Passive stat bonus via `ChangeCurrentStatByValue`
+
+A passive `ChangeCurrentStatByValue` buffer with a non-empty `stats-name` permanently raises that stat at character load time.  The bonus is stored in `buf_effect_value` inside `recompute_stat_max_and_current`, so it is automatically included whenever equipment is equipped or removed — no separate re-application is needed.
+
+**Thraïn** carries a passive `ChangeCurrentStatByValue` on `Dodge` with `value = 10`: his base Dodge of 5 is raised to 15 (before further equipment bonuses), giving him an additional ~8 percentage points of block chance through the softcap curve.
+
+JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
+
+```json
+{
+  "stats-name": "Dodge",
+  "is-percent": false,
+  "passive-enabled": true,
+  "passive": true,
+  "kind": "ChangeCurrentStatByValue",
+  "value": 10
+}
+```
+
 ---
 
 ## Data Files
@@ -105,7 +174,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 251 tests should pass with no warnings.
+All 264 tests should pass with no warnings.
 
 ---
 

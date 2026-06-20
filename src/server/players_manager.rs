@@ -11,6 +11,7 @@ use crate::{
         effect::{EffectOutcome, ProcessedEffectParam},
         equipment::{Equipment, EquipmentJsonKey},
         inventory::Consumable,
+        rounds_information::AmountType,
     },
     common::{
         constants::{
@@ -19,7 +20,7 @@ use crate::{
             reach_const::{INDIVIDUAL, ZONE},
             stats_const::*,
         },
-        log_data::LogData,
+        log_data::{LogData, const_colors::LIGHT_GREEN},
     },
     server::game_state::GameState,
 };
@@ -310,7 +311,7 @@ impl PlayerManager {
         game_state: &GameState,
         id_name: &str,
     ) -> Result<Vec<LogData>> {
-        let logs;
+        let mut logs;
         match self.get_mut_active_character(id_name) {
             Some(c) => {
                 self.current_player = c.clone();
@@ -322,12 +323,102 @@ impl PlayerManager {
 
                 // update the active character
                 self.modify_active_character(id_name);
+
+                // IsDamageTxHealNeedyAlly passive: convert prev-turn damage TX to ally heal
+                logs.extend(self.apply_damage_tx_heal_passive(id_name, game_state.current_turn_nb));
                 Ok(logs)
             }
             None => {
                 bail!("Character '{}' not found", id_name)
             }
         }
+    }
+
+    /// Reads the `IsDamageTxHealNeedyAlly` passive from `launcher_id_name` and, if enabled,
+    /// heals the most-needy alive hero by `value`% of the previous turn's damage TX.
+    fn apply_damage_tx_heal_passive(
+        &mut self,
+        launcher_id_name: &str,
+        current_turn_nb: usize,
+    ) -> Vec<LogData> {
+        let mut logs = Vec::new();
+
+        let (pct, damage_tx) = {
+            let Some(launcher) = self.get_active_hero_character(launcher_id_name) else {
+                return logs;
+            };
+            let Some(buf) = launcher
+                .character_rounds_info
+                .get_buffer_by_type(&BufKinds::IsDamageTxHealNeedyAlly)
+            else {
+                return logs;
+            };
+            if !buf.is_passive || !buf.is_passive_enabled || buf.value <= 0 {
+                return logs;
+            }
+            let prev_turn = current_turn_nb.saturating_sub(1) as u64;
+            let dmg = launcher
+                .character_rounds_info
+                .tx_rx
+                .get(AmountType::DamageTx as usize)
+                .and_then(|m| m.get(&prev_turn))
+                .copied()
+                .unwrap_or(0);
+            (buf.value, dmg)
+        };
+
+        if damage_tx <= 0 {
+            return logs;
+        }
+        let heal_amount = (damage_tx * pct / 100) as u64;
+        if heal_amount == 0 {
+            return logs;
+        }
+
+        // Find the alive hero with the lowest HP ratio (current * 10000 / max).
+        let target_id = self
+            .active_heroes
+            .iter()
+            .filter(|c| c.stats.is_dead() == Some(false))
+            .min_by_key(|c| {
+                c.stats
+                    .all_stats
+                    .get(HP)
+                    .filter(|s| s.max > 0)
+                    .map(|s| s.current * 10000 / s.max)
+                    .unwrap_or(u64::MAX)
+            })
+            .map(|c| c.id_name.clone());
+
+        let Some(target_id) = target_id else {
+            return logs;
+        };
+
+        let Some(target) = self
+            .active_heroes
+            .iter_mut()
+            .find(|c| c.id_name == target_id)
+        else {
+            return logs;
+        };
+        let short_name = target.short_name.clone();
+        let Some(hp) = target.stats.all_stats.get_mut(HP) else {
+            return logs;
+        };
+        let new_hp = (hp.current + heal_amount).min(hp.max);
+        let real_heal = new_hp - hp.current;
+        hp.current = new_hp;
+        if real_heal > 0 {
+            logs.push(LogData {
+                message: format!(
+                    "\u{26a1} Passive: {} \u{2190} +{} HP ({}% of {} damage TX)",
+                    short_name, real_heal, pct, damage_tx
+                ),
+                color: LIGHT_GREEN.to_string(),
+            });
+        }
+
+        logs
     }
 
     /// Process the start of a new turn by incrementing counter effects, resetting first round booleans and applying regen stats.
@@ -1578,6 +1669,173 @@ mod tests {
         assert_eq!(
             0, hero.stats.all_stats[AGGRO].current,
             "Aggro must be 0 after clear_scenario"
+        );
+    }
+
+    #[test]
+    fn unit_passive_damage_tx_heal_needy_ally_fires() {
+        use crate::character_mod::{buffers::Buffer, rounds_information::AmountType};
+        let mut pm = testing_all_characters::testing_pm();
+        let launcher_id = pm.active_heroes[0].id_name.clone();
+
+        // Install IsDamageTxHealNeedyAlly passive on hero[0] at 25%
+        pm.active_heroes[0]
+            .character_rounds_info
+            .all_buffers
+            .push(Buffer {
+                kind: crate::character_mod::buffers::BufKinds::IsDamageTxHealNeedyAlly,
+                value: 25,
+                is_passive: true,
+                is_passive_enabled: true,
+                ..Default::default()
+            });
+
+        // Set DamageTx[turn 1] = 200 on hero[0]
+        pm.active_heroes[0].character_rounds_info.tx_rx[AmountType::DamageTx as usize]
+            .insert(1, 200);
+
+        // Set launcher (hero[0]) to full HP so hero[1] (at HP=1) is the most needy
+        let max_hp_launcher = pm.active_heroes[0].stats.all_stats[HP].max;
+        pm.active_heroes[0]
+            .stats
+            .all_stats
+            .get_mut(HP)
+            .unwrap()
+            .current = max_hp_launcher;
+
+        // hero[1] starts at HP=1 (from test JSON) — lowest ratio → most needy
+        let hero1_hp_before = pm.active_heroes[1].stats.all_stats[HP].current; // 1
+
+        pm.reset_is_first_round();
+        let gs = GameState {
+            current_turn_nb: 2,
+            ..Default::default()
+        };
+        pm.update_current_player_on_new_round(&gs, &launcher_id)
+            .unwrap();
+
+        let hero1_hp_after = pm.active_heroes[1].stats.all_stats[HP].current;
+        // 200 * 25 / 100 = 50
+        assert_eq!(
+            hero1_hp_after,
+            hero1_hp_before + 50,
+            "most needy ally must receive 25% of 200 damage TX"
+        );
+    }
+
+    #[test]
+    fn unit_passive_damage_tx_heal_needy_ally_noop_when_no_damage() {
+        use crate::character_mod::buffers::Buffer;
+        let mut pm = testing_all_characters::testing_pm();
+        let launcher_id = pm.active_heroes[0].id_name.clone();
+
+        pm.active_heroes[0]
+            .character_rounds_info
+            .all_buffers
+            .push(Buffer {
+                kind: crate::character_mod::buffers::BufKinds::IsDamageTxHealNeedyAlly,
+                value: 25,
+                is_passive: true,
+                is_passive_enabled: true,
+                ..Default::default()
+            });
+
+        // DamageTx is NOT populated — passive must be a no-op
+        let hero1_hp_before = pm.active_heroes[1].stats.all_stats[HP].current;
+
+        pm.reset_is_first_round();
+        let gs = GameState {
+            current_turn_nb: 2,
+            ..Default::default()
+        };
+        pm.update_current_player_on_new_round(&gs, &launcher_id)
+            .unwrap();
+
+        assert_eq!(
+            pm.active_heroes[1].stats.all_stats[HP].current, hero1_hp_before,
+            "no damage TX means no passive heal"
+        );
+    }
+
+    #[test]
+    fn unit_passive_damage_tx_heal_needy_ally_disabled() {
+        use crate::character_mod::{buffers::Buffer, rounds_information::AmountType};
+        let mut pm = testing_all_characters::testing_pm();
+        let launcher_id = pm.active_heroes[0].id_name.clone();
+
+        // passive exists but is disabled
+        pm.active_heroes[0]
+            .character_rounds_info
+            .all_buffers
+            .push(Buffer {
+                kind: crate::character_mod::buffers::BufKinds::IsDamageTxHealNeedyAlly,
+                value: 25,
+                is_passive: true,
+                is_passive_enabled: false, // disabled
+                ..Default::default()
+            });
+        pm.active_heroes[0].character_rounds_info.tx_rx[AmountType::DamageTx as usize]
+            .insert(1, 200);
+
+        let hero1_hp_before = pm.active_heroes[1].stats.all_stats[HP].current;
+
+        pm.reset_is_first_round();
+        let gs = GameState {
+            current_turn_nb: 2,
+            ..Default::default()
+        };
+        pm.update_current_player_on_new_round(&gs, &launcher_id)
+            .unwrap();
+
+        assert_eq!(
+            pm.active_heroes[1].stats.all_stats[HP].current, hero1_hp_before,
+            "disabled passive must not heal"
+        );
+    }
+
+    #[test]
+    fn unit_passive_damage_tx_heal_needy_ally_capped_at_max_hp() {
+        use crate::character_mod::{buffers::Buffer, rounds_information::AmountType};
+        let mut pm = testing_all_characters::testing_pm();
+        let launcher_id = pm.active_heroes[0].id_name.clone();
+
+        pm.active_heroes[0]
+            .character_rounds_info
+            .all_buffers
+            .push(Buffer {
+                kind: crate::character_mod::buffers::BufKinds::IsDamageTxHealNeedyAlly,
+                value: 25,
+                is_passive: true,
+                is_passive_enabled: true,
+                ..Default::default()
+            });
+        // Huge damage TX so heal would overflow HP max
+        pm.active_heroes[0].character_rounds_info.tx_rx[AmountType::DamageTx as usize]
+            .insert(1, 10_000);
+
+        // Set launcher (hero[0]) to full HP so hero[1] (at HP=1) is the most needy
+        let max_hp_launcher = pm.active_heroes[0].stats.all_stats[HP].max;
+        pm.active_heroes[0]
+            .stats
+            .all_stats
+            .get_mut(HP)
+            .unwrap()
+            .current = max_hp_launcher;
+
+        // hero[1] starts at HP=1 (most needy); track its max for the cap assertion
+        let hp_max = pm.active_heroes[1].stats.all_stats[HP].max; // 135
+
+        pm.reset_is_first_round();
+        let gs = GameState {
+            current_turn_nb: 2,
+            ..Default::default()
+        };
+        pm.update_current_player_on_new_round(&gs, &launcher_id)
+            .unwrap();
+
+        assert_eq!(
+            pm.active_heroes[1].stats.all_stats[HP].current, hp_max,
+            "heal must not exceed HP max"
         );
     }
 }

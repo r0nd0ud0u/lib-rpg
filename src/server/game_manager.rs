@@ -4207,4 +4207,107 @@ mod tests {
             "Azrak's HOT effect_outcome.real_amount_tx must be boosted so log_text() shows {boosted} HP"
         );
     }
+
+    /// Integration test: 3 heroes (Elara, Azrak, Thalia) + 1 enemy.
+    /// Elara's IsDamageTxHealNeedyAlly passive reads DamageTx from the previous turn
+    /// and heals the most-needy alive hero by 25%.
+    #[test]
+    fn unit_passive_damage_tx_heal_needy_3_heroes_1_enemy() {
+        use crate::character_mod::rounds_information::AmountType;
+        use crate::server::game_state::GameState;
+
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+        // Keep 3 heroes: Elara, Azrak, Thalia
+        gm.pm.active_heroes.retain(|h| {
+            matches!(
+                h.id_name.as_str(),
+                "Elara_la_guerisseuse_de_la_Lorien_#1" | "Azrak_Ombresang_#1" | "Thalia_#1"
+            )
+        });
+        // Keep 1 boss
+        gm.pm.active_bosses.truncate(1);
+
+        let elara_id = "Elara_la_guerisseuse_de_la_Lorien_#1";
+        let azrak_id = "Azrak_Ombresang_#1";
+
+        // Drain Azrak to 10 HP — lowest ratio → most needy
+        gm.pm
+            .get_mut_active_hero_character(azrak_id)
+            .unwrap()
+            .stats
+            .all_stats
+            .get_mut(HP)
+            .unwrap()
+            .current = 10;
+
+        // Inject DamageTx[turn 1] = 200 on Elara (simulates a damage attack on previous turn)
+        gm.pm
+            .get_mut_active_hero_character(elara_id)
+            .unwrap()
+            .character_rounds_info
+            .tx_rx[AmountType::DamageTx as usize]
+            .insert(1, 200);
+
+        // Process Elara's round at turn 2 (prev_turn = 1 → reads DamageTx[1])
+        gm.pm.reset_is_first_round();
+        let gs = GameState {
+            current_turn_nb: 2,
+            ..Default::default()
+        };
+        gm.pm
+            .update_current_player_on_new_round(&gs, elara_id)
+            .unwrap();
+
+        // Passive: 200 * 25 / 100 = 50 HP heal on Azrak (most needy at 10 HP)
+        let azrak_hp = gm
+            .pm
+            .get_active_hero_character(azrak_id)
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        assert_eq!(
+            azrak_hp, 60,
+            "Azrak must be healed to 10 + 50 = 60 HP by Elara's passive"
+        );
+    }
+
+    /// Integration test: Thraïn's passive ChangeCurrentStatByPercentage(Dodge, 10) raises his
+    /// effective Dodge from 5 to 15 at load time and survives an equipment toggle.
+    #[test]
+    fn unit_passive_dodge_stat_thrain_3_heroes_1_enemy() {
+        use crate::testing::testing_all_characters::testing_all_equipment;
+
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+        gm.pm.active_heroes.retain(|h| {
+            matches!(
+                h.id_name.as_str(),
+                "Thraïn_#1" | "Azrak_Ombresang_#1" | "Thalia_#1"
+            )
+        });
+        gm.pm.active_bosses.truncate(1);
+
+        let thrain_id = "Thraïn_#1";
+
+        // At load: base_value = max_raw(5) + equip(24: amulet+4, cape+10, shoes+10) = 29
+        // passive: +10% of 29 = 2 (integer) → total = 31
+        let dodge_after_load = gm
+            .pm
+            .get_active_hero_character(thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[DODGE]
+            .current;
+        assert_eq!(31, dodge_after_load, "passive must be included at load");
+
+        // After removing the starting amulet (Dodge +4), base_value drops to 25.
+        // passive: +10% of 25 = 2 (integer) → total = 27
+        let thrain = gm.pm.get_mut_active_hero_character(thrain_id).unwrap();
+        thrain.toggle_equipment("starting amulet", &testing_all_equipment());
+        let dodge_after_toggle = thrain.stats.all_stats[DODGE].current;
+        assert_eq!(
+            27, dodge_after_toggle,
+            "Dodge must be 27 after removing amulet (passive still applies)"
+        );
+    }
 }

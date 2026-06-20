@@ -8,11 +8,12 @@
         "is_random_target": false,
         "Buf-debuf": [
             {
-                "stats-name": "",
+                "stats-name": "Dodge",
                 "is-percent": true,
-                "passive-enabled": false,
-                "kind": "DamageRxPercent",
-                "value": 100
+                "passive-enabled": true,
+                "passive": true,
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": 10
             }
         ]
     },
