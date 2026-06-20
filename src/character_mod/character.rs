@@ -803,7 +803,7 @@ impl Character {
     /// The attak can be launched if the character has enough mana, vigor and
     /// berserk and if the atk is not under a cooldown.
     /// If the atk can be launched, true is returned, otherwise false is returned.
-    pub fn can_be_launched(&self, atk_type: &AttackType) -> bool {
+    pub fn can_be_launched(&self, atk_type: &AttackType, current_turn_nb: usize) -> bool {
         // needed level too high
         if self.level < atk_type.level {
             return false;
@@ -830,6 +830,22 @@ impl Character {
                 && self.character_rounds_info.is_heal_atk_blocked
             {
                 return false;
+            }
+
+            // Launch condition: attack requires damage dealt on the previous turn
+            if atk_effect.buffer.kind == BufKinds::ConditionDamagePrevTurn {
+                let did_damage = current_turn_nb > 0 && {
+                    let prev_turn = (current_turn_nb - 1) as u64;
+                    self.character_rounds_info
+                        .tx_rx
+                        .get(AmountType::DamageTx as usize)
+                        .and_then(|m| m.get(&prev_turn))
+                        .map(|&v| v != 0)
+                        .unwrap_or(false)
+                };
+                if !did_damage {
+                    return false;
+                }
             }
         }
 
@@ -1606,7 +1622,6 @@ mod tests {
             is_percent: true,
             is_passive: true,
             is_passive_enabled: true,
-            ..Default::default()
         });
         c.stats
             .apply_buf_debuf_on_stats(&c.character_rounds_info.all_buffers.clone());
@@ -1633,7 +1648,6 @@ mod tests {
             is_percent: true,
             is_passive: true,
             is_passive_enabled: false,
-            ..Default::default()
         });
         c.stats
             .apply_buf_debuf_on_stats(&c.character_rounds_info.all_buffers.clone());
@@ -1993,16 +2007,16 @@ mod tests {
         atk_type.berseck_cost = 0;
         atk_type.name = "atk_test".to_owned();
         c1.level = 1;
-        let result = c1.can_be_launched(&atk_type);
+        let result = c1.can_be_launched(&atk_type, 0);
         assert!(result);
         // character level too low
         c1.level = 0;
-        let result = c1.can_be_launched(&atk_type);
+        let result = c1.can_be_launched(&atk_type, 0);
         assert!(!result);
         // not enough mana
         c1.level = 1;
         atk_type.mana_cost = c1.stats.all_stats[MANA].current + 100;
-        let result = c1.can_be_launched(&atk_type);
+        let result = c1.can_be_launched(&atk_type, 0);
         assert!(!result);
         // heal atk blocked
         // c1 (test.json heal_atk_blocked = true)
@@ -2010,7 +2024,7 @@ mod tests {
             .all_effects
             .push(build_heal_atk_blocked().input_effect_param);
         atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
-        let result = c1.can_be_launched(&atk_type);
+        let result = c1.can_be_launched(&atk_type, 0);
         assert!(!result);
         c1.character_rounds_info.is_heal_atk_blocked = false;
         // active cooldown
@@ -2023,7 +2037,7 @@ mod tests {
             atk_type: atk_type.clone(),
             ..Default::default()
         });
-        let result = c1.can_be_launched(&atk_type);
+        let result = c1.can_be_launched(&atk_type, 0);
         assert!(!result);
         // inactive cooldown
         atk_type.all_effects.clear();
@@ -2038,7 +2052,7 @@ mod tests {
             atk_type: atk_type.clone(),
             ..Default::default()
         });
-        let result = c1.can_be_launched(&atk_type);
+        let result = c1.can_be_launched(&atk_type, 0);
         assert!(result);
         // not enough berserk
         atk_type.all_effects.clear();
@@ -2047,18 +2061,18 @@ mod tests {
             .push(build_hot_effect_individual().input_effect_param);
         c1.character_rounds_info.all_effects.clear();
         atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current + 100;
-        let result = c1.can_be_launched(&atk_type);
+        let result = c1.can_be_launched(&atk_type, 0);
         assert!(!result);
         // not enough vigor
         atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current;
         atk_type.vigor_cost = c1.stats.all_stats[VIGOR].current + 100;
-        let result = c1.can_be_launched(&atk_type);
+        let result = c1.can_be_launched(&atk_type, 0);
         assert!(!result);
         // enough energy
         atk_type.berseck_cost = c1.stats.all_stats[BERSERK].current;
         atk_type.vigor_cost = c1.stats.all_stats[VIGOR].current / 100;
         atk_type.mana_cost = c1.stats.all_stats[MANA].current / 100;
-        let result = c1.can_be_launched(&atk_type);
+        let result = c1.can_be_launched(&atk_type, 0);
         assert!(result);
 
         // no berserk energy and berserk cost > 0
@@ -2070,7 +2084,7 @@ mod tests {
             &testing_all_equipment(),
         )
         .unwrap();
-        let result = c2.can_be_launched(&atk_type);
+        let result = c2.can_be_launched(&atk_type, 0);
         assert!(!result);
     }
 
@@ -2252,7 +2266,6 @@ mod tests {
 
     #[test]
     fn unit_apply_consumable_effects() {
-        use crate::character_mod::inventory::Consumable;
         use crate::server::game_state::GameState;
         let mut c = Character::try_new_from_json(
             "./tests/offlines/characters/test.json",

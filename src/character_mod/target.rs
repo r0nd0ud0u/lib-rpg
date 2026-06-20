@@ -85,10 +85,10 @@ pub fn is_target_ally(target: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::character_mod::{buffers::Buffer, effect::EffectParam};
+    use crate::character_mod::effect::EffectParam;
 
     use super::*;
-    use crate::common::constants::{all_target_const::*, reach_const::ZONE};
+    use crate::common::constants::reach_const::ZONE;
 
     fn make_target(
         target_kind: &str,

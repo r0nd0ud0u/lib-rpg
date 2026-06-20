@@ -385,26 +385,26 @@ impl Stats {
         hp.current_raw = hp.max_raw * (hp.current / hp.max);
 
         mana.current = std::cmp::min(mana.max, mana.current + regen_mana.current);
-        if mana.max > 0 {
-            mana.current_raw = mana.max_raw * (mana.current / mana.max);
+        if let Some(q) = mana.current.checked_div(mana.max) {
+            mana.current_raw = mana.max_raw * q;
         }
 
         vigor.current = std::cmp::min(vigor.max, vigor.current + regen_vigor.current);
-        if vigor.max > 0 {
-            vigor.current_raw = vigor.max_raw * (vigor.current / vigor.max);
+        if let Some(q) = vigor.current.checked_div(vigor.max) {
+            vigor.current_raw = vigor.max_raw * q;
         }
 
         berserk.current = std::cmp::min(berserk.max, berserk.current + regen_berseck.current);
-        if berserk.max > 0 {
-            berserk.current_raw = berserk.max_raw * (berserk.current / berserk.max);
+        if let Some(q) = berserk.current.checked_div(berserk.max) {
+            berserk.current_raw = berserk.max_raw * q;
         }
 
         // Speed regeneration only increases the current value (not max/max_raw).
         // Speed fills up toward the threshold that triggers a character's turn;
         // the maximum must stay fixed so the turn-order threshold remains stable.
         speed.current += regen_speed.current;
-        if speed.max > 0 {
-            speed.current_raw = speed.max_raw * (speed.current / speed.max);
+        if let Some(q) = speed.current.checked_div(speed.max) {
+            speed.current_raw = speed.max_raw * q;
         }
 
         self.all_stats.insert(HP.to_owned(), hp);
