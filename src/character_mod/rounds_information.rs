@@ -946,8 +946,8 @@ impl CharacterRoundsInfo {
 
     pub fn clear(&mut self) {
         self.all_effects.clear();
-        // TODO remove all buffers except passive ones -> add item to Buffer struct to know if it's a passive one or not
-        self.all_buffers.clear();
+        // Retain passive buffers across scenario transitions; drop transient (non-passive) ones.
+        self.all_buffers.retain(|b| b.is_passive);
         self.is_first_round = true;
         self.atk_pattern_queue.clear();
         self.is_heal_atk_blocked = false;
@@ -1649,8 +1649,18 @@ mod tests {
     fn unit_clear() {
         let mut cri = CharacterRoundsInfo::default();
         cri.all_effects.push(GameAtkEffect::default());
+        // Non-passive transient buffer — must be removed by clear().
         cri.update_buffer(&Buffer {
             kind: BufKinds::DamageTxPercent,
+            is_passive: false,
+            ..Default::default()
+        });
+        // Passive buffer — must survive clear().
+        cri.update_buffer(&Buffer {
+            kind: BufKinds::OverHealBoostStat,
+            is_passive: true,
+            is_passive_enabled: true,
+            stats_name: "Physical power".to_string(),
             ..Default::default()
         });
         cri.is_heal_atk_blocked = true;
@@ -1663,7 +1673,20 @@ mod tests {
         cri.clear();
 
         assert!(cri.all_effects.is_empty());
-        assert!(cri.all_buffers.is_empty());
+        // Non-passive buffers are dropped; passive ones are retained.
+        assert_eq!(
+            1,
+            cri.all_buffers.len(),
+            "only the passive buffer must survive clear()"
+        );
+        assert!(
+            cri.all_buffers[0].is_passive,
+            "the surviving buffer must be passive"
+        );
+        assert!(
+            !cri.all_buffers.iter().any(|b| !b.is_passive),
+            "no non-passive buffer must survive clear()"
+        );
         assert!(cri.is_first_round);
         assert!(!cri.is_heal_atk_blocked);
         assert!(!cri.is_random_target);
