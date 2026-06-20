@@ -143,6 +143,34 @@ If the condition is not met, `can_be_launched` returns `false` and the attack is
 | **Lumiere curative** | 1 Ally | Requires `ConditionDamagePrevTurn`; ally +(130 + Elara's magical power) HP |
 | **Non sans raison** | All Allies | All allies +100 % HP; `AddAsMuchAsHp` power boost 3 t; `BlockHealAtk` on Elara 3 t; free (0 mana) |
 
+#### Thraïn's attacks
+
+| Attack | Cost | Target | Key mechanics |
+|---|---|---|---|
+| **Enchaînement Furieux** | 20 Berserk | 1 Enemy | `RepeatAsManyAsPossible`: fires `floor(berserk / actual_cost).max(1)` times where `actual_cost = 20 × max / 100`; each hit deals 50 physical HP damage bypassing armor; all repeats drain rage |
+| **Provocation Féroce** | Free | Self + Allies | Self +12 Berserk; self +10 Aggro; `ReinitBuf` Aggro on all allies; self +40 max Critical strike for 3 t; 5-turn cooldown |
+| **Tourbillon Destructeur** | 15 Berserk | All Enemies | All enemies −60 physical HP (armor formula applies); self +5 Aggro; self +100 % max Berserk rate for 4 t |
+
+##### `RepeatAsManyAsPossible`
+
+When an attack has a `RepeatAsManyAsPossible` effect the ability fires as many times as the launcher's energy allows, draining that energy on every repeat:
+
+1. `process_atk_cost` deducts the first apply's cost (`raw_cost × stat_max / 100`) from the launcher.
+2. `process_atk` reads the remaining energy and the stat's max to compute:
+   - `actual_cost = raw_cost × stat_max / 100`
+   - `nb_applies = floor((remaining + actual_cost) / actual_cost).max(1)` — recovers the initial energy then divides by the actual per-apply cost.
+   - Extra cost for applies 2..N is deducted immediately: `apply_cost_on_stats((nb_applies − 1) × raw_cost, energy_stat)`.
+3. `process_one_effect` reads `nb_applies` from `ApplyEffectInit` and sets `number_of_applies` on the `ProcessedEffectParam`.
+4. `apply_processed_effect_param` computes `full_amount = nb_applies × buffer.value` (no armor formula — goes through the `else` branch).
+
+Every apply costs energy. The launcher fires until it can no longer afford another repeat.
+
+**Example** — Enchaînement Furieux with 60 Berserk, raw_cost=20, max=110:
+- `actual_cost = 20 × 110 / 100 = 22`
+- `nb_applies = floor(60 / 22) = 2`
+- Berserk spent: 2 × 22 = 44 → remaining = 16
+- Damage = 2 × 50 = 100 HP (no armor, bypassed by the `else` branch)
+
 ---
 
 ## Data Files
@@ -195,7 +223,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 268 tests should pass with no warnings.
+All 271 tests should pass with no warnings.
 
 ---
 

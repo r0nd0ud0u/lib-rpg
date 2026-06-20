@@ -4687,4 +4687,245 @@ mod tests {
             "Non sans raison has no mana cost"
         );
     }
+
+    #[test]
+    fn unit_thrain_enchainement_furieux_3_heroes_3_enemies() {
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+        gm.pm.active_heroes.retain(|h| {
+            matches!(
+                h.id_name.as_str(),
+                "Thraïn_#1" | "Elara_la_guerisseuse_de_la_Lorien_#1" | "Azrak_Ombresang_#1"
+            )
+        });
+        gm.pm.active_bosses.truncate(3);
+
+        let thrain_id = "Thraïn_#1";
+        let thrain = gm.pm.get_active_hero_character(thrain_id).unwrap().clone();
+        gm.pm.current_player = thrain;
+        gm.pm.current_player.level = 100;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+
+        // Set berserk to 60; the attack costs 20% of max berserk per apply and fires as many
+        // times as possible (RepeatAsManyAsPossible) until rage is exhausted.
+        // actual_cost = raw_cost * berserk_max / 100; nb_applies = floor(60 / actual_cost).
+        gm.pm.current_player.stats.all_stats[BERSERK].current = 60;
+        let berserk_max = gm.pm.current_player.stats.all_stats[BERSERK].max;
+        let berseck_cost = 20u64;
+        let actual_cost = (berseck_cost * berserk_max / 100).max(1);
+        let nb_applies = (60u64 / actual_cost).max(1);
+
+        // Target: first boss, zero dodge and DamageRxPercent for clean formula
+        let boss_id = gm.pm.active_bosses[0].id_name.clone();
+        let old_boss_hp = gm.pm.active_bosses[0].stats.all_stats[HP].current;
+        gm.pm.active_bosses[0].stats.all_stats[DODGE].current = 0;
+        gm.pm.active_bosses[0]
+            .character_rounds_info
+            .is_current_target = true;
+        if let Some(buf) = gm.pm.active_bosses[0]
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::DamageRxPercent)
+        {
+            buf.value = 0;
+        }
+
+        gm.launch_attack(Some("Enchaînement Furieux"));
+
+        // RepeatAsManyAsPossible bypasses armor; each apply deals the raw 50 damage.
+        let expected_dmg = nb_applies * 50;
+        let new_boss_hp = gm
+            .pm
+            .get_active_boss_character(&boss_id)
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        assert_eq!(
+            old_boss_hp - expected_dmg,
+            new_boss_hp,
+            "boss HP should drop by {nb_applies} × 50 = {expected_dmg} (RepeatAsManyAsPossible)"
+        );
+
+        // Every apply drains rage: total cost = nb_applies × actual_cost.
+        let new_berserk = gm
+            .pm
+            .get_active_hero_character(thrain_id)
+            .unwrap()
+            .stats
+            .all_stats[BERSERK]
+            .current;
+        let expected_berserk = 60u64.saturating_sub(nb_applies * actual_cost);
+        assert_eq!(
+            expected_berserk, new_berserk,
+            "Thraïn berserk: {nb_applies} applies × {actual_cost} cost each, expected {expected_berserk}"
+        );
+    }
+
+    #[test]
+    fn unit_thrain_provocation_feroce_3_heroes_3_enemies() {
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+        gm.pm.active_heroes.retain(|h| {
+            matches!(
+                h.id_name.as_str(),
+                "Thraïn_#1" | "Elara_la_guerisseuse_de_la_Lorien_#1" | "Azrak_Ombresang_#1"
+            )
+        });
+        gm.pm.active_bosses.truncate(3);
+
+        let thrain_id = "Thraïn_#1";
+        let thrain = gm.pm.get_active_hero_character(thrain_id).unwrap().clone();
+        gm.pm.current_player = thrain;
+        gm.pm.current_player.level = 100;
+
+        let old_berserk = gm.pm.current_player.stats.all_stats[BERSERK].current;
+        let old_crit_max = gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].max;
+        let old_aggro = gm.pm.current_player.stats.all_stats[AGGRO].current;
+
+        // Init aggro tx_rx slot so process_aggro can update the stat
+        gm.pm
+            .current_player
+            .init_aggro_on_turn(gm.game_state.current_turn_nb);
+
+        gm.launch_attack(Some("Provocation Féroce "));
+
+        let thrain_after = gm.pm.get_active_hero_character(thrain_id).unwrap();
+
+        // +12 Berserk (free attack, no cost)
+        assert_eq!(
+            old_berserk + 12,
+            thrain_after.stats.all_stats[BERSERK].current,
+            "Thraïn berserk must increase by 12 (no cost)"
+        );
+
+        // +10 Aggro on self
+        assert_eq!(
+            old_aggro + 10,
+            thrain_after.stats.all_stats[AGGRO].current,
+            "Thraïn aggro must increase by 10"
+        );
+
+        // +40 max Critical strike for 3 turns
+        assert_eq!(
+            old_crit_max + 40,
+            thrain_after.stats.all_stats[CRITICAL_STRIKE].max,
+            "Thraïn critical strike max must increase by 40"
+        );
+
+        // 5-turn cooldown applied
+        let cooldown_active = thrain_after
+            .character_rounds_info
+            .all_effects
+            .iter()
+            .any(|e| {
+                e.processed_effect_param.input_effect_param.buffer.kind
+                    == BufKinds::CooldownTurnsNumber
+                    && e.atk_type.name.contains("Provocation")
+            });
+        assert!(
+            cooldown_active,
+            "Provocation Féroce must have a 5-turn cooldown"
+        );
+    }
+
+    #[test]
+    fn unit_thrain_tourbillon_destructeur_3_heroes_3_enemies() {
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+        gm.pm.active_heroes.retain(|h| {
+            matches!(
+                h.id_name.as_str(),
+                "Thraïn_#1" | "Elara_la_guerisseuse_de_la_Lorien_#1" | "Azrak_Ombresang_#1"
+            )
+        });
+        gm.pm.active_bosses.truncate(3);
+
+        let thrain_id = "Thraïn_#1";
+        let thrain = gm.pm.get_active_hero_character(thrain_id).unwrap().clone();
+        gm.pm.current_player = thrain;
+        gm.pm.current_player.level = 100;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+
+        let thrain_phy_pow = gm.pm.current_player.stats.get_power_stat(false);
+        let old_berserk = gm.pm.current_player.stats.all_stats[BERSERK].current;
+        let berserk_max = gm.pm.current_player.stats.all_stats[BERSERK].max;
+        let berseck_cost = 15u64;
+        let cost_deducted = berseck_cost * berserk_max / 100;
+
+        let old_berserk_rate_pct =
+            gm.pm.current_player.stats.all_stats[BERSECK_RATE].buf_effect_percent;
+
+        // Zero out dodge and DamageRxPercent on all 3 bosses for clean damage formula
+        let old_boss_hps: Vec<u64> = gm
+            .pm
+            .active_bosses
+            .iter()
+            .map(|b| b.stats.all_stats[HP].current)
+            .collect();
+        let boss_phy_armors: Vec<i64> = gm
+            .pm
+            .active_bosses
+            .iter()
+            .map(|b| b.stats.get_armor_stat(false))
+            .collect();
+        for boss in gm.pm.active_bosses.iter_mut() {
+            boss.stats.all_stats[DODGE].current = 0;
+            if let Some(buf) = boss
+                .character_rounds_info
+                .get_mut_buffer_by_type(&BufKinds::DamageRxPercent)
+            {
+                buf.value = 0;
+            }
+        }
+
+        // Init aggro slot so the +5 Aggro self-effect can be recorded
+        gm.pm
+            .current_player
+            .init_aggro_on_turn(gm.game_state.current_turn_nb);
+        let old_aggro = gm.pm.current_player.stats.all_stats[AGGRO].current;
+
+        gm.launch_attack(Some("Tourbillon Destructeur "));
+
+        // All 3 bosses take physical damage: raw = -(60 + phy_pow), effective after armor
+        for (i, (old_hp, phy_armor)) in old_boss_hps.iter().zip(boss_phy_armors.iter()).enumerate()
+        {
+            let boss_id = gm.pm.active_bosses[i].id_name.clone();
+            let new_hp = gm
+                .pm
+                .get_active_boss_character(&boss_id)
+                .unwrap()
+                .stats
+                .all_stats[HP]
+                .current;
+            let raw_dmg = (60_i64 + thrain_phy_pow) as f64;
+            let protection =
+                AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + *phy_armor as f64);
+            let expected_dmg = (raw_dmg * protection).round() as i64;
+            // HP is floored at 0 when damage exceeds current HP
+            let expected_hp = (*old_hp as i64 - expected_dmg).max(0);
+            assert_eq!(
+                expected_hp, new_hp as i64,
+                "boss[{i}] HP must drop by {expected_dmg} (physical zone damage)"
+            );
+        }
+
+        let thrain_after = gm.pm.get_active_hero_character(thrain_id).unwrap();
+
+        // Berserk cost: 15% of max
+        assert_eq!(
+            old_berserk - cost_deducted,
+            thrain_after.stats.all_stats[BERSERK].current,
+            "Thraïn berserk: 15% of max deducted"
+        );
+
+        // +5 explicit Aggro on self; zone damage also generates implicit aggro
+        assert!(
+            thrain_after.stats.all_stats[AGGRO].current >= old_aggro + 5,
+            "Thraïn aggro must increase by at least 5 (explicit self effect)"
+        );
+
+        // +100% max Berserk rate for 4 turns: buf_effect_percent increased by 100
+        assert_eq!(
+            old_berserk_rate_pct + 100,
+            thrain_after.stats.all_stats[BERSECK_RATE].buf_effect_percent,
+            "Berserk rate buf_effect_percent must increase by 100"
+        );
+    }
 }
