@@ -209,9 +209,25 @@ effective      = round(raw_damage × ARMOR_FACTOR / (ARMOR_FACTOR + target_armor
 
 ### Combat log
 
-HP damage effects are logged as:
-- `"{target} ← {real} HP"` when no mitigation occurred
-- `"{target} ← {real} HP (full: {pre_armor}, real: {real})"` when armor, blocking, or HP cap reduced the raw hit
+`GameAtkEffect::log_text()` is the single source of truth for per-effect log text. It is used by
+both the gameboard (displayed inline after each attack) and the log sheet (via `build_logs_atk`).
+All messages use `←` to mean "target received".
+
+| Effect type | Format |
+|---|---|
+| HP damage, no mitigation | `{target} ← {real} HP` |
+| HP damage, armor / cap | `{target} ← {real} HP (full: {pre}, real: {real})` |
+| HP heal, uncapped | `{target} ← {real} HP ({kind})` |
+| HP heal, capped at max | `{target} ← {real} HP (full: {full}, real: {real})` |
+| Cooldown | `{target} ← Cooldown for {buf_value} turns` |
+| Debuff removed | `{target} ← debuff removed` |
+| Debuff remove no-op | *(hidden — `log_text()` returns `None`)* |
+| HOT boost | `{target} ← HOTs +{pct}% (+{hp}/turn)` |
+| Stat max change | `{target} ← {stat} max +{pct}%` |
+
+**Passive logs** (e.g. `IsDamageTxHealNeedyAlly`) produce `LogData` entries stored in
+`ResultLaunchAttack.passive_logs`. They are also included in `logs_atk` so the full log sheet
+is consistent. The gameboard renders `passive_logs` separately below the per-effect block.
 
 ---
 
@@ -223,7 +239,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 271 tests should pass with no warnings.
+All 279 tests should pass with no warnings.
 
 ---
 

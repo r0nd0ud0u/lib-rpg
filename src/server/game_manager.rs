@@ -43,6 +43,9 @@ pub struct ResultLaunchAttack {
     pub is_boss_atk: bool,
     pub logs_end_of_round: Vec<LogData>,
     pub logs_atk: Vec<LogData>,
+    /// Passive-triggered log entries for this turn (e.g. IsDamageTxHealNeedyAlly heal).
+    /// Included in `logs_atk` for the log sheet and also exposed here for the gameboard.
+    pub passive_logs: Vec<LogData>,
     pub turn_nb: usize,
     pub round_nb: usize,
     /// True when the finishing blow was delivered by a damage-over-time effect (regen tick), not the direct attack.
@@ -585,7 +588,7 @@ impl GameManager {
 
         // process end of attack
         let mut logs_atk = self.build_logs_atk(&all_dodging, &new_game_atk_effects, is_crit);
-        logs_atk.extend(passive_logs);
+        logs_atk.extend(passive_logs.clone());
         let mut result_attack = ResultLaunchAttack {
             launcher_id_name: self.pm.current_player.id_name.clone(),
             atk_name: atk_name.to_string(),
@@ -595,6 +598,7 @@ impl GameManager {
             is_boss_atk: self.pm.current_player.is_boss_atk(),
             logs_end_of_round: Vec::new(),
             logs_atk,
+            passive_logs,
             turn_nb: self.game_state.current_turn_nb,
             round_nb: self.game_state.current_round,
             is_dot_kill: false,
@@ -910,86 +914,30 @@ impl GameManager {
             }
 
             for gae in all_gae {
-                // log for the processed effect param
-                if !gae.processed_effect_param.log.message.is_empty() {
-                    logs.push(gae.processed_effect_param.log.clone());
-                }
-                // log for the effect outcome
-                let mut colortext = LIGHT_GREEN;
-                let is_hp_effect = gae
+                let Some(text) = gae.log_text() else {
+                    continue;
+                };
+                let is_hp = gae
                     .processed_effect_param
                     .input_effect_param
                     .buffer
                     .stats_name
                     == HP;
-                let is_damage = is_hp_effect
+                let is_damage = is_hp
                     && (gae.effect_outcome.real_amount_tx < 0
                         || gae.effect_outcome.full_amount_tx < 0);
-                if is_damage {
-                    colortext = DARK_RED;
-                }
-                if gae.processed_effect_param.input_effect_param.buffer.kind
-                    == BufKinds::CooldownTurnsNumber
-                {
-                    logs.push(LogData {
-                        color: colortext.to_string(),
-                        message: format!(
-                            "{} ← Cooldown for {} turns",
-                            gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.buffer.value
-                        ),
-                    });
-                } else if is_hp_effect {
-                    let pre = gae.effect_outcome.pre_armor_amount_tx;
-                    let full = gae.effect_outcome.full_amount_tx;
-                    let real = gae.effect_outcome.real_amount_tx;
-                    let msg = if is_damage {
-                        if pre == real {
-                            format!("{} ← {} HP", gae.effect_outcome.target_id_name, real)
-                        } else {
-                            format!(
-                                "{} ← {} HP (full: {}, real: {})",
-                                gae.effect_outcome.target_id_name, real, pre, real
-                            )
-                        }
-                    } else if full == real {
-                        format!(
-                            "{} ← {} HP ({})",
-                            gae.effect_outcome.target_id_name,
-                            real,
-                            gae.processed_effect_param.input_effect_param.buffer.kind
-                        )
-                    } else {
-                        format!(
-                            "{} ← {} HP (full: {}, real: {})",
-                            gae.effect_outcome.target_id_name, real, full, real
-                        )
-                    };
-                    logs.push(LogData {
-                        color: colortext.to_string(),
-                        message: msg,
-                    });
-                } else if !gae
-                    .processed_effect_param
-                    .input_effect_param
-                    .buffer
-                    .stats_name
-                    .is_empty()
-                {
-                    logs.push(LogData {
-                        color: colortext.to_string(),
-                        message: format!(
-                            "{} ← {} {} ({})",
-                            gae.effect_outcome.target_id_name,
-                            gae.effect_outcome.full_amount_tx,
-                            gae.processed_effect_param
-                                .input_effect_param
-                                .buffer
-                                .stats_name,
-                            gae.processed_effect_param.input_effect_param.buffer.kind
-                        ),
-                    });
-                }
+                let is_condition_fail = gae.processed_effect_param.input_effect_param.buffer.kind
+                    == BufKinds::ConditionDamagePrevTurn
+                    && gae.processed_effect_param.number_of_applies == 0;
+                let color = if is_damage || is_condition_fail {
+                    DARK_RED
+                } else {
+                    LIGHT_GREEN
+                };
+                logs.push(LogData {
+                    message: text,
+                    color: color.to_string(),
+                });
             }
         }
         logs
@@ -4310,7 +4258,7 @@ mod tests {
         assert!(actual_damage > 0, "SimpleAtk must deal damage to the boss");
 
         // Passive fires in the same turn: 25% of damage heals Azrak (most needy)
-        let expected_heal = ((actual_damage as u64 * 25 / 100) as u64).min(azrak_hp_max - 10);
+        let expected_heal = (actual_damage as u64 * 25 / 100).min(azrak_hp_max - 10);
         let new_azrak_hp = gm
             .pm
             .get_active_hero_character(azrak_id)
