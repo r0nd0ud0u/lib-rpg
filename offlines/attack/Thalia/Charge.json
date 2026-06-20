@@ -1,19 +1,15 @@
 {
+    "Aggro": 0,
     "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
-    "Coût de vigueur": 8,
+    "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
-            "Valeur de l'effet": 0,
-            "Value": -35,
-            "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
                 "value": -35,
@@ -24,10 +20,10 @@
         }
     ],
     "Forme": "Standard",
-    "Niveau": 6,
-    "Nom": "SimpleAtk",
-    "Photo": "Angmar.png",
+    "Niveau": 1,
+    "Nom": "Charge",
+    "Photo": "Charge.png",
     "Portée": "Individual",
-    "Description": "Shadow lick.",
-    "DescriptionEffects": "Deals 35 magic damage to one enemy."
+    "Description": "A basic strike dealing physical damage.",
+    "DescriptionEffects": "Deals 35 physical damage to one enemy."
 }

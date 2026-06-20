@@ -2,7 +2,7 @@
     "name": "Le Champion des Orcs",
     "description": "Le champion des orcs débarque avec sa garde. Intermédiaire et redoutable, il enchaîne frappes dévastatrices et charges de zone.",
     "boss_patterns": {
-        "Champion Orc": [0]
+        "Champion Orc": [1,1,0]
     },
     "level": 5,
     "loots": [
@@ -14,11 +14,11 @@
             "classes": ["Standard"]
         },
         {
-            "name": "medium belt",
+            "name": "medium pants",
             "kind": "Equipment",
             "rank": "Intermediate",
             "level": 2,
-            "classes": ["Warrior", "Berserker"]
+            "classes": ["Healer", "Mage"]
         },
         {
             "name": "medium amulet",

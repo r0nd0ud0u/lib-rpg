@@ -14,14 +14,14 @@
             "classes": ["Standard"]
         },
         {
-            "name": "medium belt",
+            "name": "medium right ring",
             "kind": "Equipment",
             "rank": "Advanced",
             "level": 4,
             "classes": ["Warrior", "Berserker"]
         },
         {
-            "name": "medium amulet",
+            "name": "medium left ring",
             "kind": "Equipment",
             "rank": "Advanced",
             "level": 4,

@@ -279,14 +279,14 @@ impl Character {
         Ok(())
     }
 
-    pub fn remove_terminated_effect_on_player(&mut self) -> Result<Vec<EffectParam>> {
-        let mut ended_effects: Vec<EffectParam> = Vec::new();
+    pub fn remove_terminated_effect_on_player(&mut self) -> Result<Vec<GameAtkEffect>> {
+        let mut ended_effects: Vec<GameAtkEffect> = Vec::new();
         for gae in self.character_rounds_info.all_effects.clone() {
             if gae.processed_effect_param.counter_turn
                 == gae.processed_effect_param.input_effect_param.nb_turns
             {
                 self.remove_malus_effect(&gae.processed_effect_param.input_effect_param)?;
-                ended_effects.push(gae.processed_effect_param.input_effect_param.clone());
+                ended_effects.push(gae.clone());
             }
         }
         self.character_rounds_info.all_effects.retain(|element| {
@@ -923,11 +923,15 @@ impl Character {
 
             match self.remove_terminated_effect_on_player() {
                 Ok(effects_param_removed) => effects_param_removed.iter().for_each(|e| {
-                    let stat = &e.buffer.stats_name;
-                    let msg = if stat.is_empty() {
-                        format!("\u{1f550} Effect expired: {}", e.buffer.kind)
+                    let buf = &e.processed_effect_param.input_effect_param.buffer;
+                    let atk = &e.atk_type.name;
+                    let msg = if buf.stats_name.is_empty() {
+                        format!("\u{1f550} Effect expired: {} ({})", buf.kind, atk)
                     } else {
-                        format!("\u{1f550} Effect expired: {} on {}", e.buffer.kind, stat)
+                        format!(
+                            "\u{1f550} Effect expired: {} on {} ({})",
+                            buf.kind, buf.stats_name, atk
+                        )
                     };
                     output_logs_data.push(LogData {
                         message: msg,
@@ -963,8 +967,8 @@ impl Character {
                     }
                     output_logs_data.push(LogData {
                         message: format!(
-                            "\u{26a1} Passive: {} +{} from overheal",
-                            buf.stats_name, overheal
+                            "\u{26a1} Passive({}): {} +{} from overheal",
+                            self.id_name, buf.stats_name, overheal
                         ),
                         color: LIGHT_GREEN.to_string(),
                     });

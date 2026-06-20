@@ -79,5 +79,5 @@
     "Photo": "Thalia.png",
     "Portée": "Zone",
     "Description": "Flower of Hope — a delicate nature bloom that instantly restores HP.",
-    "DescriptionEffects": "Heals all allies for 25 HP per turn for 5 turns; +2 max Mana regeneration on all allies for 5 turns; -5 Dodge on all allies for 5 turns; +10% max Magic power on all allies for 5 turns."
+    "DescriptionEffects": "Heals all allies for 25 per turn for 5 turns; +2 max Mana regeneration on all allies for 5 turns; -5 Dodge on all allies for 5 turns; +10% max Magic power on all allies for 5 turns."
 }

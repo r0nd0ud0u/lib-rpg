@@ -1,22 +1,20 @@
 {
+    "Aggro": 0,
     "Cible": "Enemy",
     "Coût de mana": 0,
     "Coût de rage": 0,
-    "Coût de vigueur": 8,
+    "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -25,
-            "IsMagicEffect": false,
+            "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -25,
+                "value": -35,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -25,9 +23,9 @@
     ],
     "Forme": "Standard",
     "Niveau": 1,
-    "Nom": "SimpleAtk",
-    "Photo": "squirtle.png",
+    "Nom": "Charge",
+    "Photo": "Charge.png",
     "Portée": "Individual",
-    "Description": "A sturdy tackle using its shell as a battering ram.",
-    "DescriptionEffects": "Deals 25 physical damage to one enemy."
+    "Description": "A basic strike dealing physical damage.",
+    "DescriptionEffects": "Deals 35 magic damage to one enemy."
 }

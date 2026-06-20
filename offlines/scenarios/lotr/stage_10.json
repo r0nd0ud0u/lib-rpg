@@ -14,14 +14,14 @@
             "classes": ["Standard"]
         },
         {
-            "name": "medium belt",
+            "name": "medium gloves",
             "kind": "Equipment",
             "rank": "Advanced",
             "level": 5,
             "classes": ["Warrior", "Berserker"]
         },
         {
-            "name": "medium amulet",
+            "name": "medium gloves",
             "kind": "Equipment",
             "rank": "Advanced",
             "level": 5,

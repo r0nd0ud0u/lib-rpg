@@ -24,7 +24,7 @@
     "Forme": "Standard",
     "Niveau": 6,
     "Nom": "Malediction Ancienne",
-    "Photo": "SimpleAtk.png",
+    "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Ancient Curse — an age-old curse that severely weakens all heroes over time.",
     "DescriptionEffects": "Deals 120 magic damage to all enemies per turn for 4 turns."

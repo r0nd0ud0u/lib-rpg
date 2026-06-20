@@ -11,7 +11,6 @@ use crate::{
         effect::{EffectOutcome, ProcessedEffectParam},
         equipment::{Equipment, EquipmentJsonKey},
         inventory::Consumable,
-        rounds_information::AmountType,
     },
     common::{
         constants::{
@@ -36,37 +35,40 @@ pub struct GameAtkEffect {
 
 impl GameAtkEffect {
     /// Returns the text line for the attack log, or `None` if this effect should be hidden.
+    ///
+    /// This is the single source of truth for per-effect log text used in both the gameboard
+    /// and the log sheet (`build_logs_atk`). Format uses `←` (target received).
     pub fn log_text(&self) -> Option<String> {
         let kind = &self.processed_effect_param.input_effect_param.buffer.kind;
         let target = &self.effect_outcome.target_id_name;
-        let amount = self.effect_outcome.real_amount_tx;
+        let real = self.effect_outcome.real_amount_tx;
         let full = self.effect_outcome.full_amount_tx;
+        let pre = self.effect_outcome.pre_armor_amount_tx;
         let stat = &self
             .processed_effect_param
             .input_effect_param
             .buffer
             .stats_name;
-        let nb_turns = self.processed_effect_param.input_effect_param.nb_turns;
         let number_of_applies = self.processed_effect_param.number_of_applies;
         let buf_value = self.processed_effect_param.input_effect_param.buffer.value;
 
         match kind {
             BufKinds::CooldownTurnsNumber => {
-                Some(format!("Cooldown on {target}: {nb_turns} turns"))
+                Some(format!("{target} ← Cooldown for {buf_value} turns"))
             }
             BufKinds::ConditionDamagePrevTurn => {
                 if number_of_applies > 0 {
-                    Some(format!("{target} → ✓ Condition: damage last turn"))
+                    Some(format!("{target} ← ✓ Condition: damage last turn"))
                 } else {
                     Some(format!(
-                        "{target} → ✗ Condition: damage last turn (attack stopped)"
+                        "{target} ← ✗ Condition: damage last turn (attack stopped)"
                     ))
                 }
             }
-            BufKinds::MultiValue => Some(format!("{target} → Heal ×{buf_value}")),
+            BufKinds::MultiValue => Some(format!("{target} ← Heal ×{buf_value}")),
             BufKinds::RemoveOneDebuf => {
                 if self.effect_outcome.debuff_removed {
-                    Some(format!("{target} → debuff removed"))
+                    Some(format!("{target} ← debuff removed"))
                 } else {
                     None
                 }
@@ -75,35 +77,42 @@ impl GameAtkEffect {
                 if stat.is_empty() {
                     None
                 } else {
-                    Some(format!("{target} → {stat} effects reset"))
+                    Some(format!("{target} ← {stat} effects reset"))
                 }
             }
             BufKinds::BoostHotsByPercentage => {
                 if full > 0 {
-                    Some(format!("{target} → HOTs +{buf_value}% (+{full} HP/turn)"))
+                    Some(format!("{target} ← HOTs +{buf_value}% (+{full} HP/turn)"))
                 } else {
-                    Some(format!("{target} → HOTs +{buf_value}%"))
+                    Some(format!("{target} ← HOTs +{buf_value}%"))
                 }
             }
             BufKinds::BoostBufByHotsNumberInPercentage => Some(format!(
-                "{target} → +{buf_value}% heal boost per active HOT"
+                "{target} ← +{buf_value}% heal boost per active HOT"
             )),
             _ => {
-                if stat == HP
+                let is_hp = stat == HP
                     && *kind != BufKinds::ChangeMaxStatByPercentage
-                    && *kind != BufKinds::ChangeMaxStatByValue
-                {
-                    if full == amount {
-                        Some(format!("{target} → {amount} HP"))
+                    && *kind != BufKinds::ChangeMaxStatByValue;
+                let is_damage = is_hp && (real < 0 || full < 0);
+                if is_hp {
+                    if is_damage {
+                        if pre == real {
+                            Some(format!("{target} ← {real} HP"))
+                        } else {
+                            Some(format!("{target} ← {real} HP (full: {pre}, real: {real})"))
+                        }
+                    } else if full == real {
+                        Some(format!("{target} ← {real} HP ({kind})"))
                     } else {
-                        Some(format!("{target} → {amount} HP (raw: {full})"))
+                        Some(format!("{target} ← {real} HP (full: {full}, real: {real})"))
                     }
                 } else if *kind == BufKinds::ChangeMaxStatByPercentage {
-                    Some(format!("{target} → {stat} max +{full}%"))
+                    Some(format!("{target} ← {stat} max +{full}%"))
                 } else if stat.is_empty() {
-                    Some(format!("{target} → {full} ({kind})"))
+                    Some(format!("{target} ← {full} ({kind})"))
                 } else {
-                    Some(format!("{target} → {stat} {full} ({kind})"))
+                    Some(format!("{target} ← {full} {stat} ({kind})"))
                 }
             }
         }
@@ -163,6 +172,11 @@ impl PlayerManager {
             // fields are reset to zero and the next scenario starts from the correct base.
             c.reset_all_effects_on_player()
                 .expect("failed to reset all effects");
+            // Clamp any stat inflated above its max by uncapped passive boosts
+            // (e.g. OverHealBoostStat writes directly to stat.current without a cap).
+            for stat in c.stats.all_stats.values_mut() {
+                stat.current = stat.current.min(stat.max);
+            }
             c.character_rounds_info.clear();
             c.stats.get_mut_value(HP).current = c.stats.all_stats[HP].max;
             c.stats.get_mut_value(MANA).current = c.stats.all_stats[MANA].max;
@@ -311,7 +325,7 @@ impl PlayerManager {
         game_state: &GameState,
         id_name: &str,
     ) -> Result<Vec<LogData>> {
-        let mut logs;
+        let logs;
         match self.get_mut_active_character(id_name) {
             Some(c) => {
                 self.current_player = c.clone();
@@ -325,8 +339,6 @@ impl PlayerManager {
                 // update the active character
                 self.modify_active_character(id_name);
 
-                // IsDamageTxHealNeedyAlly passive: convert prev-turn damage TX to ally heal
-                logs.extend(self.apply_damage_tx_heal_passive(id_name, game_state.current_turn_nb));
                 Ok(logs)
             }
             None => {
@@ -335,16 +347,21 @@ impl PlayerManager {
         }
     }
 
-    /// Reads the `IsDamageTxHealNeedyAlly` passive from `launcher_id_name` and, if enabled,
-    /// heals the most-needy alive hero by `value`% of the previous turn's damage TX.
-    fn apply_damage_tx_heal_passive(
+    /// Fires the `IsDamageTxHealNeedyAlly` passive for `launcher_id_name` if enabled:
+    /// heals the most-needy alive hero by `pct`% of `damage_tx`.
+    /// Called immediately after an attack deals damage so the heal appears in the same turn's log.
+    pub(crate) fn apply_damage_tx_heal_passive(
         &mut self,
         launcher_id_name: &str,
-        current_turn_nb: usize,
+        damage_tx: i64,
     ) -> Vec<LogData> {
         let mut logs = Vec::new();
 
-        let (pct, damage_tx) = {
+        if damage_tx <= 0 {
+            return logs;
+        }
+
+        let pct = {
             let Some(launcher) = self.get_active_hero_character(launcher_id_name) else {
                 return logs;
             };
@@ -357,20 +374,9 @@ impl PlayerManager {
             if !buf.is_passive || !buf.is_passive_enabled || buf.value <= 0 {
                 return logs;
             }
-            let prev_turn = current_turn_nb.saturating_sub(1) as u64;
-            let dmg = launcher
-                .character_rounds_info
-                .tx_rx
-                .get(AmountType::DamageTx as usize)
-                .and_then(|m| m.get(&prev_turn))
-                .copied()
-                .unwrap_or(0);
-            (buf.value, dmg)
+            buf.value
         };
 
-        if damage_tx <= 0 {
-            return logs;
-        }
         let heal_amount = (damage_tx * pct / 100) as u64;
         if heal_amount == 0 {
             return logs;
@@ -412,8 +418,8 @@ impl PlayerManager {
         if real_heal > 0 {
             logs.push(LogData {
                 message: format!(
-                    "\u{26a1} Passive: {} \u{2190} +{} HP ({}% of {} damage TX)",
-                    short_name, real_heal, pct, damage_tx
+                    "\u{26a1} Passive({}): {} \u{2190} +{} HP ({}% of {} damage TX)",
+                    launcher_id_name, short_name, real_heal, pct, damage_tx
                 ),
                 color: LIGHT_GREEN.to_string(),
             });
@@ -1673,9 +1679,45 @@ mod tests {
         );
     }
 
+    /// clear_scenario must clamp any stat inflated above max by the OverHealBoostStat passive.
+    #[test]
+    fn unit_clear_scenario_resets_overheal_passive_stat_boost() {
+        use crate::common::constants::stats_const::PHYSICAL_POWER;
+
+        let mut pm = testing_all_characters::dxrpg_pm();
+        // Use Azrak who carries the OverHealBoostStat passive on Physical power.
+        let azrak_id = "Azrak_Ombresang_#1";
+        let phys_pow_max = pm
+            .get_active_hero_character(azrak_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .max;
+
+        // Simulate the passive having accumulated a large uncapped boost across a scenario.
+        pm.get_mut_active_hero_character(azrak_id)
+            .unwrap()
+            .stats
+            .get_mut_value(PHYSICAL_POWER)
+            .current = phys_pow_max + 200;
+
+        pm.clear_scenario();
+
+        let after = pm
+            .get_active_hero_character(azrak_id)
+            .unwrap()
+            .stats
+            .all_stats[PHYSICAL_POWER]
+            .current;
+        assert_eq!(
+            after, phys_pow_max,
+            "Physical power current must be clamped back to max after clear_scenario"
+        );
+    }
+
     #[test]
     fn unit_passive_damage_tx_heal_needy_ally_fires() {
-        use crate::character_mod::{buffers::Buffer, rounds_information::AmountType};
+        use crate::character_mod::buffers::Buffer;
         let mut pm = testing_all_characters::testing_pm();
         let launcher_id = pm.active_heroes[0].id_name.clone();
 
@@ -1691,10 +1733,6 @@ mod tests {
                 ..Default::default()
             });
 
-        // Set DamageTx[turn 1] = 200 on hero[0]
-        pm.active_heroes[0].character_rounds_info.tx_rx[AmountType::DamageTx as usize]
-            .insert(1, 200);
-
         // Set launcher (hero[0]) to full HP so hero[1] (at HP=1) is the most needy
         let max_hp_launcher = pm.active_heroes[0].stats.all_stats[HP].max;
         pm.active_heroes[0]
@@ -1707,13 +1745,8 @@ mod tests {
         // hero[1] starts at HP=1 (from test JSON) — lowest ratio → most needy
         let hero1_hp_before = pm.active_heroes[1].stats.all_stats[HP].current; // 1
 
-        pm.reset_is_first_round();
-        let gs = GameState {
-            current_turn_nb: 2,
-            ..Default::default()
-        };
-        pm.update_current_player_on_new_round(&gs, &launcher_id)
-            .unwrap();
+        // Passive fires immediately with damage_tx=200 (simulates an attack dealing 200 damage)
+        pm.apply_damage_tx_heal_passive(&launcher_id, 200);
 
         let hero1_hp_after = pm.active_heroes[1].stats.all_stats[HP].current;
         // 200 * 25 / 100 = 50
@@ -1741,26 +1774,20 @@ mod tests {
                 ..Default::default()
             });
 
-        // DamageTx is NOT populated — passive must be a no-op
         let hero1_hp_before = pm.active_heroes[1].stats.all_stats[HP].current;
 
-        pm.reset_is_first_round();
-        let gs = GameState {
-            current_turn_nb: 2,
-            ..Default::default()
-        };
-        pm.update_current_player_on_new_round(&gs, &launcher_id)
-            .unwrap();
+        // damage_tx=0 → passive must be a no-op
+        pm.apply_damage_tx_heal_passive(&launcher_id, 0);
 
         assert_eq!(
             pm.active_heroes[1].stats.all_stats[HP].current, hero1_hp_before,
-            "no damage TX means no passive heal"
+            "zero damage TX means no passive heal"
         );
     }
 
     #[test]
     fn unit_passive_damage_tx_heal_needy_ally_disabled() {
-        use crate::character_mod::{buffers::Buffer, rounds_information::AmountType};
+        use crate::character_mod::buffers::Buffer;
         let mut pm = testing_all_characters::testing_pm();
         let launcher_id = pm.active_heroes[0].id_name.clone();
 
@@ -1775,18 +1802,10 @@ mod tests {
                 is_passive_enabled: false, // disabled
                 ..Default::default()
             });
-        pm.active_heroes[0].character_rounds_info.tx_rx[AmountType::DamageTx as usize]
-            .insert(1, 200);
 
         let hero1_hp_before = pm.active_heroes[1].stats.all_stats[HP].current;
 
-        pm.reset_is_first_round();
-        let gs = GameState {
-            current_turn_nb: 2,
-            ..Default::default()
-        };
-        pm.update_current_player_on_new_round(&gs, &launcher_id)
-            .unwrap();
+        pm.apply_damage_tx_heal_passive(&launcher_id, 200);
 
         assert_eq!(
             pm.active_heroes[1].stats.all_stats[HP].current, hero1_hp_before,
@@ -1796,7 +1815,7 @@ mod tests {
 
     #[test]
     fn unit_passive_damage_tx_heal_needy_ally_capped_at_max_hp() {
-        use crate::character_mod::{buffers::Buffer, rounds_information::AmountType};
+        use crate::character_mod::buffers::Buffer;
         let mut pm = testing_all_characters::testing_pm();
         let launcher_id = pm.active_heroes[0].id_name.clone();
 
@@ -1810,9 +1829,6 @@ mod tests {
                 is_passive_enabled: true,
                 ..Default::default()
             });
-        // Huge damage TX so heal would overflow HP max
-        pm.active_heroes[0].character_rounds_info.tx_rx[AmountType::DamageTx as usize]
-            .insert(1, 10_000);
 
         // Set launcher (hero[0]) to full HP so hero[1] (at HP=1) is the most needy
         let max_hp_launcher = pm.active_heroes[0].stats.all_stats[HP].max;
@@ -1826,17 +1842,181 @@ mod tests {
         // hero[1] starts at HP=1 (most needy); track its max for the cap assertion
         let hp_max = pm.active_heroes[1].stats.all_stats[HP].max; // 135
 
-        pm.reset_is_first_round();
-        let gs = GameState {
-            current_turn_nb: 2,
-            ..Default::default()
-        };
-        pm.update_current_player_on_new_round(&gs, &launcher_id)
-            .unwrap();
+        // Huge damage TX so heal would overflow HP max
+        pm.apply_damage_tx_heal_passive(&launcher_id, 10_000);
 
         assert_eq!(
             pm.active_heroes[1].stats.all_stats[HP].current, hp_max,
             "heal must not exceed HP max"
         );
+    }
+
+    // ── log_text() unit tests ────────────────────────────────────────────────
+
+    fn make_gae_hp(
+        real: i64,
+        full: i64,
+        pre: i64,
+        kind: crate::character_mod::buffers::BufKinds,
+    ) -> GameAtkEffect {
+        use crate::character_mod::{
+            buffers::Buffer,
+            effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
+        };
+        use crate::common::constants::stats_const::HP;
+        GameAtkEffect {
+            processed_effect_param: ProcessedEffectParam {
+                input_effect_param: EffectParam {
+                    buffer: Buffer {
+                        kind: kind.clone(),
+                        stats_name: HP.to_string(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            effect_outcome: EffectOutcome {
+                real_amount_tx: real,
+                full_amount_tx: full,
+                pre_armor_amount_tx: pre,
+                target_id_name: "Target".to_string(),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn unit_log_text_hp_damage_no_mitigation() {
+        use crate::character_mod::buffers::BufKinds;
+        let gae = make_gae_hp(-30, -30, -30, BufKinds::ChangeCurrentStatByValue);
+        assert_eq!(
+            gae.log_text(),
+            Some("Target ← -30 HP".to_string()),
+            "no mitigation: real == pre → simple format"
+        );
+    }
+
+    #[test]
+    fn unit_log_text_hp_damage_with_armor() {
+        use crate::character_mod::buffers::BufKinds;
+        let gae = make_gae_hp(-20, -30, -30, BufKinds::ChangeCurrentStatByValue);
+        assert_eq!(
+            gae.log_text(),
+            Some("Target ← -20 HP (full: -30, real: -20)".to_string()),
+            "armor mitigation: real != pre → full/real format"
+        );
+    }
+
+    #[test]
+    fn unit_log_text_hp_heal_simple() {
+        use crate::character_mod::buffers::BufKinds;
+        let gae = make_gae_hp(50, 50, 50, BufKinds::ChangeCurrentStatByValue);
+        assert_eq!(
+            gae.log_text(),
+            Some(format!(
+                "Target ← 50 HP ({})",
+                BufKinds::ChangeCurrentStatByValue
+            )),
+            "heal with full==real → shows kind in parens"
+        );
+    }
+
+    #[test]
+    fn unit_log_text_hp_heal_capped() {
+        use crate::character_mod::buffers::BufKinds;
+        let gae = make_gae_hp(30, 50, 50, BufKinds::ChangeCurrentStatByValue);
+        assert_eq!(
+            gae.log_text(),
+            Some("Target ← 30 HP (full: 50, real: 30)".to_string()),
+            "heal capped at HP max → full/real format"
+        );
+    }
+
+    #[test]
+    fn unit_log_text_cooldown_uses_buf_value() {
+        use crate::character_mod::{
+            buffers::{BufKinds, Buffer},
+            effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
+        };
+        let gae = GameAtkEffect {
+            processed_effect_param: ProcessedEffectParam {
+                input_effect_param: EffectParam {
+                    buffer: Buffer {
+                        kind: BufKinds::CooldownTurnsNumber,
+                        value: 3,
+                        ..Default::default()
+                    },
+                    nb_turns: 5,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            effect_outcome: EffectOutcome {
+                target_id_name: "Hero".to_string(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        assert_eq!(
+            gae.log_text(),
+            Some("Hero ← Cooldown for 3 turns".to_string()),
+            "cooldown uses buf_value (not nb_turns)"
+        );
+    }
+
+    #[test]
+    fn unit_log_text_remove_debuf_success() {
+        use crate::character_mod::{
+            buffers::{BufKinds, Buffer},
+            effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
+        };
+        let gae = GameAtkEffect {
+            processed_effect_param: ProcessedEffectParam {
+                input_effect_param: EffectParam {
+                    buffer: Buffer {
+                        kind: BufKinds::RemoveOneDebuf,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            effect_outcome: EffectOutcome {
+                target_id_name: "Ally".to_string(),
+                debuff_removed: true,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        assert_eq!(gae.log_text(), Some("Ally ← debuff removed".to_string()));
+    }
+
+    #[test]
+    fn unit_log_text_remove_debuf_noop_is_hidden() {
+        use crate::character_mod::{
+            buffers::{BufKinds, Buffer},
+            effect::{EffectOutcome, EffectParam, ProcessedEffectParam},
+        };
+        let gae = GameAtkEffect {
+            processed_effect_param: ProcessedEffectParam {
+                input_effect_param: EffectParam {
+                    buffer: Buffer {
+                        kind: BufKinds::RemoveOneDebuf,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            effect_outcome: EffectOutcome {
+                target_id_name: "Ally".to_string(),
+                debuff_removed: false,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        assert_eq!(gae.log_text(), None, "no debuff removed → hidden from log");
     }
 }

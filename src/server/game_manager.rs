@@ -43,6 +43,9 @@ pub struct ResultLaunchAttack {
     pub is_boss_atk: bool,
     pub logs_end_of_round: Vec<LogData>,
     pub logs_atk: Vec<LogData>,
+    /// Passive-triggered log entries for this turn (e.g. IsDamageTxHealNeedyAlly heal).
+    /// Included in `logs_atk` for the log sheet and also exposed here for the gameboard.
+    pub passive_logs: Vec<LogData>,
     pub turn_nb: usize,
     pub round_nb: usize,
     /// True when the finishing blow was delivered by a damage-over-time effect (regen tick), not the direct attack.
@@ -141,11 +144,12 @@ impl GameManager {
             *state = ScenarioState::Completed;
         }
         let current_level = self.current_scenario.level;
-        // get the next scenario with the next level
+        let current_universe = self.current_scenario.universe.clone();
+        // get the next scenario with the next level in the same universe
         let Some(scenario) = self
             .all_scenarios
             .iter()
-            .find(|s| s.level == current_level + 1)
+            .find(|s| s.level == current_level + 1 && s.universe == current_universe)
             .cloned()
         else {
             return Err(anyhow::anyhow!(
@@ -535,6 +539,14 @@ impl GameManager {
                 .or_insert(0) += total_damage_tx;
         }
 
+        // Fire IsDamageTxHealNeedyAlly passive immediately after damage is dealt.
+        let passive_logs = if !self.pm.current_player.is_boss_atk() && total_damage_tx > 0 {
+            self.pm
+                .apply_damage_tx_heal_passive(&id_name.clone(), total_damage_tx)
+        } else {
+            Vec::new()
+        };
+
         // update tx rx
         if is_crit
             && let Some(map) = self
@@ -576,6 +588,8 @@ impl GameManager {
         let bosses_dead_before_eor = self.pm.check_end_of_game().1;
 
         // process end of attack
+        let mut logs_atk = self.build_logs_atk(&all_dodging, &new_game_atk_effects, is_crit);
+        logs_atk.extend(passive_logs.clone());
         let mut result_attack = ResultLaunchAttack {
             launcher_id_name: self.pm.current_player.id_name.clone(),
             atk_name: atk_name.to_string(),
@@ -584,7 +598,8 @@ impl GameManager {
             all_dodging: all_dodging.clone(),
             is_boss_atk: self.pm.current_player.is_boss_atk(),
             logs_end_of_round: Vec::new(),
-            logs_atk: self.build_logs_atk(&all_dodging, &new_game_atk_effects, is_crit),
+            logs_atk,
+            passive_logs,
             turn_nb: self.game_state.current_turn_nb,
             round_nb: self.game_state.current_round,
             is_dot_kill: false,
@@ -900,86 +915,30 @@ impl GameManager {
             }
 
             for gae in all_gae {
-                // log for the processed effect param
-                if !gae.processed_effect_param.log.message.is_empty() {
-                    logs.push(gae.processed_effect_param.log.clone());
-                }
-                // log for the effect outcome
-                let mut colortext = LIGHT_GREEN;
-                let is_hp_effect = gae
+                let Some(text) = gae.log_text() else {
+                    continue;
+                };
+                let is_hp = gae
                     .processed_effect_param
                     .input_effect_param
                     .buffer
                     .stats_name
                     == HP;
-                let is_damage = is_hp_effect
+                let is_damage = is_hp
                     && (gae.effect_outcome.real_amount_tx < 0
                         || gae.effect_outcome.full_amount_tx < 0);
-                if is_damage {
-                    colortext = DARK_RED;
-                }
-                if gae.processed_effect_param.input_effect_param.buffer.kind
-                    == BufKinds::CooldownTurnsNumber
-                {
-                    logs.push(LogData {
-                        color: colortext.to_string(),
-                        message: format!(
-                            "{} ← Cooldown for {} turns",
-                            gae.effect_outcome.target_id_name,
-                            gae.processed_effect_param.input_effect_param.buffer.value
-                        ),
-                    });
-                } else if is_hp_effect {
-                    let pre = gae.effect_outcome.pre_armor_amount_tx;
-                    let full = gae.effect_outcome.full_amount_tx;
-                    let real = gae.effect_outcome.real_amount_tx;
-                    let msg = if is_damage {
-                        if pre == real {
-                            format!("{} ← {} HP", gae.effect_outcome.target_id_name, real)
-                        } else {
-                            format!(
-                                "{} ← {} HP (full: {}, real: {})",
-                                gae.effect_outcome.target_id_name, real, pre, real
-                            )
-                        }
-                    } else if full == real {
-                        format!(
-                            "{} ← {} HP ({})",
-                            gae.effect_outcome.target_id_name,
-                            real,
-                            gae.processed_effect_param.input_effect_param.buffer.kind
-                        )
-                    } else {
-                        format!(
-                            "{} ← {} HP (full: {}, real: {})",
-                            gae.effect_outcome.target_id_name, real, full, real
-                        )
-                    };
-                    logs.push(LogData {
-                        color: colortext.to_string(),
-                        message: msg,
-                    });
-                } else if !gae
-                    .processed_effect_param
-                    .input_effect_param
-                    .buffer
-                    .stats_name
-                    .is_empty()
-                {
-                    logs.push(LogData {
-                        color: colortext.to_string(),
-                        message: format!(
-                            "{} ← {} {} ({})",
-                            gae.effect_outcome.target_id_name,
-                            gae.effect_outcome.full_amount_tx,
-                            gae.processed_effect_param
-                                .input_effect_param
-                                .buffer
-                                .stats_name,
-                            gae.processed_effect_param.input_effect_param.buffer.kind
-                        ),
-                    });
-                }
+                let is_condition_fail = gae.processed_effect_param.input_effect_param.buffer.kind
+                    == BufKinds::ConditionDamagePrevTurn
+                    && gae.processed_effect_param.number_of_applies == 0;
+                let color = if is_damage || is_condition_fail {
+                    DARK_RED
+                } else {
+                    LIGHT_GREEN
+                };
+                logs.push(LogData {
+                    message: text,
+                    color: color.to_string(),
+                });
             }
         }
         logs
@@ -1866,7 +1825,7 @@ mod tests {
         // thrain
         // game is starting, ennemy is not playing
         assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
-        let ra = gm.launch_attack(Some("SimpleAtk"));
+        let ra = gm.launch_attack(Some("Charge"));
         if !ra.all_dodging.is_empty() && ra.all_dodging[0].is_dodging {
             assert_eq!(
                 old_hp_boss,
@@ -1895,15 +1854,15 @@ mod tests {
         }
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(2, gm.game_state.current_round);
-        // elara
+        // remaining lotr heroes (Elara, Azrak, Thalia) — Charge exists, target not set so no damage
         assert_eq!(0, gm.process_nb_bosses_atk_in_a_row());
-        let _ra = gm.launch_attack(Some("SimpleAtk"));
+        let _ra = gm.launch_attack(Some("Charge"));
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(3, gm.game_state.current_round);
-        let _ra = gm.launch_attack(Some("SimpleAtk"));
+        let _ra = gm.launch_attack(Some("Charge"));
         assert_eq!(1, gm.game_state.current_turn_nb);
         assert_eq!(4, gm.game_state.current_round);
-        let _ra = gm.launch_attack(Some("SimpleAtk"));
+        let _ra = gm.launch_attack(Some("Charge"));
         assert!(gm.game_state.status != GameStatus::EndOfGame);
         assert_eq!(GameStatus::StartRound, gm.game_state.status);
         assert_eq!(1, gm.game_state.current_turn_nb);
@@ -1935,7 +1894,30 @@ mod tests {
 
         // ensure there is no dead lock -> game can be ended
         while gm.game_state.status == GameStatus::StartRound {
-            let _ra = gm.launch_attack(Some("SimpleAtk"));
+            if gm.is_round_auto() {
+                // boss round: set a living hero as target so the individual attack lands
+                if let Some(h) = gm
+                    .pm
+                    .active_heroes
+                    .iter_mut()
+                    .find(|h| h.stats.is_dead() != Some(true))
+                {
+                    h.character_rounds_info.is_current_target = true;
+                }
+                let _ = gm.process_nb_bosses_atk_in_a_row();
+                let _ = gm.launch_attack(None);
+            } else {
+                // hero round: set a living boss as target so Charge lands
+                if let Some(b) = gm
+                    .pm
+                    .active_bosses
+                    .iter_mut()
+                    .find(|b| b.stats.is_dead() != Some(true))
+                {
+                    b.character_rounds_info.is_current_target = true;
+                }
+                let _ = gm.launch_attack(Some("Charge"));
+            }
         }
         // On Linux and Windows the RNG differs, so the game may end because all heroes
         // die (EndOfGame) or because the last boss is killed first (EndOfScenario).
@@ -2101,9 +2083,9 @@ mod tests {
 
         let mut gm = testing_all_characters::dxrpg_game_manager();
 
-        // dxrpg loads stage_1 and stage_2; states start as NotStarted
-        let stage1_name = "Stage 1".to_owned();
-        let stage2_name = "Stage 2".to_owned();
+        // dxrpg loads lotr scenarios; states start as NotStarted
+        let stage1_name = "Patrouille Gobeline".to_owned();
+        let stage2_name = "Embuscade Gobeline".to_owned();
         assert_eq!(gm.states_scenarios[&stage1_name], ScenarioState::NotStarted);
         assert_eq!(gm.states_scenarios[&stage2_name], ScenarioState::NotStarted);
 
@@ -4209,22 +4191,17 @@ mod tests {
     }
 
     /// Integration test: 3 heroes (Elara, Azrak, Thalia) + 1 enemy.
-    /// Elara's IsDamageTxHealNeedyAlly passive reads DamageTx from the previous turn
-    /// and heals the most-needy alive hero by 25%.
+    /// Elara's IsDamageTxHealNeedyAlly passive fires immediately when she deals damage,
+    /// healing the most-needy alive ally and emitting a log in the same turn.
     #[test]
     fn unit_passive_damage_tx_heal_needy_3_heroes_1_enemy() {
-        use crate::character_mod::rounds_information::AmountType;
-        use crate::server::game_state::GameState;
-
         let mut gm = testing_all_characters::dxrpg_game_manager();
-        // Keep 3 heroes: Elara, Azrak, Thalia
         gm.pm.active_heroes.retain(|h| {
             matches!(
                 h.id_name.as_str(),
                 "Elara_la_guerisseuse_de_la_Lorien_#1" | "Azrak_Ombresang_#1" | "Thalia_#1"
             )
         });
-        // Keep 1 boss
         gm.pm.active_bosses.truncate(1);
 
         let elara_id = "Elara_la_guerisseuse_de_la_Lorien_#1";
@@ -4239,27 +4216,51 @@ mod tests {
             .get_mut(HP)
             .unwrap()
             .current = 10;
-
-        // Inject DamageTx[turn 1] = 200 on Elara (simulates a damage attack on previous turn)
-        gm.pm
-            .get_mut_active_hero_character(elara_id)
+        let azrak_hp_max = gm
+            .pm
+            .get_active_hero_character(azrak_id)
             .unwrap()
+            .stats
+            .all_stats[HP]
+            .max;
+
+        // Set Elara as current player, no crit
+        let elara = gm.pm.get_active_hero_character(elara_id).unwrap().clone();
+        gm.pm.current_player = elara;
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+
+        // Boss: no dodge, no armor bonus, no DamageRxPercent
+        let boss_id = gm.pm.active_bosses[0].id_name.clone();
+        gm.pm.active_bosses[0].stats.all_stats[DODGE].current = 0;
+        gm.pm.active_bosses[0].stats.all_stats[MAGICAL_ARMOR].current = 0;
+        gm.pm.active_bosses[0]
             .character_rounds_info
-            .tx_rx[AmountType::DamageTx as usize]
-            .insert(1, 200);
+            .is_current_target = true;
+        if let Some(buf) = gm.pm.active_bosses[0]
+            .character_rounds_info
+            .get_mut_buffer_by_type(&BufKinds::DamageRxPercent)
+        {
+            buf.value = 0;
+        }
 
-        // Process Elara's round at turn 2 (prev_turn = 1 → reads DamageTx[1])
-        gm.pm.reset_is_first_round();
-        let gs = GameState {
-            current_turn_nb: 2,
-            ..Default::default()
-        };
-        gm.pm
-            .update_current_player_on_new_round(&gs, elara_id)
-            .unwrap();
+        let old_boss_hp = gm.pm.active_bosses[0].stats.all_stats[HP].current;
 
-        // Passive: 200 * 25 / 100 = 50 HP heal on Azrak (most needy at 10 HP)
-        let azrak_hp = gm
+        let result = gm.launch_attack(Some("Frappe élémentaire"));
+
+        // Derive actual damage from boss HP delta (avoids hardcoding hero magic power)
+        let new_boss_hp = gm
+            .pm
+            .get_active_boss_character(&boss_id)
+            .unwrap()
+            .stats
+            .all_stats[HP]
+            .current;
+        let actual_damage = old_boss_hp as i64 - new_boss_hp as i64;
+        assert!(actual_damage > 0, "SimpleAtk must deal damage to the boss");
+
+        // Passive fires in the same turn: 25% of damage heals Azrak (most needy)
+        let expected_heal = (actual_damage as u64 * 25 / 100).min(azrak_hp_max - 10);
+        let new_azrak_hp = gm
             .pm
             .get_active_hero_character(azrak_id)
             .unwrap()
@@ -4267,8 +4268,18 @@ mod tests {
             .all_stats[HP]
             .current;
         assert_eq!(
-            azrak_hp, 60,
-            "Azrak must be healed to 10 + 50 = 60 HP by Elara's passive"
+            new_azrak_hp,
+            10 + expected_heal,
+            "Elara's passive must heal Azrak by 25% of damage dealt in the same turn"
+        );
+
+        // Passive log must appear in logs_atk of this attack result
+        assert!(
+            result
+                .logs_atk
+                .iter()
+                .any(|l| l.message.contains("Passive")),
+            "passive heal log must appear in logs_atk"
         );
     }
 

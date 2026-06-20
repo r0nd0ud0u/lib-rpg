@@ -6,15 +6,7 @@
         "is_first_round": false,
         "is_heal_atk_blocked": false,
         "is_random_target": false,
-        "Buf-debuf": [
-            {
-                "stats-name": "",
-                "is-percent": true,
-                "passive-enabled": false,
-                "kind": "DamageRxPercent",
-                "value": 100
-            }
-        ]
+        "Buf-debuf": []
     },
     "Level": 7,
     "Name": "Necromancien du Mordor",
@@ -57,8 +49,8 @@
             "Max": 0
         },
         "Magical armor": {
-            "Current": 250,
-            "Max": 250
+            "Current": 25,
+            "Max": 25
         },
         "Magical power": {
             "Current": 300,
@@ -73,8 +65,8 @@
             "Max": 30
         },
         "Physical armor": {
-            "Current": 150,
-            "Max": 150
+            "Current": 15,
+            "Max": 15
         },
         "Physical power": {
             "Current": 100,

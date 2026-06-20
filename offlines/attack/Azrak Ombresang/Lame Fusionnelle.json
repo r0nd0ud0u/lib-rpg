@@ -21,7 +21,7 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Tours actifs": 6,
+            "Tours actifs": 3,
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {

@@ -29,11 +29,11 @@
             "Tours actifs": 4,
             "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 0,
+            "Value": 4,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
-                "value": 0,
+                "value": 4,
                 "is-percent": false,
                 "stats-name": "",
                 "passive-enabled": false

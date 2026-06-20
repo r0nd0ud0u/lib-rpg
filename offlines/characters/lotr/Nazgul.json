@@ -6,15 +6,7 @@
         "is_first_round": false,
         "is_heal_atk_blocked": false,
         "is_random_target": true,
-        "Buf-debuf": [
-            {
-                "stats-name": "",
-                "is-percent": true,
-                "passive-enabled": false,
-                "kind": "DamageRxPercent",
-                "value": 100
-            }
-        ]
+        "Buf-debuf": []
     },
     "Level": 9,
     "Name": "Nazgul",
@@ -57,8 +49,8 @@
             "Max": 0
         },
         "Magical armor": {
-            "Current": 400,
-            "Max": 400
+            "Current": 40,
+            "Max": 40
         },
         "Magical power": {
             "Current": 350,
@@ -73,8 +65,8 @@
             "Max": 35
         },
         "Physical armor": {
-            "Current": 500,
-            "Max": 500
+            "Current": 50,
+            "Max": 50
         },
         "Physical power": {
             "Current": 350,

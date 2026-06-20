@@ -62,11 +62,11 @@
             "Tours actifs": 5,
             "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 0,
+            "Value": 5,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
-                "value": 0,
+                "value": 5,
                 "is-percent": false,
                 "stats-name": "",
                 "passive-enabled": false
@@ -97,5 +97,5 @@
     "Portée": "Individual",
     "Sound": "",
     "Description": "Blood Bloom — a life flower that draws on vitality to trigger rapid regeneration.",
-    "DescriptionEffects": "Only triggers if it dealt damage last turn; applies a x3 multiplier; heals all allies for 25 HP per turn for 3 turns; 5-turn cooldown; deals 35 magic damage to one enemy per turn for 2 turns."
+    "DescriptionEffects": "Only triggers if it dealt damage last turn (otherwise stops); applies a ×3 multiplier to the heal (25 → 75 HP/turn); heals targeted ally for 25 per turn for 3 turns; 5-turn cooldown; deals 35 magic damage to one random enemy per turn for 2 turns."
 }

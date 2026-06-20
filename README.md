@@ -84,9 +84,9 @@ JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
 
 #### `IsDamageTxHealNeedyAlly` (damage converts to ally heal)
 
-`BufKinds::IsDamageTxHealNeedyAlly` — at the start of each turn, reads the total HP damage the character dealt on the **previous turn** from `tx_rx[AmountType::DamageTx]` and converts `value`% of it into a HP heal for the **most needy alive ally** (the hero with the lowest current-HP/max-HP ratio).  The heal is capped at the target's HP max.
+`BufKinds::IsDamageTxHealNeedyAlly` — fires immediately when the character deals HP damage, converting `value`% of the damage dealt into a HP heal for the **most needy alive ally** (the hero with the lowest current-HP/max-HP ratio).  The heal is capped at the target's HP max.  A log entry is appended to `ResultLaunchAttack.logs_atk` in the same turn so the heal is visible immediately.
 
-**Elara la guerisseuse de la Lorien** carries this passive with `value = 25`: 25% of her previous turn's damage output is redistributed as healing to whichever ally is lowest on HP.
+**Elara la guerisseuse de la Lorien** carries this passive with `value = 25`: 25% of her damage is redistributed as healing to whichever ally is lowest on HP, within the same attack turn.
 
 JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
 
@@ -209,9 +209,25 @@ effective      = round(raw_damage × ARMOR_FACTOR / (ARMOR_FACTOR + target_armor
 
 ### Combat log
 
-HP damage effects are logged as:
-- `"{target} ← {real} HP"` when no mitigation occurred
-- `"{target} ← {real} HP (full: {pre_armor}, real: {real})"` when armor, blocking, or HP cap reduced the raw hit
+`GameAtkEffect::log_text()` is the single source of truth for per-effect log text. It is used by
+both the gameboard (displayed inline after each attack) and the log sheet (via `build_logs_atk`).
+All messages use `←` to mean "target received".
+
+| Effect type | Format |
+|---|---|
+| HP damage, no mitigation | `{target} ← {real} HP` |
+| HP damage, armor / cap | `{target} ← {real} HP (full: {pre}, real: {real})` |
+| HP heal, uncapped | `{target} ← {real} HP ({kind})` |
+| HP heal, capped at max | `{target} ← {real} HP (full: {full}, real: {real})` |
+| Cooldown | `{target} ← Cooldown for {buf_value} turns` |
+| Debuff removed | `{target} ← debuff removed` |
+| Debuff remove no-op | *(hidden — `log_text()` returns `None`)* |
+| HOT boost | `{target} ← HOTs +{pct}% (+{hp}/turn)` |
+| Stat max change | `{target} ← {stat} max +{pct}%` |
+
+**Passive logs** (e.g. `IsDamageTxHealNeedyAlly`) produce `LogData` entries stored in
+`ResultLaunchAttack.passive_logs`. They are also included in `logs_atk` so the full log sheet
+is consistent. The gameboard renders `passive_logs` separately below the per-effect block.
 
 ---
 
@@ -223,7 +239,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 271 tests should pass with no warnings.
+All 279 tests should pass with no warnings.
 
 ---
 

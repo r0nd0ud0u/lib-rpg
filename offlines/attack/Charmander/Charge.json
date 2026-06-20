@@ -1,20 +1,22 @@
 {
-    "Aggro": 0,
     "Cible": "Enemy",
-    "Coût de mana": 9,
-    "Coût de rage": 0,
+    "Coût de mana": 0,
+    "Coût de rage": 2,
     "Coût de vigueur": 0,
     "Durée": 1,
     "Effet": [
         {
             "Cible": "Enemy",
             "Portée": "Individual",
+            "Stat": "HP",
             "Tours actifs": 1,
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "IsMagicEffect": true,
+            "Value": -28,
+            "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -28,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -23,9 +25,9 @@
     ],
     "Forme": "Standard",
     "Niveau": 1,
-    "Nom": "SimpleAtk",
-    "Photo": "SimpleAtk.png",
+    "Nom": "Charge",
+    "Photo": "charmander.png",
     "Portée": "Individual",
-    "Description": "A basic strike dealing physical damage.",
-    "DescriptionEffects": "Deals 35 magic damage to one enemy."
+    "Description": "A fierce scratch dealing physical fire damage.",
+    "DescriptionEffects": "Deals 28 physical damage to one enemy."
 }
