@@ -630,28 +630,47 @@ impl Character {
             .iter()
             .any(|e| e.buffer.kind == BufKinds::RepeatAsManyAsPossible);
         if has_repeat {
-            let cost_per_apply = atk.berseck_cost.max(atk.vigor_cost).max(atk.mana_cost) as i64;
-            if cost_per_apply > 0 {
-                let remaining = if atk.berseck_cost > 0 {
+            let raw_cost = atk.berseck_cost.max(atk.vigor_cost).max(atk.mana_cost);
+            if raw_cost > 0 {
+                // remaining is AFTER process_atk_cost deducted the first apply's cost.
+                // apply_cost_on_stats deducts raw_cost * stat_max / 100 (not raw_cost itself),
+                // so compute actual_cost using the stat's max to get the right repeat count.
+                let (remaining, stat_max) = if atk.berseck_cost > 0 {
                     self.stats
                         .all_stats
                         .get(BERSERK)
-                        .map(|s| s.current as i64)
-                        .unwrap_or(0)
+                        .map(|s| (s.current as i64, s.max))
+                        .unwrap_or((0, 100))
                 } else if atk.vigor_cost > 0 {
                     self.stats
                         .all_stats
                         .get(VIGOR)
-                        .map(|s| s.current as i64)
-                        .unwrap_or(0)
+                        .map(|s| (s.current as i64, s.max))
+                        .unwrap_or((0, 100))
                 } else {
                     self.stats
                         .all_stats
                         .get(MANA)
-                        .map(|s| s.current as i64)
-                        .unwrap_or(0)
+                        .map(|s| (s.current as i64, s.max))
+                        .unwrap_or((0, 100))
                 };
-                let nb_applies = (remaining / cost_per_apply).max(1);
+                let actual_cost = ((raw_cost * stat_max / 100) as i64).max(1);
+                // nb_applies = total times the effect fires; remaining is post-first-deduction,
+                // so add back one actual_cost to recover the pre-deduction energy, then divide.
+                let nb_applies = ((remaining + actual_cost) / actual_cost).max(1);
+                // Deduct cost for every apply beyond the first (already paid by process_atk_cost)
+                if nb_applies > 1 {
+                    let extra = (nb_applies - 1) as u64;
+                    if atk.berseck_cost > 0 {
+                        self.stats
+                            .apply_cost_on_stats(extra * atk.berseck_cost, BERSERK);
+                    } else if atk.vigor_cost > 0 {
+                        self.stats
+                            .apply_cost_on_stats(extra * atk.vigor_cost, VIGOR);
+                    } else {
+                        self.stats.apply_cost_on_stats(extra * atk.mana_cost, MANA);
+                    }
+                }
                 self.character_rounds_info.update_buffer(&Buffer {
                     value: nb_applies,
                     is_percent: false,
