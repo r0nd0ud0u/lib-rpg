@@ -145,11 +145,16 @@ impl GameManager {
         }
         let current_level = self.current_scenario.level;
         let current_universe = self.current_scenario.universe.clone();
-        // get the next scenario with the next level in the same universe
+        // get the next scenario with the next level in the same universe.
+        // When current_universe is empty (default scenario at game start) skip the
+        // universe filter so the first real scenario is found regardless of universe.
         let Some(scenario) = self
             .all_scenarios
             .iter()
-            .find(|s| s.level == current_level + 1 && s.universe == current_universe)
+            .find(|s| {
+                s.level == current_level + 1
+                    && (current_universe.is_empty() || s.universe == current_universe)
+            })
             .cloned()
         else {
             return Err(anyhow::anyhow!(

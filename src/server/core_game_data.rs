@@ -72,6 +72,35 @@ mod tests {
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::server::core_game_data::CoreGameData;
     use crate::server::data_manager::DataManager;
+    use crate::server::scenario::Scenario;
+
+    #[test]
+    fn unit_new_with_universe_tagged_scenarios_succeeds() {
+        // Regression: load_next_scenario must find the first scenario even when
+        // all scenarios carry a non-empty universe (injected by DataManager from
+        // the directory name). Before the fix it returned "No next scenario found"
+        // because it compared current_universe "" against "lotr".
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let lotr_scenario_1 = Scenario {
+            name: "lotr_stage_1".to_string(),
+            level: 1,
+            universe: "lotr".to_string(),
+            ..Scenario::default()
+        };
+        let lotr_scenario_2 = Scenario {
+            name: "lotr_stage_2".to_string(),
+            level: 2,
+            universe: "lotr".to_string(),
+            ..Scenario::default()
+        };
+        let result =
+            CoreGameData::new_with_scenarios(&dm, "TestServer", vec![lotr_scenario_1, lotr_scenario_2]);
+        assert!(
+            result.is_ok(),
+            "new_with_scenarios must succeed with universe-tagged scenarios: {:?}",
+            result.err()
+        );
+    }
 
     #[test]
     fn unit_core_game_data_load_next_scenario() {
