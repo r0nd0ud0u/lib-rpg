@@ -347,24 +347,39 @@ impl Inventory {
         Ok(())
     }
 
-    /// Sell an equipment by unique name: removes it from the bag (must be unequipped) and adds `refund`.
+    /// Sell one unequipped copy of equipment: removes it from the bag and adds `refund`.
+    /// When duplicates exist (some equipped, some in bag) only the first unequipped copy is sold.
     pub fn sell_equipment(&mut self, unique_name: &str, refund: u64) -> Result<()> {
-        let is_equipped = self
-            .equipments
-            .values()
-            .flatten()
-            .find(|e| e.unique_name == unique_name)
-            .map(|e| e.is_equipped)
-            .ok_or_else(|| anyhow::anyhow!("Equipment '{}' not in inventory", unique_name))?;
-        if is_equipped {
-            bail!(
-                "Cannot sell equipped item '{}'; unequip it first",
-                unique_name
-            );
+        // Find the category and index of the first unequipped copy.
+        let found = self.equipments.iter().find_map(|(category, items)| {
+            items
+                .iter()
+                .enumerate()
+                .find(|(_, e)| e.unique_name == unique_name && !e.is_equipped)
+                .map(|(idx, _)| (category.clone(), idx))
+        });
+        match found {
+            Some((category, idx)) => {
+                self.equipments.get_mut(&category).unwrap().remove(idx);
+                self.money += refund;
+                Ok(())
+            }
+            None => {
+                let has_equipped = self
+                    .equipments
+                    .values()
+                    .flatten()
+                    .any(|e| e.unique_name == unique_name && e.is_equipped);
+                if has_equipped {
+                    bail!(
+                        "Cannot sell equipped item '{}'; unequip it first",
+                        unique_name
+                    )
+                } else {
+                    bail!("Equipment '{}' not in inventory", unique_name)
+                }
+            }
         }
-        self.remove_equipment(unique_name);
-        self.money += refund;
-        Ok(())
     }
 
     fn get_category(&self, equipment_unique_name: &str) -> EquipmentJsonKey {
@@ -723,6 +738,22 @@ mod tests {
     fn unit_sell_equipment_not_found() {
         let mut inv = Inventory::default();
         assert!(inv.sell_equipment("ghost_sword", 50).is_err());
+    }
+
+    #[test]
+    fn unit_sell_equipment_duplicate_sells_unequipped_copy() {
+        // Two copies: one equipped, one in bag. Selling should remove only the bag copy.
+        let mut inv = Inventory::default();
+        inv.money = 0;
+        let sword = make_sword();
+        inv.add_equipment(&sword, true); // equipped copy
+        inv.add_equipment(&sword, false); // bag copy
+        inv.sell_equipment("test_sword", 50).unwrap();
+        assert_eq!(inv.money, 50);
+        // Equipped copy must still be there
+        let remaining = inv.equipments.get(&EquipmentJsonKey::LeftWeapon).unwrap();
+        assert_eq!(remaining.len(), 1);
+        assert!(remaining[0].is_equipped, "equipped copy should survive");
     }
 
     #[test]
