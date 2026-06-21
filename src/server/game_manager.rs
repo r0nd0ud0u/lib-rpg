@@ -6,12 +6,9 @@ use crate::{
         buffers::BufKinds,
         character::{Character, CharacterKind},
         class::Class,
-        effect::{build_energy_effect, build_hp_effect, build_resurrect_effect},
         equipment::{Equipment, EquipmentJsonKey},
         experience::{build_exp_to_next_level, build_experience},
-        inventory::{Consumable, ConsumableKind},
         loot::LootType,
-        rank::Rank,
         rounds_information::AmountType,
     },
     common::{
@@ -28,6 +25,7 @@ use crate::{
         players_manager::{DodgeInfo, GameAtkEffect, PlayerManager},
         scenario::{Scenario, ScenarioState},
     },
+    shop::build_consumable_by_name,
     utils,
 };
 use anyhow::Result;
@@ -746,63 +744,8 @@ impl GameManager {
             let any_hero_matches = self.pm.active_heroes.iter().any(|hero| {
                 loot.classes.contains(&hero.class) || loot.classes.contains(&Class::Standard)
             });
-            if any_hero_matches {
-                let effects = Self::build_consumable_effects(&loot.name, &loot.rank);
-                self.pm.party_consumables.push(Consumable {
-                    name: loot.name.clone(),
-                    effects,
-                    consumable_kind: ConsumableKind::Potion,
-                    rank: loot.rank.clone(),
-                });
-            }
-        }
-    }
-
-    fn build_consumable_effects(
-        name: &str,
-        rank: &Rank,
-    ) -> Vec<crate::character_mod::effect::EffectParam> {
-        use crate::common::constants::stats_const::{BERSERK, MANA, VIGOR};
-        match name {
-            "potion of resurrection" => {
-                let value = match rank {
-                    Rank::Common => 20,
-                    Rank::Intermediate => 50,
-                    Rank::Advanced => 100,
-                };
-                vec![build_resurrect_effect(value)]
-            }
-            "mana potion" => {
-                let value = match rank {
-                    Rank::Common => 30,
-                    Rank::Intermediate => 70,
-                    Rank::Advanced => 150,
-                };
-                vec![build_energy_effect(MANA, value)]
-            }
-            "vigor potion" => {
-                let value = match rank {
-                    Rank::Common => 30,
-                    Rank::Intermediate => 70,
-                    Rank::Advanced => 150,
-                };
-                vec![build_energy_effect(VIGOR, value)]
-            }
-            "berserk potion" => {
-                let value = match rank {
-                    Rank::Common => 30,
-                    Rank::Intermediate => 70,
-                    Rank::Advanced => 150,
-                };
-                vec![build_energy_effect(BERSERK, value)]
-            }
-            _ => {
-                let value = match rank {
-                    Rank::Common => 20,
-                    Rank::Intermediate => 60,
-                    Rank::Advanced => 120,
-                };
-                vec![build_hp_effect(value, false)]
+            if any_hero_matches && let Some(consumable) = build_consumable_by_name(&loot.name) {
+                self.pm.party_consumables.push(consumable);
             }
         }
     }
@@ -2385,9 +2328,9 @@ mod tests {
             boss_patterns: HashMap::new(),
             level: 1,
             loots: vec![Loot {
-                name: "Common potion".to_string(),
+                name: "potion".to_string(),
                 kind: LootType::Consumable,
-                rank: Rank::Common, // heals 20 HP
+                rank: Rank::Common,
                 level: 1,
                 classes: vec![Class::Standard],
             }],
@@ -2397,11 +2340,7 @@ mod tests {
         gm.process_end_of_scenario();
 
         // Consumables must go to the shared party bag — not to individual heroes.
-        let in_party_bag = gm
-            .pm
-            .party_consumables
-            .iter()
-            .any(|c| c.name == "Common potion");
+        let in_party_bag = gm.pm.party_consumables.iter().any(|c| c.name == "potion");
         assert!(
             in_party_bag,
             "consumable should land in the party bag, not in individual inventories"
@@ -2413,7 +2352,7 @@ mod tests {
                 .inventory
                 .consumables
                 .iter()
-                .any(|c| c.name == "Common potion");
+                .any(|c| c.name == "potion");
             assert!(
                 !in_personal_bag,
                 "hero '{}' should NOT have the consumable in their personal bag",
@@ -2423,7 +2362,7 @@ mod tests {
     }
 
     #[test]
-    fn unit_build_consumable_effects_named_potions() {
+    fn unit_loot_consumables_use_shop_definitions() {
         use crate::character_mod::class::Class;
         use crate::character_mod::loot::{Loot, LootType};
         use crate::character_mod::rank::Rank;

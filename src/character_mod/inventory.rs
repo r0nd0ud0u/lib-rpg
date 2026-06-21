@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use anyhow::{Result, bail};
 use strum::IntoEnumIterator;
 
 use crate::{
@@ -314,6 +315,73 @@ impl Inventory {
         }
     }
 
+    /// Buy a consumable: deducts `price` from money and adds the consumable to the bag.
+    pub fn buy_consumable(&mut self, consumable: Consumable, price: u64) -> Result<()> {
+        if self.money < price {
+            bail!("Not enough gold: have {}, need {}", self.money, price);
+        }
+        self.money -= price;
+        self.consumables.push(consumable);
+        Ok(())
+    }
+
+    /// Sell a consumable by name: removes it from the bag and adds `refund` to money.
+    pub fn sell_consumable(&mut self, name: &str, refund: u64) -> Result<()> {
+        let idx = self
+            .consumables
+            .iter()
+            .position(|c| c.name == name)
+            .ok_or_else(|| anyhow::anyhow!("Consumable '{}' not in inventory", name))?;
+        self.consumables.remove(idx);
+        self.money += refund;
+        Ok(())
+    }
+
+    /// Buy an equipment: deducts `price` from money and adds the item to the bag (unequipped).
+    pub fn buy_equipment(&mut self, equipment: &Equipment, price: u64) -> Result<()> {
+        if self.money < price {
+            bail!("Not enough gold: have {}, need {}", self.money, price);
+        }
+        self.money -= price;
+        self.add_equipment(equipment, false);
+        Ok(())
+    }
+
+    /// Sell one unequipped copy of equipment: removes it from the bag and adds `refund`.
+    /// When duplicates exist (some equipped, some in bag) only the first unequipped copy is sold.
+    pub fn sell_equipment(&mut self, unique_name: &str, refund: u64) -> Result<()> {
+        // Find the category and index of the first unequipped copy.
+        let found = self.equipments.iter().find_map(|(category, items)| {
+            items
+                .iter()
+                .enumerate()
+                .find(|(_, e)| e.unique_name == unique_name && !e.is_equipped)
+                .map(|(idx, _)| (category.clone(), idx))
+        });
+        match found {
+            Some((category, idx)) => {
+                self.equipments.get_mut(&category).unwrap().remove(idx);
+                self.money += refund;
+                Ok(())
+            }
+            None => {
+                let has_equipped = self
+                    .equipments
+                    .values()
+                    .flatten()
+                    .any(|e| e.unique_name == unique_name && e.is_equipped);
+                if has_equipped {
+                    bail!(
+                        "Cannot sell equipped item '{}'; unequip it first",
+                        unique_name
+                    )
+                } else {
+                    bail!("Equipment '{}' not in inventory", unique_name)
+                }
+            }
+        }
+    }
+
     fn get_category(&self, equipment_unique_name: &str) -> EquipmentJsonKey {
         self.equipments
             .iter()
@@ -560,6 +628,137 @@ mod tests {
     fn unit_toggle_equipment_empty_name() {
         let mut inventory = Inventory::default();
         inventory.toggle_equipment("");
+    }
+
+    fn make_sword() -> Equipment {
+        Equipment {
+            name: "Test Sword".to_owned(),
+            unique_name: "test_sword".to_owned(),
+            category: EquipmentJsonKey::LeftWeapon,
+            stats: crate::character_mod::stats::Stats::default(),
+        }
+    }
+
+    #[test]
+    fn unit_buy_consumable_success() {
+        let mut inv = Inventory {
+            money: 100,
+            ..Default::default()
+        };
+        let potion = crate::character_mod::inventory::Consumable {
+            name: "potion".to_owned(),
+            effects: vec![],
+            consumable_kind: crate::character_mod::inventory::ConsumableKind::Potion,
+            rank: crate::character_mod::rank::Rank::Common,
+        };
+        inv.buy_consumable(potion, 50).unwrap();
+        assert_eq!(inv.money, 50);
+        assert!(inv.contains_potion("potion"));
+    }
+
+    #[test]
+    fn unit_buy_consumable_insufficient_gold() {
+        let mut inv = Inventory {
+            money: 30,
+            ..Default::default()
+        };
+        let potion = crate::character_mod::inventory::Consumable {
+            name: "potion".to_owned(),
+            effects: vec![],
+            consumable_kind: crate::character_mod::inventory::ConsumableKind::Potion,
+            rank: crate::character_mod::rank::Rank::Common,
+        };
+        assert!(inv.buy_consumable(potion, 50).is_err());
+        assert_eq!(inv.money, 30);
+        assert!(!inv.contains_potion("potion"));
+    }
+
+    #[test]
+    fn unit_sell_consumable_success() {
+        let mut inv = Inventory::default();
+        inv.add_small_potion();
+        inv.sell_consumable("potion", 25).unwrap();
+        assert_eq!(inv.money, 25);
+        assert!(!inv.contains_potion("potion"));
+    }
+
+    #[test]
+    fn unit_sell_consumable_not_found() {
+        let mut inv = Inventory::default();
+        assert!(inv.sell_consumable("nonexistent", 25).is_err());
+    }
+
+    #[test]
+    fn unit_buy_equipment_success() {
+        let mut inv = Inventory {
+            money: 200,
+            ..Default::default()
+        };
+        let sword = make_sword();
+        inv.buy_equipment(&sword, 100).unwrap();
+        assert_eq!(inv.money, 100);
+        let bag = inv.equipments.get(&EquipmentJsonKey::LeftWeapon).unwrap();
+        assert_eq!(bag.len(), 1);
+        assert!(!bag[0].is_equipped, "bought item should not be equipped");
+    }
+
+    #[test]
+    fn unit_buy_equipment_insufficient_gold() {
+        let mut inv = Inventory {
+            money: 50,
+            ..Default::default()
+        };
+        let sword = make_sword();
+        assert!(inv.buy_equipment(&sword, 100).is_err());
+        assert_eq!(inv.money, 50);
+        assert!(
+            inv.equipments
+                .get(&EquipmentJsonKey::LeftWeapon)
+                .is_none_or(|v| v.is_empty())
+        );
+    }
+
+    #[test]
+    fn unit_sell_equipment_success() {
+        let mut inv = Inventory::default();
+        let sword = make_sword();
+        inv.add_equipment(&sword, false);
+        inv.sell_equipment("test_sword", 50).unwrap();
+        assert_eq!(inv.money, 50);
+        assert!(
+            inv.equipments
+                .get(&EquipmentJsonKey::LeftWeapon)
+                .is_none_or(|v| v.is_empty())
+        );
+    }
+
+    #[test]
+    fn unit_sell_equipment_equipped_blocked() {
+        let mut inv = Inventory::default();
+        let sword = make_sword();
+        inv.add_equipment(&sword, true);
+        assert!(inv.sell_equipment("test_sword", 50).is_err());
+    }
+
+    #[test]
+    fn unit_sell_equipment_not_found() {
+        let mut inv = Inventory::default();
+        assert!(inv.sell_equipment("ghost_sword", 50).is_err());
+    }
+
+    #[test]
+    fn unit_sell_equipment_duplicate_sells_unequipped_copy() {
+        // Two copies: one equipped, one in bag. Selling should remove only the bag copy.
+        let mut inv = Inventory::default();
+        let sword = make_sword();
+        inv.add_equipment(&sword, true); // equipped copy
+        inv.add_equipment(&sword, false); // bag copy
+        inv.sell_equipment("test_sword", 50).unwrap();
+        assert_eq!(inv.money, 50);
+        // Equipped copy must still be there
+        let remaining = inv.equipments.get(&EquipmentJsonKey::LeftWeapon).unwrap();
+        assert_eq!(remaining.len(), 1);
+        assert!(remaining[0].is_equipped, "equipped copy should survive");
     }
 
     #[test]

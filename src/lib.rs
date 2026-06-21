@@ -1,5 +1,6 @@
 pub mod character_mod;
 pub mod common;
 pub mod server;
+pub mod shop;
 pub mod testing;
 pub mod utils;

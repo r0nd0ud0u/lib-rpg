@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use crate::server::data_manager::DataManager;
 use crate::server::game_manager::GameManager;
 use crate::server::server_manager::GamePhase;
+use crate::shop::ShopCatalogItem;
 
 /// Game core state, stored on the server and sent to clients
 /// Those data are necessary to run/load/replay a game
@@ -30,6 +31,9 @@ pub struct CoreGameData {
     /// true when the game was restored from a save file (universe and scenarios are fixed)
     #[serde(default)]
     pub loaded_from_save: bool,
+    /// Shop catalog — items available for purchase and their prices
+    #[serde(default)]
+    pub shop_catalog: Vec<ShopCatalogItem>,
 }
 
 impl CoreGameData {
@@ -59,6 +63,7 @@ impl CoreGameData {
             is_single_player: false,
             universe: String::new(),
             loaded_from_save: false,
+            shop_catalog: dm.shop_catalog.clone(),
         })
     }
 

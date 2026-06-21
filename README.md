@@ -263,6 +263,18 @@ All 279 tests should pass with no warnings.
 
 **Fix:** `process_effect_type` is now a no-op for `BoostHotsByPercentage` on the launcher side (only sets the log message). The actual boost iterates over `self.character_rounds_info.all_effects` in `apply_processed_effect_param`, which runs for every receiving target including the caster.
 
+### `load_next_scenario` — "Failed to initialize game" when universe is set
+
+**Root cause:** `load_next_scenario` searched for the next scenario with `level == current_level + 1 && universe == current_universe`. On a fresh `GameManager`, `current_scenario` is the zero-value default, which has `universe == ""`. But `DataManager` injects the subdirectory name as the universe (e.g. `"lotr"`) into every loaded scenario, so no scenario ever matched `universe == ""`.
+
+**Fix:** When `current_universe` is empty (first load of a new game), the universe filter is skipped and the search finds the first `level == 1` scenario regardless of universe. Subsequent calls use the real universe from the now-loaded scenario.
+
+### dx-rpg — Shop "Buy" button had no effect
+
+**Root cause (in dx-rpg `event_store.rs`):** `buy_item_handler` / `sell_item_handler` modified the hero directly inside `pm.active_heroes`, then called `pm.modify_active_character(&id_name)` which copies `pm.current_player` (the active combat character, unchanged) back over that hero, erasing the purchase.
+
+**Fix:** Removed the `pm.modify_active_character` call. The direct `active_heroes.iter_mut()` mutation is sufficient; `modify_active_character` is only for post-combat state propagation.
+
 ### Offrande vitale — apparent lack of armor buff impact
 
 The +50% magic/physical armor buff on the target is applied correctly: `set_stats_on_effect` updates `buf_effect_percent` and `recompute_stat_max_and_current` raises the max from 50 → 75. The limited visible damage reduction (~2%) is by design — the armor formula `1000 / (1000 + armor)` yields diminishing returns at low armor values.

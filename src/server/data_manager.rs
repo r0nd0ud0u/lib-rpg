@@ -12,6 +12,7 @@ use crate::{
         OFFLINE_CHARACTERS, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT, OFFLINE_SCENARIOS,
     },
     server::scenario::Scenario,
+    shop::{ShopCatalogItem, build_shop_catalog},
     utils::list_files_in_dir,
 };
 
@@ -25,6 +26,8 @@ pub struct DataManager {
     pub all_scenarios: Vec<Scenario>,
     /// Equipment table mapping character names to their equipped items
     pub equipment_table: HashMap<EquipmentJsonKey, Vec<Equipment>>,
+    /// Shop catalog derived from equipment_table and hardcoded consumables
+    pub shop_catalog: Vec<ShopCatalogItem>,
     /// Root path for offline files
     pub offline_root: std::path::PathBuf,
 }
@@ -49,11 +52,13 @@ impl DataManager {
         // load all the scenarios
         dm.load_all_scenarios(path_ref)?;
 
+        let shop_catalog = build_shop_catalog(&dm.equipment_table);
         Ok(DataManager {
             all_heroes: dm.all_heroes,
             all_bosses: dm.all_bosses,
             all_scenarios: dm.all_scenarios,
             equipment_table: dm.equipment_table,
+            shop_catalog,
             offline_root: dm.offline_root,
         })
     }
