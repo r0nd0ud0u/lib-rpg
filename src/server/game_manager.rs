@@ -6,14 +6,13 @@ use crate::{
         buffers::BufKinds,
         character::{Character, CharacterKind},
         class::Class,
-        effect::{build_energy_effect, build_hp_effect, build_resurrect_effect},
         equipment::{Equipment, EquipmentJsonKey},
         experience::{build_exp_to_next_level, build_experience},
-        inventory::{Consumable, ConsumableKind},
         loot::LootType,
         rank::Rank,
         rounds_information::AmountType,
     },
+    shop::build_consumable_by_name,
     common::{
         constants::{character_const::ULTIMATE_LEVEL, paths_const::*, stats_const::*},
         log_data::{
@@ -747,62 +746,9 @@ impl GameManager {
                 loot.classes.contains(&hero.class) || loot.classes.contains(&Class::Standard)
             });
             if any_hero_matches {
-                let effects = Self::build_consumable_effects(&loot.name, &loot.rank);
-                self.pm.party_consumables.push(Consumable {
-                    name: loot.name.clone(),
-                    effects,
-                    consumable_kind: ConsumableKind::Potion,
-                    rank: loot.rank.clone(),
-                });
-            }
-        }
-    }
-
-    fn build_consumable_effects(
-        name: &str,
-        rank: &Rank,
-    ) -> Vec<crate::character_mod::effect::EffectParam> {
-        use crate::common::constants::stats_const::{BERSERK, MANA, VIGOR};
-        match name {
-            "potion of resurrection" => {
-                let value = match rank {
-                    Rank::Common => 20,
-                    Rank::Intermediate => 50,
-                    Rank::Advanced => 100,
-                };
-                vec![build_resurrect_effect(value)]
-            }
-            "mana potion" => {
-                let value = match rank {
-                    Rank::Common => 30,
-                    Rank::Intermediate => 70,
-                    Rank::Advanced => 150,
-                };
-                vec![build_energy_effect(MANA, value)]
-            }
-            "vigor potion" => {
-                let value = match rank {
-                    Rank::Common => 30,
-                    Rank::Intermediate => 70,
-                    Rank::Advanced => 150,
-                };
-                vec![build_energy_effect(VIGOR, value)]
-            }
-            "berserk potion" => {
-                let value = match rank {
-                    Rank::Common => 30,
-                    Rank::Intermediate => 70,
-                    Rank::Advanced => 150,
-                };
-                vec![build_energy_effect(BERSERK, value)]
-            }
-            _ => {
-                let value = match rank {
-                    Rank::Common => 20,
-                    Rank::Intermediate => 60,
-                    Rank::Advanced => 120,
-                };
-                vec![build_hp_effect(value, false)]
+                if let Some(consumable) = build_consumable_by_name(&loot.name) {
+                    self.pm.party_consumables.push(consumable);
+                }
             }
         }
     }
@@ -2423,7 +2369,7 @@ mod tests {
     }
 
     #[test]
-    fn unit_build_consumable_effects_named_potions() {
+    fn unit_loot_consumables_use_shop_definitions() {
         use crate::character_mod::class::Class;
         use crate::character_mod::loot::{Loot, LootType};
         use crate::character_mod::rank::Rank;
