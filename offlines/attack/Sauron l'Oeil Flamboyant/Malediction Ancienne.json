@@ -14,7 +14,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -120,
+                "value": -80,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -27,5 +27,5 @@
     "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Ancient Curse — an age-old curse that severely weakens all heroes over time.",
-    "DescriptionEffects": "Deals 120 magic damage to all enemies per turn for 4 turns."
+    "DescriptionEffects": "Deals 80 magic damage to all enemies per turn for 4 turns."
 }

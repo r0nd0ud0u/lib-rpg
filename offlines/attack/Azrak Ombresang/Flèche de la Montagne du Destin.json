@@ -62,11 +62,11 @@
             "Tours actifs": 1,
             "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
-            "Value": 100,
+            "Value": 60,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "DamageRxPercent",
-                "value": 100,
+                "value": 60,
                 "is-percent": true,
                 "stats-name": "",
                 "passive-enabled": false
@@ -75,17 +75,17 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Magic power",
+            "Stat": "Physical power",
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 65,
+            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": 65,
+                "value": 20,
                 "is-percent": false,
-                "stats-name": "Magic power",
+                "stats-name": "Physical power",
                 "passive-enabled": false
             }
         }
@@ -96,5 +96,5 @@
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
     "Description": "Doom Mountain Arrow — an arrow guided by dark fate that deals piercing damage and applies a curse.",
-    "DescriptionEffects": "Deals 120 physical damage to one enemy; deals 40 physical damage to one enemy per turn for 4 turns; 4-turn cooldown; +100% damage taken by self; +65 Magic power."
+    "DescriptionEffects": "Deals 120 physical damage to one enemy; deals 40 physical damage to one enemy per turn for 4 turns; 4-turn cooldown; +60% damage taken by self; +20 Physical power."
 }

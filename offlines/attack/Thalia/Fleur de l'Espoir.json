@@ -41,23 +41,6 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Dodge",
-            "Tours actifs": 5,
-            "Type": "ChangeCurrentStatByValue",
-            "Valeur de l'effet": 0,
-            "Value": -5,
-            "IsMagicEffect": true,
-            "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
-                "value": -5,
-                "is-percent": false,
-                "stats-name": "Dodge",
-                "passive-enabled": false
-            }
-        },
-        {
-            "Cible": "All allies",
-            "Portée": "Zone",
             "Stat": "Magic power",
             "Tours actifs": 5,
             "Type": "ChangeMaxStatByPercentage",
@@ -79,5 +62,5 @@
     "Photo": "Thalia.png",
     "Portée": "Zone",
     "Description": "Flower of Hope — a delicate nature bloom that instantly restores HP.",
-    "DescriptionEffects": "Heals all allies for 25 per turn for 5 turns; +2 max Mana regeneration on all allies for 5 turns; -5 Dodge on all allies for 5 turns; +10% max Magic power on all allies for 5 turns."
+    "DescriptionEffects": "Heals all allies for 25 per turn for 5 turns; +2 max Mana regeneration on all allies for 5 turns; +10% max Magic power on all allies for 5 turns."
 }

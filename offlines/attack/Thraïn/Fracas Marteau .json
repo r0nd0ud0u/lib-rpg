@@ -31,11 +31,11 @@
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -25,
+            "Value": -35,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -25,
+                "value": -35,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -69,5 +69,5 @@
     "Regen vigueur": 0,
     "Soin": 0,
     "Description": "Hammer Crash — a devastating hammer strike that can be lethal at low HP.",
-    "DescriptionEffects": "+10 Berserk; deals 25 physical damage to all enemies; +10 Aggro."
+    "DescriptionEffects": "+10 Berserk; deals 35 physical damage to all enemies; +10 Aggro."
 }

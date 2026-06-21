@@ -4587,6 +4587,7 @@ mod tests {
             .stats
             .all_stats[HP]
             .max;
+        let mana_max = gm.pm.current_player.stats.all_stats[MANA].max;
         let old_mana = gm.pm.current_player.stats.all_stats[MANA].current;
 
         gm.launch_attack(Some("Non sans raison"));
@@ -4630,16 +4631,16 @@ mod tests {
             "Elara heal attacks must be blocked after Non sans raison"
         );
 
-        // Mana cost: 0 (Non sans raison is free)
+        // Mana cost: 24% of max mana
         assert_eq!(
-            old_mana,
+            old_mana - 24 * mana_max / 100,
             gm.pm
                 .get_active_hero_character(elara_id)
                 .unwrap()
                 .stats
                 .all_stats[MANA]
                 .current,
-            "Non sans raison has no mana cost"
+            "Non sans raison costs 24% of max mana"
         );
     }
 

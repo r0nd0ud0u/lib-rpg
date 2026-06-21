@@ -70,8 +70,8 @@
             "Max": 180
         },
         "Mana regeneration": {
-            "Current": 5,
-            "Max": 5
+            "Current": 8,
+            "Max": 8
         },
         "Physical armor": {
             "Current": 0,
@@ -82,12 +82,12 @@
             "Max": 0
         },
         "Speed": {
-            "Current": 8,
-            "Max": 8
+            "Current": 9,
+            "Max": 9
         },
         "Speed regeneration": {
-            "Current": 8,
-            "Max": 8
+            "Current": 9,
+            "Max": 9
         },
         "Vigor": {
             "Current": 0,
@@ -197,9 +197,6 @@
     "energies": [
         {
             "kind": "Mana"
-        },
-        {
-            "kind": "Vigor"
         }
     ],
     "Description": "An elven healer from Lothlórien. Devoted to sustaining allies with powerful heals, regeneration and light-based attacks."

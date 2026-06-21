@@ -44,17 +44,17 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Vigor regeneration",
-            "Tours actifs": 3,
-            "Type": "ChangeMaxStatByPercentage",
+            "Stat": "Vigor",
+            "Tours actifs": 1,
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 200,
+            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
-                "value": 200,
-                "is-percent": true,
-                "stats-name": "Vigor regeneration",
+                "kind": "ChangeCurrentStatByValue",
+                "value": 20,
+                "is-percent": false,
+                "stats-name": "Vigor",
                 "passive-enabled": false
             }
         }
@@ -69,5 +69,5 @@
     "Regen vigueur": 0,
     "Soin": 0,
     "Description": "Abyss Crash — a devastating blow channeling the power of the deep.",
-    "DescriptionEffects": "Deals 70 physical damage to all enemies; -5 Dodge on all enemies for 3 turns; +200% max Vigor regeneration for 3 turns."
+    "DescriptionEffects": "Deals 70 physical damage to all enemies; -5 Dodge on all enemies for 3 turns; restores 20 Vigor."
 }

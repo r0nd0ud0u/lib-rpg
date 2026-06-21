@@ -17,11 +17,11 @@
                 }
             ],
             "Valeur de l'effet": 0,
-            "Value": 0,
+            "Value": 15,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 0,
+                "value": 15,
                 "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -40,11 +40,11 @@
                 }
             ],
             "Valeur de l'effet": 0,
-            "Value": 0,
+            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 0,
+                "value": 20,
                 "is-percent": true,
                 "stats-name": "Mana",
                 "passive-enabled": false
@@ -63,11 +63,11 @@
                 }
             ],
             "Valeur de l'effet": 0,
-            "Value": 0,
+            "Value": 25,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 0,
+                "value": 25,
                 "is-percent": true,
                 "stats-name": "Vigor",
                 "passive-enabled": false
@@ -80,5 +80,5 @@
     "Photo": "Azrak Ombresang.png",
     "Portée": "Zone",
     "Description": "Mordor Recovery — channels dark energy to restore the caster's vitality.",
-    "DescriptionEffects": "+0% max health for self (scales with kills); +0% max Mana; +0% max Vigor."
+    "DescriptionEffects": "+15% max HP for self when 20 enemies have been killed; +20% max Mana; +25% max Vigor."
 }

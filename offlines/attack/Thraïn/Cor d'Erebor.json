@@ -31,11 +31,11 @@
             "Tours actifs": 2,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 25,
+            "Value": 15,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 25,
+                "value": 15,
                 "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -103,5 +103,5 @@
     "Regen vigueur": 0,
     "Soin": 0,
     "Description": "Horn of Erebor — a rallying war horn that boosts allies' morale and combat effectiveness.",
-    "DescriptionEffects": "+5 Berserk; +25% max health for all allies for 2 turns; +25% max Magic armor on all allies for 2 turns; +25% max Physical armor on all allies for 2 turns; 5-turn cooldown."
+    "DescriptionEffects": "+5 Berserk; +15% max health for all allies for 2 turns; +25% max Magic armor on all allies for 2 turns; +25% max Physical armor on all allies for 2 turns; 5-turn cooldown."
 }

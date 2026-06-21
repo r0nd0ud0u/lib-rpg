@@ -50,8 +50,8 @@
             "Max": 100
         },
         "Magical armor": {
-            "Current": 800,
-            "Max": 800
+            "Current": 60,
+            "Max": 60
         },
         "Magical power": {
             "Current": 500,
@@ -66,8 +66,8 @@
             "Max": 40
         },
         "Physical armor": {
-            "Current": 800,
-            "Max": 800
+            "Current": 80,
+            "Max": 80
         },
         "Physical power": {
             "Current": 500,

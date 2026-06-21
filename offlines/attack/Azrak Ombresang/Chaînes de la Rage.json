@@ -39,13 +39,13 @@
             }
         },
         {
-            "Cible": "",
-            "Portée": "",
-            "Stat": "",
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 0,
+            "Value": -35,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",

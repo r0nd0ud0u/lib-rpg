@@ -231,6 +231,68 @@ is consistent. The gameboard renders `passive_logs` separately below the per-eff
 
 ---
 
+## Hero Balance (LOTR roster)
+
+The four LOTR heroes are balanced around the following roles:
+
+| Hero | Role | Primary resource |
+|------|------|-----------------|
+| Azrak Ombresang | Physical/Dark damage dealer + debuffer | Mana + Vigor |
+| Thalia | Druid — HOT healer + nature buffs | Mana |
+| Elara la guerisseuse | Pure healer — burst heal + sacrifice | Mana |
+| Thraïn | Berserker tank — taunt + armor + provoke | Berserk |
+
+### Azrak Ombresang
+- **Base stats**: 145 HP · 10 Physical armor · Vigor regen 5/turn
+- **Passive** (`OverHealBoostStat`): overheal received → bonus Physical power (value 15)
+- **Key attack changes**: Furie du Mordor reduced to +20%/+10% power (self/allies); Récupération Mordorienne fixed (values were 0, now +15%/+20%/+25% HP/Mana/Vigor on 20-kill threshold); Fracas des Abysses now restores 20 flat Vigor instead of +200% regen on a zero base; Flèche de la Montagne du Destin DmgRx reduced 100→60% and bonus changed to +20 Physical power; Lame de Morgul DoT reduced to -75/t×4 and DmgRx +30→+20%; Éclipse du Mordor damage 400→280, party DmgRx debuff 25→15%; Chaînes de la Rage 3rd effect target fixed.
+
+### Thalia
+- **Passive** (`ChangeMaxStatByPercentage`): +5% max Magic power permanently (nature affinity)
+- **Key attack changes**: Rameau Guérisseur mana 20→13; Fleur de l'Espoir -5 Dodge ally penalty removed; Sève Régénératrice mana 10→18 (was underpriced for 120 instant heal + ReinitBuf); Arbre de Vie mana 9→18, power buffs +20%/+30%→+15%/+20%
+
+### Elara la guerisseuse
+- **Base stats**: Speed 8→9 · Mana regen 5→8 · Vigor removed from energies (was 0/0 placeholder)
+- **Key attack changes**: Eclat d'espoir HP heal 30→20%, mana 18→12; Offrande vitale cooldown 2→3; Rayon astral +2-turn cooldown added; Benediction de la Lorien mana regen bonus 500→15 flat (was game-breaking); Nova etherée damage 150→110, phantom 3rd effect removed; Prière du desespoir armor 100→75%, power 100→60%; Non sans raison mana cost 0→24% (ultimate now has a real cost)
+
+### Thraïn
+- **Base stats**: Berserk rate 0→5/turn (passive buildup enables Tourbillon Destructeur's rate-boost to be meaningful)
+- **Passive** (`ChangeCurrentStatByPercentage`): kind field corrected from `ChangeCurrentStatByValue` to match README documentation; +10% Dodge permanently
+- **Key attack changes**: Fracas Marteau damage -25→-35; Cor d'Erebor HP boost +25→+15%; Coup Puissant berserk cost 20→15; Folie des profondeurs self-HP penalty -30→-20%; Fracassage de crâne DamageRxPercent -20→+20 (was accidentally reducing enemy's incoming damage instead of increasing it)
+
+---
+
+## Boss Balance (LOTR roster)
+
+Bosses for the 10 LOTR scenarios, scaled by difficulty tier:
+
+| Boss | Stage(s) | HP | Tier |
+|------|----------|----|------|
+| Gobelin Eclaireur | 1, 2, 4, 6, 8 | 300 | Common |
+| Angmar10PV | 2 | 10 | Common (tutorial) |
+| Orc Pillard | 3, 4 | 1 500 | Common |
+| Champion Orc | 5, 6 | 5 000 | Intermediate |
+| Necromancien du Mordor | 7, 8 | 10 000 | Intermediate |
+| Nazgul | 9 | 25 000 | Advanced |
+| Sauron l'Oeil Flamboyant | 10 | 50 000 + 100 regen/turn | Advanced |
+
+### Changes applied
+
+**Gobelin Eclaireur / Griffure**: `Tours actifs` 3→1 — was a 3-turn DoT for 105 total damage at stage 1 (too high for intro). Now instant -35 physical. Description updated to match.
+
+**Champion Orc / Charge**: Description corrected from "physical damage" to "magic damage" (`IsMagicEffect: true` was always set).
+
+**Necromancien du Mordor / Malédiction des Morts**: DoT -80/turn → -50/turn (3 turns, AoE). Was -720 total party damage per cast, now -450 — survivable with a healer.
+
+**Nazgul / Lame du Spectre**: -300 physical single target → -220. Most heroes have 450–600 HP; -300 was near-instant kill even for Thraïn after armor. -220 is still a heavy threat.
+
+**Sauron l'Oeil Flamboyant**:
+- Physical armor: 800→80, Magical armor: 800→60. At 800 armor the boss absorbed ~89% of all incoming damage (final_dmg = raw × 100/900 ≈ 11%) making him unkillable. At 80/60, physical hits do ~55% effective and magic ~62% — very tanky but beatable. HP regen 100/turn is kept as a signature final-boss mechanic.
+- Frappe Corrompue: -450 physical → -350. Still lethal but doesn't instant-kill every hero.
+- Malédiction Ancienne: -120/turn → -80/turn (4-turn AoE DoT). Was -1920 total party damage per cast, now -1280 — devastating but survives with healer focus.
+
+---
+
 ## Building & Testing
 
 ```bash
@@ -239,7 +301,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 279 tests should pass with no warnings.
+All 297 tests should pass with no warnings.
 
 ---
 

@@ -14,7 +14,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -80,
+                "value": -50,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -27,5 +27,5 @@
     "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Curse of the Dead — a necromantic hex that saps strength and deals ongoing damage.",
-    "DescriptionEffects": "Deals 80 magic damage to all enemies per turn for 3 turns."
+    "DescriptionEffects": "Deals 50 magic damage to all enemies per turn for 3 turns."
 }

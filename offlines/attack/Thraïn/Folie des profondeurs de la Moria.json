@@ -28,11 +28,11 @@
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -30,
+            "Value": -20,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByPercentage",
-                "value": -30,
+                "value": -20,
                 "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -96,5 +96,5 @@
     "Photo": "default.png",
     "Portée": "Individual",
     "Description": "Moria Madness — a berserk frenzy from the deep, dealing enormous damage.",
-    "DescriptionEffects": "Deals 55 physical damage to one enemy; deals 30% physical damage to self; -10 Dodge for 2 turns; +45 Berserk; 5-turn cooldown."
+    "DescriptionEffects": "Deals 55 physical damage to one enemy; deals 20% physical damage to self; -10 Dodge for 2 turns; +45 Berserk; 5-turn cooldown."
 }
