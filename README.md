@@ -293,6 +293,56 @@ Bosses for the 10 LOTR scenarios, scaled by difficulty tier:
 
 ---
 
+## Equipment & Loot
+
+### Equipment tiers
+
+Two tiers of body equipment exist (`starting_*` and `medium_*`). Stats roughly double between tiers.
+
+| Slot | Starting bonus | Medium bonus |
+|------|---------------|-------------|
+| Belt | Physical power +10 | Physical power +20 |
+| LeftWeapon | Physical power +10 | Physical power +20 |
+| RightWeapon | Physical power +10 | Physical power +20 |
+| LeftRing | Berserk +10 | Berserk +20 |
+| RightRing | HP regeneration +5 | Vigor +20 |
+| Gloves | Magical power +10 | Magical power +20 |
+| Amulet | Dodge +4 · Mana +10 | Dodge +4 · Mana +20 |
+| Chest | Magical armor +5 · Physical armor +5 | Magical armor +10 · Physical armor +5 |
+| Pants | Physical armor +10 | Physical armor +20 |
+| Head | Physical armor +10 | — (no medium tier) |
+| Shoes | Dodge +10 | Dodge +20 |
+| Cape | Dodge +10 | — (no medium tier) |
+| Tattoes | Class-specific (all zero in starter slot) | — |
+
+### Loot progression across 10 stages
+
+| Stage | Warrior/Berserker | Healer/Mage | Gold |
+|-------|------------------|-------------|------|
+| 1 | — | — | 30 |
+| 2 | medium belt | — | 50 |
+| 3 | — | medium amulet | 70 |
+| 4 | medium pants | — | 90 |
+| 5 | — | medium pants + medium belt | 150 |
+| 6 | medium shoes | — | 200 |
+| 7 | — | medium shoes | 250 |
+| 8 | medium left ring | medium right ring | 300 |
+| 9 | medium right ring | medium left ring | 500 |
+| 10 | medium gloves | medium gloves | 1 000 |
+
+Slots never awarded as loot (store-only): Chest, Head, Cape, LeftWeapon, RightWeapon.
+
+### Bug fixes applied
+
+- **`starting_right_ring.json` created** — all heroes referenced "starting right ring" but the file did not exist; slot was silently empty. Now gives HP regeneration +5.
+- **`starting_right_weapon.json` created** — same issue for RightWeapon. Now gives Physical power +10.
+- **`starting_tattoo.json` created** — Elara's equipment file referenced "starting tattoo" which didn't exist.
+- **`medium_gloves.json` Nom fixed** — file had `Nom/Nom unique: "starting gloves"`, causing stage 10 loot drops to silently fail (no item matched "medium gloves"). Fixed to "medium gloves".
+- **`meidum_right_weapon.json` renamed** to `medium_right_weapon.json` (filename typo).
+- **Stage 5 duplicate amulet removed** — stages 3 and 5 both dropped "medium amulet" for Healer/Mage. Stage 5 second slot changed to "medium belt" (Physical power +20), giving mage/healer classes an offensive upgrade they never otherwise received.
+
+---
+
 ## Building & Testing
 
 ```bash
