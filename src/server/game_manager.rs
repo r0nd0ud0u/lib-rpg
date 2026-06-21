@@ -9,10 +9,8 @@ use crate::{
         equipment::{Equipment, EquipmentJsonKey},
         experience::{build_exp_to_next_level, build_experience},
         loot::LootType,
-        rank::Rank,
         rounds_information::AmountType,
     },
-    shop::build_consumable_by_name,
     common::{
         constants::{character_const::ULTIMATE_LEVEL, paths_const::*, stats_const::*},
         log_data::{
@@ -27,6 +25,7 @@ use crate::{
         players_manager::{DodgeInfo, GameAtkEffect, PlayerManager},
         scenario::{Scenario, ScenarioState},
     },
+    shop::build_consumable_by_name,
     utils,
 };
 use anyhow::Result;
@@ -745,10 +744,8 @@ impl GameManager {
             let any_hero_matches = self.pm.active_heroes.iter().any(|hero| {
                 loot.classes.contains(&hero.class) || loot.classes.contains(&Class::Standard)
             });
-            if any_hero_matches {
-                if let Some(consumable) = build_consumable_by_name(&loot.name) {
-                    self.pm.party_consumables.push(consumable);
-                }
+            if any_hero_matches && let Some(consumable) = build_consumable_by_name(&loot.name) {
+                self.pm.party_consumables.push(consumable);
             }
         }
     }
@@ -2331,9 +2328,9 @@ mod tests {
             boss_patterns: HashMap::new(),
             level: 1,
             loots: vec![Loot {
-                name: "Common potion".to_string(),
+                name: "potion".to_string(),
                 kind: LootType::Consumable,
-                rank: Rank::Common, // heals 20 HP
+                rank: Rank::Common,
                 level: 1,
                 classes: vec![Class::Standard],
             }],
@@ -2347,7 +2344,7 @@ mod tests {
             .pm
             .party_consumables
             .iter()
-            .any(|c| c.name == "Common potion");
+            .any(|c| c.name == "potion");
         assert!(
             in_party_bag,
             "consumable should land in the party bag, not in individual inventories"
@@ -2359,7 +2356,7 @@ mod tests {
                 .inventory
                 .consumables
                 .iter()
-                .any(|c| c.name == "Common potion");
+                .any(|c| c.name == "potion");
             assert!(
                 !in_personal_bag,
                 "hero '{}' should NOT have the consumable in their personal bag",

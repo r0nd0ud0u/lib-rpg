@@ -641,8 +641,7 @@ mod tests {
 
     #[test]
     fn unit_buy_consumable_success() {
-        let mut inv = Inventory::default();
-        inv.money = 100;
+        let mut inv = Inventory { money: 100, ..Default::default() };
         let potion = crate::character_mod::inventory::Consumable {
             name: "potion".to_owned(),
             effects: vec![],
@@ -656,8 +655,7 @@ mod tests {
 
     #[test]
     fn unit_buy_consumable_insufficient_gold() {
-        let mut inv = Inventory::default();
-        inv.money = 30;
+        let mut inv = Inventory { money: 30, ..Default::default() };
         let potion = crate::character_mod::inventory::Consumable {
             name: "potion".to_owned(),
             effects: vec![],
@@ -672,7 +670,6 @@ mod tests {
     #[test]
     fn unit_sell_consumable_success() {
         let mut inv = Inventory::default();
-        inv.money = 0;
         inv.add_small_potion();
         inv.sell_consumable("potion", 25).unwrap();
         assert_eq!(inv.money, 25);
@@ -687,8 +684,7 @@ mod tests {
 
     #[test]
     fn unit_buy_equipment_success() {
-        let mut inv = Inventory::default();
-        inv.money = 200;
+        let mut inv = Inventory { money: 200, ..Default::default() };
         let sword = make_sword();
         inv.buy_equipment(&sword, 100).unwrap();
         assert_eq!(inv.money, 100);
@@ -699,22 +695,20 @@ mod tests {
 
     #[test]
     fn unit_buy_equipment_insufficient_gold() {
-        let mut inv = Inventory::default();
-        inv.money = 50;
+        let mut inv = Inventory { money: 50, ..Default::default() };
         let sword = make_sword();
         assert!(inv.buy_equipment(&sword, 100).is_err());
         assert_eq!(inv.money, 50);
         assert!(
             inv.equipments
                 .get(&EquipmentJsonKey::LeftWeapon)
-                .map_or(true, |v| v.is_empty())
+                .is_none_or(|v| v.is_empty())
         );
     }
 
     #[test]
     fn unit_sell_equipment_success() {
         let mut inv = Inventory::default();
-        inv.money = 0;
         let sword = make_sword();
         inv.add_equipment(&sword, false);
         inv.sell_equipment("test_sword", 50).unwrap();
@@ -722,7 +716,7 @@ mod tests {
         assert!(
             inv.equipments
                 .get(&EquipmentJsonKey::LeftWeapon)
-                .map_or(true, |v| v.is_empty())
+                .is_none_or(|v| v.is_empty())
         );
     }
 
@@ -744,7 +738,6 @@ mod tests {
     fn unit_sell_equipment_duplicate_sells_unequipped_copy() {
         // Two copies: one equipped, one in bag. Selling should remove only the bag copy.
         let mut inv = Inventory::default();
-        inv.money = 0;
         let sword = make_sword();
         inv.add_equipment(&sword, true); // equipped copy
         inv.add_equipment(&sword, false); // bag copy
