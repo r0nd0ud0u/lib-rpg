@@ -641,7 +641,10 @@ mod tests {
 
     #[test]
     fn unit_buy_consumable_success() {
-        let mut inv = Inventory { money: 100, ..Default::default() };
+        let mut inv = Inventory {
+            money: 100,
+            ..Default::default()
+        };
         let potion = crate::character_mod::inventory::Consumable {
             name: "potion".to_owned(),
             effects: vec![],
@@ -655,7 +658,10 @@ mod tests {
 
     #[test]
     fn unit_buy_consumable_insufficient_gold() {
-        let mut inv = Inventory { money: 30, ..Default::default() };
+        let mut inv = Inventory {
+            money: 30,
+            ..Default::default()
+        };
         let potion = crate::character_mod::inventory::Consumable {
             name: "potion".to_owned(),
             effects: vec![],
@@ -684,7 +690,10 @@ mod tests {
 
     #[test]
     fn unit_buy_equipment_success() {
-        let mut inv = Inventory { money: 200, ..Default::default() };
+        let mut inv = Inventory {
+            money: 200,
+            ..Default::default()
+        };
         let sword = make_sword();
         inv.buy_equipment(&sword, 100).unwrap();
         assert_eq!(inv.money, 100);
@@ -695,7 +704,10 @@ mod tests {
 
     #[test]
     fn unit_buy_equipment_insufficient_gold() {
-        let mut inv = Inventory { money: 50, ..Default::default() };
+        let mut inv = Inventory {
+            money: 50,
+            ..Default::default()
+        };
         let sword = make_sword();
         assert!(inv.buy_equipment(&sword, 100).is_err());
         assert_eq!(inv.money, 50);

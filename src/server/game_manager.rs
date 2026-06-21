@@ -2340,11 +2340,7 @@ mod tests {
         gm.process_end_of_scenario();
 
         // Consumables must go to the shared party bag — not to individual heroes.
-        let in_party_bag = gm
-            .pm
-            .party_consumables
-            .iter()
-            .any(|c| c.name == "potion");
+        let in_party_bag = gm.pm.party_consumables.iter().any(|c| c.name == "potion");
         assert!(
             in_party_bag,
             "consumable should land in the party bag, not in individual inventories"
