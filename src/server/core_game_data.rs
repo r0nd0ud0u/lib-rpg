@@ -72,6 +72,38 @@ mod tests {
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::server::core_game_data::CoreGameData;
     use crate::server::data_manager::DataManager;
+    use crate::server::scenario::Scenario;
+
+    #[test]
+    fn unit_new_with_universe_tagged_scenarios_succeeds() {
+        // Regression: load_next_scenario must find the first scenario even when
+        // all scenarios carry a non-empty universe (injected by DataManager from
+        // the directory name). Before the fix it returned "No next scenario found"
+        // because it compared current_universe "" against "lotr".
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let lotr_scenario_1 = Scenario {
+            name: "lotr_stage_1".to_string(),
+            level: 1,
+            universe: "lotr".to_string(),
+            ..Scenario::default()
+        };
+        let lotr_scenario_2 = Scenario {
+            name: "lotr_stage_2".to_string(),
+            level: 2,
+            universe: "lotr".to_string(),
+            ..Scenario::default()
+        };
+        let result = CoreGameData::new_with_scenarios(
+            &dm,
+            "TestServer",
+            vec![lotr_scenario_1, lotr_scenario_2],
+        );
+        assert!(
+            result.is_ok(),
+            "new_with_scenarios must succeed with universe-tagged scenarios: {:?}",
+            result.err()
+        );
+    }
 
     #[test]
     fn unit_core_game_data_load_next_scenario() {
@@ -79,6 +111,36 @@ mod tests {
         let mut core_game_data = CoreGameData::new(&dm, "Default").unwrap();
         let result = core_game_data.load_next_scenario();
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn unit_load_next_scenario_resets_round_and_loads_bosses() {
+        use crate::server::game_state::GameStatus;
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+
+        // Simulate the first scenario having run some rounds
+        core.game_manager.game_state.current_round = 5;
+        core.game_manager.game_state.status = GameStatus::EndOfScenario;
+
+        core.load_next_scenario().unwrap();
+
+        // Round counter must reset to 1: load_next_scenario starts the first round immediately
+        assert_eq!(
+            core.game_manager.game_state.current_round, 1,
+            "round counter must be 1 at the start of a new scenario"
+        );
+        // At least one boss must be loaded for the new scenario
+        assert!(
+            !core.game_manager.pm.active_bosses.is_empty(),
+            "new scenario must have at least one boss"
+        );
+        // The game must no longer be in EndOfScenario state
+        assert_ne!(
+            core.game_manager.game_state.status,
+            GameStatus::EndOfScenario,
+            "status must leave EndOfScenario after loading next scenario"
+        );
     }
 
     #[test]
