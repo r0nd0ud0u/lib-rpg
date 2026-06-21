@@ -93,8 +93,11 @@ mod tests {
             universe: "lotr".to_string(),
             ..Scenario::default()
         };
-        let result =
-            CoreGameData::new_with_scenarios(&dm, "TestServer", vec![lotr_scenario_1, lotr_scenario_2]);
+        let result = CoreGameData::new_with_scenarios(
+            &dm,
+            "TestServer",
+            vec![lotr_scenario_1, lotr_scenario_2],
+        );
         assert!(
             result.is_ok(),
             "new_with_scenarios must succeed with universe-tagged scenarios: {:?}",
