@@ -11,11 +11,11 @@
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -50,
+            "Value": -70,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -50,
+                "value": -70,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -24,17 +24,17 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "Magic armor",
+            "Stat": "",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStatByPercentage",
+            "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
-            "Value": -20,
+            "Value": 25,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
-                "value": -20,
+                "kind": "DamageRxPercent",
+                "value": 25,
                 "is-percent": true,
-                "stats-name": "Magic armor",
+                "stats-name": "",
                 "passive-enabled": false
             }
         },
@@ -59,9 +59,9 @@
     "Forme": "Standard",
     "Niveau": 3,
     "Nom": "Rayon astral",
-    "DescriptionEffects": "Deals 50 magic damage to one enemy; -20% max Magic armor on enemy for 4 turns; 2-turn cooldown."
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",
-    "Description": "Astral Ray — fires a beam of starlight dealing magic damage while healing the caster."
+    "Description": "Astral Ray — fires a beam of starlight that weakens the target's resistance with each hit.",
+    "DescriptionEffects": "Deals 70 magic damage to one enemy; enemy takes +25% more damage for 4 turns (stacks each cast); 2-turn cooldown."
 }
