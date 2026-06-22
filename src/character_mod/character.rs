@@ -534,13 +534,21 @@ impl Character {
         }
 
         // Apply the effect on the target
-        let real_dmg_amount = self.apply_effect_full_amount(processed_ep, full_amount);
+        let apply_result = self.apply_effect_full_amount(processed_ep, full_amount);
 
         // output real dmg amount for dmg and heal
-        let real_dmg_amount = if real_dmg_amount < 0 {
-            real_dmg_amount
-        } else {
+        // For HP: use real_hp_amount (exact amount applied, capped by remaining room).
+        // For energy stats: apply_result = full_amount - overhead_dmg where overhead_dmg can
+        // be negative (headroom remaining) or positive (overflow). The actual amount added is
+        // min(full_amount, apply_result) which handles both cases correctly.
+        let real_dmg_amount = if apply_result < 0 {
+            apply_result
+        } else if is_max_stat_effect {
+            0
+        } else if processed_ep.input_effect_param.buffer.stats_name == HP {
             real_hp_amount
+        } else {
+            full_amount.min(apply_result)
         };
 
         // process aggro for `HP` and `non-HP` stats
@@ -2314,6 +2322,101 @@ mod tests {
         assert!(result.is_ok());
         assert!(!c.inventory.consumables.is_empty());
         assert!(c.stats.all_stats[HP].current > 10);
+    }
+
+    #[test]
+    fn unit_all_catalog_consumables_work_during_fight() {
+        use crate::common::constants::stats_const::{BERSERK, MANA, VIGOR};
+        use crate::server::game_state::GameState;
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let game_state = GameState::default();
+        let launcher_stats = c.stats.clone();
+
+        // --- HP potions ---
+        // Heal formula: base + physical_power (from launcher_stats). We check the HP increased
+        // and that real_amount_tx is positive (exact value depends on equipped power stats).
+        for name in ["potion", "super potion", "hyper potion"] {
+            c.stats.all_stats[HP].current = 0;
+            match name {
+                "potion" => c.inventory.add_small_potion(),
+                "super potion" => c.inventory.add_super_potion(),
+                _ => c.inventory.add_hyper_potion(),
+            }
+            let potion = c.inventory.consumables.last().unwrap().clone();
+            let result = c
+                .use_consumable(potion, &game_state, &launcher_stats)
+                .unwrap();
+            assert!(
+                c.stats.all_stats[HP].current > 0,
+                "HP should increase after {name}"
+            );
+            let real: i64 = result.iter().map(|e| e.real_amount_tx).sum();
+            assert!(real > 0, "real_amount_tx should be positive for {name}");
+        }
+
+        // --- Resurrection potion ---
+        c.stats.all_stats[HP].current = 0;
+        c.inventory.add_resurrection_potion();
+        let res_potion = c.inventory.consumables.last().unwrap().clone();
+        let result = c
+            .apply_consumable_effects(&res_potion, &game_state, &launcher_stats)
+            .unwrap();
+        assert_eq!(
+            c.stats.all_stats[HP].current, 50,
+            "resurrection potion should restore exactly 50 HP"
+        );
+        let real: i64 = result.iter().map(|e| e.real_amount_tx).sum();
+        assert_eq!(
+            real, 50,
+            "real_amount_tx should be 50 for resurrection potion"
+        );
+
+        // --- Energy potions: drain stats first so there is room ---
+        c.stats.all_stats[MANA].current = 0;
+        c.stats.all_stats[VIGOR].current = 0;
+        c.stats.all_stats[BERSERK].current = 0;
+
+        c.inventory.add_mana_potion();
+        let mana_potion = c.inventory.consumables.last().unwrap().clone();
+        let result = c
+            .use_consumable(mana_potion, &game_state, &launcher_stats)
+            .unwrap();
+        assert_eq!(
+            c.stats.all_stats[MANA].current, 30,
+            "mana should increase by 30"
+        );
+        let real: i64 = result.iter().map(|e| e.real_amount_tx).sum();
+        assert_eq!(real, 30, "real_amount_tx should be 30 for mana potion");
+
+        c.inventory.add_vigor_potion();
+        let vigor_potion = c.inventory.consumables.last().unwrap().clone();
+        let result = c
+            .use_consumable(vigor_potion, &game_state, &launcher_stats)
+            .unwrap();
+        assert_eq!(
+            c.stats.all_stats[VIGOR].current, 30,
+            "vigor should increase by 30"
+        );
+        let real: i64 = result.iter().map(|e| e.real_amount_tx).sum();
+        assert_eq!(real, 30, "real_amount_tx should be 30 for vigor potion");
+
+        c.inventory.add_berserk_potion();
+        let berserk_potion = c.inventory.consumables.last().unwrap().clone();
+        let result = c
+            .use_consumable(berserk_potion, &game_state, &launcher_stats)
+            .unwrap();
+        assert_eq!(
+            c.stats.all_stats[BERSERK].current, 30,
+            "berserk should increase by 30"
+        );
+        let real: i64 = result.iter().map(|e| e.real_amount_tx).sum();
+        assert_eq!(real, 30, "real_amount_tx should be 30 for berserk potion");
     }
 
     #[test]

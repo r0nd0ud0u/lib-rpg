@@ -142,6 +142,7 @@ If the condition is not met, `can_be_launched` returns `false` and the attack is
 | **Don de vie** | 1 Ally | `DecreasingRateOnTurn` (1–3 × decreasing rate); ally +30 % HP, self −15 % HP, ally +25 % max mag/phy power |
 | **Lumiere curative** | 1 Ally | Requires `ConditionDamagePrevTurn`; ally +(130 + Elara's magical power) HP |
 | **Non sans raison** | All Allies | All allies +100 % HP; `AddAsMuchAsHp` power boost 3 t; `BlockHealAtk` on Elara 3 t; free (0 mana) |
+| **Fleur de vie sanguinaire** | 1 Ally + 1 Enemy | Ally +25 HP/turn for 3 t (×3 if Elara dealt damage previous turn via `ConditionDamagePrevTurn` + `MultiValue`); enemy −35 HP/turn for 2 t; 5-turn cooldown |
 
 #### Thraïn's attacks
 
@@ -390,6 +391,38 @@ All 297 tests should pass with no warnings.
 ### Offrande vitale — apparent lack of armor buff impact
 
 The +50% magic/physical armor buff on the target is applied correctly: `set_stats_on_effect` updates `buf_effect_percent` and `recompute_stat_max_and_current` raises the max from 50 → 75. The limited visible damage reduction (~2%) is by design — the armor formula `1000 / (1000 + armor)` yields diminishing returns at low armor values.
+
+### `real_amount_tx` always 0 for energy stats (mana, vigor, berserk potions)
+
+**Root cause:** `apply_processed_effect_param` computed `real_dmg_amount` using an `else` branch that returned `real_hp_amount` for all non-negative `apply_result` cases. `real_hp_amount` is always 0 for non-HP stats, so energy potions reported no stat change even though the stat was correctly updated.
+
+**Fix:** Added `is_max_stat_effect` and stat-name checks to route energy stat changes (`ChangeCurrentStatByValue` on non-HP stats) through `full_amount.min(apply_result)`. `apply_effect_full_amount` returns `full_amount - overhead_dmg` where `overhead_dmg = new_value - max`; taking the min handles both "room available" (large result → clamped to `full_amount`) and "overflow" (small result → actual amount added) cases.
+
+### Catalog consumables — known design gap: `MultiValue` multiplier on cross-character heals
+
+`MultiValue` (used by *Fleur de vie sanguinaire* for the ×3 heal when Elara dealt damage last turn) is stored in the **launcher's** `character_rounds_info.all_buffers` via `process_atk`. But `apply_buf_debuf` runs on the **target's** `character_rounds_info`, so the multiplier never reaches the ally heal effects.
+
+**Workaround:** None currently. The condition (`ConditionDamagePrevTurn`) and cooldown work correctly; only the ×3 multiplier is silently ignored for the ally heal.
+
+**Planned fix:** Pre-bake the multiplier into `ProcessedEffectParam.input_effect_param.buffer.value` at `process_one_effect` time, so the target receives the already-scaled value instead of relying on `apply_buf_debuf`.
+
+---
+
+## Catalog consumables
+
+The shop (`shop/mod.rs`) exposes 7 catalog consumables usable during combat via `use_consumable` / `apply_consumable_effects`:
+
+| Name | Stat | Amount | Notes |
+|------|------|--------|-------|
+| potion | HP | +20 + physical\_power | Physical power of launcher added at use time |
+| super potion | HP | +60 + physical\_power | |
+| hyper potion | HP | +120 + physical\_power | |
+| potion de résurrection | HP | +50 flat | No power scaling (`BufKinds::Resurrect`) |
+| potion de mana | Mana | +30 | Current stat; capped at max |
+| potion de vigueur | Vigor | +30 | Current stat; capped at max |
+| potion de berserk | Berserk | +30 | Current stat; capped at max |
+
+All seven are covered by `unit_all_catalog_consumables_work_during_fight` in `character_mod/character.rs`.
 
 ---
 
