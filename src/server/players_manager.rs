@@ -765,6 +765,144 @@ impl PlayerManager {
         nb
     }
 
+    /// Mark potential/current targets for a consumable, mirroring set_targeted_characters for attacks.
+    /// Target type is derived from the consumable's first effect target_kind.
+    /// Resurrection consumables (BufKinds::Resurrect) only mark dead allies; all others mark alive.
+    pub fn set_targeted_characters_for_consumable(
+        &mut self,
+        launcher_id_name: &str,
+        consumable: &Consumable,
+    ) {
+        self.reset_targeted_character();
+        self.reset_potential_targeted_character();
+
+        let Some(first_effect) = consumable.effects.first() else {
+            return;
+        };
+        let target_kind = &first_effect.target_kind;
+        let can_target_dead = consumable
+            .effects
+            .iter()
+            .any(|e| e.buffer.kind == BufKinds::Resurrect);
+
+        if target_kind == TARGET_HIMSELF {
+            if let Some(launcher) = self.get_mut_active_character(launcher_id_name) {
+                launcher.character_rounds_info.is_current_target = true;
+                launcher.character_rounds_info.is_potential_target = true;
+            }
+            return;
+        }
+
+        if target_kind == TARGET_ALLY {
+            let mut has_first = false;
+            for c in self.active_heroes.iter_mut() {
+                let is_targetable = if can_target_dead {
+                    c.stats.is_dead() == Some(true)
+                } else {
+                    c.stats.is_dead() == Some(false)
+                };
+                if is_targetable {
+                    if !has_first {
+                        c.character_rounds_info.is_current_target = true;
+                        has_first = true;
+                    }
+                    c.character_rounds_info.is_potential_target = true;
+                }
+            }
+            return;
+        }
+
+        if target_kind == TARGET_ENNEMY {
+            let mut has_first = false;
+            for c in self.active_bosses.iter_mut() {
+                if c.stats.is_dead() == Some(false) {
+                    if !has_first {
+                        c.character_rounds_info.is_current_target = true;
+                        has_first = true;
+                    }
+                    c.character_rounds_info.is_potential_target = true;
+                }
+            }
+        }
+    }
+
+    /// Remove a personal consumable from current_player and apply it to the named target.
+    /// launcher_stats come from current_player so power scaling is always off the launcher.
+    pub fn use_consumable_on_target(
+        &mut self,
+        potion_name: &str,
+        target_id_name: &str,
+        game_state: &crate::server::game_state::GameState,
+    ) -> Result<Vec<EffectOutcome>> {
+        if !self.current_player.inventory.contains_potion(potion_name) {
+            bail!("no {} in inventory", potion_name);
+        }
+        let consumable = self
+            .current_player
+            .inventory
+            .consumables
+            .iter()
+            .find(|c| c.name == potion_name)
+            .cloned()
+            .unwrap();
+        let launcher_stats = self.current_player.stats.clone();
+        let launcher_id = self.current_player.id_name.clone();
+
+        let outcomes = if target_id_name == launcher_id {
+            self.current_player.apply_consumable_effects(
+                &consumable,
+                game_state,
+                &launcher_stats,
+            )?
+        } else if let Some(target) = self
+            .active_heroes
+            .iter_mut()
+            .find(|c| c.id_name == target_id_name)
+        {
+            target.apply_consumable_effects(&consumable, game_state, &launcher_stats)?
+        } else if let Some(target) = self
+            .active_bosses
+            .iter_mut()
+            .find(|c| c.id_name == target_id_name)
+        {
+            target.apply_consumable_effects(&consumable, game_state, &launcher_stats)?
+        } else {
+            bail!("target {} not found", target_id_name);
+        };
+
+        self.current_player.inventory.remove_potion(potion_name);
+        Ok(outcomes)
+    }
+
+    /// Remove a party consumable and apply it to the named target.
+    pub fn use_party_consumable_on_target(
+        &mut self,
+        potion_name: &str,
+        target_id_name: &str,
+        game_state: &crate::server::game_state::GameState,
+    ) -> Result<Vec<EffectOutcome>> {
+        let idx = self
+            .party_consumables
+            .iter()
+            .position(|c| c.name == potion_name)
+            .ok_or_else(|| anyhow::anyhow!("party consumable {} not found", potion_name))?;
+        let consumable = self.party_consumables.remove(idx);
+        let launcher_stats = self.current_player.stats.clone();
+
+        if let Some(target) = self
+            .active_heroes
+            .iter_mut()
+            .find(|c| c.id_name == target_id_name)
+        {
+            let outcomes =
+                target.apply_consumable_effects(&consumable, game_state, &launcher_stats)?;
+            Ok(outcomes)
+        } else {
+            self.party_consumables.insert(idx, consumable);
+            bail!("target {} not found", target_id_name);
+        }
+    }
+
     /// Check if the game is over by checking if all heroes or all bosses are dead.
     /// Returns a tuple of booleans (all_heroes_dead, all_bosses_dead).
     pub fn check_end_of_game(&self) -> (bool, bool) {

@@ -5,7 +5,7 @@ use crate::{
     character_mod::buffers::{BufKinds, Buffer},
     common::{
         constants::{
-            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+            all_target_const::TARGET_ALLY,
             reach_const::{INDIVIDUAL, ZONE},
             stats_const::HP,
         },
@@ -207,7 +207,7 @@ pub fn build_resurrect_effect(value: i64) -> EffectParam {
 pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
     EffectParam {
         nb_turns: 1,
-        target_kind: TARGET_ENNEMY.to_owned(),
+        target_kind: TARGET_ALLY.to_owned(),
         reach: if is_zone {
             ZONE.to_owned()
         } else {
@@ -227,7 +227,10 @@ pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
 mod tests {
     use crate::{
         character_mod::target::is_target_ally,
-        common::constants::{all_target_const::TARGET_ALLY, reach_const::ZONE},
+        common::constants::{
+            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+            reach_const::ZONE,
+        },
     };
 
     use super::*;
