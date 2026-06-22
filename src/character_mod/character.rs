@@ -952,6 +952,11 @@ impl Character {
                 && buf.is_passive_enabled
                 && !buf.stats_name.is_empty()
             {
+                // Reset the bonus from the previous turn: cap current to max so the
+                // stale overheal boost doesn't compound across turns.
+                if let Some(stat) = self.stats.all_stats.get_mut(&buf.stats_name) {
+                    stat.current = stat.current.min(stat.max);
+                }
                 let prev_turn = current_turn_nb.saturating_sub(1) as u64;
                 let overheal = self
                     .character_rounds_info
@@ -2711,6 +2716,55 @@ mod tests {
             c.stats.all_stats[PHYSICAL_POWER].current,
             base_pp + 30,
             "Passive boost must push current above max ({base_max})"
+        );
+    }
+
+    // Bug-regression: overheal bonus must not compound across turns.
+    // Turn 1: +50 overheal → Physical power = base+50.
+    // Turn 2: +30 overheal → Physical power = base+30 (not base+80).
+    // Turn 3: no overheal → Physical power = base (bonus fully reset).
+    #[test]
+    fn unit_passive_overheal_boost_resets_each_turn() {
+        let mut c = testing_character();
+        while c.character_rounds_info.tx_rx.len() <= AmountType::OverHealRx as usize {
+            c.character_rounds_info.tx_rx.push(Default::default());
+        }
+        c.character_rounds_info.update_buffer(&Buffer {
+            kind: BufKinds::OverHealBoostStat,
+            stats_name: PHYSICAL_POWER.to_owned(),
+            is_passive_enabled: true,
+            is_passive: true,
+            value: 0,
+            is_percent: false,
+        });
+        let base_pp = c.stats.all_stats[PHYSICAL_POWER].current;
+
+        // Turn 1 uses overheal from turn 0
+        c.character_rounds_info.tx_rx[AmountType::OverHealRx as usize].insert(0, 50);
+        c.new_round(1, vec![]);
+        assert_eq!(
+            c.stats.all_stats[PHYSICAL_POWER].current,
+            base_pp + 50,
+            "turn 1: bonus should be +50"
+        );
+
+        // Turn 2 uses overheal from turn 1 (30), NOT turn 0 (50)
+        // players_manager::reset_is_first_round() does this between real game rounds
+        c.character_rounds_info.is_first_round = true;
+        c.character_rounds_info.tx_rx[AmountType::OverHealRx as usize].insert(1, 30);
+        c.new_round(2, vec![]);
+        assert_eq!(
+            c.stats.all_stats[PHYSICAL_POWER].current,
+            base_pp + 30,
+            "turn 2: bonus must reset to +30, not accumulate to +80"
+        );
+
+        // Turn 3: no overheal on turn 2 → bonus fully gone
+        c.character_rounds_info.is_first_round = true;
+        c.new_round(3, vec![]);
+        assert_eq!(
+            c.stats.all_stats[PHYSICAL_POWER].current, base_pp,
+            "turn 3: no overheal last turn, bonus must reset to zero"
         );
     }
 
