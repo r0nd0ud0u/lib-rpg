@@ -698,20 +698,39 @@ impl Character {
         all_effects: &[EffectParam],
     ) -> Result<Vec<ProcessedEffectParam>> {
         let mut processed_effect_param_list: Vec<ProcessedEffectParam> = vec![];
-        for effect in all_effects {
+        let mut skip_next_multi = false;
+        for (i, effect) in all_effects.iter().enumerate() {
+            // When the ConditionDamagePrevTurn just failed and the NEXT effect is MultiValue,
+            // skip that MultiValue so the remaining effects (the actual heal/action) still run.
+            if skip_next_multi {
+                skip_next_multi = false;
+                if effect.buffer.kind == BufKinds::MultiValue {
+                    continue; // skip only this multiplier, let subsequent effects through
+                }
+                // Next effect is not MultiValue: the condition gates the whole attack — stop.
+                break;
+            }
             let processed = self.character_rounds_info.process_one_effect(
                 effect,
                 action_name,
                 game_state,
                 is_crit,
             )?;
-            // If a gate-condition effect reports failure (0 applies), stop processing
             let is_condition_failed = processed.input_effect_param.buffer.kind
                 == BufKinds::ConditionDamagePrevTurn
                 && processed.number_of_applies == 0;
             processed_effect_param_list.push(processed);
             if is_condition_failed {
-                break;
+                // Look ahead: if next effect is MultiValue the condition only gates the multiplier;
+                // otherwise it gates the whole attack (handled by `skip_next_multi` break above).
+                let next_is_multi = all_effects
+                    .get(i + 1)
+                    .is_some_and(|e| e.buffer.kind == BufKinds::MultiValue);
+                if next_is_multi {
+                    skip_next_multi = true;
+                } else {
+                    break;
+                }
             }
         }
         Ok(processed_effect_param_list)
@@ -837,7 +856,7 @@ impl Character {
         }
 
         // that attack has a cooldown
-        for atk_effect in &atk_type.all_effects {
+        for (i, atk_effect) in atk_type.all_effects.iter().enumerate() {
             if atk_effect.buffer.kind == BufKinds::CooldownTurnsNumber {
                 for e in &self.character_rounds_info.all_effects {
                     if e.atk_type.name == atk_type.name
@@ -859,19 +878,28 @@ impl Character {
                 return false;
             }
 
-            // Launch condition: attack requires damage dealt on the previous turn
+            // Launch condition: attack requires damage dealt on the previous turn.
+            // Only gate the whole attack when the next effect is NOT a MultiValue multiplier —
+            // if the next effect IS MultiValue, the condition only gates the multiplier (not
+            // the whole attack), so the attack can still be launched.
             if atk_effect.buffer.kind == BufKinds::ConditionDamagePrevTurn {
-                let did_damage = current_turn_nb > 0 && {
-                    let prev_turn = (current_turn_nb - 1) as u64;
-                    self.character_rounds_info
-                        .tx_rx
-                        .get(AmountType::DamageTx as usize)
-                        .and_then(|m| m.get(&prev_turn))
-                        .map(|&v| v != 0)
-                        .unwrap_or(false)
-                };
-                if !did_damage {
-                    return false;
+                let next_is_multi = atk_type
+                    .all_effects
+                    .get(i + 1)
+                    .is_some_and(|e| e.buffer.kind == BufKinds::MultiValue);
+                if !next_is_multi {
+                    let did_damage = current_turn_nb > 0 && {
+                        let prev_turn = (current_turn_nb - 1) as u64;
+                        self.character_rounds_info
+                            .tx_rx
+                            .get(AmountType::DamageTx as usize)
+                            .and_then(|m| m.get(&prev_turn))
+                            .map(|&v| v != 0)
+                            .unwrap_or(false)
+                    };
+                    if !did_damage {
+                        return false;
+                    }
                 }
             }
         }
@@ -2540,7 +2568,7 @@ mod tests {
         atk.all_effects.insert(0, multi_ep);
         atk.all_effects.insert(0, cond_ep);
 
-        // Turn 1, prev_turn=0 has no damage → condition must fail and gate all following effects
+        // Turn 1, prev_turn=0 has no damage → condition fails, MultiValue skipped, heal still runs at 1×
         let gs = GameState {
             current_turn_nb: 1,
             ..Default::default()
@@ -2550,7 +2578,12 @@ mod tests {
             result[0].number_of_applies, 0,
             "condition must fail (no damage prev turn)"
         );
-        assert_eq!(result.len(), 1, "gate must stop remaining effects");
+        // MultiValue is skipped (not in result); heal still runs → len==2
+        assert_eq!(
+            result.len(),
+            2,
+            "heal must still run at 1× when condition fails"
+        );
         assert!(
             c.character_rounds_info
                 .get_buffer_by_type(&BufKinds::MultiValue)

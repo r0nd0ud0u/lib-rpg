@@ -61,7 +61,7 @@ impl GameAtkEffect {
                     Some(format!("{target} ← ✓ Condition: damage last turn"))
                 } else {
                     Some(format!(
-                        "{target} ← ✗ Condition: damage last turn (attack stopped)"
+                        "{target} ← ✗ Condition: damage last turn (×multiplier skipped)"
                     ))
                 }
             }
