@@ -893,9 +893,11 @@ impl PlayerManager {
         // Self-targeting: apply to current_player so that modify_active_character() can sync
         // it back to active_heroes without overwriting the HP change.
         if target_id_name == launcher_id {
-            let outcomes = self
-                .current_player
-                .apply_consumable_effects(&consumable, game_state, &launcher_stats)?;
+            let outcomes = self.current_player.apply_consumable_effects(
+                &consumable,
+                game_state,
+                &launcher_stats,
+            )?;
             return Ok(outcomes);
         }
 
@@ -1691,7 +1693,10 @@ mod tests {
 
         let gs = GameState::default();
         let result = pm.use_consumable_on_target("potion", &id, &gs);
-        assert!(result.is_ok(), "use_consumable_on_target(self) must succeed");
+        assert!(
+            result.is_ok(),
+            "use_consumable_on_target(self) must succeed"
+        );
         assert!(
             pm.current_player.stats.all_stats[HP].current > 10,
             "current_player HP must increase after self-potion"
@@ -1716,9 +1721,9 @@ mod tests {
 
     #[test]
     fn unit_use_party_consumable_on_target_self() {
-        use crate::common::constants::stats_const::HP;
-        use crate::character_mod::inventory::Consumable;
         use crate::character_mod::effect::build_hp_effect;
+        use crate::character_mod::inventory::Consumable;
+        use crate::common::constants::stats_const::HP;
 
         let mut pm = testing_all_characters::testing_pm();
         pm.current_player.stats.all_stats[HP].current = 10;
@@ -1733,7 +1738,10 @@ mod tests {
 
         let gs = GameState::default();
         let result = pm.use_party_consumable_on_target("PartyHealPotion", &id, &gs);
-        assert!(result.is_ok(), "use_party_consumable_on_target(self) must succeed");
+        assert!(
+            result.is_ok(),
+            "use_party_consumable_on_target(self) must succeed"
+        );
         assert!(
             pm.party_consumables.is_empty(),
             "party consumable must be removed after use"

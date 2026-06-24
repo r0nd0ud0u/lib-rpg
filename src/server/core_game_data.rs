@@ -68,6 +68,7 @@ impl CoreGameData {
             universe: String::new(),
             loaded_from_save: false,
             shop_catalog: dm.shop_catalog.clone(),
+            last_action_header: String::new(),
         })
     }
 
