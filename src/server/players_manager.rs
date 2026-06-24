@@ -888,6 +888,16 @@ impl PlayerManager {
             .ok_or_else(|| anyhow::anyhow!("party consumable {} not found", potion_name))?;
         let consumable = self.party_consumables.remove(idx);
         let launcher_stats = self.current_player.stats.clone();
+        let launcher_id = self.current_player.id_name.clone();
+
+        // Self-targeting: apply to current_player so that modify_active_character() can sync
+        // it back to active_heroes without overwriting the HP change.
+        if target_id_name == launcher_id {
+            let outcomes = self
+                .current_player
+                .apply_consumable_effects(&consumable, game_state, &launcher_stats)?;
+            return Ok(outcomes);
+        }
 
         if let Some(target) = self
             .active_heroes
@@ -1663,6 +1673,86 @@ mod tests {
         assert!(
             pl.use_party_consumable("no_hero", "TestPotion2", &GameState::default())
                 .is_err()
+        );
+    }
+
+    #[test]
+    fn unit_use_consumable_on_target_self() {
+        use crate::common::constants::stats_const::HP;
+        let mut pm = testing_all_characters::testing_pm();
+        pm.current_player.stats.all_stats[HP].current = 10;
+        // sync reduced HP back to active_heroes so is_dead check is consistent
+        let id = pm.current_player.id_name.clone();
+        pm.modify_active_character(&id);
+
+        pm.current_player.inventory.add_small_potion();
+        // also sync the new potion into active_heroes
+        pm.modify_active_character(&id);
+
+        let gs = GameState::default();
+        let result = pm.use_consumable_on_target("potion", &id, &gs);
+        assert!(result.is_ok(), "use_consumable_on_target(self) must succeed");
+        assert!(
+            pm.current_player.stats.all_stats[HP].current > 10,
+            "current_player HP must increase after self-potion"
+        );
+        assert!(
+            pm.current_player.inventory.consumables.is_empty(),
+            "potion must be removed from current_player"
+        );
+
+        // simulate what use_potion_handler does: sync current_player back to active_heroes
+        pm.modify_active_character(&id);
+        assert!(
+            pm.active_heroes
+                .iter()
+                .find(|c| c.id_name == id)
+                .map(|c| c.stats.all_stats[HP].current)
+                .unwrap_or(0)
+                > 10,
+            "active_heroes HP must reflect the heal after modify_active_character"
+        );
+    }
+
+    #[test]
+    fn unit_use_party_consumable_on_target_self() {
+        use crate::common::constants::stats_const::HP;
+        use crate::character_mod::inventory::Consumable;
+        use crate::character_mod::effect::build_hp_effect;
+
+        let mut pm = testing_all_characters::testing_pm();
+        pm.current_player.stats.all_stats[HP].current = 10;
+        let id = pm.current_player.id_name.clone();
+        pm.modify_active_character(&id);
+
+        pm.party_consumables.push(Consumable {
+            name: "PartyHealPotion".to_owned(),
+            effects: vec![build_hp_effect(50, false)],
+            ..Default::default()
+        });
+
+        let gs = GameState::default();
+        let result = pm.use_party_consumable_on_target("PartyHealPotion", &id, &gs);
+        assert!(result.is_ok(), "use_party_consumable_on_target(self) must succeed");
+        assert!(
+            pm.party_consumables.is_empty(),
+            "party consumable must be removed after use"
+        );
+        assert!(
+            pm.current_player.stats.all_stats[HP].current > 10,
+            "current_player HP must increase after party self-potion"
+        );
+
+        // simulate modify_active_character: HP change must survive the sync
+        pm.modify_active_character(&id);
+        assert!(
+            pm.active_heroes
+                .iter()
+                .find(|c| c.id_name == id)
+                .map(|c| c.stats.all_stats[HP].current)
+                .unwrap_or(0)
+                > 10,
+            "active_heroes HP must reflect the heal after modify_active_character"
         );
     }
 

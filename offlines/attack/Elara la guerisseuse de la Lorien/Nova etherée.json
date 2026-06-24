@@ -15,7 +15,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -110,
+                "value": -108,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -37,7 +37,7 @@
                 "stats-name": "Speed regeneration",
                 "passive-enabled": false
             }
-        },
+        }
     ],
     "Forme": "Standard",
     "Niveau": 8,

@@ -15,7 +15,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByPercentage",
-                "value": -15,
+                "value": -32,
                 "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false

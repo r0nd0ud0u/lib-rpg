@@ -138,7 +138,7 @@ If the condition is not met, `can_be_launched` returns `false` and the attack is
 
 | Attack | Target | Key mechanics |
 |---|---|---|
-| **Frappe élémentaire** | 1 Enemy | −70 magic HP; may repeat with 50 % chance if Elara healed last turn (`RepeatIfHeal`) |
+| **Frappe élémentaire** | 1 Enemy | −76 magic HP; may repeat with 50 % chance if Elara healed last turn (`RepeatIfHeal`) |
 | **Don de vie** | 1 Ally | `DecreasingRateOnTurn` (1–3 × decreasing rate); ally +30 % HP, self −15 % HP, ally +25 % max mag/phy power |
 | **Lumiere curative** | 1 Ally | Requires `ConditionDamagePrevTurn`; ally +(130 + Elara's magical power) HP |
 | **Non sans raison** | All Allies | All allies +100 % HP; `AddAsMuchAsHp` power boost 3 t; `BlockHealAtk` on Elara 3 t; free (0 mana) |
@@ -150,7 +150,7 @@ If the condition is not met, `can_be_launched` returns `false` and the attack is
 |---|---|---|---|
 | **Enchaînement Furieux** | 20 Berserk | 1 Enemy | `RepeatAsManyAsPossible`: fires `floor(berserk / actual_cost).max(1)` times where `actual_cost = 20 × max / 100`; each hit deals 50 physical HP damage bypassing armor; all repeats drain rage |
 | **Provocation Féroce** | Free | Self + Allies | Self +12 Berserk; self +10 Aggro; `ReinitBuf` Aggro on all allies; self +40 max Critical strike for 3 t; 5-turn cooldown |
-| **Tourbillon Destructeur** | 15 Berserk | All Enemies | All enemies −60 physical HP (armor formula applies); self +5 Aggro; self +100 % max Berserk rate for 4 t |
+| **Tourbillon Destructeur** | 15 Berserk | All Enemies | All enemies −67 physical HP (armor formula applies); self +5 Aggro; self +100 % max Berserk rate for 4 t |
 
 ##### `RepeatAsManyAsPossible`
 
@@ -196,17 +196,19 @@ Scenarios are filtered by universe at game initialisation and when the universe 
 Returns `(raw_damage, effective_damage)`:
 
 ```
-raw_damage     = atk_value − (launcher_power / nb_turns)
-effective      = round(raw_damage × ARMOR_FACTOR / (ARMOR_FACTOR + target_armor))
+power_factor   = 1 + launcher_power / POWER_SCALE
+raw_damage     = round(atk_value × power_factor)
+defense        = target_armor + target_power / DEFENSE_DIVISOR
+effective      = round(raw_damage × ARMOR_FACTOR / (ARMOR_FACTOR + defense))
 ```
 
+- `POWER_SCALE = 100.0` — at 100 launcher power, damage doubles; at 200 it triples
+- `DEFENSE_DIVISOR = 4.0` — target physical/magical power contributes to defense (25 pts per 100 power)
 - `ARMOR_FACTOR = 100.0` — armor equal to this value halves incoming damage
 - Both values are **negative** for damage, **positive** for healing
-- `raw_damage` is logged as "full" damage (before armor); `effective_damage` is applied to HP
+- `raw_damage` is logged as "full" damage (before defense); `effective_damage` is applied to HP
 
-**Armor scaling:** at ARMOR_FACTOR = 100 and hero armor in the 0–90 range, a 50 % armor buff gives ~9–10 % less damage taken (vs ~2 % with the former constant of 1000).
-
-**Boss armor** is scaled to preserve hero–boss balance at the new constant (e.g. Angmar 800 → 80 still absorbs ~44 % of hero attacks).
+**Attack base values** (the JSON `"Value"` field) are calibrated to preserve the approximate damage output of the old additive formula at the character's typical power level. `RepeatAsManyAsPossible` attacks bypass `damage_by_atk` entirely and use `atk_value` directly — their base values must **not** be scaled.
 
 ### Combat log
 

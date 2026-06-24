@@ -1829,15 +1829,16 @@ mod tests {
             &testing_all_equipment(),
         )
         .unwrap();
-        // raw = -30 - 40(total phy pow) = -70
-        // protection = 100/(100 + 30(total phy armor)) = 100/130 ≈ 0.769
-        // effective = round(-70 * 0.769) = round(-53.85) = -54
+        // power_factor = 1 + 40(total phy pow)/100 = 1.4; raw = round(-30 * 1.4) = -42
+        // defense = 30(total phy armor) + 40(total boss phy pow)/4 = 40
+        // protection = 100/(100 + 40) = 5/7 ≈ 0.7143
+        // effective = round(-42 * 5/7) = round(-30.0) = -30
         processed_ep = build_dmg_effect_individual();
         let old_hp = boss1.stats.all_stats[HP].current;
         let eo = boss1.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
-        assert_eq!(eo.full_amount_tx, -54);
-        assert_eq!(eo.real_amount_tx, -54);
-        assert_eq!(old_hp - 54, boss1.stats.all_stats[HP].current);
+        assert_eq!(eo.full_amount_tx, -30);
+        assert_eq!(eo.real_amount_tx, -30);
+        assert_eq!(old_hp - 30, boss1.stats.all_stats[HP].current);
 
         processed_ep = build_buf_effect_individual_speed_regen();
         let launcher_stats = c.stats.clone();
