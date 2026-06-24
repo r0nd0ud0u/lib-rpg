@@ -11,11 +11,11 @@
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -10,
+            "Value": -30,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -10,
+                "value": -42,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -45,11 +45,11 @@
             "Tours actifs": 4,
             "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
-            "Value": 30,
+            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "DamageRxPercent",
-                "value": 30,
+                "value": 20,
                 "is-percent": true,
                 "stats-name": "",
                 "passive-enabled": false
@@ -59,14 +59,14 @@
             "Cible": "Enemy",
             "Portée": "Individual",
             "Stat": "HP",
-            "Tours actifs": 5,
+            "Tours actifs": 4,
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -110,
+            "Value": -75,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -110,
+                "value": -67,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -96,5 +96,5 @@
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
     "Description": "Morgul Blade — a cursed strike dealing damage over time; grants dodge but costs self-HP.",
-    "DescriptionEffects": "Deals 10 physical damage to one enemy; +40 max Dodge for 2 turns; +30% damage taken by self for 4 turns; deals 110 physical damage to one enemy per turn for 5 turns; 5-turn cooldown."
+    "DescriptionEffects": "Deals 30 physical damage to one enemy; +40 max Dodge for 2 turns; +20% damage taken by self for 4 turns; deals 75 physical damage to one enemy per turn for 4 turns; 5-turn cooldown."
 }

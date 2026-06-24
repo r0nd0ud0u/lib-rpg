@@ -1,6 +1,6 @@
 {
     "Cible": "All allies",
-    "Coût de mana": 18,
+    "Coût de mana": 12,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
     "Effet": [
@@ -12,7 +12,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByPercentage",
-                "value": 30,
+                "value": 20,
                 "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -54,5 +54,5 @@
     "Portée": "Zone",
     "Sound": "",
     "Description": "Spark of Hope — releases a burst of radiant light, healing allies and damaging enemies.",
-    "DescriptionEffects": "Heals all allies for 30% HP; +15% max Magic power on all allies for 2 turns; +15% max Physical power on all allies for 2 turns."
+    "DescriptionEffects": "Heals all allies for 20% HP; +15% max Magic power on all allies for 2 turns; +15% max Physical power on all allies for 2 turns."
 }

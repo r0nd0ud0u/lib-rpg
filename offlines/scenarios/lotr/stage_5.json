@@ -21,7 +21,7 @@
             "classes": ["Healer", "Mage"]
         },
         {
-            "name": "medium amulet",
+            "name": "medium belt",
             "kind": "Equipment",
             "rank": "Intermediate",
             "level": 2,

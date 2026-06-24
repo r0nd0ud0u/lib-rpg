@@ -1,7 +1,7 @@
 {
-    "Categorie": "Gloves",
-    "Nom": "medium gloves",
-    "Nom unique": "medium gloves",
+    "Categorie": "RightRing",
+    "Nom": "medium right ring mage",
+    "Nom unique": "medium right ring mage",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -77,4 +77,3 @@
         }
     }
 }
-

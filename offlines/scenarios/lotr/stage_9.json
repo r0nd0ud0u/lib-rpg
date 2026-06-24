@@ -21,7 +21,7 @@
             "classes": ["Warrior", "Berserker"]
         },
         {
-            "name": "medium left ring",
+            "name": "medium left ring mage",
             "kind": "Equipment",
             "rank": "Advanced",
             "level": 4,

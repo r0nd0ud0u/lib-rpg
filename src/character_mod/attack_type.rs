@@ -140,8 +140,16 @@ impl AttackType {
     /// Armor mitigation constant. At this armor value, damage is halved.
     pub const ARMOR_FACTOR: f64 = 100.0;
 
+    /// Power scaling divisor: launcher power contributes multiplicatively to damage.
+    /// power_factor = 1 + launcher_pow / POWER_SCALE
+    pub const POWER_SCALE: f64 = 100.0;
+
+    /// Physical power contributes to defense with this divisor.
+    /// defense = armor + target_phys_pow / DEFENSE_DIVISOR (physical only)
+    pub const DEFENSE_DIVISOR: f64 = 4.0;
+
     /// Returns `(raw_damage, effective_damage)`:
-    /// - `raw_damage`: damage before armor (attack value boosted by launcher power)
+    /// - `raw_damage`: damage before armor (attack value scaled by launcher power)
     /// - `effective_damage`: damage after armor mitigation (diminishing-returns formula)
     ///
     /// Both values are negative for damage, positive for healing.
@@ -157,14 +165,16 @@ impl AttackType {
             return (0, 0);
         }
         let target_armor = target_stats.get_armor_stat(is_magic);
+        let target_power = target_stats.get_power_stat(is_magic);
         let launcher_pow = launcher_stats.get_power_stat(is_magic);
 
-        // Raw damage: attack value boosted by launcher power (negative = damage)
-        let raw_damage = atk_value - launcher_pow / nb_of_turns;
+        // Multiplicative power scaling: higher launcher power amplifies the base attack value.
+        let power_factor = 1.0 + launcher_pow as f64 / Self::POWER_SCALE;
+        let raw_damage = (atk_value as f64 * power_factor).round() as i64;
 
-        // Armor mitigation: diminishing-returns formula.
-        // At ARMOR_FACTOR armor the damage is halved; effective for hero-scale values (0–90).
-        let protection = Self::ARMOR_FACTOR / (Self::ARMOR_FACTOR + target_armor as f64);
+        // Defense = armor + target power contribution (physical resistance from strength).
+        let defense = target_armor as f64 + target_power as f64 / Self::DEFENSE_DIVISOR;
+        let protection = Self::ARMOR_FACTOR / (Self::ARMOR_FACTOR + defense);
         let effective_damage = (raw_damage as f64 * protection).round() as i64;
 
         (raw_damage, effective_damage)
@@ -253,21 +263,30 @@ mod tests {
         let mut target_stats = Stats::default();
         target_stats.init();
         target_stats.get_mut_value(MAGICAL_ARMOR).current = 10;
+        // target magical power contributes to defense
+        target_stats.get_mut_value(MAGICAL_POWER).current = 20;
 
         let mut launcher_stats = Stats::default();
         launcher_stats.init();
         launcher_stats.get_mut_value(MAGICAL_POWER).current = 100;
 
-        // raw = 50 - 100/1 = -50
-        // protection = 100/(100+10) = 0.9091, effective = round(-50 * 0.9091) = round(-45.45) = -45
+        // power_factor = 1 + 100/100 = 2.0; raw = round(-35 * 2.0) = -70
+        // defense = 10 + 20/4 = 15; protection = 100/115 ≈ 0.8696
+        // effective = round(-70 * 0.8696) = round(-60.87) = -61
         let (raw, effective) =
-            AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 1);
-        assert_eq!(raw, -50);
-        assert_eq!(effective, -45);
+            AttackType::damage_by_atk(&target_stats, &launcher_stats, true, -35, 1);
+        assert_eq!(raw, -70);
+        assert_eq!(effective, -61);
 
         // nb_of_turns = 0 → (0, 0) to avoid division by zero
-        let (raw0, eff0) = AttackType::damage_by_atk(&target_stats, &launcher_stats, true, 50, 0);
+        let (raw0, eff0) = AttackType::damage_by_atk(&target_stats, &launcher_stats, true, -35, 0);
         assert_eq!(raw0, 0);
         assert_eq!(eff0, 0);
+
+        // launcher_pow = 0: power_factor = 1.0; raw = atk_value unchanged
+        let mut launcher_zero = Stats::default();
+        launcher_zero.init();
+        let (raw_z, _) = AttackType::damage_by_atk(&target_stats, &launcher_zero, true, -50, 1);
+        assert_eq!(raw_z, -50);
     }
 }

@@ -14,11 +14,11 @@
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 30,
+            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 30,
+                "value": 20,
                 "is-percent": true,
                 "stats-name": "Physical power",
                 "passive-enabled": false
@@ -31,11 +31,11 @@
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 15,
+            "Value": 10,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 15,
+                "value": 10,
                 "is-percent": true,
                 "stats-name": "Physical power",
                 "passive-enabled": false
@@ -48,11 +48,11 @@
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 30,
+            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 30,
+                "value": 20,
                 "is-percent": true,
                 "stats-name": "Magic power",
                 "passive-enabled": false
@@ -65,11 +65,11 @@
             "Tours actifs": 4,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 15,
+            "Value": 10,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 15,
+                "value": 10,
                 "is-percent": true,
                 "stats-name": "Magic power",
                 "passive-enabled": false
@@ -102,5 +102,5 @@
     "Regen vigueur": 0,
     "Soin": 0,
     "Description": "Mordor Fury — channels the rage of Mordor for a powerful, wide-area assault.",
-    "DescriptionEffects": "+30% max Physical power for 4 turns; +15% max Physical power on all allies for 4 turns; +30% max Magic power for 4 turns; +15% max Magic power on all allies for 4 turns; 6-turn cooldown."
+    "DescriptionEffects": "+20% max Physical power for 4 turns; +10% max Physical power on all allies for 4 turns; +20% max Magic power for 4 turns; +10% max Magic power on all allies for 4 turns; 6-turn cooldown."
 }

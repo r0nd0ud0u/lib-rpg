@@ -12,7 +12,7 @@
             "Tours actifs": 1,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -41,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false

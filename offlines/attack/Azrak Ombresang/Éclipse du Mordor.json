@@ -11,11 +11,11 @@
             "Tours actifs": 1,
             "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -400,
+            "Value": -280,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -400,
+                "value": -250,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -28,11 +28,11 @@
             "Tours actifs": 3,
             "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
-            "Value": 25,
+            "Value": 15,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "DamageRxPercent",
-                "value": 25,
+                "value": 15,
                 "is-percent": true,
                 "stats-name": "",
                 "passive-enabled": false
@@ -80,5 +80,5 @@
     "Portée": "Zone",
     "Sound": "kamehameha.mp3",
     "Description": "Mordor Eclipse — cloaks the battlefield in shadow, dealing dark damage and reducing enemy accuracy.",
-    "DescriptionEffects": "Deals 400 physical damage to all enemies; +25% damage taken by all allies for 3 turns; 10-turn cooldown; +25% healing dealt for 3 turns."
+    "DescriptionEffects": "Deals 280 physical damage to all enemies; +15% damage taken by all allies for 3 turns; 10-turn cooldown; +25% healing dealt for 3 turns."
 }

@@ -15,7 +15,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -80,
+                "value": -82,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -39,17 +39,17 @@
             }
         },
         {
-            "Cible": "",
-            "Portée": "",
-            "Stat": "",
+            "Cible": "Enemy",
+            "Portée": "Individual",
+            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "",
+            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 0,
+            "Value": -35,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -41,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false

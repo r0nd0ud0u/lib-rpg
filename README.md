@@ -138,10 +138,11 @@ If the condition is not met, `can_be_launched` returns `false` and the attack is
 
 | Attack | Target | Key mechanics |
 |---|---|---|
-| **Frappe élémentaire** | 1 Enemy | −70 magic HP; may repeat with 50 % chance if Elara healed last turn (`RepeatIfHeal`) |
+| **Frappe élémentaire** | 1 Enemy | −76 magic HP; may repeat with 50 % chance if Elara healed last turn (`RepeatIfHeal`) |
 | **Don de vie** | 1 Ally | `DecreasingRateOnTurn` (1–3 × decreasing rate); ally +30 % HP, self −15 % HP, ally +25 % max mag/phy power |
 | **Lumiere curative** | 1 Ally | Requires `ConditionDamagePrevTurn`; ally +(130 + Elara's magical power) HP |
 | **Non sans raison** | All Allies | All allies +100 % HP; `AddAsMuchAsHp` power boost 3 t; `BlockHealAtk` on Elara 3 t; free (0 mana) |
+| **Fleur de vie sanguinaire** | 1 Ally + 1 Enemy | Per tick: `(25 + mag_pow) / 3`; ×3 if Elara dealt damage last turn (`ConditionDamagePrevTurn` + `MultiValue`, applied via `heal_multiplier` after power formula); enemy −35 HP/turn for 2 t; 5-turn cooldown |
 
 #### Thraïn's attacks
 
@@ -149,7 +150,7 @@ If the condition is not met, `can_be_launched` returns `false` and the attack is
 |---|---|---|---|
 | **Enchaînement Furieux** | 20 Berserk | 1 Enemy | `RepeatAsManyAsPossible`: fires `floor(berserk / actual_cost).max(1)` times where `actual_cost = 20 × max / 100`; each hit deals 50 physical HP damage bypassing armor; all repeats drain rage |
 | **Provocation Féroce** | Free | Self + Allies | Self +12 Berserk; self +10 Aggro; `ReinitBuf` Aggro on all allies; self +40 max Critical strike for 3 t; 5-turn cooldown |
-| **Tourbillon Destructeur** | 15 Berserk | All Enemies | All enemies −60 physical HP (armor formula applies); self +5 Aggro; self +100 % max Berserk rate for 4 t |
+| **Tourbillon Destructeur** | 15 Berserk | All Enemies | All enemies −67 physical HP (armor formula applies); self +5 Aggro; self +100 % max Berserk rate for 4 t |
 
 ##### `RepeatAsManyAsPossible`
 
@@ -195,17 +196,19 @@ Scenarios are filtered by universe at game initialisation and when the universe 
 Returns `(raw_damage, effective_damage)`:
 
 ```
-raw_damage     = atk_value − (launcher_power / nb_turns)
-effective      = round(raw_damage × ARMOR_FACTOR / (ARMOR_FACTOR + target_armor))
+power_factor   = 1 + launcher_power / POWER_SCALE
+raw_damage     = round(atk_value × power_factor)
+defense        = target_armor + target_power / DEFENSE_DIVISOR
+effective      = round(raw_damage × ARMOR_FACTOR / (ARMOR_FACTOR + defense))
 ```
 
+- `POWER_SCALE = 100.0` — at 100 launcher power, damage doubles; at 200 it triples
+- `DEFENSE_DIVISOR = 4.0` — target physical/magical power contributes to defense (25 pts per 100 power)
 - `ARMOR_FACTOR = 100.0` — armor equal to this value halves incoming damage
 - Both values are **negative** for damage, **positive** for healing
-- `raw_damage` is logged as "full" damage (before armor); `effective_damage` is applied to HP
+- `raw_damage` is logged as "full" damage (before defense); `effective_damage` is applied to HP
 
-**Armor scaling:** at ARMOR_FACTOR = 100 and hero armor in the 0–90 range, a 50 % armor buff gives ~9–10 % less damage taken (vs ~2 % with the former constant of 1000).
-
-**Boss armor** is scaled to preserve hero–boss balance at the new constant (e.g. Angmar 800 → 80 still absorbs ~44 % of hero attacks).
+**Attack base values** (the JSON `"Value"` field) are calibrated to preserve the approximate damage output of the old additive formula at the character's typical power level. `RepeatAsManyAsPossible` attacks bypass `damage_by_atk` entirely and use `atk_value` directly — their base values must **not** be scaled.
 
 ### Combat log
 
@@ -231,6 +234,118 @@ is consistent. The gameboard renders `passive_logs` separately below the per-eff
 
 ---
 
+## Hero Balance (LOTR roster)
+
+The four LOTR heroes are balanced around the following roles:
+
+| Hero | Role | Primary resource |
+|------|------|-----------------|
+| Azrak Ombresang | Physical/Dark damage dealer + debuffer | Mana + Vigor |
+| Thalia | Druid — HOT healer + nature buffs | Mana |
+| Elara la guerisseuse | Pure healer — burst heal + sacrifice | Mana |
+| Thraïn | Berserker tank — taunt + armor + provoke | Berserk |
+
+### Azrak Ombresang
+- **Base stats**: 145 HP · 10 Physical armor · Vigor regen 5/turn
+- **Passive** (`OverHealBoostStat`): overheal received → bonus Physical power (value 15)
+- **Key attack changes**: Furie du Mordor reduced to +20%/+10% power (self/allies); Récupération Mordorienne fixed (values were 0, now +15%/+20%/+25% HP/Mana/Vigor on 20-kill threshold); Fracas des Abysses now restores 20 flat Vigor instead of +200% regen on a zero base; Flèche de la Montagne du Destin DmgRx reduced 100→60% and bonus changed to +20 Physical power; Lame de Morgul DoT reduced to -75/t×4 and DmgRx +30→+20%; Éclipse du Mordor damage 400→280, party DmgRx debuff 25→15%; Chaînes de la Rage 3rd effect target fixed.
+
+### Thalia
+- **Passive** (`ChangeMaxStatByPercentage`): +5% max Magic power permanently (nature affinity)
+- **Key attack changes**: Rameau Guérisseur mana 20→13; Fleur de l'Espoir -5 Dodge ally penalty removed; Sève Régénératrice mana 10→18 (was underpriced for 120 instant heal + ReinitBuf); Arbre de Vie mana 9→18, power buffs +20%/+30%→+15%/+20%
+
+### Elara la guerisseuse
+- **Base stats**: Speed 8→9 · Mana regen 5→8 · Vigor removed from energies (was 0/0 placeholder)
+- **Key attack changes**: Eclat d'espoir HP heal 30→20%, mana 18→12; Offrande vitale cooldown 2→3; Rayon astral +2-turn cooldown added; Benediction de la Lorien mana regen bonus 500→15 flat (was game-breaking); Nova etherée damage 150→110, phantom 3rd effect removed; Prière du desespoir armor 100→75%, power 100→60%; Non sans raison mana cost 0→24% (ultimate now has a real cost)
+
+### Thraïn
+- **Base stats**: Berserk rate 0→5/turn (passive buildup enables Tourbillon Destructeur's rate-boost to be meaningful)
+- **Passive** (`ChangeCurrentStatByPercentage`): kind field corrected from `ChangeCurrentStatByValue` to match README documentation; +10% Dodge permanently
+- **Key attack changes**: Fracas Marteau damage -25→-35; Cor d'Erebor HP boost +25→+15%; Coup Puissant berserk cost 20→15; Folie des profondeurs self-HP penalty -30→-20%; Fracassage de crâne DamageRxPercent -20→+20 (was accidentally reducing enemy's incoming damage instead of increasing it)
+
+---
+
+## Boss Balance (LOTR roster)
+
+Bosses for the 10 LOTR scenarios, scaled by difficulty tier:
+
+| Boss | Stage(s) | HP | Tier |
+|------|----------|----|------|
+| Gobelin Eclaireur | 1, 2, 4, 6, 8 | 300 | Common |
+| Angmar10PV | 2 | 10 | Common (tutorial) |
+| Orc Pillard | 3, 4 | 1 500 | Common |
+| Champion Orc | 5, 6 | 5 000 | Intermediate |
+| Necromancien du Mordor | 7, 8 | 10 000 | Intermediate |
+| Nazgul | 9 | 25 000 | Advanced |
+| Sauron l'Oeil Flamboyant | 10 | 50 000 + 100 regen/turn | Advanced |
+
+### Changes applied
+
+**Gobelin Eclaireur / Griffure**: `Tours actifs` 3→1 — was a 3-turn DoT for 105 total damage at stage 1 (too high for intro). Now instant -35 physical. Description updated to match.
+
+**Champion Orc / Charge**: Description corrected from "physical damage" to "magic damage" (`IsMagicEffect: true` was always set).
+
+**Necromancien du Mordor / Malédiction des Morts**: DoT -80/turn → -50/turn (3 turns, AoE). Was -720 total party damage per cast, now -450 — survivable with a healer.
+
+**Nazgul / Lame du Spectre**: -300 physical single target → -220. Most heroes have 450–600 HP; -300 was near-instant kill even for Thraïn after armor. -220 is still a heavy threat.
+
+**Sauron l'Oeil Flamboyant**:
+- Physical armor: 800→80, Magical armor: 800→60. At 800 armor the boss absorbed ~89% of all incoming damage (final_dmg = raw × 100/900 ≈ 11%) making him unkillable. At 80/60, physical hits do ~55% effective and magic ~62% — very tanky but beatable. HP regen 100/turn is kept as a signature final-boss mechanic.
+- Frappe Corrompue: -450 physical → -350. Still lethal but doesn't instant-kill every hero.
+- Malédiction Ancienne: -120/turn → -80/turn (4-turn AoE DoT). Was -1920 total party damage per cast, now -1280 — devastating but survives with healer focus.
+
+---
+
+## Equipment & Loot
+
+### Equipment tiers
+
+Two tiers of body equipment exist (`starting_*` and `medium_*`). Stats roughly double between tiers.
+
+| Slot | Starting bonus | Medium bonus |
+|------|---------------|-------------|
+| Belt | Physical power +10 | Physical power +20 |
+| LeftWeapon | Physical power +10 | Physical power +20 |
+| RightWeapon | Physical power +10 | Physical power +20 |
+| LeftRing | Berserk +10 | Berserk +20 |
+| RightRing | HP regeneration +5 | Vigor +20 |
+| Gloves | Magical power +10 | Magical power +20 |
+| Amulet | Dodge +4 · Mana +10 | Dodge +4 · Mana +20 |
+| Chest | Magical armor +5 · Physical armor +5 | Magical armor +10 · Physical armor +5 |
+| Pants | Physical armor +10 | Physical armor +20 |
+| Head | Physical armor +10 | — (no medium tier) |
+| Shoes | Dodge +10 | Dodge +20 |
+| Cape | Dodge +10 | — (no medium tier) |
+| Tattoes | Class-specific (all zero in starter slot) | — |
+
+### Loot progression across 10 stages
+
+| Stage | Warrior/Berserker | Healer/Mage | Gold |
+|-------|------------------|-------------|------|
+| 1 | — | — | 30 |
+| 2 | medium belt | — | 50 |
+| 3 | — | medium amulet | 70 |
+| 4 | medium pants | — | 90 |
+| 5 | — | medium pants + medium belt | 150 |
+| 6 | medium shoes | — | 200 |
+| 7 | — | medium shoes | 250 |
+| 8 | medium left ring | medium right ring | 300 |
+| 9 | medium right ring | medium left ring | 500 |
+| 10 | medium gloves | medium gloves | 1 000 |
+
+Slots never awarded as loot (store-only): Chest, Head, Cape, LeftWeapon, RightWeapon.
+
+### Bug fixes applied
+
+- **`starting_right_ring.json` created** — all heroes referenced "starting right ring" but the file did not exist; slot was silently empty. Now gives HP regeneration +5.
+- **`starting_right_weapon.json` created** — same issue for RightWeapon. Now gives Physical power +10.
+- **`starting_tattoo.json` created** — Elara's equipment file referenced "starting tattoo" which didn't exist.
+- **`medium_gloves.json` Nom fixed** — file had `Nom/Nom unique: "starting gloves"`, causing stage 10 loot drops to silently fail (no item matched "medium gloves"). Fixed to "medium gloves".
+- **`meidum_right_weapon.json` renamed** to `medium_right_weapon.json` (filename typo).
+- **Stage 5 duplicate amulet removed** — stages 3 and 5 both dropped "medium amulet" for Healer/Mage. Stage 5 second slot changed to "medium belt" (Physical power +20), giving mage/healer classes an offensive upgrade they never otherwise received.
+
+---
+
 ## Building & Testing
 
 ```bash
@@ -239,7 +354,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 279 tests should pass with no warnings.
+All 297 tests should pass with no warnings.
 
 ---
 
@@ -278,6 +393,43 @@ All 279 tests should pass with no warnings.
 ### Offrande vitale — apparent lack of armor buff impact
 
 The +50% magic/physical armor buff on the target is applied correctly: `set_stats_on_effect` updates `buf_effect_percent` and `recompute_stat_max_and_current` raises the max from 50 → 75. The limited visible damage reduction (~2%) is by design — the armor formula `1000 / (1000 + armor)` yields diminishing returns at low armor values.
+
+### `real_amount_tx` always 0 for energy stats (mana, vigor, berserk potions)
+
+**Root cause:** `apply_processed_effect_param` computed `real_dmg_amount` using an `else` branch that returned `real_hp_amount` for all non-negative `apply_result` cases. `real_hp_amount` is always 0 for non-HP stats, so energy potions reported no stat change even though the stat was correctly updated.
+
+**Fix:** Added `is_max_stat_effect` and stat-name checks to route energy stat changes (`ChangeCurrentStatByValue` on non-HP stats) through `full_amount.min(apply_result)`. `apply_effect_full_amount` returns `full_amount - overhead_dmg` where `overhead_dmg = new_value - max`; taking the min handles both "room available" (large result → clamped to `full_amount`) and "overflow" (small result → actual amount added) cases.
+
+### `MultiValue` multiplier applied after power-scaled HOT formula
+
+`MultiValue` (used by *Fleur de vie sanguinaire* for the ×3 heal when Elara dealt damage last turn) is stored in the **launcher's** `character_rounds_info.all_buffers`. `apply_buf_debuf` runs on the **target's** `character_rounds_info` and cannot reach the launcher's buffer.
+
+**Key constraint:** the HOT formula in `is_receiving_atk` is `(buffer.value + magical_power) / nb_turns`. Multiplying `buffer.value` before this formula gives the wrong result because the division by `nb_turns` partially cancels the multiplication (e.g. at power=36: `(75+36)/3 = 37` instead of the intended `(25+36)/3 × 3 = 60`).
+
+**Fix (implemented):**
+- `ProcessedEffectParam` carries a new `heal_multiplier: i64` field (default 1).
+- `process_all_effects` (character.rs) sets `heal_multiplier = 3` on the heal `ProcessedEffectParam` when a `MultiValue` effect immediately precedes it. `buffer.value` is left untouched.
+- `is_receiving_atk` multiplies `full_amount` by `heal_multiplier` **after** the power-scaled formula evaluates, so `(25 + pow) / 3 × 3 = 25 + pow` per tick.
+
+Unit tests: `unit_fleur_de_vie_multiplier_carried_in_heal_multiplier`, `unit_fleur_de_vie_multiplier_no_carry_when_condition_fails`.
+
+---
+
+## Catalog consumables
+
+The shop (`shop/mod.rs`) exposes 7 catalog consumables usable during combat via `use_consumable` / `apply_consumable_effects`:
+
+| Name | Stat | Amount | Notes |
+|------|------|--------|-------|
+| potion | HP | +20 + physical\_power | Physical power of launcher added at use time |
+| super potion | HP | +60 + physical\_power | |
+| hyper potion | HP | +120 + physical\_power | |
+| potion de résurrection | HP | +50 flat | No power scaling (`BufKinds::Resurrect`) |
+| potion de mana | Mana | +30 | Current stat; capped at max |
+| potion de vigueur | Vigor | +30 | Current stat; capped at max |
+| potion de berserk | Berserk | +30 | Current stat; capped at max |
+
+All seven are covered by `unit_all_catalog_consumables_work_during_fight` in `character_mod/character.rs`.
 
 ---
 

@@ -34,6 +34,10 @@ pub struct CoreGameData {
     /// Shop catalog — items available for purchase and their prices
     #[serde(default)]
     pub shop_catalog: Vec<ShopCatalogItem>,
+    /// Display hint for the action banner (consumable use, etc.).
+    /// Empty after a real attack (banner reads from last_result_atk instead).
+    #[serde(default)]
+    pub last_action_header: String,
 }
 
 impl CoreGameData {
@@ -64,6 +68,7 @@ impl CoreGameData {
             universe: String::new(),
             loaded_from_save: false,
             shop_catalog: dm.shop_catalog.clone(),
+            last_action_header: String::new(),
         })
     }
 

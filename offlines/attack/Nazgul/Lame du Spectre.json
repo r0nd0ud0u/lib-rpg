@@ -14,7 +14,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -300,
+                "value": -127,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -27,5 +27,5 @@
     "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "Wraith Blade — a spectral sword cuts through armor, dealing dark physical damage.",
-    "DescriptionEffects": "Deals 300 physical damage to one enemy."
+    "DescriptionEffects": "Deals 220 physical damage to one enemy."
 }

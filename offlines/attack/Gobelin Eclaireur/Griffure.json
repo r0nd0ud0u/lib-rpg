@@ -9,12 +9,12 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Tours actifs": 3,
+            "Tours actifs": 1,
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -54,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -27,5 +27,5 @@
     "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "Scratch — quick claws raking across flesh for minor damage.",
-    "DescriptionEffects": "Deals 45 physical damage to one enemy."
+    "DescriptionEffects": "Deals 35 physical damage to one enemy."
 }

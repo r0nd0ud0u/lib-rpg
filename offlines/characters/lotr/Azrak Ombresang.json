@@ -13,7 +13,7 @@
                 "passive-enabled": true,
                 "passive": true,
                 "kind": "OverHealBoostStat",
-                "value": 0
+                "value": 15
             }
         ]
     },
@@ -74,8 +74,8 @@
             "Max": 0
         },
         "Physical armor": {
-            "Current": 0,
-            "Max": 0
+            "Current": 10,
+            "Max": 10
         },
         "Physical power": {
             "Current": 20,
@@ -94,8 +94,8 @@
             "Max": 130
         },
         "Vigor regeneration": {
-            "Current": 0,
-            "Max": 0
+            "Current": 5,
+            "Max": 5
         }
     },
     "Tx-rx": [

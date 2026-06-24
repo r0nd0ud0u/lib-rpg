@@ -14,7 +14,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -450,
+                "value": -142,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -27,5 +27,5 @@
     "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "Corrupted Strike — a dark energy strike that corrodes and drains life.",
-    "DescriptionEffects": "Deals 450 physical damage to one enemy."
+    "DescriptionEffects": "Deals 350 physical damage to one enemy."
 }

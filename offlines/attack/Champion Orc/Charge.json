@@ -14,7 +14,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -35,
+                "value": -62,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -26,6 +26,6 @@
     "Nom": "Charge",
     "Photo": "Charge.png",
     "Portée": "Individual",
-    "Description": "A basic strike dealing physical damage.",
+    "Description": "A basic strike dealing magic damage.",
     "DescriptionEffects": "Deals 35 magic damage to one enemy."
 }

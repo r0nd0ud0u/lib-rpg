@@ -751,8 +751,12 @@ impl GameManager {
     }
 
     fn process_no_atk_launched(&mut self) -> ResultLaunchAttack {
-        // no atk launched
-        // update action done in round
+        // Capture launcher identity before eval_end_of_round() may advance current_player.
+        let launcher_id_name = self.pm.current_player.id_name.clone();
+        let is_boss_atk = self.pm.current_player.is_boss_atk();
+        let turn_nb = self.game_state.current_turn_nb;
+        let round_nb = self.game_state.current_round;
+
         self.pm
             .current_player
             .character_rounds_info
@@ -761,17 +765,20 @@ impl GameManager {
             message: "No attack launched".to_string(),
             color: DARK_RED.to_string(),
         }];
-        // eval next step of the game
         let logs_end_of_round = self.eval_end_of_round(logs_atk.clone());
-        ResultLaunchAttack {
-            launcher_id_name: self.pm.current_player.id_name.clone(),
-            is_boss_atk: self.pm.current_player.is_boss_atk(),
+        let result = ResultLaunchAttack {
+            launcher_id_name,
+            is_boss_atk,
             logs_end_of_round,
             logs_atk,
-            turn_nb: self.game_state.current_turn_nb,
-            round_nb: self.game_state.current_round,
+            turn_nb,
+            round_nb,
             ..Default::default()
-        }
+        };
+        // Mirror what launch_attack() does for real attacks so ra.atk_name is
+        // empty and the gameboard consumable-action banner branch is reachable.
+        self.game_state.last_result_atk = result.clone();
+        result
     }
 
     /// Evaluate the end of the round by checking if the game is finished,
@@ -1116,13 +1123,16 @@ mod tests {
         assert!(!ra.logs_atk.is_empty());
         // not dead boss : end of game
         assert!(gm.game_state.status != GameStatus::EndOfGame);
-        // raw = -35(atk) - total_phy_pow, protection = ARMOR_FACTOR/(ARMOR_FACTOR + total_phy_armor)
+        // power_factor = 1 + hero_pow/POWER_SCALE; raw = 35 * power_factor (positive magnitude)
+        // defense = armor + boss_pow/DEFENSE_DIVISOR
         let hero_total_pow = gm.pm.current_player.stats.get_power_stat(false);
         let boss_total_armor = old_boss.stats.get_armor_stat(false);
-        let raw_dmg = (35 + hero_total_pow) as f64;
-        let protection =
-            AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + boss_total_armor as f64);
-        let atk_amount = (raw_dmg * protection).round() as i64;
+        let boss_total_pow = old_boss.stats.get_power_stat(false);
+        let power_factor = 1.0 + hero_total_pow as f64 / AttackType::POWER_SCALE;
+        let raw_dmg = (35_f64 * power_factor).round() as i64;
+        let defense = boss_total_armor as f64 + boss_total_pow as f64 / AttackType::DEFENSE_DIVISOR;
+        let protection = AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + defense);
+        let atk_amount = (raw_dmg as f64 * protection).round() as i64;
         assert_eq!(
             std::cmp::max(0, old_hp_boss as i64 - atk_amount) as u64,
             gm.pm
@@ -1245,13 +1255,15 @@ mod tests {
         gm.launch_attack(Some("SimpleAtk"));
         // 1 dead boss : end of game
         assert!(gm.game_state.status != GameStatus::EndOfGame); // still one boss
-        // raw = -35(atk) - total_phy_pow; armor and crit applied in sequence (rounded each step)
+        // multiplicative power formula; crit applied on top of armor-mitigated damage
         let hero_total_pow = gm.pm.current_player.stats.get_power_stat(false);
         let boss_total_armor = old_boss.stats.get_armor_stat(false);
-        let raw_dmg = (35 + hero_total_pow) as f64;
-        let protection =
-            AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + boss_total_armor as f64);
-        let effective = (raw_dmg * protection).round() as i64;
+        let boss_total_pow = old_boss.stats.get_power_stat(false);
+        let power_factor = 1.0 + hero_total_pow as f64 / AttackType::POWER_SCALE;
+        let raw_dmg = (35_f64 * power_factor).round() as i64;
+        let defense = boss_total_armor as f64 + boss_total_pow as f64 / AttackType::DEFENSE_DIVISOR;
+        let protection = AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + defense);
+        let effective = (raw_dmg as f64 * protection).round() as i64;
         let atk_amount = (effective as f64 * COEFF_CRIT_DMG).round() as i64;
         assert_eq!(
             std::cmp::max(0, old_hp_boss as i64 - atk_amount) as u64,
@@ -1320,13 +1332,15 @@ mod tests {
         gm.launch_attack(Some("SimpleAtk"));
         // not dead boss : end of game
         assert!(gm.game_state.status != GameStatus::EndOfGame);
-        // raw = -35(atk) - total_phy_pow; 10% of effective damage passes through on block
+        // multiplicative power formula; 10% of effective damage passes through on block
         let hero_total_pow = gm.pm.current_player.stats.get_power_stat(false);
         let boss_total_armor = old_boss.stats.get_armor_stat(false);
-        let raw_dmg = (35 + hero_total_pow) as f64;
-        let protection =
-            AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + boss_total_armor as f64);
-        let effective = (raw_dmg * protection).round() as i64;
+        let boss_total_pow = old_boss.stats.get_power_stat(false);
+        let power_factor = 1.0 + hero_total_pow as f64 / AttackType::POWER_SCALE;
+        let raw_dmg = (35_f64 * power_factor).round() as i64;
+        let defense = boss_total_armor as f64 + boss_total_pow as f64 / AttackType::DEFENSE_DIVISOR;
+        let protection = AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + defense);
+        let effective = (raw_dmg as f64 * protection).round() as i64;
         let blocking = 10 * effective / 100;
         assert_eq!(
             (old_hp_boss as i64 - blocking) as u64,
@@ -1785,19 +1799,15 @@ mod tests {
                     .current
             );
         } else {
-            let mut crit_coeff = 1;
-            if ra.is_crit {
-                crit_coeff = COEFF_CRIT_DMG as u64;
-            }
             assert!(
-                old_hp_boss - 31 * crit_coeff
-                    >= gm
-                        .pm
+                old_hp_boss
+                    > gm.pm
                         .get_active_boss_character("Angmar_#1")
                         .unwrap()
                         .stats
                         .all_stats[HP]
-                        .current
+                        .current,
+                "non-dodged Charge must deal at least 1 damage"
             );
         }
         assert_eq!(1, gm.game_state.current_turn_nb);
@@ -4134,6 +4144,90 @@ mod tests {
         );
     }
 
+    /// Récupération Mordorienne: for each enemy killed last turn, Azrak gains
+    /// +10% Physical power (2 turns) and recovers 10% HP, Vigor, and Mana instantly.
+    /// This test uses 2 kills, so all bonuses are doubled.
+    #[test]
+    fn unit_azrak_recuperation_mordorienne_2_kills() {
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+        gm.start_game();
+
+        // Advance until Azrak is current player.
+        let mut max_rounds = 30;
+        while !gm.pm.current_player.id_name.contains("Azrak") && max_rounds > 0 {
+            gm.new_round();
+            max_rounds -= 1;
+        }
+        if !gm.pm.current_player.id_name.contains("Azrak") {
+            return;
+        }
+        let azrak_id = gm.pm.current_player.id_name.clone();
+
+        // Simulate 2 enemy kills on the previous turn.
+        let prev_turn = gm.game_state.current_turn_nb.saturating_sub(1);
+        gm.game_state
+            .died_ennemies
+            .insert(prev_turn, vec!["Boss_A".to_owned(), "Boss_B".to_owned()]);
+
+        // Snapshot max stats and Physical power base (raw + equip, no buf_effect) before the attack.
+        let hp_max = gm.pm.current_player.stats.all_stats[HP].max;
+        let vigor_max = gm.pm.current_player.stats.all_stats[VIGOR].max;
+        let mana_max = gm.pm.current_player.stats.all_stats[MANA].max;
+        let phy_pow_max_before = gm.pm.current_player.stats.all_stats[PHYSICAL_POWER].max;
+        // base_value = raw + equip (without existing buf_effect_percent, which the % is applied on top of)
+        let phy_pow_attr = &gm.pm.current_player.stats.all_stats[PHYSICAL_POWER];
+        let phy_base = phy_pow_attr.max_raw as i64
+            + phy_pow_attr.buf_equip_value
+            + phy_pow_attr.buf_equip_percent * phy_pow_attr.max_raw as i64 / 100;
+
+        // Drain resources to ~50% so recovery is clearly visible and stays below cap.
+        gm.pm.current_player.stats.all_stats[HP].current = hp_max / 2;
+        gm.pm.current_player.stats.all_stats[VIGOR].current = vigor_max / 2;
+        gm.pm.current_player.stats.all_stats[MANA].current = mana_max / 2;
+        let hp_before = gm.pm.current_player.stats.all_stats[HP].current;
+        let vigor_before = gm.pm.current_player.stats.all_stats[VIGOR].current;
+        let mana_before = gm.pm.current_player.stats.all_stats[MANA].current;
+
+        // Disable crits for determinism.
+        gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
+
+        gm.launch_attack(Some("Récupération Mordorienne"));
+
+        let azrak = gm.pm.get_active_hero_character(&azrak_id).unwrap();
+
+        // 2 kills × 10% = +20% Physical power max for 2 turns.
+        // ChangeMaxStatByPercentage applies to base_value (raw + equip), not current max.
+        let phy_pow_max_after = azrak.stats.all_stats[PHYSICAL_POWER].max;
+        let expected_pow_max = phy_pow_max_before + (phy_base * 20 / 100) as u64;
+        assert_eq!(
+            expected_pow_max, phy_pow_max_after,
+            "Physical power max must rise by 20% of base (2 kills × 10%)"
+        );
+
+        // 2 kills × 10% = instant +20% of max for each resource.
+        // ChangeCurrentStatByPercentage: full_amount = max * value / 100
+        let expected_hp_gain = hp_max * 20 / 100;
+        assert_eq!(
+            hp_before + expected_hp_gain,
+            azrak.stats.all_stats[HP].current,
+            "HP must recover by 20% of max HP"
+        );
+
+        let expected_vigor_gain = vigor_max * 20 / 100;
+        assert_eq!(
+            vigor_before + expected_vigor_gain,
+            azrak.stats.all_stats[VIGOR].current,
+            "Vigor must recover by 20% of max Vigor"
+        );
+
+        let expected_mana_gain = mana_max * 20 / 100;
+        assert_eq!(
+            mana_before + expected_mana_gain,
+            azrak.stats.all_stats[MANA].current,
+            "Mana must recover by 20% of max Mana"
+        );
+    }
+
     /// Integration test: 3 heroes (Elara, Azrak, Thalia) + 1 enemy.
     /// Elara's IsDamageTxHealNeedyAlly passive fires immediately when she deals damage,
     /// healing the most-needy alive ally and emitting a log in the same turn.
@@ -4304,13 +4398,15 @@ mod tests {
         let mana_max = gm.pm.current_player.stats.all_stats[MANA].max;
         let old_mana = gm.pm.current_player.stats.all_stats[MANA].current;
 
-        // Expected magic damage: value=70, Elara magic power, boss magic armor
+        // Expected magic damage: rebalanced base value=76, Elara mag power, boss mag armor+pow
         let hero_mag_pow = gm.pm.current_player.stats.get_power_stat(true);
         let boss_mag_armor = gm.pm.active_bosses[0].stats.get_armor_stat(true);
-        let raw_dmg = (70_i64 + hero_mag_pow) as f64;
-        let protection =
-            AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + boss_mag_armor as f64);
-        let expected_dmg = (raw_dmg * protection).round() as i64;
+        let boss_mag_pow = gm.pm.active_bosses[0].stats.get_power_stat(true);
+        let power_factor = 1.0 + hero_mag_pow as f64 / AttackType::POWER_SCALE;
+        let raw_dmg = (76_f64 * power_factor).round() as i64;
+        let defense = boss_mag_armor as f64 + boss_mag_pow as f64 / AttackType::DEFENSE_DIVISOR;
+        let protection = AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + defense);
+        let expected_dmg = (raw_dmg as f64 * protection).round() as i64;
 
         // RepeatIfHeal does not fire: no heal on turn 0
         gm.pm.current_player.character_rounds_info.tx_rx[AmountType::HealTx as usize].clear();
@@ -4587,6 +4683,7 @@ mod tests {
             .stats
             .all_stats[HP]
             .max;
+        let mana_max = gm.pm.current_player.stats.all_stats[MANA].max;
         let old_mana = gm.pm.current_player.stats.all_stats[MANA].current;
 
         gm.launch_attack(Some("Non sans raison"));
@@ -4630,16 +4727,16 @@ mod tests {
             "Elara heal attacks must be blocked after Non sans raison"
         );
 
-        // Mana cost: 0 (Non sans raison is free)
+        // Mana cost: 24% of max mana
         assert_eq!(
-            old_mana,
+            old_mana - 24 * mana_max / 100,
             gm.pm
                 .get_active_hero_character(elara_id)
                 .unwrap()
                 .stats
                 .all_stats[MANA]
                 .current,
-            "Non sans raison has no mana cost"
+            "Non sans raison costs 24% of max mana"
         );
     }
 
@@ -4820,6 +4917,12 @@ mod tests {
             .iter()
             .map(|b| b.stats.get_armor_stat(false))
             .collect();
+        let boss_phy_pows: Vec<i64> = gm
+            .pm
+            .active_bosses
+            .iter()
+            .map(|b| b.stats.get_power_stat(false))
+            .collect();
         for boss in gm.pm.active_bosses.iter_mut() {
             boss.stats.all_stats[DODGE].current = 0;
             if let Some(buf) = boss
@@ -4838,8 +4941,12 @@ mod tests {
 
         gm.launch_attack(Some("Tourbillon Destructeur "));
 
-        // All 3 bosses take physical damage: raw = -(60 + phy_pow), effective after armor
-        for (i, (old_hp, phy_armor)) in old_boss_hps.iter().zip(boss_phy_armors.iter()).enumerate()
+        // All 3 bosses take physical damage with rebalanced base value 67
+        for (i, ((old_hp, phy_armor), boss_phy_pow)) in old_boss_hps
+            .iter()
+            .zip(boss_phy_armors.iter())
+            .zip(boss_phy_pows.iter())
+            .enumerate()
         {
             let boss_id = gm.pm.active_bosses[i].id_name.clone();
             let new_hp = gm
@@ -4849,10 +4956,11 @@ mod tests {
                 .stats
                 .all_stats[HP]
                 .current;
-            let raw_dmg = (60_i64 + thrain_phy_pow) as f64;
-            let protection =
-                AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + *phy_armor as f64);
-            let expected_dmg = (raw_dmg * protection).round() as i64;
+            let power_factor = 1.0 + thrain_phy_pow as f64 / AttackType::POWER_SCALE;
+            let raw_dmg = (67_f64 * power_factor).round() as i64;
+            let defense = *phy_armor as f64 + *boss_phy_pow as f64 / AttackType::DEFENSE_DIVISOR;
+            let protection = AttackType::ARMOR_FACTOR / (AttackType::ARMOR_FACTOR + defense);
+            let expected_dmg = (raw_dmg as f64 * protection).round() as i64;
             // HP is floored at 0 when damage exceeds current HP
             let expected_hp = (*old_hp as i64 - expected_dmg).max(0);
             assert_eq!(

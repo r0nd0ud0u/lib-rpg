@@ -1,7 +1,7 @@
 {
-    "Categorie": "Gloves",
-    "Nom": "medium gloves",
-    "Nom unique": "medium gloves",
+    "Categorie": "RightWeapon",
+    "Nom": "starting right weapon",
+    "Nom unique": "starting right weapon",
     "Stats": {
         "Aggro": {
             "equip_percent": 0,
@@ -41,7 +41,7 @@
         },
         "Magical power": {
             "equip_percent": 0,
-            "equip_value": 20
+            "equip_value": 0
         },
         "Mana": {
             "equip_percent": 0,
@@ -57,7 +57,7 @@
         },
         "Physical power": {
             "equip_percent": 0,
-            "equip_value": 0
+            "equip_value": 10
         },
         "Speed": {
             "equip_percent": 0,
@@ -77,4 +77,3 @@
         }
     }
 }
-

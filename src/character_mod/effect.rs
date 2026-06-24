@@ -5,7 +5,7 @@ use crate::{
     character_mod::buffers::{BufKinds, Buffer},
     common::{
         constants::{
-            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+            all_target_const::TARGET_ALLY,
             reach_const::{INDIVIDUAL, ZONE},
             stats_const::HP,
         },
@@ -55,7 +55,7 @@ pub struct EffectParam {
     pub is_passive: bool,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ProcessedEffectParam {
     pub input_effect_param: EffectParam,
@@ -64,6 +64,22 @@ pub struct ProcessedEffectParam {
     /// Number of applies
     pub number_of_applies: i64,
     pub log: LogData,
+    /// MultiValue multiplier to apply after the power-scaled formula in is_receiving_atk.
+    /// Defaults to 1 (no multiplication). Set by process_all_effects when a MultiValue
+    /// effect precedes a heal effect so the multiplier survives the launcher→target boundary.
+    pub heal_multiplier: i64,
+}
+
+impl Default for ProcessedEffectParam {
+    fn default() -> Self {
+        Self {
+            input_effect_param: EffectParam::default(),
+            counter_turn: 0,
+            number_of_applies: 0,
+            log: LogData::default(),
+            heal_multiplier: 1,
+        }
+    }
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -207,7 +223,7 @@ pub fn build_resurrect_effect(value: i64) -> EffectParam {
 pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
     EffectParam {
         nb_turns: 1,
-        target_kind: TARGET_ENNEMY.to_owned(),
+        target_kind: TARGET_ALLY.to_owned(),
         reach: if is_zone {
             ZONE.to_owned()
         } else {
@@ -227,7 +243,10 @@ pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
 mod tests {
     use crate::{
         character_mod::target::is_target_ally,
-        common::constants::{all_target_const::TARGET_ALLY, reach_const::ZONE},
+        common::constants::{
+            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+            reach_const::ZONE,
+        },
     };
 
     use super::*;

@@ -15,7 +15,7 @@
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStatByPercentage",
-                "value": -49,
+                "value": -59,
                 "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -28,11 +28,11 @@
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 100,
+            "Value": 75,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 100,
+                "value": 75,
                 "is-percent": true,
                 "stats-name": "Magic armor",
                 "passive-enabled": false
@@ -45,11 +45,11 @@
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 100,
+            "Value": 75,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 100,
+                "value": 75,
                 "is-percent": true,
                 "stats-name": "Physical armor",
                 "passive-enabled": false
@@ -62,11 +62,11 @@
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 100,
+            "Value": 60,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 100,
+                "value": 60,
                 "is-percent": true,
                 "stats-name": "Magic power",
                 "passive-enabled": false
@@ -79,11 +79,11 @@
             "Tours actifs": 3,
             "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 100,
+            "Value": 60,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 100,
+                "value": 60,
                 "is-percent": true,
                 "stats-name": "Physical power",
                 "passive-enabled": false
@@ -114,5 +114,5 @@
     "Portée": "Zone",
     "Sound": "",
     "Description": "Prayer of Despair — a desperate prayer that channels divine energy for a powerful emergency heal.",
-    "DescriptionEffects": "Deals 49% magic damage to self; +100% max Magic armor on all allies for 3 turns; +100% max Physical armor on all allies for 3 turns; +100% max Magic power on all allies for 3 turns; +100% max Physical power on all allies for 3 turns; 6-turn cooldown."
+    "DescriptionEffects": "Deals 49% magic damage to self; +75% max Magic armor on all allies for 3 turns; +75% max Physical armor on all allies for 3 turns; +60% max Magic power on all allies for 3 turns; +60% max Physical power on all allies for 3 turns; 6-turn cooldown."
 }

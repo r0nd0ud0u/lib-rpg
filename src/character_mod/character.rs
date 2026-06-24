@@ -29,7 +29,7 @@ use crate::{
         },
         log_data::{
             LogData,
-            const_colors::{DARK_RED, LIGHT_GREEN},
+            const_colors::{DARK_RED, LIGHT_GREEN, MUTED_GREY},
         },
     },
     server::{
@@ -486,6 +486,11 @@ impl Character {
             full_amount =
                 processed_ep.number_of_applies * processed_ep.input_effect_param.buffer.value;
         }
+        // Apply heal_multiplier (from MultiValue) after the power-scaled formula so the
+        // multiplier acts on the already-computed per-tick amount, not the raw buffer.value.
+        if processed_ep.heal_multiplier > 1 && full_amount > 0 {
+            full_amount *= processed_ep.heal_multiplier;
+        }
         // Apply buf/debuf, crit, blocking on damages/heal
         // Skip for ChangeMaxStat* effects on HP — those modify max HP, not current HP
         let is_max_stat_effect = processed_ep.input_effect_param.buffer.kind
@@ -534,13 +539,21 @@ impl Character {
         }
 
         // Apply the effect on the target
-        let real_dmg_amount = self.apply_effect_full_amount(processed_ep, full_amount);
+        let apply_result = self.apply_effect_full_amount(processed_ep, full_amount);
 
         // output real dmg amount for dmg and heal
-        let real_dmg_amount = if real_dmg_amount < 0 {
-            real_dmg_amount
-        } else {
+        // For HP: use real_hp_amount (exact amount applied, capped by remaining room).
+        // For energy stats: apply_result = full_amount - overhead_dmg where overhead_dmg can
+        // be negative (headroom remaining) or positive (overflow). The actual amount added is
+        // min(full_amount, apply_result) which handles both cases correctly.
+        let real_dmg_amount = if apply_result < 0 {
+            apply_result
+        } else if is_max_stat_effect {
+            0
+        } else if processed_ep.input_effect_param.buffer.stats_name == HP {
             real_hp_amount
+        } else {
+            full_amount.min(apply_result)
         };
 
         // process aggro for `HP` and `non-HP` stats
@@ -596,10 +609,14 @@ impl Character {
         }
         // apply change current stats for non HP stats
         // Aggro is routed through process_aggro/tx_rx by the caller — skip direct modification.
+        // ChangeCurrentStatByPercentage on energy stats (Vigor, Mana, Berserk) uses the same
+        // path: full_amount is already computed as max * value / 100, just needs to be applied.
         let mut overhead_dmg = 0;
         if processed_ep.input_effect_param.buffer.stats_name != HP
             && processed_ep.input_effect_param.buffer.stats_name != AGGRO
-            && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
+            && (processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
+                || processed_ep.input_effect_param.buffer.kind
+                    == BufKinds::ChangeCurrentStatByPercentage)
         {
             overhead_dmg = self.stats.modify_stat_current(
                 &processed_ep.input_effect_param.buffer.stats_name,
@@ -689,21 +706,59 @@ impl Character {
         action_name: &str,
         all_effects: &[EffectParam],
     ) -> Result<Vec<ProcessedEffectParam>> {
+        use crate::character_mod::target::is_target_ally;
+
         let mut processed_effect_param_list: Vec<ProcessedEffectParam> = vec![];
-        for effect in all_effects {
-            let processed = self.character_rounds_info.process_one_effect(
+        let mut skip_next_multi = false;
+        // MultiValue is stored on the launcher's CRI; apply_buf_debuf runs on the target's CRI
+        // and can't reach it. Pre-bake the multiplier here so the target receives the scaled value.
+        let mut pending_multi: i64 = 0;
+        for (i, effect) in all_effects.iter().enumerate() {
+            // When the ConditionDamagePrevTurn just failed and the NEXT effect is MultiValue,
+            // skip that MultiValue so the remaining effects (the actual heal/action) still run.
+            if skip_next_multi {
+                skip_next_multi = false;
+                if effect.buffer.kind == BufKinds::MultiValue {
+                    continue; // skip only this multiplier, let subsequent effects through
+                }
+                // Next effect is not MultiValue: the condition gates the whole attack — stop.
+                break;
+            }
+            let mut processed = self.character_rounds_info.process_one_effect(
                 effect,
                 action_name,
                 game_state,
                 is_crit,
             )?;
-            // If a gate-condition effect reports failure (0 applies), stop processing
+
+            if processed.input_effect_param.buffer.kind == BufKinds::MultiValue {
+                pending_multi = processed.input_effect_param.buffer.value;
+            } else if pending_multi > 1
+                && processed.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
+                && processed.input_effect_param.buffer.stats_name == HP
+                && processed.input_effect_param.buffer.value > 0
+                && is_target_ally(&processed.input_effect_param.target_kind)
+            {
+                // Carry the multiplier to is_receiving_atk so it is applied AFTER the
+                // power-scaled formula (value + pow) / nb_turns, not to the raw buffer.value.
+                processed.heal_multiplier = pending_multi;
+            }
+
             let is_condition_failed = processed.input_effect_param.buffer.kind
                 == BufKinds::ConditionDamagePrevTurn
                 && processed.number_of_applies == 0;
             processed_effect_param_list.push(processed);
             if is_condition_failed {
-                break;
+                // Look ahead: if next effect is MultiValue the condition only gates the multiplier;
+                // otherwise it gates the whole attack (handled by `skip_next_multi` break above).
+                let next_is_multi = all_effects
+                    .get(i + 1)
+                    .is_some_and(|e| e.buffer.kind == BufKinds::MultiValue);
+                if next_is_multi {
+                    skip_next_multi = true;
+                } else {
+                    break;
+                }
             }
         }
         Ok(processed_effect_param_list)
@@ -829,7 +884,7 @@ impl Character {
         }
 
         // that attack has a cooldown
-        for atk_effect in &atk_type.all_effects {
+        for (i, atk_effect) in atk_type.all_effects.iter().enumerate() {
             if atk_effect.buffer.kind == BufKinds::CooldownTurnsNumber {
                 for e in &self.character_rounds_info.all_effects {
                     if e.atk_type.name == atk_type.name
@@ -851,19 +906,28 @@ impl Character {
                 return false;
             }
 
-            // Launch condition: attack requires damage dealt on the previous turn
+            // Launch condition: attack requires damage dealt on the previous turn.
+            // Only gate the whole attack when the next effect is NOT a MultiValue multiplier —
+            // if the next effect IS MultiValue, the condition only gates the multiplier (not
+            // the whole attack), so the attack can still be launched.
             if atk_effect.buffer.kind == BufKinds::ConditionDamagePrevTurn {
-                let did_damage = current_turn_nb > 0 && {
-                    let prev_turn = (current_turn_nb - 1) as u64;
-                    self.character_rounds_info
-                        .tx_rx
-                        .get(AmountType::DamageTx as usize)
-                        .and_then(|m| m.get(&prev_turn))
-                        .map(|&v| v != 0)
-                        .unwrap_or(false)
-                };
-                if !did_damage {
-                    return false;
+                let next_is_multi = atk_type
+                    .all_effects
+                    .get(i + 1)
+                    .is_some_and(|e| e.buffer.kind == BufKinds::MultiValue);
+                if !next_is_multi {
+                    let did_damage = current_turn_nb > 0 && {
+                        let prev_turn = (current_turn_nb - 1) as u64;
+                        self.character_rounds_info
+                            .tx_rx
+                            .get(AmountType::DamageTx as usize)
+                            .and_then(|m| m.get(&prev_turn))
+                            .map(|&v| v != 0)
+                            .unwrap_or(false)
+                    };
+                    if !did_damage {
+                        return false;
+                    }
                 }
             }
         }
@@ -935,7 +999,7 @@ impl Character {
                     };
                     output_logs_data.push(LogData {
                         message: msg,
-                        ..Default::default()
+                        color: MUTED_GREY.to_string(),
                     })
                 }),
                 Err(e) => output_logs_data.push(LogData {
@@ -952,6 +1016,11 @@ impl Character {
                 && buf.is_passive_enabled
                 && !buf.stats_name.is_empty()
             {
+                // Reset the bonus from the previous turn: cap current to max so the
+                // stale overheal boost doesn't compound across turns.
+                if let Some(stat) = self.stats.all_stats.get_mut(&buf.stats_name) {
+                    stat.current = stat.current.min(stat.max);
+                }
                 let prev_turn = current_turn_nb.saturating_sub(1) as u64;
                 let overheal = self
                     .character_rounds_info
@@ -985,10 +1054,12 @@ impl Character {
                 .process_hot_and_dot(current_turn_nb);
             output_logs_data.append(&mut process_logs);
             let hot_dot_logs = self.apply_hot_or_dot(current_turn_nb, hot_or_dot);
-            output_logs_data.push(LogData {
-                message: hot_dot_logs,
-                color: LIGHT_GREEN.to_string(),
-            });
+            if !hot_dot_logs.is_empty() {
+                output_logs_data.push(LogData {
+                    message: hot_dot_logs,
+                    color: LIGHT_GREEN.to_string(),
+                });
+            }
         }
         output_logs_data
     }
@@ -1764,15 +1835,16 @@ mod tests {
             &testing_all_equipment(),
         )
         .unwrap();
-        // raw = -30 - 40(total phy pow) = -70
-        // protection = 100/(100 + 30(total phy armor)) = 100/130 ≈ 0.769
-        // effective = round(-70 * 0.769) = round(-53.85) = -54
+        // power_factor = 1 + 40(total phy pow)/100 = 1.4; raw = round(-30 * 1.4) = -42
+        // defense = 30(total phy armor) + 40(total boss phy pow)/4 = 40
+        // protection = 100/(100 + 40) = 5/7 ≈ 0.7143
+        // effective = round(-42 * 5/7) = round(-30.0) = -30
         processed_ep = build_dmg_effect_individual();
         let old_hp = boss1.stats.all_stats[HP].current;
         let eo = boss1.apply_processed_effect_param(&processed_ep, &launcher_stats, false, 0);
-        assert_eq!(eo.full_amount_tx, -54);
-        assert_eq!(eo.real_amount_tx, -54);
-        assert_eq!(old_hp - 54, boss1.stats.all_stats[HP].current);
+        assert_eq!(eo.full_amount_tx, -30);
+        assert_eq!(eo.real_amount_tx, -30);
+        assert_eq!(old_hp - 30, boss1.stats.all_stats[HP].current);
 
         processed_ep = build_buf_effect_individual_speed_regen();
         let launcher_stats = c.stats.clone();
@@ -2312,6 +2384,101 @@ mod tests {
     }
 
     #[test]
+    fn unit_all_catalog_consumables_work_during_fight() {
+        use crate::common::constants::stats_const::{BERSERK, MANA, VIGOR};
+        use crate::server::game_state::GameState;
+        let mut c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let game_state = GameState::default();
+        let launcher_stats = c.stats.clone();
+
+        // --- HP potions ---
+        // Heal formula: base + physical_power (from launcher_stats). We check the HP increased
+        // and that real_amount_tx is positive (exact value depends on equipped power stats).
+        for name in ["potion", "super potion", "hyper potion"] {
+            c.stats.all_stats[HP].current = 0;
+            match name {
+                "potion" => c.inventory.add_small_potion(),
+                "super potion" => c.inventory.add_super_potion(),
+                _ => c.inventory.add_hyper_potion(),
+            }
+            let potion = c.inventory.consumables.last().unwrap().clone();
+            let result = c
+                .use_consumable(potion, &game_state, &launcher_stats)
+                .unwrap();
+            assert!(
+                c.stats.all_stats[HP].current > 0,
+                "HP should increase after {name}"
+            );
+            let real: i64 = result.iter().map(|e| e.real_amount_tx).sum();
+            assert!(real > 0, "real_amount_tx should be positive for {name}");
+        }
+
+        // --- Resurrection potion ---
+        c.stats.all_stats[HP].current = 0;
+        c.inventory.add_resurrection_potion();
+        let res_potion = c.inventory.consumables.last().unwrap().clone();
+        let result = c
+            .apply_consumable_effects(&res_potion, &game_state, &launcher_stats)
+            .unwrap();
+        assert_eq!(
+            c.stats.all_stats[HP].current, 50,
+            "resurrection potion should restore exactly 50 HP"
+        );
+        let real: i64 = result.iter().map(|e| e.real_amount_tx).sum();
+        assert_eq!(
+            real, 50,
+            "real_amount_tx should be 50 for resurrection potion"
+        );
+
+        // --- Energy potions: drain stats first so there is room ---
+        c.stats.all_stats[MANA].current = 0;
+        c.stats.all_stats[VIGOR].current = 0;
+        c.stats.all_stats[BERSERK].current = 0;
+
+        c.inventory.add_mana_potion();
+        let mana_potion = c.inventory.consumables.last().unwrap().clone();
+        let result = c
+            .use_consumable(mana_potion, &game_state, &launcher_stats)
+            .unwrap();
+        assert_eq!(
+            c.stats.all_stats[MANA].current, 30,
+            "mana should increase by 30"
+        );
+        let real: i64 = result.iter().map(|e| e.real_amount_tx).sum();
+        assert_eq!(real, 30, "real_amount_tx should be 30 for mana potion");
+
+        c.inventory.add_vigor_potion();
+        let vigor_potion = c.inventory.consumables.last().unwrap().clone();
+        let result = c
+            .use_consumable(vigor_potion, &game_state, &launcher_stats)
+            .unwrap();
+        assert_eq!(
+            c.stats.all_stats[VIGOR].current, 30,
+            "vigor should increase by 30"
+        );
+        let real: i64 = result.iter().map(|e| e.real_amount_tx).sum();
+        assert_eq!(real, 30, "real_amount_tx should be 30 for vigor potion");
+
+        c.inventory.add_berserk_potion();
+        let berserk_potion = c.inventory.consumables.last().unwrap().clone();
+        let result = c
+            .use_consumable(berserk_potion, &game_state, &launcher_stats)
+            .unwrap();
+        assert_eq!(
+            c.stats.all_stats[BERSERK].current, 30,
+            "berserk should increase by 30"
+        );
+        let real: i64 = result.iter().map(|e| e.real_amount_tx).sum();
+        assert_eq!(real, 30, "real_amount_tx should be 30 for berserk potion");
+    }
+
+    #[test]
     fn unit_process_all_effects_condition_damage_break() {
         use crate::character_mod::effect::EffectParam;
         use crate::server::game_state::GameState;
@@ -2432,7 +2599,7 @@ mod tests {
         atk.all_effects.insert(0, multi_ep);
         atk.all_effects.insert(0, cond_ep);
 
-        // Turn 1, prev_turn=0 has no damage → condition must fail and gate all following effects
+        // Turn 1, prev_turn=0 has no damage → condition fails, MultiValue skipped, heal still runs at 1×
         let gs = GameState {
             current_turn_nb: 1,
             ..Default::default()
@@ -2442,7 +2609,12 @@ mod tests {
             result[0].number_of_applies, 0,
             "condition must fail (no damage prev turn)"
         );
-        assert_eq!(result.len(), 1, "gate must stop remaining effects");
+        // MultiValue is skipped (not in result); heal still runs → len==2
+        assert_eq!(
+            result.len(),
+            2,
+            "heal must still run at 1× when condition fails"
+        );
         assert!(
             c.character_rounds_info
                 .get_buffer_by_type(&BufKinds::MultiValue)
@@ -2510,6 +2682,126 @@ mod tests {
             multi_buf.unwrap().value,
             3,
             "multiplier must equal the configured value"
+        );
+    }
+
+    #[test]
+    fn unit_fleur_de_vie_multiplier_carried_in_heal_multiplier() {
+        // Verify that when ConditionDamagePrevTurn passes, the MultiValue(×3) multiplier is
+        // stored in ProcessedEffectParam.heal_multiplier (not pre-baked into buffer.value)
+        // so is_receiving_atk can apply it AFTER the power-scaled formula (value+pow)/nb_turns.
+        use crate::character_mod::rounds_information::AmountType;
+        use crate::common::constants::all_target_const::TARGET_HIMSELF;
+        use crate::common::constants::reach_const::INDIVIDUAL;
+        use crate::server::game_state::GameState;
+
+        let mut c = testing_character();
+        c.character_rounds_info.new_buffers();
+        c.character_rounds_info.tx_rx = make_tx_rx();
+
+        // Damage on turn 0 so condition passes on turn 1
+        c.character_rounds_info.tx_rx[AmountType::DamageTx as usize].insert(0, 50);
+
+        let cond_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::ConditionDamagePrevTurn,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let multi_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::MultiValue,
+                value: 3,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        // build_atk_heal1_indiv has a single heal effect: ChangeCurrentStatByValue HP +30 (Ally)
+        let mut atk = crate::testing::testing_atk::build_atk_heal1_indiv();
+        let base_heal = atk.all_effects[0].buffer.value; // 30 (unchanged)
+        atk.all_effects.insert(0, multi_ep);
+        atk.all_effects.insert(0, cond_ep);
+
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        };
+        let result = c.process_atk(&gs, false, &atk).unwrap();
+
+        let heal_result = result
+            .iter()
+            .find(|r| r.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue)
+            .expect("heal effect must be in results");
+
+        // buffer.value must NOT be modified — multiplier lives in heal_multiplier
+        assert_eq!(
+            heal_result.input_effect_param.buffer.value, base_heal,
+            "buffer.value must stay unmodified; multiplier goes into heal_multiplier"
+        );
+        assert_eq!(
+            heal_result.heal_multiplier, 3,
+            "heal_multiplier must carry the MultiValue coefficient for is_receiving_atk"
+        );
+    }
+
+    #[test]
+    fn unit_fleur_de_vie_multiplier_no_carry_when_condition_fails() {
+        // When ConditionDamagePrevTurn fails, heal_multiplier must stay at default (1).
+        use crate::common::constants::all_target_const::TARGET_HIMSELF;
+        use crate::common::constants::reach_const::INDIVIDUAL;
+        use crate::server::game_state::GameState;
+
+        let mut c = testing_character();
+        c.character_rounds_info.new_buffers();
+        c.character_rounds_info.tx_rx = make_tx_rx();
+        // no damage recorded → condition will fail
+
+        let cond_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::ConditionDamagePrevTurn,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let multi_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::MultiValue,
+                value: 3,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut atk = crate::testing::testing_atk::build_atk_heal1_indiv();
+        atk.all_effects.insert(0, multi_ep);
+        atk.all_effects.insert(0, cond_ep);
+
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        };
+        let result = c.process_atk(&gs, false, &atk).unwrap();
+
+        let heal_result = result
+            .iter()
+            .find(|r| r.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue)
+            .expect("heal must still run when condition fails");
+
+        assert_eq!(
+            heal_result.heal_multiplier, 1,
+            "heal_multiplier must be 1 when condition fails (no boost)"
         );
     }
 
@@ -2711,6 +3003,55 @@ mod tests {
             c.stats.all_stats[PHYSICAL_POWER].current,
             base_pp + 30,
             "Passive boost must push current above max ({base_max})"
+        );
+    }
+
+    // Bug-regression: overheal bonus must not compound across turns.
+    // Turn 1: +50 overheal → Physical power = base+50.
+    // Turn 2: +30 overheal → Physical power = base+30 (not base+80).
+    // Turn 3: no overheal → Physical power = base (bonus fully reset).
+    #[test]
+    fn unit_passive_overheal_boost_resets_each_turn() {
+        let mut c = testing_character();
+        while c.character_rounds_info.tx_rx.len() <= AmountType::OverHealRx as usize {
+            c.character_rounds_info.tx_rx.push(Default::default());
+        }
+        c.character_rounds_info.update_buffer(&Buffer {
+            kind: BufKinds::OverHealBoostStat,
+            stats_name: PHYSICAL_POWER.to_owned(),
+            is_passive_enabled: true,
+            is_passive: true,
+            value: 0,
+            is_percent: false,
+        });
+        let base_pp = c.stats.all_stats[PHYSICAL_POWER].current;
+
+        // Turn 1 uses overheal from turn 0
+        c.character_rounds_info.tx_rx[AmountType::OverHealRx as usize].insert(0, 50);
+        c.new_round(1, vec![]);
+        assert_eq!(
+            c.stats.all_stats[PHYSICAL_POWER].current,
+            base_pp + 50,
+            "turn 1: bonus should be +50"
+        );
+
+        // Turn 2 uses overheal from turn 1 (30), NOT turn 0 (50)
+        // players_manager::reset_is_first_round() does this between real game rounds
+        c.character_rounds_info.is_first_round = true;
+        c.character_rounds_info.tx_rx[AmountType::OverHealRx as usize].insert(1, 30);
+        c.new_round(2, vec![]);
+        assert_eq!(
+            c.stats.all_stats[PHYSICAL_POWER].current,
+            base_pp + 30,
+            "turn 2: bonus must reset to +30, not accumulate to +80"
+        );
+
+        // Turn 3: no overheal on turn 2 → bonus fully gone
+        c.character_rounds_info.is_first_round = true;
+        c.new_round(3, vec![]);
+        assert_eq!(
+            c.stats.all_stats[PHYSICAL_POWER].current, base_pp,
+            "turn 3: no overheal last turn, bonus must reset to zero"
         );
     }
 

@@ -1,7 +1,7 @@
 {
     "Cible": "Enemy",
     "Coût de mana": 0,
-    "Coût de rage": 20,
+    "Coût de rage": 15,
     "Coût de vigueur": 0,
     "Effet": [
         {
@@ -15,7 +15,7 @@
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStatByValue",
-                "value": -80,
+                "value": -83,
                 "is-percent": false,
                 "stats-name": "HP",
                 "passive-enabled": false

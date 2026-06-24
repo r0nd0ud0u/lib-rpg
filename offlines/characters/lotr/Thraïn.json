@@ -12,7 +12,7 @@
                 "is-percent": true,
                 "passive-enabled": true,
                 "passive": true,
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStatByPercentage",
                 "value": 10
             }
         ]
@@ -38,8 +38,8 @@
             "Max": 100
         },
         "Berserk rate": {
-            "Current": 0,
-            "Max": 0
+            "Current": 5,
+            "Max": 5
         },
         "Critical strike": {
             "Current": 8,
