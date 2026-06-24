@@ -751,8 +751,12 @@ impl GameManager {
     }
 
     fn process_no_atk_launched(&mut self) -> ResultLaunchAttack {
-        // no atk launched
-        // update action done in round
+        // Capture launcher identity before eval_end_of_round() may advance current_player.
+        let launcher_id_name = self.pm.current_player.id_name.clone();
+        let is_boss_atk = self.pm.current_player.is_boss_atk();
+        let turn_nb = self.game_state.current_turn_nb;
+        let round_nb = self.game_state.current_round;
+
         self.pm
             .current_player
             .character_rounds_info
@@ -761,17 +765,20 @@ impl GameManager {
             message: "No attack launched".to_string(),
             color: DARK_RED.to_string(),
         }];
-        // eval next step of the game
         let logs_end_of_round = self.eval_end_of_round(logs_atk.clone());
-        ResultLaunchAttack {
-            launcher_id_name: self.pm.current_player.id_name.clone(),
-            is_boss_atk: self.pm.current_player.is_boss_atk(),
+        let result = ResultLaunchAttack {
+            launcher_id_name,
+            is_boss_atk,
             logs_end_of_round,
             logs_atk,
-            turn_nb: self.game_state.current_turn_nb,
-            round_nb: self.game_state.current_round,
+            turn_nb,
+            round_nb,
             ..Default::default()
-        }
+        };
+        // Mirror what launch_attack() does for real attacks so ra.atk_name is
+        // empty and the gameboard consumable-action banner branch is reachable.
+        self.game_state.last_result_atk = result.clone();
+        result
     }
 
     /// Evaluate the end of the round by checking if the game is finished,
