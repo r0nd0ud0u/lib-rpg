@@ -142,7 +142,7 @@ If the condition is not met, `can_be_launched` returns `false` and the attack is
 | **Don de vie** | 1 Ally | `DecreasingRateOnTurn` (1–3 × decreasing rate); ally +30 % HP, self −15 % HP, ally +25 % max mag/phy power |
 | **Lumiere curative** | 1 Ally | Requires `ConditionDamagePrevTurn`; ally +(130 + Elara's magical power) HP |
 | **Non sans raison** | All Allies | All allies +100 % HP; `AddAsMuchAsHp` power boost 3 t; `BlockHealAtk` on Elara 3 t; free (0 mana) |
-| **Fleur de vie sanguinaire** | 1 Ally + 1 Enemy | Ally +25 HP/turn for 3 t — becomes +75 HP/turn if Elara dealt damage last turn (`ConditionDamagePrevTurn` + `MultiValue` ×3, pre-baked in `process_all_effects`); enemy −35 HP/turn for 2 t; 5-turn cooldown |
+| **Fleur de vie sanguinaire** | 1 Ally + 1 Enemy | Per tick: `(25 + mag_pow) / 3`; ×3 if Elara dealt damage last turn (`ConditionDamagePrevTurn` + `MultiValue`, applied via `heal_multiplier` after power formula); enemy −35 HP/turn for 2 t; 5-turn cooldown |
 
 #### Thraïn's attacks
 
@@ -398,11 +398,18 @@ The +50% magic/physical armor buff on the target is applied correctly: `set_stat
 
 **Fix:** Added `is_max_stat_effect` and stat-name checks to route energy stat changes (`ChangeCurrentStatByValue` on non-HP stats) through `full_amount.min(apply_result)`. `apply_effect_full_amount` returns `full_amount - overhead_dmg` where `overhead_dmg = new_value - max`; taking the min handles both "room available" (large result → clamped to `full_amount`) and "overflow" (small result → actual amount added) cases.
 
-### `MultiValue` multiplier pre-baked for cross-character heals
+### `MultiValue` multiplier applied after power-scaled HOT formula
 
 `MultiValue` (used by *Fleur de vie sanguinaire* for the ×3 heal when Elara dealt damage last turn) is stored in the **launcher's** `character_rounds_info.all_buffers`. `apply_buf_debuf` runs on the **target's** `character_rounds_info` and cannot reach the launcher's buffer.
 
-**Fix (implemented):** `process_all_effects` (character.rs) tracks a `pending_multi` value whenever a `MultiValue` effect is processed. Any subsequent `ChangeCurrentStatByValue HP` effect targeting an ally has its `buffer.value` scaled by `pending_multi` before the `ProcessedEffectParam` is returned, so the target receives the already-multiplied amount (e.g. 25 → 75 at ×3). Unit test: `unit_fleur_de_vie_multiplier_prebaked_into_heal_value`.
+**Key constraint:** the HOT formula in `is_receiving_atk` is `(buffer.value + magical_power) / nb_turns`. Multiplying `buffer.value` before this formula gives the wrong result because the division by `nb_turns` partially cancels the multiplication (e.g. at power=36: `(75+36)/3 = 37` instead of the intended `(25+36)/3 × 3 = 60`).
+
+**Fix (implemented):**
+- `ProcessedEffectParam` carries a new `heal_multiplier: i64` field (default 1).
+- `process_all_effects` (character.rs) sets `heal_multiplier = 3` on the heal `ProcessedEffectParam` when a `MultiValue` effect immediately precedes it. `buffer.value` is left untouched.
+- `is_receiving_atk` multiplies `full_amount` by `heal_multiplier` **after** the power-scaled formula evaluates, so `(25 + pow) / 3 × 3 = 25 + pow` per tick.
+
+Unit tests: `unit_fleur_de_vie_multiplier_carried_in_heal_multiplier`, `unit_fleur_de_vie_multiplier_no_carry_when_condition_fails`.
 
 ---
 

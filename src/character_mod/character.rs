@@ -486,6 +486,11 @@ impl Character {
             full_amount =
                 processed_ep.number_of_applies * processed_ep.input_effect_param.buffer.value;
         }
+        // Apply heal_multiplier (from MultiValue) after the power-scaled formula so the
+        // multiplier acts on the already-computed per-tick amount, not the raw buffer.value.
+        if processed_ep.heal_multiplier > 1 && full_amount > 0 {
+            full_amount *= processed_ep.heal_multiplier;
+        }
         // Apply buf/debuf, crit, blocking on damages/heal
         // Skip for ChangeMaxStat* effects on HP — those modify max HP, not current HP
         let is_max_stat_effect = processed_ep.input_effect_param.buffer.kind
@@ -730,7 +735,9 @@ impl Character {
                 && processed.input_effect_param.buffer.value > 0
                 && is_target_ally(&processed.input_effect_param.target_kind)
             {
-                processed.input_effect_param.buffer.value *= pending_multi;
+                // Carry the multiplier to is_receiving_atk so it is applied AFTER the
+                // power-scaled formula (value + pow) / nb_turns, not to the raw buffer.value.
+                processed.heal_multiplier = pending_multi;
             }
 
             let is_condition_failed = processed.input_effect_param.buffer.kind
@@ -2672,10 +2679,10 @@ mod tests {
     }
 
     #[test]
-    fn unit_fleur_de_vie_multiplier_prebaked_into_heal_value() {
+    fn unit_fleur_de_vie_multiplier_carried_in_heal_multiplier() {
         // Verify that when ConditionDamagePrevTurn passes, the MultiValue(×3) multiplier is
-        // pre-baked into the heal ProcessedEffectParam so the target ally receives 30×3=90
-        // (not the raw 30) even though the MultiValue buffer lives on the launcher's CRI.
+        // stored in ProcessedEffectParam.heal_multiplier (not pre-baked into buffer.value)
+        // so is_receiving_atk can apply it AFTER the power-scaled formula (value+pow)/nb_turns.
         use crate::character_mod::rounds_information::AmountType;
         use crate::common::constants::all_target_const::TARGET_HIMSELF;
         use crate::common::constants::reach_const::INDIVIDUAL;
@@ -2711,7 +2718,7 @@ mod tests {
         };
         // build_atk_heal1_indiv has a single heal effect: ChangeCurrentStatByValue HP +30 (Ally)
         let mut atk = crate::testing::testing_atk::build_atk_heal1_indiv();
-        let base_heal = atk.all_effects[0].buffer.value; // 30
+        let base_heal = atk.all_effects[0].buffer.value; // 30 (unchanged)
         atk.all_effects.insert(0, multi_ep);
         atk.all_effects.insert(0, cond_ep);
 
@@ -2721,16 +2728,73 @@ mod tests {
         };
         let result = c.process_atk(&gs, false, &atk).unwrap();
 
-        // Find the heal effect in results
         let heal_result = result
             .iter()
             .find(|r| r.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue)
             .expect("heal effect must be in results");
 
+        // buffer.value must NOT be modified — multiplier lives in heal_multiplier
         assert_eq!(
-            heal_result.input_effect_param.buffer.value,
-            base_heal * 3,
-            "heal value must be pre-baked to base×3 so the target ally receives the multiplied amount"
+            heal_result.input_effect_param.buffer.value, base_heal,
+            "buffer.value must stay unmodified; multiplier goes into heal_multiplier"
+        );
+        assert_eq!(
+            heal_result.heal_multiplier, 3,
+            "heal_multiplier must carry the MultiValue coefficient for is_receiving_atk"
+        );
+    }
+
+    #[test]
+    fn unit_fleur_de_vie_multiplier_no_carry_when_condition_fails() {
+        // When ConditionDamagePrevTurn fails, heal_multiplier must stay at default (1).
+        use crate::common::constants::all_target_const::TARGET_HIMSELF;
+        use crate::common::constants::reach_const::INDIVIDUAL;
+        use crate::server::game_state::GameState;
+
+        let mut c = testing_character();
+        c.character_rounds_info.new_buffers();
+        c.character_rounds_info.tx_rx = make_tx_rx();
+        // no damage recorded → condition will fail
+
+        let cond_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::ConditionDamagePrevTurn,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let multi_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::MultiValue,
+                value: 3,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut atk = crate::testing::testing_atk::build_atk_heal1_indiv();
+        atk.all_effects.insert(0, multi_ep);
+        atk.all_effects.insert(0, cond_ep);
+
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        };
+        let result = c.process_atk(&gs, false, &atk).unwrap();
+
+        let heal_result = result
+            .iter()
+            .find(|r| r.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue)
+            .expect("heal must still run when condition fails");
+
+        assert_eq!(
+            heal_result.heal_multiplier, 1,
+            "heal_multiplier must be 1 when condition fails (no boost)"
         );
     }
 
