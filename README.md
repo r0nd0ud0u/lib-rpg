@@ -142,7 +142,7 @@ If the condition is not met, `can_be_launched` returns `false` and the attack is
 | **Don de vie** | 1 Ally | `DecreasingRateOnTurn` (1–3 × decreasing rate); ally +30 % HP, self −15 % HP, ally +25 % max mag/phy power |
 | **Lumiere curative** | 1 Ally | Requires `ConditionDamagePrevTurn`; ally +(130 + Elara's magical power) HP |
 | **Non sans raison** | All Allies | All allies +100 % HP; `AddAsMuchAsHp` power boost 3 t; `BlockHealAtk` on Elara 3 t; free (0 mana) |
-| **Fleur de vie sanguinaire** | 1 Ally + 1 Enemy | Ally +25 HP/turn for 3 t (×3 if Elara dealt damage previous turn via `ConditionDamagePrevTurn` + `MultiValue`); enemy −35 HP/turn for 2 t; 5-turn cooldown |
+| **Fleur de vie sanguinaire** | 1 Ally + 1 Enemy | Ally +25 HP/turn for 3 t — becomes +75 HP/turn if Elara dealt damage last turn (`ConditionDamagePrevTurn` + `MultiValue` ×3, pre-baked in `process_all_effects`); enemy −35 HP/turn for 2 t; 5-turn cooldown |
 
 #### Thraïn's attacks
 
@@ -398,13 +398,11 @@ The +50% magic/physical armor buff on the target is applied correctly: `set_stat
 
 **Fix:** Added `is_max_stat_effect` and stat-name checks to route energy stat changes (`ChangeCurrentStatByValue` on non-HP stats) through `full_amount.min(apply_result)`. `apply_effect_full_amount` returns `full_amount - overhead_dmg` where `overhead_dmg = new_value - max`; taking the min handles both "room available" (large result → clamped to `full_amount`) and "overflow" (small result → actual amount added) cases.
 
-### Catalog consumables — known design gap: `MultiValue` multiplier on cross-character heals
+### `MultiValue` multiplier pre-baked for cross-character heals
 
-`MultiValue` (used by *Fleur de vie sanguinaire* for the ×3 heal when Elara dealt damage last turn) is stored in the **launcher's** `character_rounds_info.all_buffers` via `process_atk`. But `apply_buf_debuf` runs on the **target's** `character_rounds_info`, so the multiplier never reaches the ally heal effects.
+`MultiValue` (used by *Fleur de vie sanguinaire* for the ×3 heal when Elara dealt damage last turn) is stored in the **launcher's** `character_rounds_info.all_buffers`. `apply_buf_debuf` runs on the **target's** `character_rounds_info` and cannot reach the launcher's buffer.
 
-**Workaround:** None currently. The condition (`ConditionDamagePrevTurn`) and cooldown work correctly; only the ×3 multiplier is silently ignored for the ally heal.
-
-**Planned fix:** Pre-bake the multiplier into `ProcessedEffectParam.input_effect_param.buffer.value` at `process_one_effect` time, so the target receives the already-scaled value instead of relying on `apply_buf_debuf`.
+**Fix (implemented):** `process_all_effects` (character.rs) tracks a `pending_multi` value whenever a `MultiValue` effect is processed. Any subsequent `ChangeCurrentStatByValue HP` effect targeting an ally has its `buffer.value` scaled by `pending_multi` before the `ProcessedEffectParam` is returned, so the target receives the already-multiplied amount (e.g. 25 → 75 at ×3). Unit test: `unit_fleur_de_vie_multiplier_prebaked_into_heal_value`.
 
 ---
 

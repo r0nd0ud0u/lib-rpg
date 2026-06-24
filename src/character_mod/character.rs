@@ -697,8 +697,13 @@ impl Character {
         action_name: &str,
         all_effects: &[EffectParam],
     ) -> Result<Vec<ProcessedEffectParam>> {
+        use crate::character_mod::target::is_target_ally;
+
         let mut processed_effect_param_list: Vec<ProcessedEffectParam> = vec![];
         let mut skip_next_multi = false;
+        // MultiValue is stored on the launcher's CRI; apply_buf_debuf runs on the target's CRI
+        // and can't reach it. Pre-bake the multiplier here so the target receives the scaled value.
+        let mut pending_multi: i64 = 0;
         for (i, effect) in all_effects.iter().enumerate() {
             // When the ConditionDamagePrevTurn just failed and the NEXT effect is MultiValue,
             // skip that MultiValue so the remaining effects (the actual heal/action) still run.
@@ -710,12 +715,24 @@ impl Character {
                 // Next effect is not MultiValue: the condition gates the whole attack — stop.
                 break;
             }
-            let processed = self.character_rounds_info.process_one_effect(
+            let mut processed = self.character_rounds_info.process_one_effect(
                 effect,
                 action_name,
                 game_state,
                 is_crit,
             )?;
+
+            if processed.input_effect_param.buffer.kind == BufKinds::MultiValue {
+                pending_multi = processed.input_effect_param.buffer.value;
+            } else if pending_multi > 1
+                && processed.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
+                && processed.input_effect_param.buffer.stats_name == HP
+                && processed.input_effect_param.buffer.value > 0
+                && is_target_ally(&processed.input_effect_param.target_kind)
+            {
+                processed.input_effect_param.buffer.value *= pending_multi;
+            }
+
             let is_condition_failed = processed.input_effect_param.buffer.kind
                 == BufKinds::ConditionDamagePrevTurn
                 && processed.number_of_applies == 0;
@@ -2651,6 +2668,69 @@ mod tests {
             multi_buf.unwrap().value,
             3,
             "multiplier must equal the configured value"
+        );
+    }
+
+    #[test]
+    fn unit_fleur_de_vie_multiplier_prebaked_into_heal_value() {
+        // Verify that when ConditionDamagePrevTurn passes, the MultiValue(×3) multiplier is
+        // pre-baked into the heal ProcessedEffectParam so the target ally receives 30×3=90
+        // (not the raw 30) even though the MultiValue buffer lives on the launcher's CRI.
+        use crate::character_mod::rounds_information::AmountType;
+        use crate::common::constants::all_target_const::TARGET_HIMSELF;
+        use crate::common::constants::reach_const::INDIVIDUAL;
+        use crate::server::game_state::GameState;
+
+        let mut c = testing_character();
+        c.character_rounds_info.new_buffers();
+        c.character_rounds_info.tx_rx = make_tx_rx();
+
+        // Damage on turn 0 so condition passes on turn 1
+        c.character_rounds_info.tx_rx[AmountType::DamageTx as usize].insert(0, 50);
+
+        let cond_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::ConditionDamagePrevTurn,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let multi_ep = EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_HIMSELF.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::MultiValue,
+                value: 3,
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        // build_atk_heal1_indiv has a single heal effect: ChangeCurrentStatByValue HP +30 (Ally)
+        let mut atk = crate::testing::testing_atk::build_atk_heal1_indiv();
+        let base_heal = atk.all_effects[0].buffer.value; // 30
+        atk.all_effects.insert(0, multi_ep);
+        atk.all_effects.insert(0, cond_ep);
+
+        let gs = GameState {
+            current_turn_nb: 1,
+            ..Default::default()
+        };
+        let result = c.process_atk(&gs, false, &atk).unwrap();
+
+        // Find the heal effect in results
+        let heal_result = result
+            .iter()
+            .find(|r| r.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue)
+            .expect("heal effect must be in results");
+
+        assert_eq!(
+            heal_result.input_effect_param.buffer.value,
+            base_heal * 3,
+            "heal value must be pre-baked to base×3 so the target ally receives the multiplied amount"
         );
     }
 
