@@ -29,7 +29,7 @@ use crate::{
         },
         log_data::{
             LogData,
-            const_colors::{DARK_RED, LIGHT_GREEN},
+            const_colors::{DARK_RED, LIGHT_GREEN, MUTED_GREY},
         },
     },
     server::{
@@ -995,7 +995,7 @@ impl Character {
                     };
                     output_logs_data.push(LogData {
                         message: msg,
-                        ..Default::default()
+                        color: MUTED_GREY.to_string(),
                     })
                 }),
                 Err(e) => output_logs_data.push(LogData {
@@ -1050,10 +1050,12 @@ impl Character {
                 .process_hot_and_dot(current_turn_nb);
             output_logs_data.append(&mut process_logs);
             let hot_dot_logs = self.apply_hot_or_dot(current_turn_nb, hot_or_dot);
-            output_logs_data.push(LogData {
-                message: hot_dot_logs,
-                color: LIGHT_GREEN.to_string(),
-            });
+            if !hot_dot_logs.is_empty() {
+                output_logs_data.push(LogData {
+                    message: hot_dot_logs,
+                    color: LIGHT_GREEN.to_string(),
+                });
+            }
         }
         output_logs_data
     }
