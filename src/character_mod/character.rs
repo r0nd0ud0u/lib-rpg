@@ -609,10 +609,14 @@ impl Character {
         }
         // apply change current stats for non HP stats
         // Aggro is routed through process_aggro/tx_rx by the caller — skip direct modification.
+        // ChangeCurrentStatByPercentage on energy stats (Vigor, Mana, Berserk) uses the same
+        // path: full_amount is already computed as max * value / 100, just needs to be applied.
         let mut overhead_dmg = 0;
         if processed_ep.input_effect_param.buffer.stats_name != HP
             && processed_ep.input_effect_param.buffer.stats_name != AGGRO
-            && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
+            && (processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
+                || processed_ep.input_effect_param.buffer.kind
+                    == BufKinds::ChangeCurrentStatByPercentage)
         {
             overhead_dmg = self.stats.modify_stat_current(
                 &processed_ep.input_effect_param.buffer.stats_name,

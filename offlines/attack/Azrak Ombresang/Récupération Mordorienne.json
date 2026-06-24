@@ -1,5 +1,5 @@
 {
-    "Cible": "Enemy",
+    "Cible": "Self",
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
@@ -7,21 +7,44 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "HP",
-            "Tours actifs": 1,
+            "Stat": "Physical power",
+            "Tours actifs": 2,
             "Type": "ChangeMaxStatByPercentage",
             "Conditions": [
                 {
                     "condition_type": "NbEnnemiesDied",
-                    "value": 20
+                    "value": 10
                 }
             ],
             "Valeur de l'effet": 0,
-            "Value": 15,
+            "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStatByPercentage",
-                "value": 15,
+                "value": 0,
+                "is-percent": true,
+                "stats-name": "Physical power",
+                "passive-enabled": false
+            }
+        },
+        {
+            "Cible": "Self",
+            "Portée": "Individual",
+            "Stat": "HP",
+            "Tours actifs": 1,
+            "Type": "ChangeCurrentStatByPercentage",
+            "Conditions": [
+                {
+                    "condition_type": "NbEnnemiesDied",
+                    "value": 10
+                }
+            ],
+            "Valeur de l'effet": 0,
+            "Value": 0,
+            "IsMagicEffect": false,
+            "Buffer": {
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": 0,
                 "is-percent": true,
                 "stats-name": "HP",
                 "passive-enabled": false
@@ -30,55 +53,55 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Mana",
+            "Stat": "Vigor",
             "Tours actifs": 1,
-            "Type": "ChangeMaxStatByPercentage",
+            "Type": "ChangeCurrentStatByPercentage",
             "Conditions": [
                 {
                     "condition_type": "NbEnnemiesDied",
-                    "value": 20
+                    "value": 10
                 }
             ],
             "Valeur de l'effet": 0,
-            "Value": 20,
+            "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
-                "value": 20,
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": 0,
                 "is-percent": true,
-                "stats-name": "Mana",
+                "stats-name": "Vigor",
                 "passive-enabled": false
             }
         },
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Vigor",
+            "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "ChangeMaxStatByPercentage",
+            "Type": "ChangeCurrentStatByPercentage",
             "Conditions": [
                 {
                     "condition_type": "NbEnnemiesDied",
-                    "value": 20
+                    "value": 10
                 }
             ],
             "Valeur de l'effet": 0,
-            "Value": 25,
+            "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
-                "value": 25,
+                "kind": "ChangeCurrentStatByPercentage",
+                "value": 0,
                 "is-percent": true,
-                "stats-name": "Vigor",
+                "stats-name": "Mana",
                 "passive-enabled": false
             }
         }
     ],
     "Forme": "Standard",
-    "Niveau": 6,
+    "Niveau": 9,
     "Nom": "Récupération Mordorienne",
     "Photo": "Azrak Ombresang.png",
-    "Portée": "Zone",
-    "Description": "Mordor Recovery — channels dark energy to restore the caster's vitality.",
-    "DescriptionEffects": "+15% max HP for self when 20 enemies have been killed; +20% max Mana; +25% max Vigor."
+    "Portée": "Individual",
+    "Description": "Mordor Recovery — draws on the death of slain enemies to restore strength and vitality.",
+    "DescriptionEffects": "For each enemy killed last turn: +10% Physical power (direct, lasts 2 turns); +10% HP, +10% Vigor, +10% Mana (instant recovery)."
 }
