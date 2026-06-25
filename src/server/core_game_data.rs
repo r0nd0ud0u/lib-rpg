@@ -95,7 +95,7 @@ impl CoreGameData {
     }
 
     /// Leave overworld and start a fight: look up `scenario_id` in `all_scenarios`,
-    /// set it as the current scenario, clear the pending encounter, and switch to `Running`.
+    /// reset boss/game state, load bosses for the encounter, and switch to `Running`.
     pub fn exit_overworld_to_fight(&mut self, scenario_id: &str) {
         if let Some(scenario) = self
             .game_manager
@@ -106,6 +106,12 @@ impl CoreGameData {
         {
             self.game_manager.current_scenario = scenario;
         }
+        // reset game/boss state so the encounter starts fresh
+        self.game_manager.game_state.clear_scenario();
+        self.game_manager.pm.clear_scenario();
+        let all_bosses = self.game_manager.pm.all_bosses.clone();
+        self.game_manager.set_active_bosses(&all_bosses);
+        let _ = self.game_manager.start_new_turn();
         if let Some(ref mut ow) = self.overworld {
             ow.pending_encounter = None;
         }

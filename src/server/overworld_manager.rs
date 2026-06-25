@@ -26,6 +26,9 @@ pub struct OverworldState {
     pub pending_encounter: Option<String>,
     /// Scenario ids that can be triggered by grass encounters on this map.
     pub encounters: Vec<String>,
+    /// Dialog lines from the last NPC interaction; cleared on next move.
+    #[serde(default)]
+    pub active_dialog: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
