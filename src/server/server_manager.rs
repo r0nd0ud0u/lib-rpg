@@ -143,6 +143,7 @@ pub enum GamePhase {
     InitGame,
     Loading,
     Running,
+    Overworld,
     Ended,
 }
 

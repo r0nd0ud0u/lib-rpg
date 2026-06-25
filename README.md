@@ -13,8 +13,9 @@ A Rust game-engine library for turn-based RPG combat, used by [dx-rpg](https://g
 - **Cooldown system** — per-attack cooldown tracked by `buffer.value` (turns remaining)
 - **Boss AI** — attack pattern sequencing, multiple bosses per scenario
 - **Scenario progression** — sequential scenarios, accumulated kill counter across scenarios
+- **Overworld exploration** — Pokemon-style tile-map city navigation with encounters and NPC dialog
 - **Save / load** — full game state serialised to JSON for persistence
-- **Data manager** — loads characters, attacks, scenarios and equipment from offline JSON files
+- **Data manager** — loads characters, attacks, scenarios, equipment and maps from offline JSON files
 
 ---
 
@@ -346,6 +347,66 @@ Slots never awarded as loot (store-only): Chest, Head, Cape, LeftWeapon, RightWe
 
 ---
 
+## Overworld Exploration
+
+Between fights players walk a tile-map city (`GamePhase::Overworld`).  Stepping on a trigger tile starts a fight (`GamePhase::Running`); after the fight they return to the overworld.
+
+### Map format — `offlines/maps/<id>.json`
+
+```json
+{
+  "id": "pallet_town",
+  "width": 8,
+  "height": 6,
+  "tiles": [[{"type":"wall"}, {"type":"floor"}, {"type":"grass"}, ...]],
+  "npcs": [{"id": "elder", "x": 2, "y": 2, "dialog": ["Hello!"]}],
+  "spawn": {"x": 3, "y": 3},
+  "encounters": ["stage_1", "stage_2"]
+}
+```
+
+**Tile kinds** — `floor` (walkable), `wall` (blocks), `water` (blocks), `grass` (50 % encounter roll), `door` (map transition).
+
+### Key types
+
+| Type | Module | Role |
+|---|---|---|
+| `Position` / `Direction` | `common::overworld` | Coordinates and movement direction |
+| `TileKind` | `common::overworld` | Tile variant (floor / wall / grass / water / door) |
+| `OverworldState` | `server::overworld_manager` | Full map state, stored in `CoreGameData::overworld` |
+| `OverworldManager` | `server::overworld_manager` | Transient helper: `load_map`, `move_player`, `interact` |
+| `MoveResult` | `server::overworld_manager` | `Moved` / `Blocked` / `Encounter(id)` / `MapTransition(id, pos)` |
+
+### Phase transitions
+
+```rust
+// Enter overworld after a fight ends
+core.enter_overworld("pallet_town", &offline_root)?;
+
+// Grass encounter → start a fight
+core.exit_overworld_to_fight("stage_1");
+
+// After EndOfScenario → return to the map
+core.enter_overworld("pallet_town", &offline_root)?;
+```
+
+### Movement
+
+```rust
+let mut mgr = OverworldManager::from_state(core.overworld.take().unwrap());
+let result = mgr.move_player("hero_id", Direction::Up);
+core.overworld = Some(mgr.state);
+
+match result {
+    MoveResult::Moved => { /* redraw map */ }
+    MoveResult::Blocked => { /* ignore */ }
+    MoveResult::Encounter(scenario_id) => { core.exit_overworld_to_fight(&scenario_id); }
+    MoveResult::MapTransition(map_id, spawn) => { core.enter_overworld(&map_id, root)?; }
+}
+```
+
+---
+
 ## Building & Testing
 
 ```bash
@@ -354,7 +415,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 297 tests should pass with no warnings.
+All 327 tests should pass with no warnings.
 
 ---
 

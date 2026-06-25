@@ -2,9 +2,11 @@ use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::path::Path;
 
 use crate::server::data_manager::DataManager;
 use crate::server::game_manager::GameManager;
+use crate::server::overworld_manager::{OverworldManager, OverworldState};
 use crate::server::server_manager::GamePhase;
 use crate::shop::ShopCatalogItem;
 
@@ -38,6 +40,9 @@ pub struct CoreGameData {
     /// Empty after a real attack (banner reads from last_result_atk instead).
     #[serde(default)]
     pub last_action_header: String,
+    /// Active overworld state; `Some` while `game_phase == Overworld`.
+    #[serde(default)]
+    pub overworld: Option<OverworldState>,
 }
 
 impl CoreGameData {
@@ -69,17 +74,48 @@ impl CoreGameData {
             loaded_from_save: false,
             shop_catalog: dm.shop_catalog.clone(),
             last_action_header: String::new(),
+            overworld: None,
         })
     }
 
     pub fn load_next_scenario(&mut self) -> Result<()> {
         self.game_manager.load_next_scenario()
     }
+
+    /// Enter overworld mode: load `map_id` from `<root>/maps/`, place all active heroes
+    /// at the map spawn, and switch `game_phase` to `Overworld`.
+    pub fn enter_overworld(&mut self, map_id: &str, root: &Path) -> Result<()> {
+        let mut manager = OverworldManager::load_map(map_id, root)?;
+        for hero in &self.game_manager.pm.active_heroes {
+            manager.place_hero_at_spawn(&hero.id_name);
+        }
+        self.overworld = Some(manager.state);
+        self.game_phase = GamePhase::Overworld;
+        Ok(())
+    }
+
+    /// Leave overworld and start a fight: look up `scenario_id` in `all_scenarios`,
+    /// set it as the current scenario, clear the pending encounter, and switch to `Running`.
+    pub fn exit_overworld_to_fight(&mut self, scenario_id: &str) {
+        if let Some(scenario) = self
+            .game_manager
+            .all_scenarios
+            .iter()
+            .find(|s| s.name == scenario_id)
+            .cloned()
+        {
+            self.game_manager.current_scenario = scenario;
+        }
+        if let Some(ref mut ow) = self.overworld {
+            ow.pending_encounter = None;
+        }
+        self.game_phase = GamePhase::Running;
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
+    use crate::common::constants::paths_const::{OFFLINE_ROOT, TEST_OFFLINE_ROOT};
     use crate::server::core_game_data::CoreGameData;
     use crate::server::data_manager::DataManager;
     use crate::server::scenario::Scenario;
@@ -174,5 +210,60 @@ mod tests {
         assert_eq!(core_game_data.players_nb, 0);
         assert!(core_game_data.heroes_chosen.is_empty());
         assert!(core_game_data.game_manager.logs.is_empty());
+        assert!(core_game_data.overworld.is_none());
+    }
+
+    #[test]
+    fn unit_enter_overworld_sets_phase_and_state() {
+        use crate::server::server_manager::GamePhase;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+        assert_eq!(core.game_phase, GamePhase::Default);
+
+        let result = core.enter_overworld("pallet_town", &OFFLINE_ROOT);
+        assert!(
+            result.is_ok(),
+            "enter_overworld must succeed: {:?}",
+            result.err()
+        );
+        assert_eq!(core.game_phase, GamePhase::Overworld);
+        let ow = core.overworld.as_ref().unwrap();
+        assert_eq!(ow.map_id, "pallet_town");
+        assert_eq!(ow.pending_encounter, None);
+    }
+
+    #[test]
+    fn unit_enter_overworld_missing_map_returns_err() {
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+        assert!(
+            core.enter_overworld("nonexistent_map", &OFFLINE_ROOT)
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn unit_exit_overworld_to_fight_sets_running() {
+        use crate::server::server_manager::GamePhase;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+        core.enter_overworld("pallet_town", &OFFLINE_ROOT).unwrap();
+        assert_eq!(core.game_phase, GamePhase::Overworld);
+
+        core.exit_overworld_to_fight("Stage 1");
+        assert_eq!(core.game_phase, GamePhase::Running);
+        assert_eq!(core.overworld.as_ref().unwrap().pending_encounter, None);
+    }
+
+    #[test]
+    fn unit_game_phase_overworld_serde() {
+        use crate::server::server_manager::GamePhase;
+
+        let phase = GamePhase::Overworld;
+        let json = serde_json::to_string(&phase).unwrap();
+        let back: GamePhase = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, GamePhase::Overworld);
     }
 }
