@@ -222,11 +222,11 @@ mod tests {
   "width": 5,
   "height": 5,
   "tiles": [
-    [{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"}],
-    [{"type":"wall"},{"type":"floor"},{"type":"floor"},{"type":"floor"},{"type":"wall"}],
-    [{"type":"wall"},{"type":"floor"},{"type":"grass"},{"type":"floor"},{"type":"wall"}],
-    [{"type":"wall"},{"type":"water"},{"type":"floor"},{"type":"door","target_map":"route_1","spawn":{"x":1,"y":1}},{"type":"wall"}],
-    [{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"}]
+    ["wall","wall","wall","wall","wall"],
+    ["wall","floor","floor","floor","wall"],
+    ["wall","floor","grass","floor","wall"],
+    ["wall","water","floor",{"door":{"target_map":"route_1","spawn":{"x":1,"y":1}}},"wall"],
+    ["wall","wall","wall","wall","wall"]
   ],
   "npcs": [{"id":"elder","x":1,"y":1,"dialog":["Hello!","Be careful."]}],
   "spawn": {"x":2,"y":1},
@@ -328,9 +328,9 @@ mod tests {
     fn unit_move_player_grass_no_encounters() {
         let json = r#"{
   "id":"t","width":3,"height":3,
-  "tiles":[[{"type":"wall"},{"type":"wall"},{"type":"wall"}],
-            [{"type":"wall"},{"type":"floor"},{"type":"wall"}],
-            [{"type":"wall"},{"type":"grass"},{"type":"wall"}]],
+  "tiles":[["wall","wall","wall"],
+            ["wall","floor","wall"],
+            ["wall","grass","wall"]],
   "npcs":[],"spawn":{"x":1,"y":1},"encounters":[]
 }"#;
         let root = write_temp_map(json, "t");

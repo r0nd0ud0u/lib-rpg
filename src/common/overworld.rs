@@ -21,7 +21,7 @@ pub enum Direction {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum TileKind {
     Floor,
     Wall,
@@ -58,7 +58,7 @@ mod tests {
     fn unit_tile_kind_serde_floor() {
         let kind = TileKind::Floor;
         let json = serde_json::to_string(&kind).unwrap();
-        assert!(json.contains("\"type\":\"floor\""), "got: {json}");
+        assert_eq!(json, "\"floor\"", "got: {json}");
         let back: TileKind = serde_json::from_str(&json).unwrap();
         assert_eq!(back, TileKind::Floor);
     }
