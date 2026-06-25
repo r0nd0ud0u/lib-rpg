@@ -6,6 +6,57 @@ use serde::{Deserialize, Serialize};
 
 use crate::common::overworld::{Direction, Position, TileKind};
 
+/// Custom serde for `tiles: Vec<Vec<TileKind>>`.
+///
+/// Serialises as `Vec<Vec<u8>>` (discriminants: 0=Floor 1=Wall 2=Grass 3=Water 4=Door)
+/// so that binary formats like CBOR never encounter the internally-structured TileKind enum.
+/// Door target data is preserved separately in `OverworldState::door_targets`.
+mod tiles_serde {
+    use super::*;
+    use serde::{Deserializer, Serializer, de::Deserialize as _, ser::SerializeSeq as _};
+
+    pub fn serialize<S: Serializer>(tiles: &Vec<Vec<TileKind>>, s: S) -> Result<S::Ok, S::Error> {
+        let mut outer = s.serialize_seq(Some(tiles.len()))?;
+        for row in tiles {
+            let ids: Vec<u8> = row
+                .iter()
+                .map(|t| match t {
+                    TileKind::Floor => 0,
+                    TileKind::Wall => 1,
+                    TileKind::Grass => 2,
+                    TileKind::Water => 3,
+                    TileKind::Door { .. } => 4,
+                })
+                .collect();
+            outer.serialize_element(&ids)?;
+        }
+        outer.end()
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        d: D,
+    ) -> Result<Vec<Vec<TileKind>>, D::Error> {
+        let raw = Vec::<Vec<u8>>::deserialize(d)?;
+        Ok(raw
+            .into_iter()
+            .map(|row| {
+                row.into_iter()
+                    .map(|id| match id {
+                        1 => TileKind::Wall,
+                        2 => TileKind::Grass,
+                        3 => TileKind::Water,
+                        4 => TileKind::Door {
+                            target_map: String::new(),
+                            spawn: Position::default(),
+                        },
+                        _ => TileKind::Floor,
+                    })
+                    .collect()
+            })
+            .collect())
+    }
+}
+
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NpcState {
     pub id: String,
@@ -21,7 +72,13 @@ pub struct OverworldState {
     pub npcs: Vec<NpcState>,
     pub width: i32,
     pub height: i32,
+    /// Serialised as `Vec<Vec<u8>>` discriminants for CBOR safety (see `tiles_serde`).
+    /// Door variant data (target_map, spawn) is kept in `door_targets`.
+    #[serde(with = "tiles_serde")]
     pub tiles: Vec<Vec<TileKind>>,
+    /// Maps "x_y" → (target_map, spawn) for every Door tile on the map.
+    #[serde(default)]
+    pub door_targets: HashMap<String, (String, Position)>,
     /// Set when a grass tile triggers an encounter; cleared when the fight begins.
     pub pending_encounter: Option<String>,
     /// Scenario ids that can be triggered by grass encounters on this map.
@@ -82,6 +139,17 @@ impl OverworldManager {
             })
             .collect();
 
+        // Collect door target data keyed by "x_y" so it survives serialisation.
+        let mut door_targets = HashMap::new();
+        for (y, row) in map.tiles.iter().enumerate() {
+            for (x, tile) in row.iter().enumerate() {
+                if let TileKind::Door { target_map, spawn } = tile {
+                    door_targets
+                        .insert(format!("{}_{}", x, y), (target_map.clone(), spawn.clone()));
+                }
+            }
+        }
+
         let state = OverworldState {
             map_id: map.id,
             player_positions: HashMap::new(),
@@ -89,6 +157,7 @@ impl OverworldManager {
             width: map.width,
             height: map.height,
             tiles: map.tiles,
+            door_targets,
             pending_encounter: None,
             encounters: map.encounters,
             active_dialog: Vec::new(),
@@ -101,7 +170,28 @@ impl OverworldManager {
     }
 
     /// Reconstruct a manager from a persisted state (spawn defaults to origin).
+    /// Restores `Door` tile data from `door_targets` when tiles were loaded from
+    /// a serialised form (e.g. saved game JSON / CBOR wire).
     pub fn from_state(state: OverworldState) -> Self {
+        let mut state = state;
+        if !state.door_targets.is_empty() {
+            // tiles_serde deserialises Door tiles with empty target_map; restore from door_targets.
+            // Use mem::take to avoid simultaneous mut+immut borrows of state fields.
+            let door_targets = std::mem::take(&mut state.door_targets);
+            for y in 0..state.tiles.len() {
+                for x in 0..state.tiles[y].len() {
+                    if let TileKind::Door { target_map, spawn } = &mut state.tiles[y][x] {
+                        if target_map.is_empty() {
+                            if let Some((tm, sp)) = door_targets.get(&format!("{}_{}", x, y)) {
+                                *target_map = tm.clone();
+                                *spawn = sp.clone();
+                            }
+                        }
+                    }
+                }
+            }
+            state.door_targets = door_targets;
+        }
         OverworldManager {
             state,
             spawn: Position::default(),

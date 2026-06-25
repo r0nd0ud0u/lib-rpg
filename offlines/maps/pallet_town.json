@@ -3,12 +3,12 @@
   "width": 8,
   "height": 6,
   "tiles": [
-    [{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"}],
-    [{"type":"wall"},{"type":"floor"},{"type":"floor"},{"type":"grass"},{"type":"grass"},{"type":"floor"},{"type":"floor"},{"type":"wall"}],
-    [{"type":"wall"},{"type":"floor"},{"type":"floor"},{"type":"floor"},{"type":"floor"},{"type":"floor"},{"type":"floor"},{"type":"wall"}],
-    [{"type":"wall"},{"type":"floor"},{"type":"floor"},{"type":"floor"},{"type":"floor"},{"type":"floor"},{"type":"floor"},{"type":"wall"}],
-    [{"type":"wall"},{"type":"floor"},{"type":"floor"},{"type":"floor"},{"type":"door","target_map":"route_1","spawn":{"x":1,"y":1}},{"type":"floor"},{"type":"floor"},{"type":"wall"}],
-    [{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"},{"type":"wall"}]
+    ["wall","wall","wall","wall","wall","wall","wall","wall"],
+    ["wall","floor","floor","grass","grass","floor","floor","wall"],
+    ["wall","floor","floor","floor","floor","floor","floor","wall"],
+    ["wall","floor","floor","floor","floor","floor","floor","wall"],
+    ["wall","floor","floor","floor",{"door":{"target_map":"route_1","spawn":{"x":1,"y":1}}},"floor","floor","wall"],
+    ["wall","wall","wall","wall","wall","wall","wall","wall"]
   ],
   "npcs": [
     {"id":"elder","x":2,"y":2,"dialog":["Welcome to Pallet Town!","Be careful in the tall grass — wild pokemon roam there."]}
