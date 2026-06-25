@@ -91,6 +91,7 @@ impl OverworldManager {
             tiles: map.tiles,
             pending_encounter: None,
             encounters: map.encounters,
+            active_dialog: Vec::new(),
         };
 
         Ok(OverworldManager {
