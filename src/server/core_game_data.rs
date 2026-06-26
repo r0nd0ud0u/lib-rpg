@@ -109,9 +109,10 @@ impl CoreGameData {
         if let Some(spawn) = spawn_override {
             manager.spawn = spawn;
         }
-        // Place only the first active hero to avoid ghost sprites for heroes
-        // that are not controlled by the local player.
-        if let Some(hero) = self.game_manager.pm.active_heroes.first() {
+        // Place every active hero at the (possibly overridden) spawn so that
+        // all heroes have a valid position in `player_positions` and movement
+        // lookups succeed regardless of which hero a player controls.
+        for hero in &self.game_manager.pm.active_heroes {
             manager.place_hero_at_spawn(&hero.id_name);
         }
         self.overworld = Some(manager.state);
@@ -279,10 +280,12 @@ mod tests {
         assert_eq!(core.game_phase, GamePhase::Overworld);
 
         let ow = core.overworld.as_ref().unwrap();
-        // At most one hero sprite should be placed to avoid ghost replicas.
-        assert!(
-            ow.player_positions.len() <= 1,
-            "only the first hero must be placed, got {} entries",
+        // All active heroes must appear in player_positions (one entry each).
+        let hero_count = core.game_manager.pm.active_heroes.len();
+        assert_eq!(
+            ow.player_positions.len(),
+            hero_count,
+            "every active hero must have a position: expected {hero_count}, got {}",
             ow.player_positions.len()
         );
     }
