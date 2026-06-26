@@ -254,7 +254,11 @@ mod tests {
 
         let custom_spawn = Position::new(2, 3);
         let result = core.enter_overworld_at("pallet_town", custom_spawn.clone(), &OFFLINE_ROOT);
-        assert!(result.is_ok(), "enter_overworld_at must succeed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "enter_overworld_at must succeed: {:?}",
+            result.err()
+        );
         assert_eq!(core.game_phase, GamePhase::Overworld);
 
         let ow = core.overworld.as_ref().unwrap();

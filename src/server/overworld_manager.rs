@@ -33,9 +33,7 @@ mod tiles_serde {
         outer.end()
     }
 
-    pub fn deserialize<'de, D: Deserializer<'de>>(
-        d: D,
-    ) -> Result<Vec<Vec<TileKind>>, D::Error> {
+    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<Vec<TileKind>>, D::Error> {
         let raw = Vec::<Vec<u8>>::deserialize(d)?;
         Ok(raw
             .into_iter()
@@ -195,13 +193,12 @@ impl OverworldManager {
             let door_targets = std::mem::take(&mut state.door_targets);
             for y in 0..state.tiles.len() {
                 for x in 0..state.tiles[y].len() {
-                    if let TileKind::Door { target_map, spawn } = &mut state.tiles[y][x] {
-                        if target_map.is_empty() {
-                            if let Some((tm, sp)) = door_targets.get(&format!("{}_{}", x, y)) {
-                                *target_map = tm.clone();
-                                *spawn = sp.clone();
-                            }
-                        }
+                    if let TileKind::Door { target_map, spawn } = &mut state.tiles[y][x]
+                        && target_map.is_empty()
+                        && let Some((tm, sp)) = door_targets.get(&format!("{}_{}", x, y))
+                    {
+                        *target_map = tm.clone();
+                        *spawn = sp.clone();
                     }
                 }
             }
