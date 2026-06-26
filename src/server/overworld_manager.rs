@@ -13,7 +13,7 @@ use crate::common::overworld::{Direction, Position, TileKind};
 /// Door target data is preserved separately in `OverworldState::door_targets`.
 mod tiles_serde {
     use super::*;
-    use serde::{Deserializer, Serializer, de::Deserialize as _, ser::SerializeSeq as _};
+    use serde::{Deserializer, Serializer, ser::SerializeSeq as _};
 
     pub fn serialize<S: Serializer>(tiles: &Vec<Vec<TileKind>>, s: S) -> Result<S::Ok, S::Error> {
         let mut outer = s.serialize_seq(Some(tiles.len()))?;
@@ -210,10 +210,40 @@ impl OverworldManager {
         }
     }
 
+    /// Return `true` if `pos` is within bounds and on a passable tile (not Wall or Water).
+    pub fn is_passable(&self, pos: &Position) -> bool {
+        if pos.x < 0 || pos.y < 0 || pos.x >= self.state.width || pos.y >= self.state.height {
+            return false;
+        }
+        !matches!(
+            self.state
+                .tiles
+                .get(pos.y as usize)
+                .and_then(|r| r.get(pos.x as usize)),
+            Some(TileKind::Wall) | Some(TileKind::Water) | None
+        )
+    }
+
+    /// Place `hero_id` at the map spawn point.
+    /// If the spawn tile is a wall or out-of-bounds, falls back to the first
+    /// passable tile found in row-major order.
     pub fn place_hero_at_spawn(&mut self, hero_id: &str) {
+        let spawn = if self.is_passable(&self.spawn) {
+            self.spawn.clone()
+        } else {
+            tracing::warn!(
+                "Spawn {:?} is not passable on map '{}'; using first passable tile",
+                self.spawn,
+                self.state.map_id
+            );
+            (0..self.state.height)
+                .flat_map(|y| (0..self.state.width).map(move |x| Position::new(x, y)))
+                .find(|p| self.is_passable(p))
+                .unwrap_or_else(|| self.spawn.clone())
+        };
         self.state
             .player_positions
-            .insert(hero_id.to_string(), self.spawn.clone());
+            .insert(hero_id.to_string(), spawn);
     }
 
     /// Move `hero_id` one step in `dir`.
