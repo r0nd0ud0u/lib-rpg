@@ -62,6 +62,18 @@ pub struct NpcState {
     pub id: String,
     pub pos: Position,
     pub dialog: Vec<String>,
+    /// If set, interacting with this NPC starts a fight instead of showing dialog.
+    #[serde(default)]
+    pub fight_scenario_id: Option<String>,
+}
+
+/// Result returned by [`OverworldManager::interact`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum InteractResult {
+    /// Show the NPC dialog lines.
+    Dialog(Vec<String>),
+    /// Start a fight with the given scenario id.
+    Fight(String),
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
@@ -113,6 +125,8 @@ struct NpcJson {
     x: i32,
     y: i32,
     dialog: Vec<String>,
+    #[serde(default)]
+    fight_scenario_id: Option<String>,
 }
 
 /// Transient helper that wraps an [`OverworldState`] and provides movement logic.
@@ -136,6 +150,7 @@ impl OverworldManager {
                 id: n.id.clone(),
                 pos: Position::new(n.x, n.y),
                 dialog: n.dialog.clone(),
+                fight_scenario_id: n.fight_scenario_id.clone(),
             })
             .collect();
 
@@ -268,8 +283,12 @@ impl OverworldManager {
         }
     }
 
-    /// Return the dialog of the first NPC adjacent (4-directional) to `hero_id`.
-    pub fn interact(&self, hero_id: &str) -> Option<Vec<String>> {
+    /// Interact with the first NPC adjacent (4-directional) to `hero_id`.
+    ///
+    /// Returns `None` when no adjacent NPC is found.
+    /// Returns `Some(InteractResult::Fight(scenario_id))` for enemy NPCs, or
+    /// `Some(InteractResult::Dialog(lines))` for friendly NPCs.
+    pub fn interact(&self, hero_id: &str) -> Option<InteractResult> {
         let pos = self.state.player_positions.get(hero_id)?;
         let adjacent = [
             Position::new(pos.x, pos.y - 1),
@@ -277,11 +296,16 @@ impl OverworldManager {
             Position::new(pos.x - 1, pos.y),
             Position::new(pos.x + 1, pos.y),
         ];
-        self.state
+        let npc = self
+            .state
             .npcs
             .iter()
-            .find(|npc| adjacent.contains(&npc.pos))
-            .map(|npc| npc.dialog.clone())
+            .find(|npc| adjacent.contains(&npc.pos))?;
+        if let Some(ref scenario_id) = npc.fight_scenario_id {
+            Some(InteractResult::Fight(scenario_id.clone()))
+        } else {
+            Some(InteractResult::Dialog(npc.dialog.clone()))
+        }
     }
 }
 
@@ -460,10 +484,13 @@ mod tests {
         let mut mgr = OverworldManager::load_map("test_map_npc", &root).unwrap();
         // NPC is at (1,1), place hero at (2,1) — right of NPC
         mgr.place_hero_at_spawn("hero_1");
-        let dialog = mgr.interact("hero_1");
+        let result = mgr.interact("hero_1");
         assert_eq!(
-            dialog,
-            Some(vec!["Hello!".to_string(), "Be careful.".to_string()])
+            result,
+            Some(InteractResult::Dialog(vec![
+                "Hello!".to_string(),
+                "Be careful.".to_string()
+            ]))
         );
     }
 
@@ -475,8 +502,8 @@ mod tests {
         mgr.state
             .player_positions
             .insert("hero_1".to_string(), Position::new(3, 1));
-        let dialog = mgr.interact("hero_1");
-        assert!(dialog.is_none());
+        let result = mgr.interact("hero_1");
+        assert!(result.is_none());
     }
 
     #[test]
@@ -484,6 +511,34 @@ mod tests {
         let root = write_temp_map(small_map_json(), "test_map_unk2");
         let mgr = OverworldManager::load_map("test_map_unk2", &root).unwrap();
         assert!(mgr.interact("ghost").is_none());
+    }
+
+    #[test]
+    fn unit_interact_enemy_npc_triggers_fight() {
+        let enemy_map = r#"{
+  "id": "enemy_map",
+  "width": 5,
+  "height": 5,
+  "tiles": [
+    ["wall","wall","wall","wall","wall"],
+    ["wall","floor","floor","floor","wall"],
+    ["wall","floor","floor","floor","wall"],
+    ["wall","floor","floor","floor","wall"],
+    ["wall","wall","wall","wall","wall"]
+  ],
+  "npcs": [{"id":"goblin","x":1,"y":1,"dialog":[],"fight_scenario_id":"Patrouille Gobeline"}],
+  "spawn": {"x":2,"y":1},
+  "encounters": []
+}"#;
+        let root = write_temp_map(enemy_map, "enemy_map");
+        let mut mgr = OverworldManager::load_map("enemy_map", &root).unwrap();
+        mgr.place_hero_at_spawn("hero_1");
+        // hero is at (2,1), goblin is at (1,1) — adjacent left
+        let result = mgr.interact("hero_1");
+        assert_eq!(
+            result,
+            Some(InteractResult::Fight("Patrouille Gobeline".to_string()))
+        );
     }
 
     #[test]

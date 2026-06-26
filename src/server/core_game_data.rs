@@ -82,11 +82,36 @@ impl CoreGameData {
         self.game_manager.load_next_scenario()
     }
 
-    /// Enter overworld mode: load `map_id` from `<root>/maps/`, place all active heroes
-    /// at the map spawn, and switch `game_phase` to `Overworld`.
+    /// Enter overworld mode: load `map_id` from `<root>/maps/`, place the first
+    /// active hero at the map's default spawn, and switch `game_phase` to `Overworld`.
     pub fn enter_overworld(&mut self, map_id: &str, root: &Path) -> Result<()> {
+        self.enter_overworld_inner(map_id, None, root)
+    }
+
+    /// Like [`enter_overworld`] but place the hero at `spawn` instead of the
+    /// map's default spawn point (used for door transitions).
+    pub fn enter_overworld_at(
+        &mut self,
+        map_id: &str,
+        spawn: crate::common::overworld::Position,
+        root: &Path,
+    ) -> Result<()> {
+        self.enter_overworld_inner(map_id, Some(spawn), root)
+    }
+
+    fn enter_overworld_inner(
+        &mut self,
+        map_id: &str,
+        spawn_override: Option<crate::common::overworld::Position>,
+        root: &Path,
+    ) -> Result<()> {
         let mut manager = OverworldManager::load_map(map_id, root)?;
-        for hero in &self.game_manager.pm.active_heroes {
+        if let Some(spawn) = spawn_override {
+            manager.spawn = spawn;
+        }
+        // Place only the first active hero to avoid ghost sprites for heroes
+        // that are not controlled by the local player.
+        if let Some(hero) = self.game_manager.pm.active_heroes.first() {
             manager.place_hero_at_spawn(&hero.id_name);
         }
         self.overworld = Some(manager.state);
@@ -217,6 +242,45 @@ mod tests {
         assert!(core_game_data.heroes_chosen.is_empty());
         assert!(core_game_data.game_manager.logs.is_empty());
         assert!(core_game_data.overworld.is_none());
+    }
+
+    #[test]
+    fn unit_enter_overworld_at_uses_spawn_override() {
+        use crate::common::overworld::Position;
+        use crate::server::server_manager::GamePhase;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+
+        let custom_spawn = Position::new(2, 3);
+        let result = core.enter_overworld_at("pallet_town", custom_spawn.clone(), &OFFLINE_ROOT);
+        assert!(result.is_ok(), "enter_overworld_at must succeed: {:?}", result.err());
+        assert_eq!(core.game_phase, GamePhase::Overworld);
+
+        let ow = core.overworld.as_ref().unwrap();
+        // The first hero must be placed at the custom spawn, not the map default.
+        for pos in ow.player_positions.values() {
+            assert_eq!(pos, &custom_spawn, "hero must be at the custom spawn");
+        }
+    }
+
+    #[test]
+    fn unit_enter_overworld_places_only_one_hero() {
+        use crate::server::server_manager::GamePhase;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+        let result = core.enter_overworld("pallet_town", &OFFLINE_ROOT);
+        assert!(result.is_ok());
+        assert_eq!(core.game_phase, GamePhase::Overworld);
+
+        let ow = core.overworld.as_ref().unwrap();
+        // At most one hero sprite should be placed to avoid ghost replicas.
+        assert!(
+            ow.player_positions.len() <= 1,
+            "only the first hero must be placed, got {} entries",
+            ow.player_positions.len()
+        );
     }
 
     #[test]
