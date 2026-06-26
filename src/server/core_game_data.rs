@@ -82,9 +82,20 @@ impl CoreGameData {
         self.game_manager.load_next_scenario()
     }
 
-    /// Enter overworld mode: load `map_id` from `<root>/maps/`, place the first
-    /// active hero at the map's default spawn, and switch `game_phase` to `Overworld`.
+    /// Enter overworld mode: load `map_id` from `<root>/maps/`, place all
+    /// active heroes at the map's default spawn, and switch `game_phase` to `Overworld`.
+    ///
+    /// If the player previously visited this map and the overworld state was
+    /// preserved (i.e. `overworld` is already `Some` and its `map_id` matches),
+    /// the saved positions are restored instead of resetting to spawn.
     pub fn enter_overworld(&mut self, map_id: &str, root: &Path) -> Result<()> {
+        // Resume from preserved state if we already have it for this map.
+        if let Some(ref ow) = self.overworld {
+            if ow.map_id == map_id {
+                self.game_phase = GamePhase::Overworld;
+                return Ok(());
+            }
+        }
         self.enter_overworld_inner(map_id, None, root)
     }
 
