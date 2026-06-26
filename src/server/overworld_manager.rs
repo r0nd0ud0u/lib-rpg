@@ -595,4 +595,136 @@ mod tests {
         let mgr2 = OverworldManager::from_state(state.clone());
         assert_eq!(mgr2.state, state);
     }
+
+    // ── lotr_shire map layout tests ──────────────────────────────────────────
+    //
+    // Map: 14×10. Outer border = wall (x=0,x=13,y=0,y=9).
+    // Inner-left border = wall at x=1 for all interior rows.
+    // Diagonal interior walls: (4,1),(5,2),(6,3),(7,4),(8,5),(9,6).
+    // Spawn: (2,7). Gandalf NPC: (2,2). Goblin NPC: (10,3).
+    //
+    //   (1,1) → wall  (inner-left border)
+    //   (4,2) → floor (left of diagonal gap)
+    fn lotr_shire_test_json() -> &'static str {
+        r#"{
+  "id": "lotr_shire_test",
+  "width": 14,
+  "height": 10,
+  "tiles": [
+    ["wall","wall","wall","wall","wall","wall","wall",{"door":{"target_map":"lotr_misty_mountains","spawn":{"x":7,"y":8}}},"wall","wall","wall","wall","wall","wall"],
+    ["wall","wall","floor","floor","wall","floor","floor","floor","floor","floor","floor","floor","floor","wall"],
+    ["wall","wall","floor","floor","floor","wall","floor","floor","floor","floor","floor","floor","floor","wall"],
+    ["wall","wall","floor","floor","floor","floor","wall","floor","floor","floor","floor","floor","floor","wall"],
+    ["wall","wall","floor","floor","floor","floor","floor","wall","floor","floor","floor","floor","floor","wall"],
+    ["wall","wall","floor","floor","floor","floor","floor","floor","wall","floor","floor","floor","floor","wall"],
+    ["wall","wall","floor","floor","floor","floor","floor","floor","floor","wall","floor","floor","floor","wall"],
+    ["wall","wall","floor","floor","floor","floor","floor","floor","floor","floor","floor","floor","floor","wall"],
+    ["wall","wall","floor","floor","floor","floor","floor","floor","floor","floor","floor","floor","floor","wall"],
+    ["wall","wall","wall","wall","wall","wall","wall","wall","wall","wall","wall","wall","wall","wall"]
+  ],
+  "npcs": [
+    {"id":"gandalf","x":2,"y":2,"dialog":["La Comté est menacée, ami !"]},
+    {"id":"gobelin_eclaireur","x":10,"y":3,"dialog":["Combat!"],"fight_scenario_id":"Patrouille Gobeline"}
+  ],
+  "spawn": {"x":2,"y":7},
+  "encounters": []
+}"#
+    }
+
+    /// (1,1) is the inner-left-border wall; moving left into it must be Blocked.
+    #[test]
+    fn unit_lotr_shire_wall_at_1_1_blocks() {
+        let root = write_temp_map(lotr_shire_test_json(), "lotr_shire_test_wall");
+        let mut mgr = OverworldManager::load_map("lotr_shire_test_wall", &root).unwrap();
+        // Place hero one step right of (1,1)
+        mgr.state
+            .player_positions
+            .insert("hero".to_string(), Position::new(2, 1));
+        assert_eq!(
+            mgr.move_player("hero", Direction::Left),
+            MoveResult::Blocked,
+            "(1,1) should be a wall – movement must be blocked"
+        );
+        // Position must be unchanged
+        assert_eq!(
+            *mgr.state.player_positions.get("hero").unwrap(),
+            Position::new(2, 1)
+        );
+    }
+
+    /// (4,2) is a floor tile; moving right onto it must succeed.
+    #[test]
+    fn unit_lotr_shire_floor_at_4_2_passable() {
+        let root = write_temp_map(lotr_shire_test_json(), "lotr_shire_test_floor");
+        let mut mgr = OverworldManager::load_map("lotr_shire_test_floor", &root).unwrap();
+        // Place hero one step left of (4,2)
+        mgr.state
+            .player_positions
+            .insert("hero".to_string(), Position::new(3, 2));
+        assert_eq!(
+            mgr.move_player("hero", Direction::Right),
+            MoveResult::Moved,
+            "(4,2) should be floor – movement must succeed"
+        );
+        assert_eq!(
+            *mgr.state.player_positions.get("hero").unwrap(),
+            Position::new(4, 2)
+        );
+    }
+
+    /// The map spawn point must be on a passable (floor) tile.
+    #[test]
+    fn unit_lotr_shire_spawn_on_floor() {
+        let root = write_temp_map(lotr_shire_test_json(), "lotr_shire_test_spawn");
+        let mgr = OverworldManager::load_map("lotr_shire_test_spawn", &root).unwrap();
+        assert!(
+            mgr.is_passable(&mgr.spawn),
+            "Spawn {:?} must be on a floor tile, not a wall",
+            mgr.spawn
+        );
+    }
+
+    /// Every NPC must be placed on a floor tile (not a wall).
+    #[test]
+    fn unit_lotr_shire_npcs_on_floor() {
+        let root = write_temp_map(lotr_shire_test_json(), "lotr_shire_test_npcs");
+        let mgr = OverworldManager::load_map("lotr_shire_test_npcs", &root).unwrap();
+        for npc in &mgr.state.npcs {
+            assert!(
+                mgr.is_passable(&npc.pos),
+                "NPC '{}' at {:?} must be on a floor tile, not a wall",
+                npc.id,
+                npc.pos
+            );
+        }
+    }
+
+    /// Every diagonal wall tile must block movement from the adjacent floor tile.
+    /// Diagonal: (4,1),(5,2),(6,3),(7,4),(8,5),(9,6).
+    #[test]
+    fn unit_lotr_shire_diagonal_wall_blocked() {
+        let root = write_temp_map(lotr_shire_test_json(), "lotr_shire_test_diag");
+        let mut mgr = OverworldManager::load_map("lotr_shire_test_diag", &root).unwrap();
+
+        // Each entry: (hero_start_x, hero_start_y, direction, wall_label)
+        let cases: &[(i32, i32, Direction, &str)] = &[
+            (3, 1, Direction::Right, "(4,1)"),  // → hits diagonal wall at x=4,y=1
+            (4, 2, Direction::Right, "(5,2)"),  // → hits diagonal wall at x=5,y=2
+            (5, 3, Direction::Right, "(6,3)"),  // → hits diagonal wall at x=6,y=3
+            (6, 4, Direction::Right, "(7,4)"),  // → hits diagonal wall at x=7,y=4
+            (7, 5, Direction::Right, "(8,5)"),  // → hits diagonal wall at x=8,y=5
+            (8, 6, Direction::Right, "(9,6)"),  // → hits diagonal wall at x=9,y=6
+        ];
+        for &(sx, sy, ref dir, label) in cases {
+            mgr.state
+                .player_positions
+                .insert("hero".to_string(), Position::new(sx, sy));
+            assert_eq!(
+                mgr.move_player("hero", dir.clone()),
+                MoveResult::Blocked,
+                "Diagonal wall {} should block movement",
+                label
+            );
+        }
+    }
 }
