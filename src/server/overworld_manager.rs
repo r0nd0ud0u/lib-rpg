@@ -1,4 +1,7 @@
-use std::{collections::HashMap, path::Path};
+use std::{
+    collections::{HashMap, HashSet},
+    path::Path,
+};
 
 use anyhow::Result;
 use rand::Rng;
@@ -96,6 +99,10 @@ pub struct OverworldState {
     /// Dialog lines from the last NPC interaction; cleared on next move.
     #[serde(default)]
     pub active_dialog: Vec<String>,
+    /// Set of "x_y" keys for door tiles that are currently locked.
+    /// Stepping onto a locked door returns `Blocked` with a hint dialog.
+    #[serde(default)]
+    pub locked_doors: HashSet<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -174,6 +181,7 @@ impl OverworldManager {
             pending_encounter: None,
             encounters: map.encounters,
             active_dialog: Vec::new(),
+            locked_doors: HashSet::new(),
         };
 
         Ok(OverworldManager {
@@ -306,7 +314,17 @@ impl OverworldManager {
                 }
                 MoveResult::Moved
             }
-            TileKind::Door { target_map, spawn } => MoveResult::MapTransition(target_map, spawn),
+            TileKind::Door { target_map, spawn } => {
+                let door_key = format!("{}_{}", new_pos.x, new_pos.y);
+                if self.state.locked_doors.contains(&door_key) {
+                    self.state.active_dialog = vec![
+                        "⛔ The passage is sealed.".to_string(),
+                        "Defeat the enemies first!".to_string(),
+                    ];
+                    return MoveResult::Blocked;
+                }
+                MoveResult::MapTransition(target_map, spawn)
+            }
         }
     }
 
