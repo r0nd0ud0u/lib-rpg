@@ -103,6 +103,15 @@ impl CoreGameData {
                     npc.defeated = true;
                     ow.pending_fight = None;
                 }
+                // Unlock all locked doors once every boss NPC on this map is defeated.
+                let all_beaten = ow
+                    .npcs
+                    .iter()
+                    .filter(|n| n.fight_scenario_id.is_some())
+                    .all(|n| n.defeated);
+                if all_beaten {
+                    ow.locked_doors.clear();
+                }
             }
             self.game_phase = GamePhase::Overworld;
             return Ok(());

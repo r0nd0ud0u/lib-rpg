@@ -73,6 +73,8 @@ struct MapData {
     npcs: Vec<NpcJson>,
     spawn: Position,
     encounters: Vec<String>,
+    #[serde(default)]
+    locked_doors: std::collections::HashSet<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -121,7 +123,7 @@ impl OverworldManager {
             pending_encounter: None,
             encounters: map.encounters,
             active_dialog: Vec::new(),
-            locked_doors: HashSet::new(),
+            locked_doors: map.locked_doors,
             pending_fight: None,
         };
 
