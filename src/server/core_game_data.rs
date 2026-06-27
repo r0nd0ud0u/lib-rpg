@@ -354,4 +354,48 @@ mod tests {
         let back: GamePhase = serde_json::from_str(&json).unwrap();
         assert_eq!(back, GamePhase::Overworld);
     }
+
+    /// After a fight triggered from the overworld, re-entering the same map
+    /// must resume the saved state (not reload it from disk), preserving any
+    /// in-memory mutations such as player positions or dialog state.
+    #[test]
+    fn unit_resume_overworld_after_fight_preserves_state() {
+        use crate::server::server_manager::GamePhase;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+
+        // Enter overworld.
+        core.enter_overworld("pallet_town", &OFFLINE_ROOT).unwrap();
+        assert_eq!(core.game_phase, GamePhase::Overworld);
+
+        // Plant a marker in active_dialog so we can verify the resume path is taken
+        // (a fresh load from disk would clear this field).
+        core.overworld
+            .as_mut()
+            .unwrap()
+            .active_dialog
+            .push("marker".to_string());
+
+        // Trigger a fight — game_phase → Running, overworld state must be kept.
+        core.exit_overworld_to_fight("Stage 1");
+        assert_eq!(core.game_phase, GamePhase::Running);
+        assert!(
+            core.overworld.is_some(),
+            "overworld state must survive while fight is in progress"
+        );
+
+        // Re-enter the same map — enter_overworld detects the map_id match and resumes.
+        core.enter_overworld("pallet_town", &OFFLINE_ROOT).unwrap();
+        assert_eq!(core.game_phase, GamePhase::Overworld);
+
+        assert!(
+            core.overworld
+                .as_ref()
+                .unwrap()
+                .active_dialog
+                .contains(&"marker".to_string()),
+            "active_dialog marker must survive fight + re-entry (state was resumed, not reloaded)"
+        );
+    }
 }
