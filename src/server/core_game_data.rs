@@ -6,6 +6,7 @@ use std::path::Path;
 
 use crate::server::data_manager::DataManager;
 use crate::server::game_manager::GameManager;
+use crate::server::game_state::GameStatus;
 use crate::server::overworld_manager::{OverworldManager, OverworldState};
 use crate::server::server_manager::GamePhase;
 use crate::shop::ShopCatalogItem;
@@ -90,11 +91,21 @@ impl CoreGameData {
     /// the saved positions are restored instead of resetting to spawn.
     pub fn enter_overworld(&mut self, map_id: &str, root: &Path) -> Result<()> {
         // Resume from preserved state if we already have it for this map.
-        if let Some(ref ow) = self.overworld {
-            if ow.map_id == map_id {
-                self.game_phase = GamePhase::Overworld;
-                return Ok(());
+        if let Some(ref mut ow) = self.overworld.as_mut().filter(|ow| ow.map_id == map_id) {
+            // Mark any boss NPC whose fight scenario was just won as defeated.
+            if self.game_manager.game_state.status == GameStatus::EndOfScenario {
+                let won = self.game_manager.current_scenario.name.clone();
+                if let Some(npc) = ow
+                    .npcs
+                    .iter_mut()
+                    .find(|n| n.fight_scenario_id.as_deref() == Some(won.as_str()))
+                {
+                    npc.defeated = true;
+                    ow.pending_fight = None;
+                }
             }
+            self.game_phase = GamePhase::Overworld;
+            return Ok(());
         }
         self.enter_overworld_inner(map_id, None, root)
     }
@@ -353,6 +364,46 @@ mod tests {
         let json = serde_json::to_string(&phase).unwrap();
         let back: GamePhase = serde_json::from_str(&json).unwrap();
         assert_eq!(back, GamePhase::Overworld);
+    }
+
+    /// After winning the boss fight, re-entering the overworld marks that NPC as defeated.
+    #[test]
+    fn unit_enter_overworld_marks_boss_npc_defeated() {
+        use crate::common::overworld::Position;
+        use crate::server::game_state::GameStatus;
+        use crate::server::overworld_manager::NpcState;
+        use crate::server::server_manager::GamePhase;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+
+        core.enter_overworld("pallet_town", &OFFLINE_ROOT).unwrap();
+
+        // Inject a fake boss NPC into the overworld state.
+        let ow = core.overworld.as_mut().unwrap();
+        ow.npcs.push(NpcState {
+            id: "boss_npc".to_string(),
+            pos: Position::new(3, 3),
+            dialog: vec!["Prepare yourself!".to_string()],
+            fight_scenario_id: Some("lotr_stage_1".to_string()),
+            defeated: false,
+        });
+
+        // Simulate a completed boss fight: set status and scenario name.
+        core.game_manager.game_state.status = GameStatus::EndOfScenario;
+        core.game_manager.current_scenario.name = "lotr_stage_1".to_string();
+        core.game_phase = GamePhase::Running;
+
+        // Re-enter the same map — should mark the boss NPC as defeated.
+        core.enter_overworld("pallet_town", &OFFLINE_ROOT).unwrap();
+
+        let ow = core.overworld.as_ref().unwrap();
+        let boss = ow.npcs.iter().find(|n| n.id == "boss_npc").unwrap();
+        assert!(
+            boss.defeated,
+            "boss NPC must be marked defeated after scenario win"
+        );
+        assert_eq!(ow.pending_fight, None, "pending_fight must be cleared");
     }
 
     /// After a fight triggered from the overworld, re-entering the same map

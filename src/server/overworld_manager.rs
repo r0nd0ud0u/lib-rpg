@@ -17,6 +17,9 @@ pub struct NpcState {
     /// If set, interacting with this NPC starts a fight instead of showing dialog.
     #[serde(default)]
     pub fight_scenario_id: Option<String>,
+    /// True once the boss fight for this NPC has been won — the NPC is hidden from the map.
+    #[serde(default)]
+    pub defeated: bool,
 }
 
 /// Result returned by [`OverworldManager::interact`].
@@ -48,6 +51,9 @@ pub struct OverworldState {
     /// Stepping onto a locked door returns `Blocked` with a hint dialog.
     #[serde(default)]
     pub locked_doors: HashSet<String>,
+    /// Scenario id queued to start after the boss's pre-fight dialog is dismissed.
+    #[serde(default)]
+    pub pending_fight: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -101,6 +107,7 @@ impl OverworldManager {
                 pos: Position::new(n.x, n.y),
                 dialog: n.dialog.clone(),
                 fight_scenario_id: n.fight_scenario_id.clone(),
+                defeated: false,
             })
             .collect();
 
@@ -115,6 +122,7 @@ impl OverworldManager {
             encounters: map.encounters,
             active_dialog: Vec::new(),
             locked_doors: HashSet::new(),
+            pending_fight: None,
         };
 
         Ok(OverworldManager {
@@ -246,27 +254,43 @@ impl OverworldManager {
         }
     }
 
-    /// Return `true` if `pos` is occupied by any player or NPC on this map.
+    /// Return `true` if `pos` is occupied by any player or living NPC on this map.
     pub fn is_occupied(&self, pos: &Position) -> bool {
         self.state.player_positions.values().any(|p| p == pos)
-            || self.state.npcs.iter().any(|npc| &npc.pos == pos)
+            || self
+                .state
+                .npcs
+                .iter()
+                .any(|npc| !npc.defeated && &npc.pos == pos)
     }
 
-    /// Return `true` if `pos` is occupied by a player other than `hero_id`, or by any NPC.
+    /// Return `true` if `pos` is occupied by a player other than `hero_id`, or by any living NPC.
     fn is_occupied_by_other(&self, pos: &Position, hero_id: &str) -> bool {
         self.state
             .player_positions
             .iter()
             .any(|(id, p)| id.as_str() != hero_id && p == pos)
-            || self.state.npcs.iter().any(|npc| &npc.pos == pos)
+            || self
+                .state
+                .npcs
+                .iter()
+                .any(|npc| !npc.defeated && &npc.pos == pos)
     }
 
-    /// Interact with the first NPC adjacent (4-directional) to `hero_id`.
+    /// Interact with the first living NPC adjacent (4-directional) to `hero_id`.
     ///
-    /// Returns `None` when no adjacent NPC is found.
-    /// Returns `Some(InteractResult::Fight(scenario_id))` for enemy NPCs, or
-    /// `Some(InteractResult::Dialog(lines))` for friendly NPCs.
-    pub fn interact(&self, hero_id: &str) -> Option<InteractResult> {
+    /// For boss NPCs with dialog: the first call shows dialog and queues the fight via
+    /// `pending_fight`; the second call (or any subsequent interact) triggers the fight.
+    /// For boss NPCs without dialog: starts the fight immediately.
+    /// For friendly NPCs: shows their dialog lines.
+    /// Returns `None` when no adjacent living NPC is found.
+    pub fn interact(&mut self, hero_id: &str) -> Option<InteractResult> {
+        // A pending fight (queued after dialog) takes priority.
+        if let Some(scenario_id) = self.state.pending_fight.take() {
+            self.state.active_dialog.clear();
+            return Some(InteractResult::Fight(scenario_id));
+        }
+
         let pos = self.state.player_positions.get(hero_id)?;
         let adjacent = [
             Position::new(pos.x, pos.y - 1),
@@ -278,11 +302,22 @@ impl OverworldManager {
             .state
             .npcs
             .iter()
-            .find(|npc| adjacent.contains(&npc.pos))?;
+            .find(|npc| !npc.defeated && adjacent.contains(&npc.pos))?;
+
         if let Some(ref scenario_id) = npc.fight_scenario_id {
-            Some(InteractResult::Fight(scenario_id.clone()))
+            if npc.dialog.is_empty() {
+                Some(InteractResult::Fight(scenario_id.clone()))
+            } else {
+                let lines = npc.dialog.clone();
+                let sid = scenario_id.clone();
+                self.state.active_dialog = lines.clone();
+                self.state.pending_fight = Some(sid);
+                Some(InteractResult::Dialog(lines))
+            }
         } else {
-            Some(InteractResult::Dialog(npc.dialog.clone()))
+            let dialog = npc.dialog.clone();
+            self.state.active_dialog = dialog.clone();
+            Some(InteractResult::Dialog(dialog))
         }
     }
 }
@@ -487,7 +522,7 @@ mod tests {
     #[test]
     fn unit_interact_unknown_hero() {
         let root = write_temp_map(small_map_json(), "test_map_unk2");
-        let mgr = OverworldManager::load_map("test_map_unk2", &root).unwrap();
+        let mut mgr = OverworldManager::load_map("test_map_unk2", &root).unwrap();
         assert!(mgr.interact("ghost").is_none());
     }
 
@@ -594,6 +629,143 @@ mod tests {
         assert_eq!(
             *mgr.state.player_positions.get("hero_1").unwrap(),
             Position::new(2, 1)
+        );
+    }
+
+    // ── defeated NPC / boss dialog tests ────────────────────────────────────
+
+    fn boss_map_state(boss_dialog: Vec<String>) -> OverworldState {
+        OverworldState {
+            map_id: "boss_map".to_string(),
+            player_positions: [("hero".to_string(), Position::new(2, 1))]
+                .into_iter()
+                .collect(),
+            npcs: vec![NpcState {
+                id: "boss".to_string(),
+                pos: Position::new(1, 1),
+                dialog: boss_dialog,
+                fight_scenario_id: Some("boss_fight".to_string()),
+                defeated: false,
+            }],
+            width: 5,
+            height: 5,
+            tiles: vec![
+                vec![
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                ],
+                vec![
+                    TileKind::Wall,
+                    TileKind::Floor,
+                    TileKind::Floor,
+                    TileKind::Floor,
+                    TileKind::Wall,
+                ],
+                vec![
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                ],
+                vec![
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                ],
+                vec![
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                    TileKind::Wall,
+                ],
+            ],
+            pending_encounter: None,
+            encounters: vec![],
+            active_dialog: vec![],
+            locked_doors: Default::default(),
+            pending_fight: None,
+        }
+    }
+
+    #[test]
+    fn unit_interact_boss_with_dialog_shows_dialog_then_fight() {
+        let state = boss_map_state(vec!["I will destroy you!".to_string()]);
+        let mut mgr = OverworldManager::from_state(state);
+
+        // First interact: shows dialog, queues fight.
+        let result = mgr.interact("hero");
+        assert_eq!(
+            result,
+            Some(InteractResult::Dialog(vec![
+                "I will destroy you!".to_string()
+            ]))
+        );
+        assert_eq!(mgr.state.pending_fight, Some("boss_fight".to_string()));
+
+        // Second interact: triggers the queued fight.
+        let result = mgr.interact("hero");
+        assert_eq!(
+            result,
+            Some(InteractResult::Fight("boss_fight".to_string()))
+        );
+        assert_eq!(mgr.state.pending_fight, None);
+        assert!(mgr.state.active_dialog.is_empty());
+    }
+
+    #[test]
+    fn unit_interact_boss_without_dialog_fights_immediately() {
+        let state = boss_map_state(vec![]);
+        let mut mgr = OverworldManager::from_state(state);
+
+        let result = mgr.interact("hero");
+        assert_eq!(
+            result,
+            Some(InteractResult::Fight("boss_fight".to_string()))
+        );
+        assert_eq!(mgr.state.pending_fight, None);
+    }
+
+    #[test]
+    fn unit_defeated_npc_not_occupied() {
+        let root = write_temp_map(small_map_json(), "test_map_defeated_occ");
+        let mut mgr = OverworldManager::load_map("test_map_defeated_occ", &root).unwrap();
+
+        // NPC "elder" is at (1,1) — initially occupied.
+        assert!(mgr.is_occupied(&Position::new(1, 1)));
+
+        mgr.state.npcs.iter_mut().for_each(|n| n.defeated = true);
+
+        assert!(!mgr.is_occupied(&Position::new(1, 1)));
+    }
+
+    #[test]
+    fn unit_hero_can_move_through_defeated_npc_tile() {
+        let root = write_temp_map(small_map_json(), "test_map_defeated_mv");
+        let mut mgr = OverworldManager::load_map("test_map_defeated_mv", &root).unwrap();
+        mgr.place_hero_at_spawn("hero_1"); // spawn = (2,1)
+
+        // Initially blocked by living NPC at (1,1).
+        assert_eq!(
+            mgr.move_player("hero_1", Direction::Left),
+            MoveResult::Blocked
+        );
+
+        // Mark NPC defeated — hero should now be able to step onto (1,1).
+        mgr.state.npcs.iter_mut().for_each(|n| n.defeated = true);
+        assert_eq!(
+            mgr.move_player("hero_1", Direction::Left),
+            MoveResult::Moved
+        );
+        assert_eq!(
+            *mgr.state.player_positions.get("hero_1").unwrap(),
+            Position::new(1, 1)
         );
     }
 
