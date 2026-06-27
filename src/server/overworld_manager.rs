@@ -9,55 +9,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::common::overworld::{Direction, Position, TileKind};
 
-/// Custom serde for `tiles: Vec<Vec<TileKind>>`.
-///
-/// Serialises as `Vec<Vec<u8>>` (discriminants: 0=Floor 1=Wall 2=Grass 3=Water 4=Door)
-/// so that binary formats like CBOR never encounter the internally-structured TileKind enum.
-/// Door target data is preserved separately in `OverworldState::door_targets`.
-mod tiles_serde {
-    use super::*;
-    use serde::{Deserializer, Serializer, ser::SerializeSeq as _};
-
-    pub fn serialize<S: Serializer>(tiles: &Vec<Vec<TileKind>>, s: S) -> Result<S::Ok, S::Error> {
-        let mut outer = s.serialize_seq(Some(tiles.len()))?;
-        for row in tiles {
-            let ids: Vec<u8> = row
-                .iter()
-                .map(|t| match t {
-                    TileKind::Floor => 0,
-                    TileKind::Wall => 1,
-                    TileKind::Grass => 2,
-                    TileKind::Water => 3,
-                    TileKind::Door { .. } => 4,
-                })
-                .collect();
-            outer.serialize_element(&ids)?;
-        }
-        outer.end()
-    }
-
-    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<Vec<TileKind>>, D::Error> {
-        let raw = Vec::<Vec<u8>>::deserialize(d)?;
-        Ok(raw
-            .into_iter()
-            .map(|row| {
-                row.into_iter()
-                    .map(|id| match id {
-                        1 => TileKind::Wall,
-                        2 => TileKind::Grass,
-                        3 => TileKind::Water,
-                        4 => TileKind::Door {
-                            target_map: String::new(),
-                            spawn: Position::default(),
-                        },
-                        _ => TileKind::Floor,
-                    })
-                    .collect()
-            })
-            .collect())
-    }
-}
-
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NpcState {
     pub id: String,
@@ -85,13 +36,7 @@ pub struct OverworldState {
     pub npcs: Vec<NpcState>,
     pub width: i32,
     pub height: i32,
-    /// Serialised as `Vec<Vec<u8>>` discriminants for CBOR safety (see `tiles_serde`).
-    /// Door variant data (target_map, spawn) is kept in `door_targets`.
-    #[serde(with = "tiles_serde")]
     pub tiles: Vec<Vec<TileKind>>,
-    /// Maps "x_y" → (target_map, spawn) for every Door tile on the map.
-    #[serde(default)]
-    pub door_targets: HashMap<String, (String, Position)>,
     /// Set when a grass tile triggers an encounter; cleared when the fight begins.
     pub pending_encounter: Option<String>,
     /// Scenario ids that can be triggered by grass encounters on this map.
@@ -159,17 +104,6 @@ impl OverworldManager {
             })
             .collect();
 
-        // Collect door target data keyed by "x_y" so it survives serialisation.
-        let mut door_targets = HashMap::new();
-        for (y, row) in map.tiles.iter().enumerate() {
-            for (x, tile) in row.iter().enumerate() {
-                if let TileKind::Door { target_map, spawn } = tile {
-                    door_targets
-                        .insert(format!("{}_{}", x, y), (target_map.clone(), spawn.clone()));
-                }
-            }
-        }
-
         let state = OverworldState {
             map_id: map.id,
             player_positions: HashMap::new(),
@@ -177,7 +111,6 @@ impl OverworldManager {
             width: map.width,
             height: map.height,
             tiles: map.tiles,
-            door_targets,
             pending_encounter: None,
             encounters: map.encounters,
             active_dialog: Vec::new(),
@@ -191,27 +124,7 @@ impl OverworldManager {
     }
 
     /// Reconstruct a manager from a persisted state (spawn defaults to origin).
-    /// Restores `Door` tile data from `door_targets` when tiles were loaded from
-    /// a serialised form (e.g. saved game JSON / CBOR wire).
     pub fn from_state(state: OverworldState) -> Self {
-        let mut state = state;
-        if !state.door_targets.is_empty() {
-            // tiles_serde deserialises Door tiles with empty target_map; restore from door_targets.
-            // Use mem::take to avoid simultaneous mut+immut borrows of state fields.
-            let door_targets = std::mem::take(&mut state.door_targets);
-            for y in 0..state.tiles.len() {
-                for x in 0..state.tiles[y].len() {
-                    if let TileKind::Door { target_map, spawn } = &mut state.tiles[y][x]
-                        && target_map.is_empty()
-                        && let Some((tm, sp)) = door_targets.get(&format!("{}_{}", x, y))
-                    {
-                        *target_map = tm.clone();
-                        *spawn = sp.clone();
-                    }
-                }
-            }
-            state.door_targets = door_targets;
-        }
         OverworldManager {
             state,
             spawn: Position::default(),
@@ -281,6 +194,11 @@ impl OverworldManager {
             return MoveResult::Blocked;
         }
 
+        // Block movement onto a tile occupied by another player or an NPC.
+        if self.is_occupied_by_other(&new_pos, hero_id) {
+            return MoveResult::Blocked;
+        }
+
         let tile_kind = match self
             .state
             .tiles
@@ -326,6 +244,21 @@ impl OverworldManager {
                 MoveResult::MapTransition(target_map, spawn)
             }
         }
+    }
+
+    /// Return `true` if `pos` is occupied by any player or NPC on this map.
+    pub fn is_occupied(&self, pos: &Position) -> bool {
+        self.state.player_positions.values().any(|p| p == pos)
+            || self.state.npcs.iter().any(|npc| &npc.pos == pos)
+    }
+
+    /// Return `true` if `pos` is occupied by a player other than `hero_id`, or by any NPC.
+    fn is_occupied_by_other(&self, pos: &Position, hero_id: &str) -> bool {
+        self.state
+            .player_positions
+            .iter()
+            .any(|(id, p)| id.as_str() != hero_id && p == pos)
+            || self.state.npcs.iter().any(|npc| &npc.pos == pos)
     }
 
     /// Interact with the first NPC adjacent (4-directional) to `hero_id`.
@@ -596,6 +529,74 @@ mod tests {
         assert_eq!(mgr2.state, state);
     }
 
+    // ── is_occupied tests ────────────────────────────────────────────────────
+
+    #[test]
+    fn unit_is_occupied_free_tile() {
+        let root = write_temp_map(small_map_json(), "test_map_occ_free");
+        let mgr = OverworldManager::load_map("test_map_occ_free", &root).unwrap();
+        // No heroes placed — every tile is free.
+        assert!(!mgr.is_occupied(&Position::new(2, 1)));
+    }
+
+    #[test]
+    fn unit_is_occupied_by_player() {
+        let root = write_temp_map(small_map_json(), "test_map_occ_player");
+        let mut mgr = OverworldManager::load_map("test_map_occ_player", &root).unwrap();
+        mgr.place_hero_at_spawn("hero_1"); // spawn = (2,1)
+        assert!(mgr.is_occupied(&Position::new(2, 1)));
+        // Adjacent tile is free.
+        assert!(!mgr.is_occupied(&Position::new(3, 1)));
+    }
+
+    #[test]
+    fn unit_is_occupied_by_npc() {
+        // NPC "elder" is at (1,1) in small_map_json.
+        let root = write_temp_map(small_map_json(), "test_map_occ_npc");
+        let mgr = OverworldManager::load_map("test_map_occ_npc", &root).unwrap();
+        assert!(mgr.is_occupied(&Position::new(1, 1)));
+        assert!(!mgr.is_occupied(&Position::new(2, 1)));
+    }
+
+    #[test]
+    fn unit_move_blocked_by_other_player() {
+        let root = write_temp_map(small_map_json(), "test_map_occ_block");
+        let mut mgr = OverworldManager::load_map("test_map_occ_block", &root).unwrap();
+        // Place hero_1 at (2,1) and hero_2 at (3,1).
+        mgr.state
+            .player_positions
+            .insert("hero_1".to_string(), Position::new(2, 1));
+        mgr.state
+            .player_positions
+            .insert("hero_2".to_string(), Position::new(3, 1));
+        // hero_1 tries to move right onto hero_2 — must be blocked.
+        assert_eq!(
+            mgr.move_player("hero_1", Direction::Right),
+            MoveResult::Blocked
+        );
+        // Position must be unchanged.
+        assert_eq!(
+            *mgr.state.player_positions.get("hero_1").unwrap(),
+            Position::new(2, 1)
+        );
+    }
+
+    #[test]
+    fn unit_move_blocked_by_npc() {
+        // NPC "elder" is at (1,1) in small_map_json. Hero at (2,1) tries to move left.
+        let root = write_temp_map(small_map_json(), "test_map_occ_npc_block");
+        let mut mgr = OverworldManager::load_map("test_map_occ_npc_block", &root).unwrap();
+        mgr.place_hero_at_spawn("hero_1"); // spawn = (2,1)
+        assert_eq!(
+            mgr.move_player("hero_1", Direction::Left),
+            MoveResult::Blocked
+        );
+        assert_eq!(
+            *mgr.state.player_positions.get("hero_1").unwrap(),
+            Position::new(2, 1)
+        );
+    }
+
     // ── lotr_shire map layout tests ──────────────────────────────────────────
     //
     // Map: 14×10. Outer border = wall (x=0,x=13,y=0,y=9).
@@ -708,12 +709,12 @@ mod tests {
 
         // Each entry: (hero_start_x, hero_start_y, direction, wall_label)
         let cases: &[(i32, i32, Direction, &str)] = &[
-            (3, 1, Direction::Right, "(4,1)"),  // → hits diagonal wall at x=4,y=1
-            (4, 2, Direction::Right, "(5,2)"),  // → hits diagonal wall at x=5,y=2
-            (5, 3, Direction::Right, "(6,3)"),  // → hits diagonal wall at x=6,y=3
-            (6, 4, Direction::Right, "(7,4)"),  // → hits diagonal wall at x=7,y=4
-            (7, 5, Direction::Right, "(8,5)"),  // → hits diagonal wall at x=8,y=5
-            (8, 6, Direction::Right, "(9,6)"),  // → hits diagonal wall at x=9,y=6
+            (3, 1, Direction::Right, "(4,1)"), // → hits diagonal wall at x=4,y=1
+            (4, 2, Direction::Right, "(5,2)"), // → hits diagonal wall at x=5,y=2
+            (5, 3, Direction::Right, "(6,3)"), // → hits diagonal wall at x=6,y=3
+            (6, 4, Direction::Right, "(7,4)"), // → hits diagonal wall at x=7,y=4
+            (7, 5, Direction::Right, "(8,5)"), // → hits diagonal wall at x=8,y=5
+            (8, 6, Direction::Right, "(9,6)"), // → hits diagonal wall at x=9,y=6
         ];
         for &(sx, sy, ref dir, label) in cases {
             mgr.state

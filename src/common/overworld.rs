@@ -30,12 +30,6 @@ pub enum TileKind {
     Door { target_map: String, spawn: Position },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Tile {
-    pub kind: TileKind,
-    pub sprite_id: u8,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
