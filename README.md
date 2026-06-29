@@ -358,14 +358,22 @@ Between fights players walk a tile-map city (`GamePhase::Overworld`).  Stepping 
   "id": "pallet_town",
   "width": 8,
   "height": 6,
-  "tiles": [[{"type":"wall"}, {"type":"floor"}, {"type":"grass"}, ...]],
+  "tiles": [
+    ["wall", "wall", "wall", "wall", "wall", "wall", "wall", "wall"],
+    ["wall", "floor", "floor", "grass", "grass", "floor", "floor", "wall"],
+    ["wall", "floor", "floor", "floor", {"door": {"target_map": "route_1", "spawn": {"x": 1, "y": 1}}}, "floor", "floor", "wall"],
+    ["wall", "wall", "wall", "wall", "wall", "wall", "wall", "wall"]
+  ],
   "npcs": [{"id": "elder", "x": 2, "y": 2, "dialog": ["Hello!"]}],
   "spawn": {"x": 3, "y": 3},
-  "encounters": ["stage_1", "stage_2"]
+  "encounters": ["stage_1", "stage_2"],
+  "locked_doors": ["4_2"]
 }
 ```
 
-**Tile kinds** — `floor` (walkable), `wall` (blocks), `water` (blocks), `grass` (50 % encounter roll), `door` (map transition).
+**Tile kinds** — simple tiles are strings: `"floor"` (walkable), `"wall"` (blocks), `"water"` (blocks), `"grass"` (50 % encounter roll). Door tiles are objects: `{"door": {"target_map": "<id>", "spawn": {"x": N, "y": N}}}`.
+
+`locked_doors` — optional list of `"x_y"` keys for door tiles that start locked. A locked door shows a hint dialog and blocks movement until the lock is cleared server-side (typically after defeating the map's boss NPC).
 
 ### Key types
 
@@ -415,7 +423,7 @@ cargo clippy --all-targets
 cargo test
 ```
 
-All 327 tests should pass with no warnings.
+All 346 tests should pass with no warnings.
 
 ---
 
