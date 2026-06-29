@@ -1,0 +1,18 @@
+{
+  "id": "pallet_town",
+  "width": 8,
+  "height": 6,
+  "tiles": [
+    ["wall","wall","wall","wall","wall","wall","wall","wall"],
+    ["wall","floor","floor","grass","grass","floor","floor","wall"],
+    ["wall","floor","floor","floor","floor","floor","floor","wall"],
+    ["wall","floor","floor","floor","floor","floor","floor","wall"],
+    ["wall","floor","floor","floor",{"door":{"target_map":"route_1","spawn":{"x":1,"y":1}}},"floor","floor","wall"],
+    ["wall","wall","wall","wall","wall","wall","wall","wall"]
+  ],
+  "npcs": [
+    {"id":"elder","x":2,"y":2,"dialog":["Welcome to Pallet Town!","Be careful in the tall grass — wild pokemon roam there."]}
+  ],
+  "spawn": {"x":3,"y":3},
+  "encounters": ["stage_1", "stage_2"]
+}

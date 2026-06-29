@@ -108,9 +108,11 @@ impl ServerManager {
             if server_data.core_game_data.game_phase == GamePhase::InitGame {
                 server_data.core_game_data.players_nb += 1;
             }
-            if server_data.core_game_data.game_phase == GamePhase::Loading
-                && let Some(character_name) =
-                    server_data.core_game_data.heroes_chosen.get(player_name)
+            if matches!(
+                server_data.core_game_data.game_phase,
+                GamePhase::Loading | GamePhase::Overworld
+            ) && let Some(character_name) =
+                server_data.core_game_data.heroes_chosen.get(player_name)
             {
                 server_data
                     .players_data
@@ -143,6 +145,7 @@ pub enum GamePhase {
     InitGame,
     Loading,
     Running,
+    Overworld,
     Ended,
 }
 

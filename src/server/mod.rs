@@ -4,6 +4,7 @@ pub mod end_of_scenario;
 pub mod game_manager;
 pub mod game_paths;
 pub mod game_state;
+pub mod overworld_manager;
 pub mod players_manager;
 pub mod scenario;
 pub mod server_manager;
