@@ -12,7 +12,7 @@
                 "is-percent": true,
                 "passive-enabled": true,
                 "passive": true,
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 5
             }
         ]

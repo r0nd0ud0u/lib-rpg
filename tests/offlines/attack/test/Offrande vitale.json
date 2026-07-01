@@ -11,7 +11,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStat",
                 "value": -15,
                 "is-percent": true,
                 "stats-name": "HP",
@@ -25,7 +25,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 85,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -39,7 +39,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 50,
                 "is-percent": true,
                 "stats-name": "Magic armor",
@@ -53,7 +53,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 50,
                 "is-percent": true,
                 "stats-name": "Physical armor",

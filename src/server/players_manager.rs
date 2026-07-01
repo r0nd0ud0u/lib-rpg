@@ -91,9 +91,7 @@ impl GameAtkEffect {
                 "{target} ← +{buf_value}% heal boost per active HOT"
             )),
             _ => {
-                let is_hp = stat == HP
-                    && *kind != BufKinds::ChangeMaxStatByPercentage
-                    && *kind != BufKinds::ChangeMaxStatByValue;
+                let is_hp = stat == HP && *kind != BufKinds::ChangeMaxStat;
                 let is_damage = is_hp && (real < 0 || full < 0);
                 if is_hp {
                     if is_damage {
@@ -107,7 +105,13 @@ impl GameAtkEffect {
                     } else {
                         Some(format!("{target} ← {real} HP (full: {full}, real: {real})"))
                     }
-                } else if *kind == BufKinds::ChangeMaxStatByPercentage {
+                } else if *kind == BufKinds::ChangeMaxStat
+                    && self
+                        .processed_effect_param
+                        .input_effect_param
+                        .buffer
+                        .is_percent
+                {
                     Some(format!("{target} ← {stat} max +{full}%"))
                 } else if stat.is_empty() {
                     Some(format!("{target} ← {full} ({kind})"))
@@ -1803,10 +1807,10 @@ mod tests {
         let old_hp_max = pm.active_heroes[0].stats.all_stats[HP].max;
         let old_mana_max = pm.active_heroes[0].stats.all_stats[MANA].max;
 
-        // Inject ChangeMaxStatByValue +20 on Dodge (simulates an active mid-scenario buff).
+        // Inject ChangeMaxStat +20 on Dodge (simulates an active mid-scenario buff).
         let dodge_ep = EffectParam {
             buffer: Buffer {
-                kind: BufKinds::ChangeMaxStatByValue,
+                kind: BufKinds::ChangeMaxStat,
                 value: 20,
                 is_percent: false,
                 stats_name: DODGE.to_string(),
@@ -1832,10 +1836,10 @@ mod tests {
             .stats
             .set_stats_on_effect(DODGE, 20, false, true);
 
-        // Inject ChangeMaxStatByValue +5 on SPEED_REGEN (simulates a speed-regen buff).
+        // Inject ChangeMaxStat +5 on SPEED_REGEN (simulates a speed-regen buff).
         let sr_ep = EffectParam {
             buffer: Buffer {
-                kind: BufKinds::ChangeMaxStatByValue,
+                kind: BufKinds::ChangeMaxStat,
                 value: 5,
                 is_percent: false,
                 stats_name: SPEED_REGEN.to_string(),
@@ -2126,7 +2130,7 @@ mod tests {
     #[test]
     fn unit_log_text_hp_damage_no_mitigation() {
         use crate::character_mod::buffers::BufKinds;
-        let gae = make_gae_hp(-30, -30, -30, BufKinds::ChangeCurrentStatByValue);
+        let gae = make_gae_hp(-30, -30, -30, BufKinds::ChangeCurrentStat);
         assert_eq!(
             gae.log_text(),
             Some("Target ← -30 HP".to_string()),
@@ -2137,7 +2141,7 @@ mod tests {
     #[test]
     fn unit_log_text_hp_damage_with_armor() {
         use crate::character_mod::buffers::BufKinds;
-        let gae = make_gae_hp(-20, -30, -30, BufKinds::ChangeCurrentStatByValue);
+        let gae = make_gae_hp(-20, -30, -30, BufKinds::ChangeCurrentStat);
         assert_eq!(
             gae.log_text(),
             Some("Target ← -20 HP (full: -30, real: -20)".to_string()),
@@ -2148,13 +2152,10 @@ mod tests {
     #[test]
     fn unit_log_text_hp_heal_simple() {
         use crate::character_mod::buffers::BufKinds;
-        let gae = make_gae_hp(50, 50, 50, BufKinds::ChangeCurrentStatByValue);
+        let gae = make_gae_hp(50, 50, 50, BufKinds::ChangeCurrentStat);
         assert_eq!(
             gae.log_text(),
-            Some(format!(
-                "Target ← 50 HP ({})",
-                BufKinds::ChangeCurrentStatByValue
-            )),
+            Some(format!("Target ← 50 HP ({})", BufKinds::ChangeCurrentStat)),
             "heal with full==real → shows kind in parens"
         );
     }
@@ -2162,7 +2163,7 @@ mod tests {
     #[test]
     fn unit_log_text_hp_heal_capped() {
         use crate::character_mod::buffers::BufKinds;
-        let gae = make_gae_hp(30, 50, 50, BufKinds::ChangeCurrentStatByValue);
+        let gae = make_gae_hp(30, 50, 50, BufKinds::ChangeCurrentStat);
         assert_eq!(
             gae.log_text(),
             Some("Target ← 30 HP (full: 50, real: 30)".to_string()),

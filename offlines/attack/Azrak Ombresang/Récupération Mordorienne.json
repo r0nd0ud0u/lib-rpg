@@ -9,7 +9,7 @@
             "Portée": "Individual",
             "Stat": "Physical power",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByPercentage",
+            "Type": "ChangeMaxStat",
             "Conditions": [
                 {
                     "condition_type": "NbEnnemiesDied",
@@ -20,7 +20,7 @@
             "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 0,
                 "is-percent": true,
                 "stats-name": "Physical power",
@@ -32,7 +32,7 @@
             "Portée": "Individual",
             "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
+            "Type": "ChangeCurrentStat",
             "Conditions": [
                 {
                     "condition_type": "NbEnnemiesDied",
@@ -43,7 +43,7 @@
             "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStat",
                 "value": 0,
                 "is-percent": true,
                 "stats-name": "HP",
@@ -55,7 +55,7 @@
             "Portée": "Individual",
             "Stat": "Vigor",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
+            "Type": "ChangeCurrentStat",
             "Conditions": [
                 {
                     "condition_type": "NbEnnemiesDied",
@@ -66,7 +66,7 @@
             "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStat",
                 "value": 0,
                 "is-percent": true,
                 "stats-name": "Vigor",
@@ -78,7 +78,7 @@
             "Portée": "Individual",
             "Stat": "Mana",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
+            "Type": "ChangeCurrentStat",
             "Conditions": [
                 {
                     "condition_type": "NbEnnemiesDied",
@@ -89,7 +89,7 @@
             "Value": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStat",
                 "value": 0,
                 "is-percent": true,
                 "stats-name": "Mana",

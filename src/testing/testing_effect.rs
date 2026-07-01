@@ -61,7 +61,7 @@ pub fn build_dot_effect_individual() -> ProcessedEffectParam {
             target_kind: TARGET_ENNEMY.to_owned(),
             reach: INDIVIDUAL.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeCurrentStatByValue,
+                kind: BufKinds::ChangeCurrentStat,
                 value: -20,
                 is_percent: false,
                 stats_name: HP.to_owned(),
@@ -84,7 +84,7 @@ pub fn build_dot_effect_zone() -> ProcessedEffectParam {
             target_kind: TARGET_ENNEMY.to_owned(),
             reach: ZONE.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeCurrentStatByValue,
+                kind: BufKinds::ChangeCurrentStat,
                 value: -20,
                 is_percent: false,
                 stats_name: HP.to_owned(),
@@ -107,7 +107,7 @@ pub fn build_dmg_effect_individual() -> ProcessedEffectParam {
             target_kind: TARGET_ENNEMY.to_owned(),
             reach: INDIVIDUAL.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeCurrentStatByValue,
+                kind: BufKinds::ChangeCurrentStat,
                 value: -30,
                 is_percent: false,
                 stats_name: HP.to_owned(),
@@ -132,7 +132,7 @@ pub fn build_dmg_effect_zone() -> ProcessedEffectParam {
             target_kind: TARGET_ENNEMY.to_owned(),
             reach: ZONE.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeCurrentStatByValue,
+                kind: BufKinds::ChangeCurrentStat,
                 value: -30,
                 is_percent: false,
                 stats_name: HP.to_owned(),
@@ -157,7 +157,7 @@ pub fn build_hot_effect_individual() -> ProcessedEffectParam {
             target_kind: TARGET_ALLY.to_owned(),
             reach: INDIVIDUAL.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeCurrentStatByValue,
+                kind: BufKinds::ChangeCurrentStat,
                 value: 30,
                 is_percent: false,
                 stats_name: HP.to_owned(),
@@ -182,9 +182,9 @@ pub fn build_hot_effect_zone() -> ProcessedEffectParam {
             target_kind: TARGET_ALLY.to_owned(),
             reach: ZONE.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeCurrentStatByPercentage,
+                kind: BufKinds::ChangeCurrentStat,
                 value: 30,
-                is_percent: false,
+                is_percent: true,
                 stats_name: HP.to_owned(),
                 is_passive_enabled: false,
                 is_passive: false,
@@ -207,7 +207,7 @@ pub fn build_hot_effect_all() -> ProcessedEffectParam {
             target_kind: TARGET_ALL_ALLIES.to_owned(),
             reach: ZONE.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeCurrentStatByValue,
+                kind: BufKinds::ChangeCurrentStat,
                 value: 20,
                 is_percent: false,
                 stats_name: HP.to_owned(),
@@ -232,7 +232,7 @@ pub fn build_effect_max_stats() -> ProcessedEffectParam {
             target_kind: TARGET_ENNEMY.to_owned(),
             reach: INDIVIDUAL.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeMaxStatByValue,
+                kind: BufKinds::ChangeMaxStat,
                 value: -20,
                 is_percent: false,
                 stats_name: HP.to_owned(),
@@ -257,7 +257,7 @@ pub fn build_debuf_effect_individual() -> ProcessedEffectParam {
             target_kind: TARGET_ENNEMY.to_owned(),
             reach: INDIVIDUAL.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeCurrentStatByValue,
+                kind: BufKinds::ChangeCurrentStat,
                 value: -20,
                 is_percent: false,
                 stats_name: MAGICAL_ARMOR.to_owned(),
@@ -282,7 +282,7 @@ pub fn build_buf_effect_individual() -> ProcessedEffectParam {
             target_kind: TARGET_ENNEMY.to_owned(),
             reach: INDIVIDUAL.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeCurrentStatByValue,
+                kind: BufKinds::ChangeCurrentStat,
                 value: 20,
                 is_percent: false,
                 stats_name: MAGICAL_ARMOR.to_owned(),
@@ -307,7 +307,7 @@ pub fn build_change_max_hp_by_percent_effect() -> ProcessedEffectParam {
             target_kind: TARGET_ALL_ALLIES.to_owned(),
             reach: ZONE.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeMaxStatByPercentage,
+                kind: BufKinds::ChangeMaxStat,
                 value: 25,
                 is_percent: true,
                 stats_name: HP.to_owned(),
@@ -328,7 +328,7 @@ pub fn build_buf_effect_individual_speed_regen() -> ProcessedEffectParam {
     ProcessedEffectParam {
         input_effect_param: EffectParam {
             buffer: Buffer {
-                kind: BufKinds::ChangeMaxStatByValue,
+                kind: BufKinds::ChangeMaxStat,
                 value: 10,
                 is_percent: false,
                 stats_name: SPEED_REGEN.to_owned(),

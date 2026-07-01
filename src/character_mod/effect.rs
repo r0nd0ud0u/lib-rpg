@@ -100,9 +100,8 @@ pub struct EffectOutcome {
 
 pub fn is_effet_hot_or_dot(buf_types: &BufKinds) -> bool {
     let effects_hot_or_dot: Vec<BufKinds> = [
-        BufKinds::ChangeCurrentStatByValue,
+        BufKinds::ChangeCurrentStat,
         BufKinds::RepeatAsManyAsPossible,
-        BufKinds::ChangeCurrentStatByPercentage,
         BufKinds::DecreasingRateOnTurn,
     ]
     .to_vec();
@@ -133,8 +132,7 @@ pub fn is_debuf_effect(ep: &EffectParam) -> bool {
 
 pub fn is_boosted_by_crit(buf_types: &BufKinds) -> bool {
     let boosted_effects_by_crit: Vec<BufKinds> = [
-        BufKinds::ChangeMaxStatByPercentage,
-        BufKinds::ChangeMaxStatByValue,
+        BufKinds::ChangeMaxStat,
         BufKinds::DamageRxPercent,
         BufKinds::DamageTxPercent,
         BufKinds::HealRxPercent,
@@ -146,12 +144,7 @@ pub fn is_boosted_by_crit(buf_types: &BufKinds) -> bool {
 }
 
 pub fn is_effect_only_at_atk_launch(buf_types: &BufKinds) -> bool {
-    let effects: Vec<BufKinds> = [
-        BufKinds::ChangeMaxStatByPercentage,
-        BufKinds::ChangeMaxStatByValue,
-        BufKinds::AddAsMuchAsHp,
-    ]
-    .to_vec();
+    let effects: Vec<BufKinds> = [BufKinds::ChangeMaxStat, BufKinds::AddAsMuchAsHp].to_vec();
     effects.contains(buf_types)
 }
 
@@ -196,7 +189,7 @@ pub fn build_energy_effect(stat_name: &str, value: i64) -> EffectParam {
         target_kind: TARGET_ALLY.to_owned(),
         reach: INDIVIDUAL.to_owned(),
         buffer: Buffer {
-            kind: BufKinds::ChangeCurrentStatByValue,
+            kind: BufKinds::ChangeCurrentStat,
             value,
             stats_name: stat_name.to_owned(),
             ..Default::default()
@@ -230,7 +223,7 @@ pub fn build_hp_effect(value: i64, is_zone: bool) -> EffectParam {
             INDIVIDUAL.to_owned()
         },
         buffer: Buffer {
-            kind: BufKinds::ChangeCurrentStatByValue,
+            kind: BufKinds::ChangeCurrentStat,
             value,
             stats_name: HP.to_owned(),
             ..Default::default()
@@ -253,13 +246,13 @@ mod tests {
 
     #[test]
     fn unit_is_effet_hot_or_dot() {
-        assert!(is_effet_hot_or_dot(&BufKinds::ChangeCurrentStatByValue));
+        assert!(is_effet_hot_or_dot(&BufKinds::ChangeCurrentStat));
         assert!(!is_effet_hot_or_dot(&BufKinds::DefaultBuf));
     }
 
     #[test]
     fn unit_is_boosted_by_crit() {
-        assert!(is_boosted_by_crit(&BufKinds::ChangeMaxStatByPercentage));
+        assert!(is_boosted_by_crit(&BufKinds::ChangeMaxStat));
         assert!(!is_boosted_by_crit(&BufKinds::DefaultBuf));
     }
 
@@ -327,9 +320,7 @@ mod tests {
 
     #[test]
     fn unit_is_effect_only_at_atk_launch() {
-        assert!(is_effect_only_at_atk_launch(
-            &BufKinds::ChangeMaxStatByPercentage
-        ));
+        assert!(is_effect_only_at_atk_launch(&BufKinds::ChangeMaxStat));
         assert!(!is_effect_only_at_atk_launch(&BufKinds::DefaultBuf));
     }
 
@@ -343,11 +334,11 @@ mod tests {
     fn unit_is_hot() {
         let result = is_hot(&BufKinds::BlockHealAtk, HP, 0);
         assert!(!result);
-        let result = is_hot(&BufKinds::ChangeCurrentStatByValue, HP, 0);
+        let result = is_hot(&BufKinds::ChangeCurrentStat, HP, 0);
         assert!(!result);
-        let result = is_hot(&BufKinds::ChangeCurrentStatByValue, HP, 10);
+        let result = is_hot(&BufKinds::ChangeCurrentStat, HP, 10);
         assert!(result);
-        let result = is_hot(&BufKinds::ChangeCurrentStatByValue, HP, -10);
+        let result = is_hot(&BufKinds::ChangeCurrentStat, HP, -10);
         assert!(!result);
     }
 
@@ -363,15 +354,9 @@ mod tests {
         };
 
         // DOT on HP — classic debuf
-        assert!(is_debuf_effect(&make(
-            BufKinds::ChangeCurrentStatByValue,
-            -10
-        )));
+        assert!(is_debuf_effect(&make(BufKinds::ChangeCurrentStat, -10)));
         // Positive value on HP — HOT, not a debuf
-        assert!(!is_debuf_effect(&make(
-            BufKinds::ChangeCurrentStatByValue,
-            10
-        )));
+        assert!(!is_debuf_effect(&make(BufKinds::ChangeCurrentStat, 10)));
 
         // BlockHealAtk is always a debuf regardless of value
         assert!(is_debuf_effect(&make(BufKinds::BlockHealAtk, 0)));
@@ -396,15 +381,9 @@ mod tests {
         assert!(!is_debuf_effect(&make(BufKinds::HealRxPercent, 10)));
 
         // Generic negative = debuf, positive = buff
-        assert!(is_debuf_effect(&make(
-            BufKinds::ChangeCurrentStatByPercentage,
-            -5
-        )));
-        assert!(!is_debuf_effect(&make(
-            BufKinds::ChangeCurrentStatByPercentage,
-            5
-        )));
-        assert!(is_debuf_effect(&make(BufKinds::ChangeMaxStatByValue, -50)));
-        assert!(!is_debuf_effect(&make(BufKinds::ChangeMaxStatByValue, 50)));
+        assert!(is_debuf_effect(&make(BufKinds::ChangeCurrentStat, -5)));
+        assert!(!is_debuf_effect(&make(BufKinds::ChangeCurrentStat, 5)));
+        assert!(is_debuf_effect(&make(BufKinds::ChangeMaxStat, -50)));
+        assert!(!is_debuf_effect(&make(BufKinds::ChangeMaxStat, 50)));
     }
 }

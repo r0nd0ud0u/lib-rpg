@@ -14,7 +14,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -46,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -28,7 +28,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 5,
                 "is-percent": false,
                 "stats-name": "Berserk",
@@ -42,7 +42,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -14,
                 "is-percent": false,
                 "stats-name": "HP",

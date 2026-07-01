@@ -265,13 +265,11 @@ impl Character {
     }
 
     pub fn remove_malus_effect(&mut self, ep: &EffectParam) -> Result<()> {
-        if ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage
-            || ep.buffer.kind == BufKinds::ChangeMaxStatByValue
-        {
+        if ep.buffer.kind == BufKinds::ChangeMaxStat {
             self.stats.set_stats_on_effect(
                 &ep.buffer.stats_name,
                 -ep.buffer.value,
-                ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage,
+                ep.buffer.is_percent,
                 true,
             );
         }
@@ -440,11 +438,11 @@ impl Character {
                 * (processed_ep.input_effect_param.buffer.value
                     + pow_current / processed_ep.input_effect_param.nb_turns);
             // update effect value
-            processed_effect_param.input_effect_param.buffer.kind =
-                BufKinds::ChangeCurrentStatByValue;
+            processed_effect_param.input_effect_param.buffer.kind = BufKinds::ChangeCurrentStat;
             processed_effect_param.input_effect_param.buffer.value = full_amount;
         } else if processed_ep.input_effect_param.buffer.stats_name == HP
-            && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
+            && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStat
+            && !processed_ep.input_effect_param.buffer.is_percent
         {
             if processed_ep.input_effect_param.buffer.value > 0 {
                 // HOT
@@ -463,8 +461,8 @@ impl Character {
                 full_amount = processed_ep.number_of_applies * eff;
                 pre_armor_amount_tx = processed_ep.number_of_applies * raw;
             }
-        } else if processed_ep.input_effect_param.buffer.kind
-            == BufKinds::ChangeCurrentStatByPercentage
+        } else if processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStat
+            && processed_ep.input_effect_param.buffer.is_percent
             && Stats::is_energy_stat(&processed_ep.input_effect_param.buffer.stats_name)
         {
             full_amount = processed_ep.number_of_applies
@@ -493,9 +491,8 @@ impl Character {
         }
         // Apply buf/debuf, crit, blocking on damages/heal
         // Skip for ChangeMaxStat* effects on HP — those modify max HP, not current HP
-        let is_max_stat_effect = processed_ep.input_effect_param.buffer.kind
-            == BufKinds::ChangeMaxStatByPercentage
-            || processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByValue;
+        let is_max_stat_effect =
+            processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStat;
         if processed_ep.input_effect_param.buffer.stats_name == HP && !is_max_stat_effect {
             full_amount = self.character_rounds_info.apply_buf_debuf(
                 full_amount,
@@ -561,14 +558,13 @@ impl Character {
         // caller so it can be credited to the LAUNCHER (attacker/healer) rather than to the
         // target — that way boss targeting correctly reflects who dealt/healed the most.
         let mut aggro_generated: u64 = 0;
-        if processed_ep.input_effect_param.buffer.kind != BufKinds::ChangeMaxStatByValue
-            && processed_ep.input_effect_param.buffer.kind != BufKinds::ChangeMaxStatByPercentage
-        {
+        if processed_ep.input_effect_param.buffer.kind != BufKinds::ChangeMaxStat {
             let aggro_norm = 20.0;
             if processed_ep.input_effect_param.buffer.stats_name == HP {
                 aggro_generated = (real_hp_amount.abs() as f64 / aggro_norm).round() as u64;
             } else if processed_ep.input_effect_param.buffer.stats_name == AGGRO
-                && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
+                && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStat
+                && !processed_ep.input_effect_param.buffer.is_percent
             {
                 // Explicit aggro effects bypass the /20 normalisation so the full value
                 // is tracked in tx_rx and persists across NB_TURN_SUM_AGGRO turns.
@@ -597,26 +593,22 @@ impl Character {
         full_amount: i64,
     ) -> i64 {
         // Update the max value of the stat (applies to HP and non-HP alike)
-        if processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByPercentage
-            || processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByValue
-        {
+        if processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStat {
             self.stats.set_stats_on_effect(
                 &processed_ep.input_effect_param.buffer.stats_name,
                 full_amount,
-                processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeMaxStatByPercentage,
+                processed_ep.input_effect_param.buffer.is_percent,
                 true,
             );
         }
         // apply change current stats for non HP stats
         // Aggro is routed through process_aggro/tx_rx by the caller — skip direct modification.
-        // ChangeCurrentStatByPercentage on energy stats (Vigor, Mana, Berserk) uses the same
+        // ChangeCurrentStat (percent) on energy stats (Vigor, Mana, Berserk) uses the same
         // path: full_amount is already computed as max * value / 100, just needs to be applied.
         let mut overhead_dmg = 0;
         if processed_ep.input_effect_param.buffer.stats_name != HP
             && processed_ep.input_effect_param.buffer.stats_name != AGGRO
-            && (processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
-                || processed_ep.input_effect_param.buffer.kind
-                    == BufKinds::ChangeCurrentStatByPercentage)
+            && processed_ep.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStat
         {
             overhead_dmg = self.stats.modify_stat_current(
                 &processed_ep.input_effect_param.buffer.stats_name,
@@ -734,7 +726,8 @@ impl Character {
             if processed.input_effect_param.buffer.kind == BufKinds::MultiValue {
                 pending_multi = processed.input_effect_param.buffer.value;
             } else if pending_multi > 1
-                && processed.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue
+                && processed.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStat
+                && !processed.input_effect_param.buffer.is_percent
                 && processed.input_effect_param.buffer.stats_name == HP
                 && processed.input_effect_param.buffer.value > 0
                 && is_target_ally(&processed.input_effect_param.target_kind)
@@ -1175,9 +1168,7 @@ impl Character {
             .iter_mut()
             .for_each(|gae| {
                 if gae.processed_effect_param.input_effect_param.buffer.kind
-                    == BufKinds::ChangeMaxStatByPercentage
-                    || gae.processed_effect_param.input_effect_param.buffer.kind
-                        == BufKinds::ChangeMaxStatByValue
+                    == BufKinds::ChangeMaxStat
                 {
                     self.stats.set_stats_on_effect(
                         &gae.processed_effect_param
@@ -1185,8 +1176,10 @@ impl Character {
                             .buffer
                             .stats_name,
                         gae.effect_outcome.full_amount_tx,
-                        gae.processed_effect_param.input_effect_param.buffer.kind
-                            == BufKinds::ChangeMaxStatByPercentage,
+                        gae.processed_effect_param
+                            .input_effect_param
+                            .buffer
+                            .is_percent,
                         update_effect_stats,
                     );
                 }
@@ -1254,7 +1247,7 @@ mod tests {
         assert!(!c.character_rounds_info.all_buffers[1].is_percent);
         assert_eq!(0, c.character_rounds_info.all_buffers[1].value);
         assert_eq!(
-            BufKinds::ChangeCurrentStatByValue,
+            BufKinds::ChangeCurrentStat,
             c.character_rounds_info.all_buffers[2].kind
         );
         assert!(c.character_rounds_info.all_buffers[2].is_passive_enabled);
@@ -1432,7 +1425,7 @@ mod tests {
         let mut c = c.unwrap();
         let ep = EffectParam {
             buffer: Buffer {
-                kind: BufKinds::ChangeMaxStatByValue,
+                kind: BufKinds::ChangeMaxStat,
                 stats_name: HP.to_string(),
                 value: -10,
                 ..Default::default()
@@ -1444,9 +1437,10 @@ mod tests {
         assert_eq!(1, c.stats.all_stats[HP].current);
         let ep = EffectParam {
             buffer: Buffer {
-                kind: BufKinds::ChangeMaxStatByPercentage,
+                kind: BufKinds::ChangeMaxStat,
                 stats_name: HP.to_string(),
                 value: -10,
+                is_percent: true,
                 ..Default::default()
             },
             ..Default::default()
@@ -1540,7 +1534,7 @@ mod tests {
 
         // test - critical
         ep.buffer.stats_name = HP.to_owned();
-        ep.buffer.kind = BufKinds::ChangeMaxStatByValue;
+        ep.buffer.kind = BufKinds::ChangeMaxStat;
         ep.buffer.value = 10;
         ep.nb_turns = 1;
         let processed_effect_param = c
@@ -1548,7 +1542,7 @@ mod tests {
             .process_one_effect(&ep, "", &game_state, true)
             .unwrap();
         assert_eq!(
-            BufKinds::ChangeMaxStatByValue,
+            BufKinds::ChangeMaxStat,
             processed_effect_param.input_effect_param.buffer.kind
         );
         assert_eq!(1, processed_effect_param.input_effect_param.nb_turns);
@@ -1579,7 +1573,7 @@ mod tests {
             .unwrap();
         // focus on effect_type
         assert_eq!(
-            BufKinds::ChangeMaxStatByValue,
+            BufKinds::ChangeMaxStat,
             processed_effect_param.input_effect_param.buffer.kind
         );
         assert_eq!(1, processed_effect_param.input_effect_param.nb_turns);
@@ -1698,7 +1692,7 @@ mod tests {
 
     #[test]
     fn unit_passive_change_current_stat_boosts_dodge() {
-        // A passive ChangeCurrentStatByPercentage on Dodge adds to buf_effect_percent,
+        // A passive ChangeCurrentStat on Dodge adds to buf_effect_percent,
         // raising the effective Dodge stat used in the block roll.
         // Use max_raw=100 so 10% yields a non-zero integer result.
         let mut c = testing_character();
@@ -1710,7 +1704,7 @@ mod tests {
         dodge.buf_equip_percent = 0;
         dodge.buf_effect_value = 0;
         c.character_rounds_info.all_buffers.push(Buffer {
-            kind: BufKinds::ChangeCurrentStatByPercentage,
+            kind: BufKinds::ChangeCurrentStat,
             stats_name: DODGE.to_string(),
             value: 10,
             is_percent: true,
@@ -1736,7 +1730,7 @@ mod tests {
         dodge.buf_equip_percent = 0;
         dodge.buf_effect_value = 0;
         c.character_rounds_info.all_buffers.push(Buffer {
-            kind: BufKinds::ChangeCurrentStatByPercentage,
+            kind: BufKinds::ChangeCurrentStat,
             stats_name: DODGE.to_string(),
             value: 10,
             is_percent: true,
@@ -1855,6 +1849,75 @@ mod tests {
     }
 
     #[test]
+    fn unit_change_current_stat_is_percent_flag_selects_value_vs_percent() {
+        // ChangeCurrentStat merges the former ChangeCurrentStatByValue/ByPercentage kinds;
+        // `is_percent` alone now decides flat-value vs percent-of-max on an energy stat.
+        use crate::character_mod::effect::ProcessedEffectParam;
+        use crate::common::constants::all_target_const::TARGET_HIMSELF;
+        use crate::common::constants::reach_const::INDIVIDUAL;
+        let c = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let launcher_stats = c.stats.clone();
+        let mana_max = c.stats.all_stats[MANA].max as i64;
+
+        // Drain (negative value) so the result is never clamped by the stat's max cap,
+        // keeping the assertion focused on how `full_amount_tx` is computed.
+        let mut c_flat = c.clone();
+        let flat_ep = ProcessedEffectParam {
+            input_effect_param: EffectParam {
+                nb_turns: 1,
+                target_kind: TARGET_HIMSELF.to_owned(),
+                reach: INDIVIDUAL.to_owned(),
+                buffer: Buffer {
+                    kind: BufKinds::ChangeCurrentStat,
+                    value: -20,
+                    is_percent: false,
+                    stats_name: MANA.to_owned(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            number_of_applies: 1,
+            ..Default::default()
+        };
+        let old_mana = c_flat.stats.all_stats[MANA].current as i64;
+        let eo = c_flat.apply_processed_effect_param(&flat_ep, &launcher_stats, false, 0);
+        assert_eq!(eo.full_amount_tx, -20);
+        assert_eq!(c_flat.stats.all_stats[MANA].current as i64, old_mana - 20);
+
+        let mut c_pct = c.clone();
+        let pct_ep = ProcessedEffectParam {
+            input_effect_param: EffectParam {
+                nb_turns: 1,
+                target_kind: TARGET_HIMSELF.to_owned(),
+                reach: INDIVIDUAL.to_owned(),
+                buffer: Buffer {
+                    kind: BufKinds::ChangeCurrentStat,
+                    value: -10,
+                    is_percent: true,
+                    stats_name: MANA.to_owned(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            number_of_applies: 1,
+            ..Default::default()
+        };
+        let old_mana_pct = c_pct.stats.all_stats[MANA].current as i64;
+        let eo_pct = c_pct.apply_processed_effect_param(&pct_ep, &launcher_stats, false, 0);
+        assert_eq!(eo_pct.full_amount_tx, -(mana_max * 10 / 100));
+        assert_eq!(
+            c_pct.stats.all_stats[MANA].current as i64,
+            old_mana_pct - mana_max * 10 / 100
+        );
+    }
+
+    #[test]
     fn unit_apply_effect_remove_one_debuf_removes_dot() {
         // A hero has a DOT (damage-over-time) applied by an enemy.
         // When RemoveOneDebuf is applied (e.g. from Thalia's Éveil de l'Espérance),
@@ -1915,7 +1978,7 @@ mod tests {
         .unwrap();
         let launcher_stats = target.stats.clone();
 
-        // Add a stat debuf (ChangeCurrentStatByValue on a non-HP stat, negative = debuf)
+        // Add a stat debuf (ChangeCurrentStat on a non-HP stat, negative = debuf)
         target
             .character_rounds_info
             .all_effects
@@ -2723,7 +2786,7 @@ mod tests {
             },
             ..Default::default()
         };
-        // build_atk_heal1_indiv has a single heal effect: ChangeCurrentStatByValue HP +30 (Ally)
+        // build_atk_heal1_indiv has a single heal effect: ChangeCurrentStat HP +30 (Ally)
         let mut atk = crate::testing::testing_atk::build_atk_heal1_indiv();
         let base_heal = atk.all_effects[0].buffer.value; // 30 (unchanged)
         atk.all_effects.insert(0, multi_ep);
@@ -2737,7 +2800,7 @@ mod tests {
 
         let heal_result = result
             .iter()
-            .find(|r| r.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue)
+            .find(|r| r.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStat)
             .expect("heal effect must be in results");
 
         // buffer.value must NOT be modified — multiplier lives in heal_multiplier
@@ -2796,7 +2859,7 @@ mod tests {
 
         let heal_result = result
             .iter()
-            .find(|r| r.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStatByValue)
+            .find(|r| r.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStat)
             .expect("heal must still run when condition fails");
 
         assert_eq!(
@@ -2819,7 +2882,7 @@ mod tests {
             target_kind: TARGET_HIMSELF.to_owned(),
             reach: INDIVIDUAL.to_owned(),
             buffer: Buffer {
-                kind: BufKinds::ChangeMaxStatByValue,
+                kind: BufKinds::ChangeMaxStat,
                 value: 10,
                 stats_name: SPEED_REGEN.to_owned(),
                 ..Default::default()

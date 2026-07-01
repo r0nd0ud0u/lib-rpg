@@ -328,8 +328,7 @@ An `EffectParam` defines:
 | `is_magic_atk` | Selects which power stat scales the damage |
 
 HOT/DOT effects use `BufKinds` of type:
-- `ChangeCurrentStatByValue` — absolute value change each turn
-- `ChangeCurrentStatByPercentage` — percentage of max stat each turn
+- `ChangeCurrentStat` — value change each turn; `is_percent` selects absolute value vs percentage of max stat
 - `DecreasingRateOnTurn` — success rate decreases each turn
 - `RepeatAsManyAsPossible` — applies as many times as possible
 
@@ -342,7 +341,7 @@ Processing rules:
 
 ## Buffers & debuffers
 
-A `Buffer` has `kind: BufKinds`, `value: i64`, `is_percent: bool`, and optional `stats_name`.
+A `Buffer` has `kind: BufKinds`, `value: i64`, `is_percent: bool`, and optional `stats_name`. For the `ChangeCurrentStat`/`ChangeMaxStat` kinds, `is_percent` is the single source of truth for value-vs-percentage mode — there is no separate "ByValue"/"ByPercentage" variant per kind.
 
 Key `BufKinds` and their roles:
 
@@ -356,9 +355,8 @@ Key `BufKinds` and their roles:
 | `NextHealAtkIsCrit` | Passive: next heal attack is guaranteed critical |
 | `MultiValue` | Multiplies heal output |
 | `BoostedByHots` | Heal boosted by active HOTs |
-| `ChangeCurrentStatByValue` | Directly modifies a stat's current value |
-| `ChangeMaxStatByValue` | Modifies a stat's max (adjusts current by ratio) |
-| `ChangeMaxStatByPercentage` | Same but by % |
+| `ChangeCurrentStat` | Modifies a stat's current value; `is_percent` selects value vs % of max |
+| `ChangeMaxStat` | Modifies a stat's max (adjusts current by ratio); `is_percent` selects value vs % |
 | `BlockHealAtk` | Prevents the target from receiving heals |
 | `CooldownTurnsNumber` | Puts an attack on cooldown |
 | `StreakBreakerCrit` | Enables/tunes crit streak-breaker (value = threshold) |

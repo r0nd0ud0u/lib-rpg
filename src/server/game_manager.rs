@@ -1510,7 +1510,7 @@ mod tests {
                 .current
         );
         // "Magic power"
-        // "ChangeMaxStatByPercentage" 15
+        // "ChangeMaxStat" 15
         // +15%, mag power max = 20
         assert_eq!(
             old_mag_pow_test2 + (0.15 * old_mag_pow_test2 as f64) as u64,
@@ -1531,7 +1531,7 @@ mod tests {
                 .max
         );
         // "Physical power"
-        // "ChangeMaxStatByPercentage" 15
+        // "ChangeMaxStat" 15
         // +15%, phy power max = 10
         assert_eq!(
             old_phy_pow_test2 + (0.15 * old_phy_pow_test2 as f64).round() as u64,
@@ -2636,7 +2636,7 @@ mod tests {
                 target_kind: TARGET_HIMSELF.to_owned(),
                 reach: INDIVIDUAL.to_owned(),
                 buffer: Buffer {
-                    kind: BufKinds::ChangeCurrentStatByValue,
+                    kind: BufKinds::ChangeCurrentStat,
                     value: -50,
                     is_percent: false,
                     stats_name: HP.to_owned(),
@@ -3040,7 +3040,7 @@ mod tests {
     // ── Rameau Guérisseur tests ────────────────────────────────────────────────
     // The attack applies:
     //   1. DecreasingRateOnTurn HP HOT on an individual ally (nb_turns=4, value=3)
-    //   2. ChangeMaxStatByPercentage +10% Magic power on the same target (nb_turns=4)
+    //   2. ChangeMaxStat +10% Magic power on the same target (nb_turns=4)
     //
     // Test char stats: Magical Power max=30 (20 raw + 10 from starting_gloves equipment),
     //   HP max=135, Mana 200/200.
@@ -3057,7 +3057,7 @@ mod tests {
     //
     // The DecreasingRateOnTurn effect also stores its applies count in ApplyEffectInit,
     // which is then picked up by ALL subsequent effects in the same attack.  So
-    // the ChangeMaxStatByPercentage full_amount = applies * 10, giving a magic
+    // the ChangeMaxStat full_amount = applies * 10, giving a magic
     // power increase of 30 * (applies*10) / 100 = applies * 3.
     // New magic power max ∈ [33, 36, 39] for applies ∈ [1, 2, 3].
 
@@ -3133,7 +3133,7 @@ mod tests {
 
     #[test]
     fn unit_rameau_guerisseur_magic_power_buff() {
-        // The ChangeMaxStatByPercentage effect shares the ApplyEffectInit count
+        // The ChangeMaxStat effect shares the ApplyEffectInit count
         // set by DecreasingRateOnTurn, so full_amount = applies * 10.
         // With old_magic_max = 30 (20 raw + 10 equipment):
         //   increase = 30 * (applies * 10) / 100 = applies * 3  → new ∈ [33, 39]
@@ -3728,7 +3728,7 @@ mod tests {
                 input_effect_param: crate::character_mod::effect::EffectParam {
                     nb_turns: 3,
                     buffer: crate::character_mod::buffers::Buffer {
-                        kind: BufKinds::ChangeCurrentStatByValue,
+                        kind: BufKinds::ChangeCurrentStat,
                         value: -20,
                         is_percent: false,
                         stats_name: HP.to_owned(),
@@ -3854,7 +3854,7 @@ mod tests {
             input_effect_param: crate::character_mod::effect::EffectParam {
                 nb_turns: 4,
                 buffer: crate::character_mod::buffers::Buffer {
-                    kind: BufKinds::ChangeCurrentStatByValue,
+                    kind: BufKinds::ChangeCurrentStat,
                     value: 60,
                     is_percent: false,
                     stats_name: HP.to_owned(),
@@ -3939,7 +3939,7 @@ mod tests {
             input_effect_param: crate::character_mod::effect::EffectParam {
                 nb_turns: 4,
                 buffer: crate::character_mod::buffers::Buffer {
-                    kind: BufKinds::ChangeCurrentStatByValue,
+                    kind: BufKinds::ChangeCurrentStat,
                     value: 50,
                     is_percent: false,
                     stats_name: HP.to_owned(),
@@ -3976,7 +3976,7 @@ mod tests {
         for hero in &gm.pm.active_heroes {
             let reset = hero.character_rounds_info.all_effects.iter().any(|gae| {
                 gae.processed_effect_param.input_effect_param.buffer.kind
-                    == BufKinds::ChangeCurrentStatByValue
+                    == BufKinds::ChangeCurrentStat
                     && gae
                         .processed_effect_param
                         .input_effect_param
@@ -4070,7 +4070,7 @@ mod tests {
             input_effect_param: crate::character_mod::effect::EffectParam {
                 nb_turns: 4,
                 buffer: crate::character_mod::buffers::Buffer {
-                    kind: BufKinds::ChangeCurrentStatByValue,
+                    kind: BufKinds::ChangeCurrentStat,
                     value: hot_value,
                     is_percent: false,
                     stats_name: HP.to_owned(),
@@ -4196,7 +4196,7 @@ mod tests {
         let azrak = gm.pm.get_active_hero_character(&azrak_id).unwrap();
 
         // 2 kills × 10% = +20% Physical power max for 2 turns.
-        // ChangeMaxStatByPercentage applies to base_value (raw + equip), not current max.
+        // ChangeMaxStat applies to base_value (raw + equip), not current max.
         let phy_pow_max_after = azrak.stats.all_stats[PHYSICAL_POWER].max;
         let expected_pow_max = phy_pow_max_before + (phy_base * 20 / 100) as u64;
         assert_eq!(
@@ -4205,7 +4205,7 @@ mod tests {
         );
 
         // 2 kills × 10% = instant +20% of max for each resource.
-        // ChangeCurrentStatByPercentage: full_amount = max * value / 100
+        // ChangeCurrentStat: full_amount = max * value / 100
         let expected_hp_gain = hp_max * 20 / 100;
         assert_eq!(
             hp_before + expected_hp_gain,
@@ -4321,7 +4321,7 @@ mod tests {
         );
     }
 
-    /// Integration test: Thraïn's passive ChangeCurrentStatByPercentage(Dodge, 10) raises his
+    /// Integration test: Thraïn's passive ChangeCurrentStat(Dodge, 10) raises his
     /// effective Dodge from 5 to 15 at load time and survives an equipment toggle.
     #[test]
     fn unit_passive_dodge_stat_thrain_3_heroes_1_enemy() {

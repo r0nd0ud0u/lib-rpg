@@ -25,7 +25,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 10,
                 "is-percent": true,
                 "stats-name": "Magic power",

@@ -12,7 +12,7 @@
                 "is-percent": true,
                 "passive-enabled": true,
                 "passive": true,
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStat",
                 "value": 10
             }
         ]

@@ -13,7 +13,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -62,
                 "is-percent": false,
                 "stats-name": "HP",

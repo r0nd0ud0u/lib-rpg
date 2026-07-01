@@ -14,7 +14,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -35,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -28,7 +28,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -35,
                 "is-percent": false,
                 "stats-name": "HP",

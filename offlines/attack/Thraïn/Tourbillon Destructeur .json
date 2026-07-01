@@ -11,7 +11,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -67,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -25,7 +25,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 5,
                 "is-percent": false,
                 "stats-name": "Aggro",
@@ -37,12 +37,12 @@
             "Portée": "Individual",
             "Stat": "Berserk rate",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStatByPercentage",
+            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
             "Value": 100,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 100,
                 "is-percent": true,
                 "stats-name": "Berserk rate",

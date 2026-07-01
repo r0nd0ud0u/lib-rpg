@@ -11,7 +11,7 @@
             "Portée": "Individual",
             "Tours actifs": 1,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -35,
                 "is-percent": false,
                 "stats-name": "HP",

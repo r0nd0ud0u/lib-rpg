@@ -11,7 +11,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByValue",
+                "kind": "ChangeMaxStat",
                 "value": 20,
                 "is-percent": false,
                 "stats-name": "Dodge",
