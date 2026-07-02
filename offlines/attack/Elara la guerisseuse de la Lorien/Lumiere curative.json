@@ -48,6 +48,8 @@
     ],
     "Niveau": 5,
     "Nom": "Lumiere curative",
+    "NomEn": "Healing Light",
+    "NomFr": "Lumiere curative",
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",

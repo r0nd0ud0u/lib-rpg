@@ -91,6 +91,8 @@
     ],
     "Niveau": 10,
     "Nom": "Prière du desespoir",
+    "NomEn": "Prayer of Despair",
+    "NomFr": "Prière du desespoir",
     "Photo": "default.png",
     "Portée": "Zone",
     "Sound": "",

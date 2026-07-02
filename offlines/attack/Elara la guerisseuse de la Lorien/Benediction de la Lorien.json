@@ -49,6 +49,8 @@
     ],
     "Niveau": 7,
     "Nom": "Benediction de la Lorien",
+    "NomEn": "Lorien Blessing",
+    "NomFr": "Benediction de la Lorien",
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",

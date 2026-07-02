@@ -91,6 +91,8 @@
     ],
     "Niveau": 9,
     "Nom": "Don de vie",
+    "NomEn": "Gift of Life",
+    "NomFr": "Don de vie",
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",

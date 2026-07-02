@@ -77,6 +77,8 @@
     ],
     "Niveau": 2,
     "Nom": "Offrande vitale",
+    "NomEn": "Vital Offering",
+    "NomFr": "Offrande vitale",
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",

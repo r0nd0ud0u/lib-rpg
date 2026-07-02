@@ -49,6 +49,8 @@
     ],
     "Niveau": 3,
     "Nom": "Rayon astral",
+    "NomEn": "Astral Ray",
+    "NomFr": "Rayon astral",
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",

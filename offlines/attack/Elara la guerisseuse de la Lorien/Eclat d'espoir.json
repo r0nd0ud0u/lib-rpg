@@ -49,6 +49,8 @@
     ],
     "Niveau": 1,
     "Nom": "Eclat d'espoir",
+    "NomEn": "Spark of Hope",
+    "NomFr": "Eclat d'espoir",
     "Photo": "default.png",
     "Portée": "Zone",
     "Sound": "",

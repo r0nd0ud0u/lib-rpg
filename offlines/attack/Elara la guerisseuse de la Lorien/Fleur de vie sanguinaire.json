@@ -77,6 +77,8 @@
     ],
     "Niveau": 4,
     "Nom": "Fleur de vie sanguinaire",
+    "NomEn": "Blood Bloom",
+    "NomFr": "Fleur de vie sanguinaire",
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",

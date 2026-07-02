@@ -394,6 +394,8 @@ mod tests {
             id: "boss_npc".to_string(),
             pos: Position::new(3, 3),
             dialog: vec!["Prepare yourself!".to_string()],
+            dialog_en: vec![],
+            dialog_fr: vec![],
             fight_scenario_id: Some("lotr_stage_1".to_string()),
             defeated: false,
         });

@@ -44,9 +44,17 @@ pub struct LauncherAtkInfo {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(default)]
 pub struct AttackType {
-    /// Name of the attack
+    /// Name of the attack. Canonical identifier used for lookups, cooldown
+    /// tracking, stats keys and JSON filenames — never displayed directly
+    /// once `name_en`/`name_fr` are populated; use `name_for` for display.
     #[serde(rename = "Nom")]
     pub name: String,
+    /// English-language display name (optional; falls back to `name` if empty)
+    #[serde(rename = "NomEn", default)]
+    pub name_en: String,
+    /// French-language display name (optional; falls back to `name` if empty)
+    #[serde(rename = "NomFr", default)]
+    pub name_fr: String,
     /// Level of the attack
     #[serde(rename = "Niveau")]
     pub level: u64,
@@ -101,6 +109,8 @@ impl Default for AttackType {
     fn default() -> Self {
         AttackType {
             name: "".to_owned(),
+            name_en: "".to_owned(),
+            name_fr: "".to_owned(),
             level: 0,
             mana_cost: 0,
             vigor_cost: 0,
@@ -126,6 +136,21 @@ impl AttackType {
     pub fn try_new_from_json<P: AsRef<Path>>(path: P) -> Result<AttackType> {
         utils::read_from_json::<_, AttackType>(&path)
             .map_err(|_| anyhow!("Unknown file: {:?}", path.as_ref()))
+    }
+
+    /// Locale-specific display name; falls back to the legacy `name` field
+    /// when the locale-specific one is empty (unmigrated attacks). Only for
+    /// display — use `name` for identity comparisons, map keys, etc.
+    pub fn name_for(&self, lang: Lang) -> &str {
+        let localized = match lang {
+            Lang::En => &self.name_en,
+            Lang::Fr => &self.name_fr,
+        };
+        if localized.is_empty() {
+            &self.name
+        } else {
+            localized
+        }
     }
 
     /// Locale-specific description; falls back to the legacy `description`
@@ -273,6 +298,30 @@ mod tests {
     }
 
     #[test]
+    fn unit_name_for_fallback() {
+        // Only the legacy `name` field is set — both Lang variants should
+        // fall back to it.
+        let atk = AttackType {
+            name: "Charge".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(atk.name_for(Lang::En), "Charge");
+        assert_eq!(atk.name_for(Lang::Fr), "Charge");
+    }
+
+    #[test]
+    fn unit_name_for_localized() {
+        let atk = AttackType {
+            name: "Don de vie".to_owned(),
+            name_en: "Gift of Life".to_owned(),
+            name_fr: "Don de vie".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(atk.name_for(Lang::En), "Gift of Life");
+        assert_eq!(atk.name_for(Lang::Fr), "Don de vie");
+    }
+
+    #[test]
     fn unit_description_for_fallback() {
         // Only the legacy `description`/`effects_description` fields are set —
         // both Lang variants should fall back to them.
@@ -318,8 +367,12 @@ mod tests {
         assert!(!atk_type.description_fr.is_empty());
         assert!(!atk_type.effects_description_en.is_empty());
         assert!(!atk_type.effects_description_fr.is_empty());
+        assert!(!atk_type.name_en.is_empty());
+        assert!(!atk_type.name_fr.is_empty());
         assert_eq!(atk_type.description_for(Lang::En), atk_type.description_en);
         assert_eq!(atk_type.description_for(Lang::Fr), atk_type.description_fr);
+        assert_eq!(atk_type.name_for(Lang::En), atk_type.name_en);
+        assert_eq!(atk_type.name_for(Lang::Fr), atk_type.name_fr);
     }
 
     #[test]
