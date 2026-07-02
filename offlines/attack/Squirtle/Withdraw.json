@@ -49,6 +49,8 @@
     ],
     "Niveau": 4,
     "Nom": "Withdraw",
+    "NomEn": "Withdraw",
+    "NomFr": "Repli",
     "Photo": "squirtle.png",
     "Portée": "Individual",
     "Description": "Retreats into its shell — greatly boosts physical and magical armour for 3 turns.",

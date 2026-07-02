@@ -35,6 +35,8 @@
     ],
     "Niveau": 2,
     "Nom": "Water Gun",
+    "NomEn": "Water Gun",
+    "NomFr": "Pistolet à O",
     "Photo": "squirtle.png",
     "Portée": "Individual",
     "Description": "Fires a pressurised jet of water dealing magical damage.",

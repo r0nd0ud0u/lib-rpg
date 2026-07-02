@@ -49,6 +49,8 @@
     ],
     "Niveau": 10,
     "Nom": "Barrier",
+    "NomEn": "Barrier",
+    "NomFr": "Barrière",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Raises an impenetrable psychic barrier — massively boosts all armour for 4 turns.",

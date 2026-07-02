@@ -214,7 +214,7 @@ JSON definition (attack file, e.g. `Elara la guerisseuse de la Lorien/Charge.jso
 }
 ```
 
-> Only **Elara la guerisseuse de la Lorien** (character + all 12 attacks) has been migrated to bilingual fields so far. Extending this to the rest of the roster is mechanical — populate the fields per file — and is tracked as follow-up work in dx-rpg's `docs/iteration-plan.md`.
+> **`NomEn`/`NomFr` are populated for every shipped attack** (all 113 attack files across both the LOTR and Pokémon rosters) — attack names always display correctly regardless of language. `DescriptionEn`/`DescriptionFr`/`DescriptionEffectsEn`/`DescriptionEffectsFr` are still only populated for **Elara la guerisseuse de la Lorien**'s character + 12 attacks; every other character/attack's tooltip description falls back to its single existing-language text until migrated. Extending descriptions to the rest of the roster is mechanical — populate the fields per file — and is tracked as follow-up work in dx-rpg's `docs/iteration-plan.md`.
 
 ### Bilingual NPC dialog (`dialog_en` / `dialog_fr`)
 

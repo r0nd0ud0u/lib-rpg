@@ -22,6 +22,8 @@
     ],
     "Niveau": 2,
     "Nom": "Coup de Massue",
+    "NomEn": "Club Strike",
+    "NomFr": "Coup de Massue",
     "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "Club Strike — a crude but effective blow that deals solid physical damage.",

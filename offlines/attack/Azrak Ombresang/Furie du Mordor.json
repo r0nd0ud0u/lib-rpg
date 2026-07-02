@@ -77,6 +77,8 @@
     ],
     "Niveau": 2,
     "Nom": "Furie du Mordor",
+    "NomEn": "Fury of Mordor",
+    "NomFr": "Furie du Mordor",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Zone",
     "Description": "Mordor Fury — channels the rage of Mordor for a powerful, wide-area assault.",

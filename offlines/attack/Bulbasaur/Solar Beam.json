@@ -49,6 +49,8 @@
     ],
     "Niveau": 9,
     "Nom": "Solar Beam",
+    "NomEn": "Solar Beam",
+    "NomFr": "Lance-Soleil",
     "Photo": "bulbasaur.png",
     "Portée": "Individual",
     "Description": "Charges solar energy and unleashes a devastating beam — boosts own magical power afterward.",

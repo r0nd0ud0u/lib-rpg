@@ -49,6 +49,8 @@
     ],
     "Niveau": 10,
     "Nom": "Shadow Storm",
+    "NomEn": "Shadow Storm",
+    "NomFr": "Tempête d'Ombre",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Summons a psychic storm — persistent magical damage for 5 turns with armour reduction.",

@@ -35,6 +35,8 @@
     ],
     "Niveau": 7,
     "Nom": "Hex",
+    "NomEn": "Hex",
+    "NomFr": "Maléfice",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Curses the enemy with dark energy — deals damage over 3 turns.",

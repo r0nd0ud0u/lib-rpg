@@ -35,6 +35,8 @@
     ],
     "Niveau": 5,
     "Nom": "Sève Régénératrice",
+    "NomEn": "Regenerative Sap",
+    "NomFr": "Sève Régénératrice",
     "Photo": "Thalia.png",
     "Portée": "Individual",
     "Description": "Regenerative Sap — the sap of ancient trees flows through the target, restoring vitality.",

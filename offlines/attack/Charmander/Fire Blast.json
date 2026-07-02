@@ -49,6 +49,8 @@
     ],
     "Niveau": 10,
     "Nom": "Fire Blast",
+    "NomEn": "Fire Blast",
+    "NomFr": "Déflagration",
     "Photo": "charmander.png",
     "Portée": "Individual",
     "Description": "Fires an enormous five-pointed flame. Costs high rage but deals massive fire damage.",

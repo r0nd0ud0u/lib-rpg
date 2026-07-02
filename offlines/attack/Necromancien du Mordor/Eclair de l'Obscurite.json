@@ -22,6 +22,8 @@
     ],
     "Niveau": 4,
     "Nom": "Eclair de l'Obscurite",
+    "NomEn": "Bolt of Darkness",
+    "NomFr": "Eclair de l'Obscurite",
     "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "Shadow Bolt — a concentrated bolt of dark magic dealing arcane damage.",

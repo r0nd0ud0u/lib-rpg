@@ -21,6 +21,8 @@
     ],
     "Niveau": 6,
     "Nom": "Charge",
+    "NomEn": "Charge",
+    "NomFr": "Charge",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Shadow lick.",

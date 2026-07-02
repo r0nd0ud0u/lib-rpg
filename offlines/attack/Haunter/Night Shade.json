@@ -49,6 +49,8 @@
     ],
     "Niveau": 7,
     "Nom": "Night Shade",
+    "NomEn": "Night Shade",
+    "NomFr": "Ombre Portée",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Wraps the enemy in darkness — sustained damage over 4 turns and a small self-heal.",

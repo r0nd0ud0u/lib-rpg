@@ -35,6 +35,8 @@
     ],
     "Niveau": 8,
     "Nom": "Wing Attack",
+    "NomEn": "Wing Attack",
+    "NomFr": "Cyclaile",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Strikes with powerful wings — boosts own physical power.",

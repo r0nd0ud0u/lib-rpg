@@ -35,6 +35,8 @@
     ],
     "Niveau": 6,
     "Nom": "Shadow Ball",
+    "NomEn": "Shadow Ball",
+    "NomFr": "Ball'Ombre",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Hurls a ball of shadowy energy that reduces magical armour.",

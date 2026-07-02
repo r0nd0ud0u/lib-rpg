@@ -36,6 +36,8 @@
     ],
     "Niveau": 12,
     "Nom": "Malédiction d'Angmar",
+    "NomEn": "Curse of Angmar",
+    "NomFr": "Malédiction d'Angmar",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
     "Description": "Angmar's Curse — a dark hex from the Witch-realm that weakens and corrupts the target over time.",

@@ -22,6 +22,8 @@
     ],
     "Niveau": 6,
     "Nom": "Frappe Corrompue",
+    "NomEn": "Corrupted Strike",
+    "NomFr": "Frappe Corrompue",
     "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "Corrupted Strike — a dark energy strike that corrodes and drains life.",

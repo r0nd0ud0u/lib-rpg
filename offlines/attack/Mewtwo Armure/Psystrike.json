@@ -49,6 +49,8 @@
     ],
     "Niveau": 10,
     "Nom": "Psystrike",
+    "NomEn": "Psystrike",
+    "NomFr": "Psyfrappe",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Maximum psychic force — shatters even the strongest armour.",

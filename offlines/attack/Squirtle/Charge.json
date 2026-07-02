@@ -21,6 +21,8 @@
     ],
     "Niveau": 1,
     "Nom": "Charge",
+    "NomEn": "Charge",
+    "NomFr": "Charge",
     "Photo": "squirtle.png",
     "Portée": "Individual",
     "Description": "A sturdy tackle using its shell as a battering ram.",

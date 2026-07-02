@@ -49,6 +49,8 @@
     ],
     "Niveau": 3,
     "Nom": "Leech Seed",
+    "NomEn": "Leech Seed",
+    "NomFr": "Vampigraine",
     "Photo": "bulbasaur.png",
     "Portée": "Individual",
     "Description": "Plants a seed that drains enemy vitality each turn, restoring Bulbasaur's own health.",

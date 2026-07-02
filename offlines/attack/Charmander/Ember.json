@@ -49,6 +49,8 @@
     ],
     "Niveau": 1,
     "Nom": "Ember",
+    "NomEn": "Ember",
+    "NomFr": "Flammèche",
     "Photo": "charmander.png",
     "Portée": "Individual",
     "Description": "Spits embers that burn the enemy — deals immediate damage and leaves them burning for 3 turns.",

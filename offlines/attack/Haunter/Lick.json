@@ -35,6 +35,8 @@
     ],
     "Niveau": 7,
     "Nom": "Lick",
+    "NomEn": "Lick",
+    "NomFr": "Léchouille",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "A paralysing lick that drains energy and reduces speed.",

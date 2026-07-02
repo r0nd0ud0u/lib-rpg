@@ -63,6 +63,8 @@
     ],
     "Niveau": 13,
     "Nom": "Éclipse du Mordor",
+    "NomEn": "Eclipse of Mordor",
+    "NomFr": "Éclipse du Mordor",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Zone",
     "Sound": "kamehameha.mp3",
