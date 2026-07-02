@@ -12,6 +12,7 @@ use crate::{
         constants::all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
         constants::reach_const::INDIVIDUAL,
         constants::stats_const::*,
+        lang::Lang,
     },
     utils::{self, get_random_nb},
 };
@@ -82,6 +83,18 @@ pub struct AttackType {
     /// Optional mechanical summary of the attack's effects, shown as a tooltip in the UI
     #[serde(rename = "DescriptionEffects", default)]
     pub effects_description: String,
+    /// English-language description (optional; falls back to `description` if empty)
+    #[serde(rename = "DescriptionEn", default)]
+    pub description_en: String,
+    /// French-language description (optional; falls back to `description` if empty)
+    #[serde(rename = "DescriptionFr", default)]
+    pub description_fr: String,
+    /// English-language effects summary (optional; falls back to `effects_description` if empty)
+    #[serde(rename = "DescriptionEffectsEn", default)]
+    pub effects_description_en: String,
+    /// French-language effects summary (optional; falls back to `effects_description` if empty)
+    #[serde(rename = "DescriptionEffectsFr", default)]
+    pub effects_description_fr: String,
 }
 
 impl Default for AttackType {
@@ -100,6 +113,10 @@ impl Default for AttackType {
             can_be_launched: true,
             description: "".to_owned(),
             effects_description: "".to_owned(),
+            description_en: "".to_owned(),
+            description_fr: "".to_owned(),
+            effects_description_en: "".to_owned(),
+            effects_description_fr: "".to_owned(),
         }
     }
 }
@@ -109,6 +126,34 @@ impl AttackType {
     pub fn try_new_from_json<P: AsRef<Path>>(path: P) -> Result<AttackType> {
         utils::read_from_json::<_, AttackType>(&path)
             .map_err(|_| anyhow!("Unknown file: {:?}", path.as_ref()))
+    }
+
+    /// Locale-specific description; falls back to the legacy `description`
+    /// field when the locale-specific one is empty (unmigrated attacks).
+    pub fn description_for(&self, lang: Lang) -> &str {
+        let localized = match lang {
+            Lang::En => &self.description_en,
+            Lang::Fr => &self.description_fr,
+        };
+        if localized.is_empty() {
+            &self.description
+        } else {
+            localized
+        }
+    }
+
+    /// Locale-specific effects summary; falls back to the legacy
+    /// `effects_description` field when the locale-specific one is empty.
+    pub fn effects_description_for(&self, lang: Lang) -> &str {
+        let localized = match lang {
+            Lang::En => &self.effects_description_en,
+            Lang::Fr => &self.effects_description_fr,
+        };
+        if localized.is_empty() {
+            &self.effects_description
+        } else {
+            localized
+        }
     }
 
     /// Check if the attack has only heal effects
@@ -187,8 +232,9 @@ mod tests {
 
     use crate::{
         character_mod::{attack_type::AttackType, buffers::BufKinds, stats::Stats},
-        common::constants::{
-            all_target_const::TARGET_ENNEMY, reach_const::INDIVIDUAL, stats_const::*,
+        common::{
+            constants::{all_target_const::TARGET_ENNEMY, reach_const::INDIVIDUAL, stats_const::*},
+            lang::Lang,
         },
         testing::testing_atk::{build_atk_damage_indiv, build_atk_heal1_indiv},
     };
@@ -224,6 +270,56 @@ mod tests {
             BufKinds::ChangeCurrentStat
         );
         assert_eq!(atk_type.all_effects[0].sub_value_effect, 0);
+    }
+
+    #[test]
+    fn unit_description_for_fallback() {
+        // Only the legacy `description`/`effects_description` fields are set —
+        // both Lang variants should fall back to them.
+        let atk = AttackType {
+            description: "legacy en/fr mixed text".to_owned(),
+            effects_description: "legacy effects text".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(atk.description_for(Lang::En), "legacy en/fr mixed text");
+        assert_eq!(atk.description_for(Lang::Fr), "legacy en/fr mixed text");
+        assert_eq!(atk.effects_description_for(Lang::En), "legacy effects text");
+        assert_eq!(atk.effects_description_for(Lang::Fr), "legacy effects text");
+    }
+
+    #[test]
+    fn unit_description_for_localized() {
+        // Both locale-specific fields are populated — each Lang variant
+        // should return its own field, not the legacy one.
+        let atk = AttackType {
+            description: "legacy".to_owned(),
+            description_en: "English description".to_owned(),
+            description_fr: "Description française".to_owned(),
+            effects_description: "legacy effects".to_owned(),
+            effects_description_en: "English effects".to_owned(),
+            effects_description_fr: "Effets en français".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(atk.description_for(Lang::En), "English description");
+        assert_eq!(atk.description_for(Lang::Fr), "Description française");
+        assert_eq!(atk.effects_description_for(Lang::En), "English effects");
+        assert_eq!(atk.effects_description_for(Lang::Fr), "Effets en français");
+    }
+
+    #[test]
+    fn unit_elara_bilingual_fields_parse() {
+        // Guards the real migrated data: Elara's Charge.json (offlines/, not
+        // tests/offlines/) must load with both language variants populated.
+        let file_path = "./offlines/attack/Elara la guerisseuse de la Lorien/Charge.json";
+        let atk_type = AttackType::try_new_from_json(file_path);
+        assert!(atk_type.is_ok());
+        let atk_type = atk_type.unwrap();
+        assert!(!atk_type.description_en.is_empty());
+        assert!(!atk_type.description_fr.is_empty());
+        assert!(!atk_type.effects_description_en.is_empty());
+        assert!(!atk_type.effects_description_fr.is_empty());
+        assert_eq!(atk_type.description_for(Lang::En), atk_type.description_en);
+        assert_eq!(atk_type.description_for(Lang::Fr), atk_type.description_fr);
     }
 
     #[test]

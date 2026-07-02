@@ -38,5 +38,9 @@
     "Photo": "default.png",
     "Portée": "Zone",
     "Description": "Ethereal Nova — an explosion of ethereal energy dealing AoE magic damage.",
-    "DescriptionEffects": "Deals 110 magic damage to all enemies; -12 Speed regeneration on all enemies for 2 turns."
+    "DescriptionEn": "Ethereal Nova — an explosion of ethereal energy dealing AoE magic damage.",
+    "DescriptionFr": "Nova éthérée — une explosion d'énergie éthérée infligeant des dégâts magiques de zone.",
+    "DescriptionEffects": "Deals 110 magic damage to all enemies; -12 Speed regeneration on all enemies for 2 turns.",
+    "DescriptionEffectsEn": "Deals 110 magic damage to all enemies; -12 Speed regeneration on all enemies for 2 turns.",
+    "DescriptionEffectsFr": "Inflige 110 dégâts magiques à tous les ennemis ; -12 régénération de Vitesse sur tous les ennemis pendant 2 tours."
 }

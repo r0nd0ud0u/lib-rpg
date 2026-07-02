@@ -39,5 +39,9 @@
     "Portée": "Individual",
     "Sound": "",
     "Description": "Supernatural Blade — a blade of pure light that cuts through darkness.",
-    "DescriptionEffects": "Deals 75 magic damage to one enemy; -10 max Critical strike on enemy for 2 turns."
+    "DescriptionEn": "Supernatural Blade — a blade of pure light that cuts through darkness.",
+    "DescriptionFr": "Lame surnaturelle — une lame de lumière pure qui tranche les ténèbres.",
+    "DescriptionEffects": "Deals 75 magic damage to one enemy; -10 max Critical strike on enemy for 2 turns.",
+    "DescriptionEffectsEn": "Deals 75 magic damage to one enemy; -10 max Critical strike on enemy for 2 turns.",
+    "DescriptionEffectsFr": "Inflige 75 dégâts magiques à un ennemi ; -10 Coup critique max sur l'ennemi pendant 2 tours."
 }

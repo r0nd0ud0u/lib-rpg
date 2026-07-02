@@ -81,5 +81,9 @@
     "Portée": "Individual",
     "Sound": "",
     "Description": "Vital Offering — drains own vitality to deliver a massive heal to an ally.",
-    "DescriptionEffects": "Deals 15% magic damage to himself; heals all allies for 85; +50% max Magic armor on all allies for 2 turns; +50% max Physical armor on all allies for 2 turns; 3-turn cooldown."
+    "DescriptionEn": "Vital Offering — drains own vitality to deliver a massive heal to an ally.",
+    "DescriptionFr": "Offrande vitale — puise dans sa propre vitalité pour délivrer un soin massif à un allié.",
+    "DescriptionEffects": "Deals 15% magic damage to himself; heals all allies for 85; +50% max Magic armor on all allies for 2 turns; +50% max Physical armor on all allies for 2 turns; 3-turn cooldown.",
+    "DescriptionEffectsEn": "Deals 15% magic damage to himself; heals all allies for 85; +50% max Magic armor on all allies for 2 turns; +50% max Physical armor on all allies for 2 turns; 3-turn cooldown.",
+    "DescriptionEffectsFr": "Inflige 15 % de dégâts magiques à soi-même ; soigne tous les alliés de 85 PV ; +50 % d'Armure magique max sur tous les alliés pendant 2 tours ; +50 % d'Armure physique max sur tous les alliés pendant 2 tours ; temps de recharge de 3 tours."
 }

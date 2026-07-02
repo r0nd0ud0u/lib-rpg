@@ -27,6 +27,7 @@ use crate::{
                 STREAK_BREAKER_ADVANCED, STREAK_BREAKER_BERSERKER, STREAK_BREAKER_INTERMEDIATE,
             },
         },
+        lang::Lang,
         log_data::{
             LogData,
             const_colors::{DARK_RED, LIGHT_GREEN, MUTED_GREY},
@@ -84,6 +85,12 @@ pub struct Character {
     /// Short description of the character for UI display (optional)
     #[serde(rename = "Description", default)]
     pub description: String,
+    /// English-language description (optional; falls back to `description` if empty)
+    #[serde(rename = "DescriptionEn", default)]
+    pub description_en: String,
+    /// French-language description (optional; falls back to `description` if empty)
+    #[serde(rename = "DescriptionFr", default)]
+    pub description_fr: String,
     /// Universe/theme the character belongs to (e.g. "lotr", "pokemon").
     #[serde(default)]
     pub universe: String,
@@ -110,6 +117,8 @@ impl Default for Character {
             energies: Vec::new(),
             rank: Rank::default(),
             description: String::new(),
+            description_en: String::new(),
+            description_fr: String::new(),
             universe: String::new(),
             last_atk_name: String::new(),
         }
@@ -185,6 +194,20 @@ fn drought_threshold_dodge(
 }
 
 impl Character {
+    /// Locale-specific description; falls back to the legacy `description`
+    /// field when the locale-specific one is empty (unmigrated characters).
+    pub fn description_for(&self, lang: Lang) -> &str {
+        let localized = match lang {
+            Lang::En => &self.description_en,
+            Lang::Fr => &self.description_fr,
+        };
+        if localized.is_empty() {
+            &self.description
+        } else {
+            localized
+        }
+    }
+
     pub fn try_new_from_json<P1: AsRef<Path>, P2: AsRef<Path>>(
         path: P1,
         root_path: P2,
@@ -1208,6 +1231,7 @@ mod tests {
     use crate::character_mod::rank::Rank;
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::common::constants::streak_breaker_const::STREAK_BREAKER_ADVANCED;
+    use crate::common::lang::Lang;
     use crate::server::players_manager::GameAtkEffect;
     use crate::testing::testing_all_characters::{self, testing_all_equipment, testing_character};
     use crate::{
@@ -1369,6 +1393,32 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    #[test]
+    fn unit_character_description_for_fallback() {
+        // Only the legacy `description` field is set — both Lang variants
+        // should fall back to it.
+        let c = Character {
+            description: "legacy en/fr mixed text".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(c.description_for(Lang::En), "legacy en/fr mixed text");
+        assert_eq!(c.description_for(Lang::Fr), "legacy en/fr mixed text");
+    }
+
+    #[test]
+    fn unit_character_description_for_localized() {
+        // Both locale-specific fields are populated — each Lang variant
+        // should return its own field, not the legacy one.
+        let c = Character {
+            description: "legacy".to_owned(),
+            description_en: "English description".to_owned(),
+            description_fr: "Description française".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(c.description_for(Lang::En), "English description");
+        assert_eq!(c.description_for(Lang::Fr), "Description française");
     }
 
     #[test]

@@ -53,5 +53,9 @@
     "Portée": "Individual",
     "Sound": "",
     "Description": "Lorien Blessing — bathes an ally in golden light, restoring significant HP.",
-    "DescriptionEffects": "Heals one ally for 100% HP; +15 max Mana regeneration for 4 turns; 8-turn cooldown."
+    "DescriptionEn": "Lorien Blessing — bathes an ally in golden light, restoring significant HP.",
+    "DescriptionFr": "Bénédiction de la Lorien — baigne un allié de lumière dorée, restaurant une grande quantité de PV.",
+    "DescriptionEffects": "Heals one ally for 100% HP; +15 max Mana regeneration for 4 turns; 8-turn cooldown.",
+    "DescriptionEffectsEn": "Heals one ally for 100% HP; +15 max Mana regeneration for 4 turns; 8-turn cooldown.",
+    "DescriptionEffectsFr": "Soigne un allié de 100 % de ses PV ; +15 régénération de Mana max pendant 4 tours ; temps de recharge de 8 tours."
 }

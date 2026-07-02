@@ -81,5 +81,9 @@
     "Portée": "Individual",
     "Sound": "",
     "Description": "Blood Bloom — a life flower that draws on vitality to trigger rapid regeneration.",
-    "DescriptionEffects": "Only triggers if it dealt damage last turn (otherwise stops); applies a ×3 multiplier to the heal (25 → 75 HP/turn); heals targeted ally for 25 per turn for 3 turns; 5-turn cooldown; deals 35 magic damage to one random enemy per turn for 2 turns."
+    "DescriptionEn": "Blood Bloom — a life flower that draws on vitality to trigger rapid regeneration.",
+    "DescriptionFr": "Fleur de vie sanguinaire — une fleur de vie qui puise dans la vitalité pour déclencher une régénération rapide.",
+    "DescriptionEffects": "Only triggers if it dealt damage last turn (otherwise stops); applies a ×3 multiplier to the heal (25 → 75 HP/turn); heals targeted ally for 25 per turn for 3 turns; 5-turn cooldown; deals 35 magic damage to one random enemy per turn for 2 turns.",
+    "DescriptionEffectsEn": "Only triggers if it dealt damage last turn (otherwise stops); applies a ×3 multiplier to the heal (25 → 75 HP/turn); heals targeted ally for 25 per turn for 3 turns; 5-turn cooldown; deals 35 magic damage to one random enemy per turn for 2 turns.",
+    "DescriptionEffectsFr": "Ne se déclenche que si des dégâts ont été infligés au tour précédent (sinon s'arrête) ; applique un multiplicateur ×3 au soin (25 → 75 PV/tour) ; soigne l'allié ciblé de 25 PV par tour pendant 3 tours ; temps de recharge de 5 tours ; inflige 35 dégâts magiques à un ennemi aléatoire par tour pendant 2 tours."
 }

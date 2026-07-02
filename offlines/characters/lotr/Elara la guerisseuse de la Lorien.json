@@ -186,5 +186,7 @@
             "kind": "Mana"
         }
     ],
-    "Description": "An elven healer from Lothlórien. Devoted to sustaining allies with powerful heals, regeneration and light-based attacks."
+    "Description": "An elven healer from Lothlórien. Devoted to sustaining allies with powerful heals, regeneration and light-based attacks.",
+    "DescriptionEn": "An elven healer from Lothlórien. Devoted to sustaining allies with powerful heals, regeneration and light-based attacks.",
+    "DescriptionFr": "Une guérisseuse elfe de la Lothlórien. Dévouée au soin de ses alliés grâce à de puissants sorts de soin, de régénération et des attaques de lumière."
 }

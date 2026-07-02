@@ -52,5 +52,9 @@
     "Portée": "Individual",
     "Sound": "",
     "Description": "Healing Light — a gentle beam of light that restores vitality to an ally.",
-    "DescriptionEffects": "Heals the most wounded ally for the damage dealt; heals the targeted ally for 130; 5-turn cooldown."
+    "DescriptionEn": "Healing Light — a gentle beam of light that restores vitality to an ally.",
+    "DescriptionFr": "Lumière curative — un doux rayon de lumière qui restaure la vitalité d'un allié.",
+    "DescriptionEffects": "Heals the most wounded ally for the damage dealt; heals the targeted ally for 130; 5-turn cooldown.",
+    "DescriptionEffectsEn": "Heals the most wounded ally for the damage dealt; heals the targeted ally for 130; 5-turn cooldown.",
+    "DescriptionEffectsFr": "Soigne l'allié le plus blessé à hauteur des dégâts infligés ; soigne l'allié ciblé de 130 PV ; temps de recharge de 5 tours."
 }

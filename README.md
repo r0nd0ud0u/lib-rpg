@@ -190,6 +190,29 @@ Scenarios are filtered by universe at game initialisation and when the universe 
 
 ---
 
+## Bilingual descriptions (`description_en` / `description_fr`)
+
+`AttackType` and `Character` each carry a legacy single-language `Description`/`DescriptionEffects` field, plus optional locale-specific siblings: `DescriptionEn`/`DescriptionFr` on both structs, and `DescriptionEffectsEn`/`DescriptionEffectsFr` on `AttackType` only. All four are `#[serde(default)]`, so existing JSON with none of these keys deserializes exactly as before.
+
+`AttackType::description_for(lang: Lang) -> &str` (and `effects_description_for`) and `Character::description_for(lang: Lang) -> &str` return the locale-specific field when it's non-empty, and transparently fall back to the legacy `Description`/`DescriptionEffects` field otherwise — so unmigrated characters/attacks keep showing the same text regardless of which language the UI requests. `Lang` lives in `common::lang` specifically because lib-rpg has no UI-framework dependency; the consuming app converts its own locale type into `Lang` at the UI boundary.
+
+JSON definition (attack file, e.g. `Elara la guerisseuse de la Lorien/Charge.json`):
+
+```json
+{
+  "Description": "A basic strike dealing physical damage.",
+  "DescriptionEn": "A basic strike dealing physical damage.",
+  "DescriptionFr": "Une attaque de base infligeant des dégâts physiques.",
+  "DescriptionEffects": "Deals 35 physical damage to one enemy.",
+  "DescriptionEffectsEn": "Deals 35 physical damage to one enemy.",
+  "DescriptionEffectsFr": "Inflige 35 dégâts physiques à un ennemi."
+}
+```
+
+> Only **Elara la guerisseuse de la Lorien** (character + all 12 attacks) has been migrated to bilingual fields so far. Extending this to the rest of the roster is mechanical — populate the four fields per file — and is tracked as follow-up work in dx-rpg's `docs/iteration-plan.md`.
+
+---
+
 ## Damage Formula
 
 ### `AttackType::damage_by_atk`
