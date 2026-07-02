@@ -3,19 +3,15 @@
     "Coût de mana": 28,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
-    "Durée": 1,
     "Effet": [
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -95,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -97,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -25,14 +21,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Magic power",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 20,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 20,
                 "is-percent": true,
                 "stats-name": "Magic power",
@@ -42,11 +35,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 5,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 5,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -57,7 +47,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 9,
     "Nom": "Solar Beam",
     "Photo": "bulbasaur.png",

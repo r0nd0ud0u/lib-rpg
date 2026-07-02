@@ -7,11 +7,8 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 4,
-            "Type": "DecreasingRateOnTurn",
             "Valeur de l'effet": 3,
-            "Value": 32,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "DecreasingRateOnTurn",
@@ -24,14 +21,11 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "Magic power",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 10,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 10,
                 "is-percent": true,
                 "stats-name": "Magic power",
@@ -39,7 +33,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 2,
     "Nom": "Rameau Guérisseur ",
     "Photo": "Thalia.png",

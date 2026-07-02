@@ -16,15 +16,13 @@ pub enum BufKinds {
     ApplyEffectInit,
     OverHealBoostStat,
     BoostedByHots,
-    /// Effect to improve max value of a stat by percent (current value is updated by ratio)
-    ChangeMaxStatByPercentage,
-    /// Effect to improve max value of a stat by value (current value is updated by ratio)
-    ChangeMaxStatByValue,
+    /// Effect to improve max value of a stat by value or percent (current value is updated by
+    /// ratio). Which mode applies is decided by `Buffer.is_percent`.
+    ChangeMaxStat,
     BlockHealAtk,
-    /// Effect to improve current value of a stat by value
-    ChangeCurrentStatByValue,
-    /// Effect to improve current value of a stat by percent
-    ChangeCurrentStatByPercentage,
+    /// Effect to improve current value of a stat by value or percent, decided by
+    /// `Buffer.is_percent`.
+    ChangeCurrentStat,
     /// Assess the amount of applies for a stat
     RepeatAsManyAsPossible,
     /// Effect to execute an atk with a decreasing success rate defined by a step on effect value
@@ -70,11 +68,9 @@ impl fmt::Display for BufKinds {
             BufKinds::ApplyEffectInit => "Effect applications",
             BufKinds::OverHealBoostStat => "Overheal boosts stat",
             BufKinds::BoostedByHots => "Boosted by HoTs",
-            BufKinds::ChangeMaxStatByPercentage => "Max stat change %",
-            BufKinds::ChangeMaxStatByValue => "Max stat change",
+            BufKinds::ChangeMaxStat => "Max stat change",
             BufKinds::BlockHealAtk => "Heals blocked",
-            BufKinds::ChangeCurrentStatByValue => "Current stat change",
-            BufKinds::ChangeCurrentStatByPercentage => "Current stat change %",
+            BufKinds::ChangeCurrentStat => "Current stat change",
             BufKinds::RepeatAsManyAsPossible => "Repeat attack",
             BufKinds::DecreasingRateOnTurn => "Decreasing rate",
             BufKinds::NbDecreasingByTurn => "Decreasing count",
@@ -184,22 +180,11 @@ mod tests {
             "Overheal boosts stat"
         );
         assert_eq!(format!("{}", BufKinds::BoostedByHots), "Boosted by HoTs");
-        assert_eq!(
-            format!("{}", BufKinds::ChangeMaxStatByPercentage),
-            "Max stat change %"
-        );
-        assert_eq!(
-            format!("{}", BufKinds::ChangeMaxStatByValue),
-            "Max stat change"
-        );
+        assert_eq!(format!("{}", BufKinds::ChangeMaxStat), "Max stat change");
         assert_eq!(format!("{}", BufKinds::BlockHealAtk), "Heals blocked");
         assert_eq!(
-            format!("{}", BufKinds::ChangeCurrentStatByValue),
+            format!("{}", BufKinds::ChangeCurrentStat),
             "Current stat change"
-        );
-        assert_eq!(
-            format!("{}", BufKinds::ChangeCurrentStatByPercentage),
-            "Current stat change %"
         );
         assert_eq!(
             format!("{}", BufKinds::RepeatAsManyAsPossible),

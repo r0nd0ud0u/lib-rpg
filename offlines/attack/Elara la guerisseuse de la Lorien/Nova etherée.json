@@ -7,14 +7,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Zone",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -110,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -108,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -24,14 +21,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Zone",
-            "Stat": "Speed regeneration",
             "Tours actifs": 2,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -12,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -12,
                 "is-percent": false,
                 "stats-name": "Speed regeneration",
@@ -39,7 +33,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 8,
     "Nom": "Nova etherée",
     "Photo": "default.png",

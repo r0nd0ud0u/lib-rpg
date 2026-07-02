@@ -4,20 +4,15 @@
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 13,
-    "Durée": 1,
-    "Dégâts": 0,
     "Effet": [
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -60,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -67,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -27,14 +22,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "Physical armor",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -25,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": -25,
                 "is-percent": true,
                 "stats-name": "Physical armor",
@@ -42,15 +34,10 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 5,
     "Nom": "Fléau Sylvestre",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
-    "Regen mana": 0,
-    "Regen rage": 0,
-    "Regen vigueur": 0,
-    "Soin": 0,
     "Description": "Forest Blight — a blight strike that corrupts nature energy to deal damage.",
     "DescriptionEffects": "Deals 60 physical damage to one enemy; -25% max Physical armor on enemy for 4 turns."
 }

@@ -4,20 +4,15 @@
     "Coût de mana": 18,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
-    "Durée": 1,
-    "Dégâts": 0,
     "Effet": [
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "HP",
             "Tours actifs": 3,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 35,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 35,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -27,14 +22,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Mana regeneration",
             "Tours actifs": 3,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 100,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 100,
                 "is-percent": true,
                 "stats-name": "Mana regeneration",
@@ -44,14 +36,11 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Physical power",
             "Tours actifs": 3,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 15,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 15,
                 "is-percent": true,
                 "stats-name": "Physical power",
@@ -61,14 +50,11 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Magic power",
             "Tours actifs": 3,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 20,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 20,
                 "is-percent": true,
                 "stats-name": "Magic power",
@@ -76,15 +62,10 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 7,
     "Nom": "Arbre de Vie",
     "Photo": "Thalia.png",
     "Portée": "Zone",
-    "Regen mana": 0,
-    "Regen rage": 0,
-    "Regen vigueur": 0,
-    "Soin": 0,
     "Description": "Tree of Life — channels nature energy for a powerful multi-turn regeneration.",
     "DescriptionEffects": "Heals all allies for 35 per turn for 3 turns; +100% max Mana regeneration for 3 turns (self); +15% max Physical power on all allies for 3 turns; +20% max Magic power on all allies for 3 turns."
 }

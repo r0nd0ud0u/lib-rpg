@@ -7,14 +7,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -75,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -80,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -24,14 +21,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "Critical strike",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -10,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByValue",
+                "kind": "ChangeMaxStat",
                 "value": -10,
                 "is-percent": false,
                 "stats-name": "Critical strike",
@@ -39,7 +33,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 6,
     "Nom": "Lame surnaturelle",
     "Photo": "Elara la guerisseuse de la Lorien.png",

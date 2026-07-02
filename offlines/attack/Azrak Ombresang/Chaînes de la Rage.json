@@ -7,14 +7,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -80,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -82,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -24,14 +21,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "Speed regeneration",
             "Tours actifs": 6,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -10,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -10,
                 "is-percent": false,
                 "stats-name": "Speed regeneration",
@@ -41,14 +35,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -35,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -41,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -56,7 +47,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 7,
     "Nom": "Chaînes de la Rage",
     "Photo": "Azrak Ombresang.png",

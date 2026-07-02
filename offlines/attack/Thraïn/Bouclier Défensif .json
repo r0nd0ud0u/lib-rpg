@@ -7,14 +7,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 30,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 30,
                 "is-percent": false,
                 "stats-name": "Berserk",
@@ -24,14 +21,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Dodge",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByValue",
+                "kind": "ChangeMaxStat",
                 "value": 20,
                 "is-percent": false,
                 "stats-name": "Dodge",
@@ -41,14 +35,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Aggro",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 40,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 40,
                 "is-percent": false,
                 "stats-name": "Aggro",
@@ -56,7 +47,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 2,
     "Nom": "Bouclier Défensif ",
     "Photo": "Thraïn.png",

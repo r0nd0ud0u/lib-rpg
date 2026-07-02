@@ -7,14 +7,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Zone",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -50,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -58,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -24,14 +21,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Zone",
-            "Stat": "HP",
             "Tours actifs": 3,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -30,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -31,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -41,14 +35,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Zone",
-            "Stat": "Critical strike",
             "Tours actifs": 3,
-            "Type": "ChangeMaxStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -10,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByValue",
+                "kind": "ChangeMaxStat",
                 "value": -10,
                 "is-percent": false,
                 "stats-name": "Critical strike",
@@ -56,7 +47,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 6,
     "Nom": "Sculpture Élémentaire ",
     "Photo": "Azrak Ombresang.png",

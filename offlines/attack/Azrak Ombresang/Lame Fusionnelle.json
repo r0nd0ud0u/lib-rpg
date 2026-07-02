@@ -11,7 +11,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -46,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -25,7 +25,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByValue",
+                "kind": "ChangeMaxStat",
                 "value": 10,
                 "is-percent": false,
                 "stats-name": "Speed regeneration",
@@ -33,7 +33,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 1,
     "Nom": "Lame Fusionnelle",
     "Photo": "Azrak Ombresang.png",

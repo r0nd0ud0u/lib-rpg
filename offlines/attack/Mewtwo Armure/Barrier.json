@@ -3,19 +3,15 @@
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 16,
-    "Durée": 1,
     "Effet": [
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Physical armor",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 40,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 40,
                 "is-percent": true,
                 "stats-name": "Physical armor",
@@ -25,14 +21,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Magic armor",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 40,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 40,
                 "is-percent": true,
                 "stats-name": "Magic armor",
@@ -42,11 +35,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 6,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 6,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -57,7 +47,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 10,
     "Nom": "Barrier",
     "Photo": "Angmar.png",

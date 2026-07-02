@@ -1,7 +1,6 @@
 {
     "Class": "Berserker",
     "Color": "blue",
-    "Experience": 0,
     "CharacterRoundsInfo": {
         "is_first_round": false,
         "is_heal_atk_blocked": false,
@@ -12,7 +11,7 @@
                 "is-percent": true,
                 "passive-enabled": true,
                 "passive": true,
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStat",
                 "value": 10
             }
         ]
@@ -22,7 +21,6 @@
     "IdName": "Thraïn_#1",
     "Photo": "thrain",
     "Rank": "Common",
-    "Shape": "",
     "Short name": "Thraïn",
     "Stats": {
         "Aggro": {
@@ -98,18 +96,7 @@
             "Max": 0
         }
     },
-    "Tx-rx": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-    ],
     "Type": "Hero",
-    "is-blocking-atk": false,
-    "max-actions-by-round": 1,
-    "nb-actions-in-round": 0,
     "inventory": {
         "equipments": {
             "Amulet": [

@@ -4,14 +4,13 @@
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
-    "Durée": 1,
     "Effet": [
         {
             "Cible": "Enemy",
             "Portée": "Individual",
             "Tours actifs": 1,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -41,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -19,7 +18,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 1,
     "Nom": "Charge",
     "Photo": "Charge.png",

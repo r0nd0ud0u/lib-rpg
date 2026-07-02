@@ -7,14 +7,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -120,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -117,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -24,14 +21,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 4,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -40,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -38,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -41,11 +35,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 4,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 4,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -58,11 +49,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 1,
-            "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
-            "Value": 60,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "DamageRxPercent",
@@ -75,14 +63,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Physical power",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 20,
                 "is-percent": false,
                 "stats-name": "Physical power",
@@ -90,7 +75,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 10,
     "Nom": "Flèche de la Montagne du Destin",
     "Photo": "Azrak Ombresang.png",

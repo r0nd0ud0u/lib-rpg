@@ -1,7 +1,6 @@
 {
   "Class": "Warrior",
   "Color": "blue",
-  "Experience": 0,
   "CharacterRoundsInfo": {
     "is_first_round": false,
     "is_heal_atk_blocked": false,
@@ -14,7 +13,6 @@
   "IdName": "Squirtle_#1",
   "Photo": "default",
   "Rank": "Common",
-  "Shape": "",
   "Short name": "Squirtle",
   "Stats": {
     "Aggro": {

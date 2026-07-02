@@ -3,19 +3,15 @@
     "Coût de mana": 0,
     "Coût de rage": 22,
     "Coût de vigueur": 0,
-    "Durée": 1,
     "Effet": [
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -110,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -108,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -25,14 +21,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 10,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 10,
                 "is-percent": true,
                 "stats-name": "Berserk",
@@ -42,11 +35,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 6,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 6,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -57,7 +47,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 10,
     "Nom": "Fire Blast",
     "Photo": "charmander.png",

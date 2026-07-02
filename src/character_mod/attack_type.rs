@@ -221,7 +221,7 @@ mod tests {
         assert_eq!(atk_type.all_effects[0].reach, INDIVIDUAL);
         assert_eq!(
             atk_type.all_effects[0].buffer.kind,
-            BufKinds::ChangeCurrentStatByValue
+            BufKinds::ChangeCurrentStat
         );
         assert_eq!(atk_type.all_effects[0].sub_value_effect, 0);
     }

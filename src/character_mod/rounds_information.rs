@@ -214,9 +214,8 @@ impl CharacterRoundsInfo {
             return format!("{}: cooldown ({} turns)", atk_name, nb_turns);
         }
 
-        let is_max_stat = ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage
-            || ep.buffer.kind == BufKinds::ChangeMaxStatByValue;
-        let is_percent = ep.buffer.kind == BufKinds::ChangeMaxStatByPercentage;
+        let is_max_stat = ep.buffer.kind == BufKinds::ChangeMaxStat;
+        let is_percent = ep.buffer.is_percent;
 
         // For current-HP effects show the full computed amount; for max-stat or other stats use raw value.
         let amount = if ep.buffer.stats_name == HP && !is_max_stat {
@@ -543,68 +542,39 @@ impl CharacterRoundsInfo {
                 };
                 return Ok(processed_effect_param);
             }
-            BufKinds::ChangeMaxStatByPercentage => {
+            BufKinds::ChangeMaxStat => {
                 let dir = if ep.buffer.value >= 0 {
                     "increased"
                 } else {
                     "decreased"
                 };
+                let suffix = if ep.buffer.is_percent { "%" } else { "" };
                 processed_effect_param.log = LogData {
                     message: format!(
-                        "Max {} {} by {}%",
+                        "Max {} {} by {}{}",
                         ep.buffer.stats_name,
                         dir,
-                        ep.buffer.value.abs()
+                        ep.buffer.value.abs(),
+                        suffix
                     ),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
             }
-            BufKinds::ChangeMaxStatByValue => {
+            BufKinds::ChangeCurrentStat => {
                 let dir = if ep.buffer.value >= 0 {
                     "increased"
                 } else {
                     "decreased"
                 };
+                let suffix = if ep.buffer.is_percent { "%" } else { "" };
                 processed_effect_param.log = LogData {
                     message: format!(
-                        "Max {} {} by {}",
+                        "Current {} {} by {}{}",
                         ep.buffer.stats_name,
                         dir,
-                        ep.buffer.value.abs()
-                    ),
-                    color: "".to_owned(),
-                };
-                return Ok(processed_effect_param);
-            }
-            BufKinds::ChangeCurrentStatByValue => {
-                let dir = if ep.buffer.value >= 0 {
-                    "increased"
-                } else {
-                    "decreased"
-                };
-                processed_effect_param.log = LogData {
-                    message: format!(
-                        "Current {} {} by {}",
-                        ep.buffer.stats_name,
-                        dir,
-                        ep.buffer.value.abs()
-                    ),
-                    color: "".to_owned(),
-                };
-            }
-            BufKinds::ChangeCurrentStatByPercentage => {
-                let dir = if ep.buffer.value >= 0 {
-                    "increased"
-                } else {
-                    "decreased"
-                };
-                processed_effect_param.log = LogData {
-                    message: format!(
-                        "Current {} {} by {}%",
-                        ep.buffer.stats_name,
-                        dir,
-                        ep.buffer.value.abs()
+                        ep.buffer.value.abs(),
+                        suffix
                     ),
                     color: "".to_owned(),
                 };
@@ -1026,7 +996,7 @@ mod tests {
             all_txt
         );
 
-        // ChangeMaxStatByValue → "X max STAT" label
+        // ChangeMaxStat → "X max STAT" label
         let max_stat_gae = GameAtkEffect {
             processed_effect_param: build_effect_max_stats(),
             atk_type: AttackType {
@@ -1703,7 +1673,7 @@ mod tests {
 
     #[test]
     fn unit_change_max_hp_by_percent_is_hot() {
-        // ChangeMaxStatByPercentage on HP with positive value (Cor d'Erebor style)
+        // ChangeMaxStat on HP with positive value (Cor d'Erebor style)
         // must be classified as HOT, not DOT.
         use crate::character_mod::attack_type::AttackType;
         let all_effects = vec![GameAtkEffect {
@@ -1715,14 +1685,8 @@ mod tests {
             ..Default::default()
         }];
         let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
-        assert_eq!(
-            result.hot_nb, 1,
-            "ChangeMaxStatByPercentage +HP should be HOT"
-        );
-        assert_eq!(
-            result.dot_nb, 0,
-            "ChangeMaxStatByPercentage +HP should not be DOT"
-        );
+        assert_eq!(result.hot_nb, 1, "ChangeMaxStat +HP should be HOT");
+        assert_eq!(result.dot_nb, 0, "ChangeMaxStat +HP should not be DOT");
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -1752,7 +1716,7 @@ mod tests {
                 input_effect_param: EffectParam {
                     nb_turns: 3,
                     buffer: Buffer {
-                        kind: BufKinds::ChangeCurrentStatByValue,
+                        kind: BufKinds::ChangeCurrentStat,
                         value,
                         stats_name: HP.to_owned(),
                         ..Default::default()
@@ -1772,7 +1736,7 @@ mod tests {
                 input_effect_param: EffectParam {
                     nb_turns: 3,
                     buffer: Buffer {
-                        kind: BufKinds::ChangeCurrentStatByValue,
+                        kind: BufKinds::ChangeCurrentStat,
                         value,
                         stats_name: HP.to_owned(),
                         ..Default::default()
@@ -2037,6 +2001,78 @@ mod tests {
         };
         let result = cri.process_one_effect(&ep, "test", &gs, false).unwrap();
         assert_eq!(1, result.number_of_applies);
+    }
+
+    #[test]
+    fn unit_process_one_effect_change_stat_log_message_percent_suffix() {
+        // Merged ChangeCurrentStat/ChangeMaxStat: the log message's "%" suffix is now
+        // driven by buffer.is_percent instead of a separate BufKinds variant.
+        let mut cri = CharacterRoundsInfo::default();
+        let gs = GameState::default();
+
+        let flat_current = EffectParam {
+            nb_turns: 1,
+            buffer: Buffer {
+                kind: BufKinds::ChangeCurrentStat,
+                value: 15,
+                is_percent: false,
+                stats_name: VIGOR.to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let result = cri
+            .process_one_effect(&flat_current, "test", &gs, false)
+            .unwrap();
+        assert_eq!(result.log.message, "Current Vigor increased by 15");
+
+        let pct_current = EffectParam {
+            nb_turns: 1,
+            buffer: Buffer {
+                kind: BufKinds::ChangeCurrentStat,
+                value: 15,
+                is_percent: true,
+                stats_name: VIGOR.to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let result = cri
+            .process_one_effect(&pct_current, "test", &gs, false)
+            .unwrap();
+        assert_eq!(result.log.message, "Current Vigor increased by 15%");
+
+        let flat_max = EffectParam {
+            nb_turns: 1,
+            buffer: Buffer {
+                kind: BufKinds::ChangeMaxStat,
+                value: -5,
+                is_percent: false,
+                stats_name: VIGOR.to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let result = cri
+            .process_one_effect(&flat_max, "test", &gs, false)
+            .unwrap();
+        assert_eq!(result.log.message, "Max Vigor decreased by 5");
+
+        let pct_max = EffectParam {
+            nb_turns: 1,
+            buffer: Buffer {
+                kind: BufKinds::ChangeMaxStat,
+                value: -5,
+                is_percent: true,
+                stats_name: VIGOR.to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let result = cri
+            .process_one_effect(&pct_max, "test", &gs, false)
+            .unwrap();
+        assert_eq!(result.log.message, "Max Vigor decreased by 5%");
     }
 
     #[test]

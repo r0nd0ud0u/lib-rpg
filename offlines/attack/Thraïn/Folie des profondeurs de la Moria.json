@@ -7,14 +7,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -55,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -62,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -24,14 +21,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -20,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStat",
                 "value": -33,
                 "is-percent": true,
                 "stats-name": "HP",
@@ -41,14 +35,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Dodge",
             "Tours actifs": 2,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -10,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -10,
                 "is-percent": false,
                 "stats-name": "Dodge",
@@ -58,14 +49,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 45,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 45,
                 "is-percent": false,
                 "stats-name": "Berserk",
@@ -75,11 +63,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 5,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 5,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -90,7 +75,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 8,
     "Nom": "Folie des profondeurs de la Moria",
     "Photo": "default.png",

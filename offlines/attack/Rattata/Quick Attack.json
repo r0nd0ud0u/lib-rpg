@@ -3,19 +3,15 @@
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 5,
-    "Durée": 1,
     "Effet": [
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -28,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -45,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -23,7 +19,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 1,
     "Nom": "Quick Attack",
     "Photo": "Angmar.png",

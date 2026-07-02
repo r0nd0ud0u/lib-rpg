@@ -25,7 +25,7 @@
             "stats-name": "Aggro",
             "is-percent": false,
             "passive-enabled": true,
-            "kind": "ChangeCurrentStatByValue",
+            "kind": "ChangeCurrentStat",
             "value": 10
         }
     ]
@@ -35,7 +35,6 @@
     "IdName": "test_#1",
     "Photo": "phototest",
     "Rank": "Common",
-    "Shape": "",
     "Short name": "test",
     "Stats": {
         "Aggro": {
@@ -111,35 +110,7 @@
             "Max": 5
         }
     },
-    "Tx-rx": [
-        {        
-            "1": 60
-        },
-        {
-            "5": 70
-        },
-        {
-            "5": 80
-        },
-        {
-            "5": 90
-        },
-        {
-            "5": 100
-        },
-        {
-            "0": 0,
-            "1": 0,
-            "2": 36,
-            "3": 0,
-            "4": 0,
-            "5": 10
-        }
-    ],
     "Type": "Hero",
-    "is-blocking-atk": false,
-    "max-actions-by-round": 1,
-    "nb-actions-in-round": 0,
     "inventory": {
         "equipments": {
             "Amulet": [{

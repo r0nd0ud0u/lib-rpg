@@ -104,11 +104,11 @@ JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
 
 > This passive kind can also be enabled dynamically by an attack effect (any attack carrying an `IsDamageTxHealNeedyAlly` effect adds the passive buffer via `process_effect_type` in `rounds_information.rs`), allowing temporary versions on other heroes.
 
-#### Passive stat bonus via `ChangeCurrentStatByPercentage`
+#### Passive stat bonus via `ChangeCurrentStat` (`is-percent: true`)
 
-A passive `ChangeCurrentStatByPercentage` buffer with a non-empty `stats-name` permanently raises that stat as a percentage of its base value at character load time.  The bonus is stored in `buf_effect_percent` inside `recompute_stat_max_and_current`, so it is automatically included whenever equipment is equipped or removed — no separate re-application is needed.
+A passive `ChangeCurrentStat` buffer with `is-percent: true` and a non-empty `stats-name` permanently raises that stat as a percentage of its base value at character load time.  The bonus is stored in `buf_effect_percent` inside `recompute_stat_max_and_current`, so it is automatically included whenever equipment is equipped or removed — no separate re-application is needed. `ChangeCurrentStat` with `is-percent: false` instead adds a flat amount — the same kind, decided entirely by `is-percent` (see `docs/architecture.md`, "Buffers & debuffers").
 
-**Thraïn** carries a passive `ChangeCurrentStatByPercentage` on `Dodge` with `value = 10` (`is-percent: true`): his base Dodge of 5 gains +10 % → +0.5, or with full starting equipment Dodge ≈ 27 → +2.7 ≈ 29 effective Dodge, giving him an additional block chance through the softcap curve.
+**Thraïn** carries a passive `ChangeCurrentStat` (`is-percent: true`) on `Dodge` with `value = 10`: his base Dodge of 5 gains +10 % → +0.5, or with full starting equipment Dodge ≈ 27 → +2.7 ≈ 29 effective Dodge, giving him an additional block chance through the softcap curve.
 
 JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
 
@@ -118,7 +118,7 @@ JSON definition (in `CharacterRoundsInfo.Buf-debuf`):
   "is-percent": true,
   "passive-enabled": true,
   "passive": true,
-  "kind": "ChangeCurrentStatByPercentage",
+  "kind": "ChangeCurrentStat",
   "value": 10
 }
 ```
@@ -252,7 +252,7 @@ The four LOTR heroes are balanced around the following roles:
 - **Key attack changes**: Furie du Mordor reduced to +20%/+10% power (self/allies); Récupération Mordorienne fixed (values were 0, now +15%/+20%/+25% HP/Mana/Vigor on 20-kill threshold); Fracas des Abysses now restores 20 flat Vigor instead of +200% regen on a zero base; Flèche de la Montagne du Destin DmgRx reduced 100→60% and bonus changed to +20 Physical power; Lame de Morgul DoT reduced to -75/t×4 and DmgRx +30→+20%; Éclipse du Mordor damage 400→280, party DmgRx debuff 25→15%; Chaînes de la Rage 3rd effect target fixed.
 
 ### Thalia
-- **Passive** (`ChangeMaxStatByPercentage`): +5% max Magic power permanently (nature affinity)
+- **Passive** (`ChangeMaxStat`, `is-percent: true`): +5% max Magic power permanently (nature affinity)
 - **Key attack changes**: Rameau Guérisseur mana 20→13; Fleur de l'Espoir -5 Dodge ally penalty removed; Sève Régénératrice mana 10→18 (was underpriced for 120 instant heal + ReinitBuf); Arbre de Vie mana 9→18, power buffs +20%/+30%→+15%/+20%
 
 ### Elara la guerisseuse
@@ -261,7 +261,7 @@ The four LOTR heroes are balanced around the following roles:
 
 ### Thraïn
 - **Base stats**: Berserk rate 0→5/turn (passive buildup enables Tourbillon Destructeur's rate-boost to be meaningful)
-- **Passive** (`ChangeCurrentStatByPercentage`): kind field corrected from `ChangeCurrentStatByValue` to match README documentation; +10% Dodge permanently
+- **Passive** (`ChangeCurrentStat`, `is-percent: true`): `is-percent` corrected from `false` to `true` to match README documentation; +10% Dodge permanently. (This kind of drift — the same value expressed by two loosely-linked fields — is why the by-value/by-percent kinds were later merged into one kind driven solely by `is-percent`.)
 - **Key attack changes**: Fracas Marteau damage -25→-35; Cor d'Erebor HP boost +25→+15%; Coup Puissant berserk cost 20→15; Folie des profondeurs self-HP penalty -30→-20%; Fracassage de crâne DamageRxPercent -20→+20 (was accidentally reducing enemy's incoming damage instead of increasing it)
 
 ---
@@ -437,7 +437,7 @@ All 346 tests should pass with no warnings.
 
 ### Bouclier Défensif — aggro overcounting (+42 instead of +40)
 
-**Root cause:** An `else` branch in `apply_processed_effect_param` generated implicit aggro from any `ChangeCurrentStatByValue` effect on a non-HP, non-Aggro stat. Bouclier Défensif applies Berserk +30, which rounded to 2 extra aggro, giving 42 total.
+**Root cause:** An `else` branch in `apply_processed_effect_param` generated implicit aggro from any `ChangeCurrentStat` effect on a non-HP, non-Aggro stat. Bouclier Défensif applies Berserk +30, which rounded to 2 extra aggro, giving 42 total.
 
 **Fix:** Removed the `else` branch. Only HP changes (heals/damage) and explicit Aggro stat effects now generate aggro.
 
@@ -467,13 +467,19 @@ The +50% magic/physical armor buff on the target is applied correctly: `set_stat
 
 **Root cause:** `apply_processed_effect_param` computed `real_dmg_amount` using an `else` branch that returned `real_hp_amount` for all non-negative `apply_result` cases. `real_hp_amount` is always 0 for non-HP stats, so energy potions reported no stat change even though the stat was correctly updated.
 
-**Fix:** Added `is_max_stat_effect` and stat-name checks to route energy stat changes (`ChangeCurrentStatByValue` on non-HP stats) through `full_amount.min(apply_result)`. `apply_effect_full_amount` returns `full_amount - overhead_dmg` where `overhead_dmg = new_value - max`; taking the min handles both "room available" (large result → clamped to `full_amount`) and "overflow" (small result → actual amount added) cases.
+**Fix:** Added `is_max_stat_effect` and stat-name checks to route energy stat changes (`ChangeCurrentStat` on non-HP stats) through `full_amount.min(apply_result)`. `apply_effect_full_amount` returns `full_amount - overhead_dmg` where `overhead_dmg = new_value - max`; taking the min handles both "room available" (large result → clamped to `full_amount`) and "overflow" (small result → actual amount added) cases.
 
 ### `MultiValue` multiplier applied after power-scaled HOT formula
 
 `MultiValue` (used by *Fleur de vie sanguinaire* for the ×3 heal when Elara dealt damage last turn) is stored in the **launcher's** `character_rounds_info.all_buffers`. `apply_buf_debuf` runs on the **target's** `character_rounds_info` and cannot reach the launcher's buffer.
 
 **Key constraint:** the HOT formula in `is_receiving_atk` is `(buffer.value + magical_power) / nb_turns`. Multiplying `buffer.value` before this formula gives the wrong result because the division by `nb_turns` partially cancels the multiplication (e.g. at power=36: `(75+36)/3 = 37` instead of the intended `(25+36)/3 × 3 = 60`).
+
+### `ChangeCurrentStatByValue`/`ByPercentage` and `ChangeMaxStatByValue`/`ByPercentage` merged into `ChangeCurrentStat`/`ChangeMaxStat`
+
+**Root cause:** `Buffer` already carries `is_percent: bool`, but these two `BufKinds` pairs re-encoded the same information in the variant name. The two fields could drift — see the Thraïn passive entry above, where `kind` said "by value" while `is-percent: true` said otherwise, silently turning a percent Dodge bonus into a flat one.
+
+**Fix:** Merged each pair into a single kind (`ChangeCurrentStat`, `ChangeMaxStat`); every branch that used to switch on the kind name now switches on `buffer.is_percent` instead, so there is exactly one way to express "flat" vs "percent" per effect. All `offlines`/`tests` JSON updated accordingly (`is-percent` values were already correct everywhere and are unchanged).
 
 **Fix (implemented):**
 - `ProcessedEffectParam` carries a new `heal_multiplier: i64` field (default 1).

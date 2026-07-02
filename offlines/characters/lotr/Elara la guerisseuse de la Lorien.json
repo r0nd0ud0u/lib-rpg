@@ -1,7 +1,6 @@
 {
     "Class": "Healer",
     "Color": "pink",
-    "Experience": 0,
     "CharacterRoundsInfo": {
         "is_first_round": false,
         "is_heal_atk_blocked": false,
@@ -22,7 +21,6 @@
     "IdName": "Elara_la_guerisseuse_de_la_Lorien_#1",
     "Photo": "Elara",
     "Rank": "Common",
-    "Shape": "",
     "Short name": "Elara",
     "Stats": {
         "Aggro": {
@@ -98,18 +96,7 @@
             "Max": 0
         }
     },
-    "Tx-rx": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-    ],
     "Type": "Hero",
-    "is-blocking-atk": false,
-    "max-actions-by-round": 1,
-    "nb-actions-in-round": 0,
     "inventory": {
         "equipments": {
             "Amulet": [

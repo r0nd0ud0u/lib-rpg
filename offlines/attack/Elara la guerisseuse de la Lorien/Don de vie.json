@@ -7,11 +7,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 1,
-            "Type": "DecreasingRateOnTurn",
             "Valeur de l'effet": 3,
-            "Value": 0,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "DecreasingRateOnTurn",
@@ -24,14 +21,11 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 30,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStat",
                 "value": 30,
                 "is-percent": true,
                 "stats-name": "HP",
@@ -41,14 +35,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -15,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStat",
                 "value": -32,
                 "is-percent": true,
                 "stats-name": "HP",
@@ -58,14 +49,11 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "Magic power",
             "Tours actifs": 3,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 25,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 25,
                 "is-percent": true,
                 "stats-name": "Magic power",
@@ -75,14 +63,11 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "Physical power",
             "Tours actifs": 3,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 25,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 25,
                 "is-percent": true,
                 "stats-name": "Physical power",
@@ -92,11 +77,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 6,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 6,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -107,7 +89,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 9,
     "Nom": "Don de vie",
     "Photo": "default.png",

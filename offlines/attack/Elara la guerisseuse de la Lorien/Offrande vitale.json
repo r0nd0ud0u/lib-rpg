@@ -7,14 +7,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -15,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByPercentage",
+                "kind": "ChangeCurrentStat",
                 "value": -32,
                 "is-percent": true,
                 "stats-name": "HP",
@@ -24,14 +21,11 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 85,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 85,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -41,14 +35,11 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "Magic armor",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 50,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 50,
                 "is-percent": true,
                 "stats-name": "Magic armor",
@@ -58,14 +49,11 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "Physical armor",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": 50,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": 50,
                 "is-percent": true,
                 "stats-name": "Physical armor",
@@ -75,11 +63,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 3,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 3,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -90,7 +75,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 2,
     "Nom": "Offrande vitale",
     "Photo": "default.png",

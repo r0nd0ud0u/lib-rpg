@@ -4,20 +4,15 @@
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 10,
-    "Durée": 1,
-    "Dégâts": 70,
     "Effet": [
         {
             "Cible": "Enemy",
             "Portée": "Zone",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -70,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -75,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -27,14 +22,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Zone",
-            "Stat": "Dodge",
             "Tours actifs": 3,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -5,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -5,
                 "is-percent": false,
                 "stats-name": "Dodge",
@@ -44,14 +36,11 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Vigor",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 20,
                 "is-percent": false,
                 "stats-name": "Vigor",
@@ -59,15 +48,10 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 9,
     "Nom": "Fracas des Abysses",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Zone",
-    "Regen mana": 0,
-    "Regen rage": 0,
-    "Regen vigueur": 0,
-    "Soin": 0,
     "Description": "Abyss Crash — a devastating blow channeling the power of the deep.",
     "DescriptionEffects": "Deals 70 physical damage to all enemies; -5 Dodge on all enemies for 3 turns; restores 20 Vigor."
 }

@@ -4,8 +4,6 @@
     "Coût de mana": 1,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
-    "Durée": 1,
-    "Dégâts": 0,
     "Effet": [
         {
             "Cible": "Self",
@@ -14,7 +12,7 @@
             "Valeur de l'effet": 0,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": 10,
                 "is-percent": false,
                 "stats-name": "Mana",
@@ -22,13 +20,8 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 1,
     "Nom": "Mana-changeValue-soimeme",
     "Photo": "Thalia.png",
-    "Portée": "Individual",
-    "Regen mana": 0,
-    "Regen rage": 0,
-    "Regen vigueur": 0,
-    "Soin": 0
+    "Portée": "Individual"
 }

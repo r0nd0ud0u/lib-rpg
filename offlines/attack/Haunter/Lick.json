@@ -3,19 +3,15 @@
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 12,
-    "Durée": 1,
     "Effet": [
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStatByValue",
             "Valeur de l'effet": 0,
-            "Value": -40,
             "IsMagicEffect": true,
             "Buffer": {
-                "kind": "ChangeCurrentStatByValue",
+                "kind": "ChangeCurrentStat",
                 "value": -65,
                 "is-percent": false,
                 "stats-name": "HP",
@@ -25,14 +21,11 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "Speed regeneration",
             "Tours actifs": 3,
-            "Type": "ChangeMaxStatByPercentage",
             "Valeur de l'effet": 0,
-            "Value": -30,
             "IsMagicEffect": false,
             "Buffer": {
-                "kind": "ChangeMaxStatByPercentage",
+                "kind": "ChangeMaxStat",
                 "value": -30,
                 "is-percent": true,
                 "stats-name": "Speed regeneration",
@@ -40,7 +33,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 7,
     "Nom": "Lick",
     "Photo": "Angmar.png",
