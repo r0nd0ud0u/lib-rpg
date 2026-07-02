@@ -64,6 +64,8 @@
     ],
     "Niveau": 7,
     "Nom": "Arbre de Vie",
+    "NomEn": "Tree of Life",
+    "NomFr": "Arbre de Vie",
     "Photo": "Thalia.png",
     "Portée": "Zone",
     "Description": "Tree of Life — channels nature energy for a powerful multi-turn regeneration.",

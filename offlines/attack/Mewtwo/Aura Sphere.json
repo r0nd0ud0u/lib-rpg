@@ -35,6 +35,8 @@
     ],
     "Niveau": 9,
     "Nom": "Aura Sphere",
+    "NomEn": "Aura Sphere",
+    "NomFr": "Aurasphère",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "A never-missing ball of aura energy — guaranteed damage.",

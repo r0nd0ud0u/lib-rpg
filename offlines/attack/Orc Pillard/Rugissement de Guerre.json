@@ -22,6 +22,8 @@
     ],
     "Niveau": 2,
     "Nom": "Rugissement de Guerre",
+    "NomEn": "War Roar",
+    "NomFr": "Rugissement de Guerre",
     "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "War Cry — a fearsome battle roar that weakens enemy morale and defenses.",

@@ -7,19 +7,58 @@ use anyhow::Result;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-use crate::common::overworld::{Direction, Position, TileKind};
+use crate::common::{
+    lang::Lang,
+    overworld::{Direction, Position, TileKind},
+};
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NpcState {
     pub id: String,
     pub pos: Position,
     pub dialog: Vec<String>,
+    /// English-language dialog lines (optional; falls back to `dialog` if empty).
+    #[serde(default)]
+    pub dialog_en: Vec<String>,
+    /// French-language dialog lines (optional; falls back to `dialog` if empty).
+    #[serde(default)]
+    pub dialog_fr: Vec<String>,
     /// If set, interacting with this NPC starts a fight instead of showing dialog.
     #[serde(default)]
     pub fight_scenario_id: Option<String>,
     /// True once the boss fight for this NPC has been won — the NPC is hidden from the map.
     #[serde(default)]
     pub defeated: bool,
+}
+
+impl NpcState {
+    /// Locale-specific dialog lines; falls back to the legacy single-language
+    /// `dialog` field when the locale-specific one is empty (unmigrated NPCs).
+    pub fn dialog_for(&self, lang: Lang) -> &Vec<String> {
+        let localized = match lang {
+            Lang::En => &self.dialog_en,
+            Lang::Fr => &self.dialog_fr,
+        };
+        if localized.is_empty() {
+            &self.dialog
+        } else {
+            localized
+        }
+    }
+}
+
+/// Bilingual hint shown when a hero walks into a locked door.
+fn locked_door_message(lang: Lang) -> Vec<String> {
+    match lang {
+        Lang::En => vec![
+            "⛔ The passage is sealed.".to_string(),
+            "Defeat the enemies first!".to_string(),
+        ],
+        Lang::Fr => vec![
+            "⛔ Le passage est scellé.".to_string(),
+            "Vaincs d'abord les ennemis !".to_string(),
+        ],
+    }
 }
 
 /// Result returned by [`OverworldManager::interact`].
@@ -84,6 +123,10 @@ struct NpcJson {
     y: i32,
     dialog: Vec<String>,
     #[serde(default)]
+    dialog_en: Vec<String>,
+    #[serde(default)]
+    dialog_fr: Vec<String>,
+    #[serde(default)]
     fight_scenario_id: Option<String>,
 }
 
@@ -108,6 +151,8 @@ impl OverworldManager {
                 id: n.id.clone(),
                 pos: Position::new(n.x, n.y),
                 dialog: n.dialog.clone(),
+                dialog_en: n.dialog_en.clone(),
+                dialog_fr: n.dialog_fr.clone(),
                 fight_scenario_id: n.fight_scenario_id.clone(),
                 defeated: false,
             })
@@ -184,7 +229,7 @@ impl OverworldManager {
     /// - `Moved` — free tile or grass with no encounter roll
     /// - `Encounter(scenario_id)` — grass tile triggered a fight (50 % chance)
     /// - `MapTransition(map_id, spawn)` — hero stepped on a door
-    pub fn move_player(&mut self, hero_id: &str, dir: Direction) -> MoveResult {
+    pub fn move_player(&mut self, hero_id: &str, dir: Direction, lang: Lang) -> MoveResult {
         let Some(current_pos) = self.state.player_positions.get(hero_id).cloned() else {
             return MoveResult::Blocked;
         };
@@ -245,10 +290,7 @@ impl OverworldManager {
             TileKind::Door { target_map, spawn } => {
                 let door_key = format!("{}_{}", new_pos.x, new_pos.y);
                 if self.state.locked_doors.contains(&door_key) {
-                    self.state.active_dialog = vec![
-                        "⛔ The passage is sealed.".to_string(),
-                        "Defeat the enemies first!".to_string(),
-                    ];
+                    self.state.active_dialog = locked_door_message(lang);
                     return MoveResult::Blocked;
                 }
                 MoveResult::MapTransition(target_map, spawn)
@@ -286,7 +328,7 @@ impl OverworldManager {
     /// For boss NPCs without dialog: starts the fight immediately.
     /// For friendly NPCs: shows their dialog lines.
     /// Returns `None` when no adjacent living NPC is found.
-    pub fn interact(&mut self, hero_id: &str) -> Option<InteractResult> {
+    pub fn interact(&mut self, hero_id: &str, lang: Lang) -> Option<InteractResult> {
         // A pending fight (queued after dialog) takes priority.
         if let Some(scenario_id) = self.state.pending_fight.take() {
             self.state.active_dialog.clear();
@@ -307,17 +349,17 @@ impl OverworldManager {
             .find(|npc| !npc.defeated && adjacent.contains(&npc.pos))?;
 
         if let Some(ref scenario_id) = npc.fight_scenario_id {
-            if npc.dialog.is_empty() {
+            if npc.dialog_for(lang).is_empty() {
                 Some(InteractResult::Fight(scenario_id.clone()))
             } else {
-                let lines = npc.dialog.clone();
+                let lines = npc.dialog_for(lang).clone();
                 let sid = scenario_id.clone();
                 self.state.active_dialog = lines.clone();
                 self.state.pending_fight = Some(sid);
                 Some(InteractResult::Dialog(lines))
             }
         } else {
-            let dialog = npc.dialog.clone();
+            let dialog = npc.dialog_for(lang).clone();
             self.state.active_dialog = dialog.clone();
             Some(InteractResult::Dialog(dialog))
         }
@@ -388,7 +430,7 @@ mod tests {
         mgr.place_hero_at_spawn("hero_1");
 
         // spawn is (2,1) — move right to (3,1) which is floor
-        let result = mgr.move_player("hero_1", Direction::Right);
+        let result = mgr.move_player("hero_1", Direction::Right, Lang::En);
         assert_eq!(result, MoveResult::Moved);
         assert_eq!(
             *mgr.state.player_positions.get("hero_1").unwrap(),
@@ -403,7 +445,7 @@ mod tests {
         mgr.place_hero_at_spawn("hero_1");
 
         // spawn (2,1) — move up to (2,0) which is wall
-        let result = mgr.move_player("hero_1", Direction::Up);
+        let result = mgr.move_player("hero_1", Direction::Up, Lang::En);
         assert_eq!(result, MoveResult::Blocked);
         assert_eq!(
             *mgr.state.player_positions.get("hero_1").unwrap(),
@@ -419,7 +461,7 @@ mod tests {
         mgr.state
             .player_positions
             .insert("hero_1".to_string(), Position::new(2, 3));
-        let result = mgr.move_player("hero_1", Direction::Left);
+        let result = mgr.move_player("hero_1", Direction::Left, Lang::En);
         assert_eq!(result, MoveResult::Blocked);
     }
 
@@ -431,7 +473,7 @@ mod tests {
         mgr.state
             .player_positions
             .insert("hero_1".to_string(), Position::new(0, 2));
-        let result = mgr.move_player("hero_1", Direction::Left);
+        let result = mgr.move_player("hero_1", Direction::Left, Lang::En);
         assert_eq!(result, MoveResult::Blocked);
     }
 
@@ -441,7 +483,7 @@ mod tests {
         let mut mgr = OverworldManager::load_map("test_map_grass", &root).unwrap();
         // place hero at (2,1); move down to (2,2) = grass
         mgr.place_hero_at_spawn("hero_1");
-        let result = mgr.move_player("hero_1", Direction::Down);
+        let result = mgr.move_player("hero_1", Direction::Down, Lang::En);
         assert!(
             matches!(result, MoveResult::Moved | MoveResult::Encounter(_)),
             "grass must give Moved or Encounter, got {result:?}"
@@ -466,7 +508,7 @@ mod tests {
         let mut mgr = OverworldManager::load_map("t", &root).unwrap();
         mgr.place_hero_at_spawn("h");
         // With empty encounters list, grass always returns Moved
-        let result = mgr.move_player("h", Direction::Down);
+        let result = mgr.move_player("h", Direction::Down, Lang::En);
         assert_eq!(result, MoveResult::Moved);
     }
 
@@ -478,7 +520,7 @@ mod tests {
         mgr.state
             .player_positions
             .insert("hero_1".to_string(), Position::new(2, 3));
-        let result = mgr.move_player("hero_1", Direction::Right);
+        let result = mgr.move_player("hero_1", Direction::Right, Lang::En);
         assert!(
             matches!(result, MoveResult::MapTransition(ref map, _) if map == "route_1"),
             "expected MapTransition to route_1, got {result:?}"
@@ -489,7 +531,7 @@ mod tests {
     fn unit_move_player_unknown_hero() {
         let root = write_temp_map(small_map_json(), "test_map_unk");
         let mut mgr = OverworldManager::load_map("test_map_unk", &root).unwrap();
-        let result = mgr.move_player("ghost", Direction::Up);
+        let result = mgr.move_player("ghost", Direction::Up, Lang::En);
         assert_eq!(result, MoveResult::Blocked);
     }
 
@@ -499,7 +541,7 @@ mod tests {
         let mut mgr = OverworldManager::load_map("test_map_npc", &root).unwrap();
         // NPC is at (1,1), place hero at (2,1) — right of NPC
         mgr.place_hero_at_spawn("hero_1");
-        let result = mgr.interact("hero_1");
+        let result = mgr.interact("hero_1", Lang::En);
         assert_eq!(
             result,
             Some(InteractResult::Dialog(vec![
@@ -517,7 +559,7 @@ mod tests {
         mgr.state
             .player_positions
             .insert("hero_1".to_string(), Position::new(3, 1));
-        let result = mgr.interact("hero_1");
+        let result = mgr.interact("hero_1", Lang::En);
         assert!(result.is_none());
     }
 
@@ -525,7 +567,7 @@ mod tests {
     fn unit_interact_unknown_hero() {
         let root = write_temp_map(small_map_json(), "test_map_unk2");
         let mut mgr = OverworldManager::load_map("test_map_unk2", &root).unwrap();
-        assert!(mgr.interact("ghost").is_none());
+        assert!(mgr.interact("ghost", Lang::En).is_none());
     }
 
     #[test]
@@ -549,7 +591,7 @@ mod tests {
         let mut mgr = OverworldManager::load_map("enemy_map", &root).unwrap();
         mgr.place_hero_at_spawn("hero_1");
         // hero is at (2,1), goblin is at (1,1) — adjacent left
-        let result = mgr.interact("hero_1");
+        let result = mgr.interact("hero_1", Lang::En);
         assert_eq!(
             result,
             Some(InteractResult::Fight("Patrouille Gobeline".to_string()))
@@ -564,6 +606,80 @@ mod tests {
         let state = mgr.state.clone();
         let mgr2 = OverworldManager::from_state(state.clone());
         assert_eq!(mgr2.state, state);
+    }
+
+    // ── bilingual dialog tests ──────────────────────────────────────────────
+
+    #[test]
+    fn unit_dialog_for_fallback() {
+        let npc = NpcState {
+            id: "n".to_string(),
+            dialog: vec!["legacy line".to_string()],
+            ..Default::default()
+        };
+        assert_eq!(npc.dialog_for(Lang::En), &vec!["legacy line".to_string()]);
+        assert_eq!(npc.dialog_for(Lang::Fr), &vec!["legacy line".to_string()]);
+    }
+
+    #[test]
+    fn unit_dialog_for_localized() {
+        let npc = NpcState {
+            id: "n".to_string(),
+            dialog: vec!["legacy line".to_string()],
+            dialog_en: vec!["English line".to_string()],
+            dialog_fr: vec!["Ligne française".to_string()],
+            ..Default::default()
+        };
+        assert_eq!(npc.dialog_for(Lang::En), &vec!["English line".to_string()]);
+        assert_eq!(
+            npc.dialog_for(Lang::Fr),
+            &vec!["Ligne française".to_string()]
+        );
+    }
+
+    #[test]
+    fn unit_interact_returns_localized_dialog() {
+        let json = r#"{
+  "id":"t","width":3,"height":3,
+  "tiles":[["wall","wall","wall"],
+            ["wall","floor","wall"],
+            ["wall","floor","wall"]],
+  "npcs":[{"id":"elder","x":1,"y":2,"dialog":["legacy"],"dialog_en":["Hello!"],"dialog_fr":["Bonjour !"]}],
+  "spawn":{"x":1,"y":1},"encounters":[]
+}"#;
+        let root = write_temp_map(json, "t_bilingual");
+        let mut mgr = OverworldManager::load_map("t_bilingual", &root).unwrap();
+        mgr.place_hero_at_spawn("h");
+
+        let result_en = mgr.interact("h", Lang::En);
+        assert_eq!(
+            result_en,
+            Some(InteractResult::Dialog(vec!["Hello!".to_string()]))
+        );
+
+        let result_fr = mgr.interact("h", Lang::Fr);
+        assert_eq!(
+            result_fr,
+            Some(InteractResult::Dialog(vec!["Bonjour !".to_string()]))
+        );
+    }
+
+    #[test]
+    fn unit_locked_door_message_is_localized() {
+        let json = r#"{
+  "id":"t","width":3,"height":3,
+  "tiles":[["wall","wall","wall"],
+            ["wall","floor",{"door":{"target_map":"other","spawn":{"x":0,"y":0}}}],
+            ["wall","wall","wall"]],
+  "npcs":[],"spawn":{"x":1,"y":1},"encounters":[],"locked_doors":["2_1"]
+}"#;
+        let root = write_temp_map(json, "t_locked");
+        let mut mgr = OverworldManager::load_map("t_locked", &root).unwrap();
+        mgr.place_hero_at_spawn("h");
+
+        mgr.move_player("h", Direction::Right, Lang::Fr);
+        assert_eq!(mgr.state.active_dialog, locked_door_message(Lang::Fr));
+        assert_ne!(mgr.state.active_dialog, locked_door_message(Lang::En));
     }
 
     // ── is_occupied tests ────────────────────────────────────────────────────
@@ -608,7 +724,7 @@ mod tests {
             .insert("hero_2".to_string(), Position::new(3, 1));
         // hero_1 tries to move right onto hero_2 — must be blocked.
         assert_eq!(
-            mgr.move_player("hero_1", Direction::Right),
+            mgr.move_player("hero_1", Direction::Right, Lang::En),
             MoveResult::Blocked
         );
         // Position must be unchanged.
@@ -625,7 +741,7 @@ mod tests {
         let mut mgr = OverworldManager::load_map("test_map_occ_npc_block", &root).unwrap();
         mgr.place_hero_at_spawn("hero_1"); // spawn = (2,1)
         assert_eq!(
-            mgr.move_player("hero_1", Direction::Left),
+            mgr.move_player("hero_1", Direction::Left, Lang::En),
             MoveResult::Blocked
         );
         assert_eq!(
@@ -646,6 +762,8 @@ mod tests {
                 id: "boss".to_string(),
                 pos: Position::new(1, 1),
                 dialog: boss_dialog,
+                dialog_en: vec![],
+                dialog_fr: vec![],
                 fight_scenario_id: Some("boss_fight".to_string()),
                 defeated: false,
             }],
@@ -702,7 +820,7 @@ mod tests {
         let mut mgr = OverworldManager::from_state(state);
 
         // First interact: shows dialog, queues fight.
-        let result = mgr.interact("hero");
+        let result = mgr.interact("hero", Lang::En);
         assert_eq!(
             result,
             Some(InteractResult::Dialog(vec![
@@ -712,7 +830,7 @@ mod tests {
         assert_eq!(mgr.state.pending_fight, Some("boss_fight".to_string()));
 
         // Second interact: triggers the queued fight.
-        let result = mgr.interact("hero");
+        let result = mgr.interact("hero", Lang::En);
         assert_eq!(
             result,
             Some(InteractResult::Fight("boss_fight".to_string()))
@@ -726,7 +844,7 @@ mod tests {
         let state = boss_map_state(vec![]);
         let mut mgr = OverworldManager::from_state(state);
 
-        let result = mgr.interact("hero");
+        let result = mgr.interact("hero", Lang::En);
         assert_eq!(
             result,
             Some(InteractResult::Fight("boss_fight".to_string()))
@@ -755,14 +873,14 @@ mod tests {
 
         // Initially blocked by living NPC at (1,1).
         assert_eq!(
-            mgr.move_player("hero_1", Direction::Left),
+            mgr.move_player("hero_1", Direction::Left, Lang::En),
             MoveResult::Blocked
         );
 
         // Mark NPC defeated — hero should now be able to step onto (1,1).
         mgr.state.npcs.iter_mut().for_each(|n| n.defeated = true);
         assert_eq!(
-            mgr.move_player("hero_1", Direction::Left),
+            mgr.move_player("hero_1", Direction::Left, Lang::En),
             MoveResult::Moved
         );
         assert_eq!(
@@ -816,7 +934,7 @@ mod tests {
             .player_positions
             .insert("hero".to_string(), Position::new(2, 1));
         assert_eq!(
-            mgr.move_player("hero", Direction::Left),
+            mgr.move_player("hero", Direction::Left, Lang::En),
             MoveResult::Blocked,
             "(1,1) should be a wall – movement must be blocked"
         );
@@ -837,7 +955,7 @@ mod tests {
             .player_positions
             .insert("hero".to_string(), Position::new(3, 2));
         assert_eq!(
-            mgr.move_player("hero", Direction::Right),
+            mgr.move_player("hero", Direction::Right, Lang::En),
             MoveResult::Moved,
             "(4,2) should be floor – movement must succeed"
         );
@@ -895,7 +1013,7 @@ mod tests {
                 .player_positions
                 .insert("hero".to_string(), Position::new(sx, sy));
             assert_eq!(
-                mgr.move_player("hero", dir.clone()),
+                mgr.move_player("hero", dir.clone(), Lang::En),
                 MoveResult::Blocked,
                 "Diagonal wall {} should block movement",
                 label

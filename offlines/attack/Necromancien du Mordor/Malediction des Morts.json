@@ -22,6 +22,8 @@
     ],
     "Niveau": 4,
     "Nom": "Malediction des Morts",
+    "NomEn": "Curse of the Dead",
+    "NomFr": "Malediction des Morts",
     "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Curse of the Dead — a necromantic hex that saps strength and deals ongoing damage.",

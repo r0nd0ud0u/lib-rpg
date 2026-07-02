@@ -22,6 +22,8 @@
     ],
     "Niveau": 3,
     "Nom": "Frappe Devastatrice",
+    "NomEn": "Devastating Strike",
+    "NomFr": "Frappe Devastatrice",
     "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "Devastating Strike — an overwhelmingly powerful attack that ignores defenses.",

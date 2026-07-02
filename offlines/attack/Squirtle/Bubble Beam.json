@@ -49,6 +49,8 @@
     ],
     "Niveau": 3,
     "Nom": "Bubble Beam",
+    "NomEn": "Bubble Beam",
+    "NomFr": "Bulles d'O",
     "Photo": "squirtle.png",
     "Portée": "Individual",
     "Description": "Launches a stream of bubbles — deals damage and reduces enemy speed regeneration.",

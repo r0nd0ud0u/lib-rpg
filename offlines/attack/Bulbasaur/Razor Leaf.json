@@ -35,6 +35,8 @@
     ],
     "Niveau": 5,
     "Nom": "Razor Leaf",
+    "NomEn": "Razor Leaf",
+    "NomFr": "Tranch'Herbe",
     "Photo": "bulbasaur.png",
     "Portée": "Individual",
     "Description": "Fires sharp leaves in a barrage — high damage with a short cooldown.",

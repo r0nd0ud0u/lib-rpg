@@ -22,6 +22,8 @@
     ],
     "Niveau": 5,
     "Nom": "Cri de la Mort",
+    "NomEn": "Cry of Death",
+    "NomFr": "Cri de la Mort",
     "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Death Shriek — a terrifying cry that drains life and causes fear.",

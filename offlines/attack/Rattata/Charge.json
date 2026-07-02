@@ -21,6 +21,8 @@
     ],
     "Niveau": 1,
     "Nom": "Charge",
+    "NomEn": "Charge",
+    "NomFr": "Charge",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "A quick bite.",

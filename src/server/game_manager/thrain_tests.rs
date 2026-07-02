@@ -467,6 +467,9 @@ fn unit_thrain_provocation_feroce_3_heroes_3_enemies() {
     let thrain = gm.pm.get_active_hero_character(thrain_id).unwrap().clone();
     gm.pm.current_player = thrain;
     gm.pm.current_player.level = 100;
+    // Force a deterministic non-crit roll: ChangeMaxStat is boosted by crit (×COEFF_CRIT_STATS),
+    // so a random crit on this self-buff would inflate the +40 assertion below (flaky otherwise).
+    gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
 
     let old_berserk = gm.pm.current_player.stats.all_stats[BERSERK].current;
     let old_crit_max = gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].max;

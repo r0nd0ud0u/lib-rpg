@@ -22,6 +22,8 @@
     ],
     "Niveau": 6,
     "Nom": "Anneau de Domination",
+    "NomEn": "Ring of Domination",
+    "NomFr": "Anneau de Domination",
     "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Ring of Domination — corrupts and dominates a hero, weakening their will.",

@@ -35,6 +35,8 @@
     ],
     "Niveau": 3,
     "Nom": "Cross Chop",
+    "NomEn": "Cross Chop",
+    "NomFr": "Choc Tranchant",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Delivers a powerful double chop with both arms.",

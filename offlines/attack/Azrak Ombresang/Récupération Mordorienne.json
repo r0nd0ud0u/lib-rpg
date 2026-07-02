@@ -87,6 +87,8 @@
     ],
     "Niveau": 9,
     "Nom": "Récupération Mordorienne",
+    "NomEn": "Mordorian Recovery",
+    "NomFr": "Récupération Mordorienne",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
     "Description": "Mordor Recovery — draws on the death of slain enemies to restore strength and vitality.",

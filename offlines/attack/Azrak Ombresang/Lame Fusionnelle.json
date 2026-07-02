@@ -35,6 +35,8 @@
     ],
     "Niveau": 1,
     "Nom": "Lame Fusionnelle",
+    "NomEn": "Fusion Blade",
+    "NomFr": "Lame Fusionnelle",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
     "Sound": "final-flash.mp3",

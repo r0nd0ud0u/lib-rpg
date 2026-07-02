@@ -63,6 +63,8 @@
     ],
     "Niveau": 6,
     "Nom": "Coup Puissant ",
+    "NomEn": "Powerful Blow",
+    "NomFr": "Coup Puissant ",
     "Photo": "Thraïn.png",
     "Portée": "Individual",
     "Description": "Mighty Blow — a heavy hammer strike dealing massive physical damage.",

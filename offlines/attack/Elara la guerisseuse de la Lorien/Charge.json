@@ -20,8 +20,14 @@
     ],
     "Niveau": 1,
     "Nom": "Charge",
+    "NomEn": "Charge",
+    "NomFr": "Charge",
     "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "A basic strike dealing physical damage.",
-    "DescriptionEffects": "Deals 35 physical damage to one enemy."
+    "DescriptionEn": "A basic strike dealing physical damage.",
+    "DescriptionFr": "Une attaque de base infligeant des dégâts physiques.",
+    "DescriptionEffects": "Deals 35 physical damage to one enemy.",
+    "DescriptionEffectsEn": "Deals 35 physical damage to one enemy.",
+    "DescriptionEffectsFr": "Inflige 35 dégâts physiques à un ennemi."
 }

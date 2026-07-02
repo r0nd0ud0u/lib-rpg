@@ -22,6 +22,8 @@
     ],
     "Niveau": 6,
     "Nom": "Malediction Ancienne",
+    "NomEn": "Ancient Curse",
+    "NomFr": "Malediction Ancienne",
     "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Ancient Curse — an age-old curse that severely weakens all heroes over time.",

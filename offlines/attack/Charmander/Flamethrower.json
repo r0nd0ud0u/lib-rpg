@@ -49,6 +49,8 @@
     ],
     "Niveau": 5,
     "Nom": "Flamethrower",
+    "NomEn": "Flamethrower",
+    "NomFr": "Lance-Flammes",
     "Photo": "charmander.png",
     "Portée": "Individual",
     "Description": "Breathes a stream of intense flames — boosts own physical power after use.",

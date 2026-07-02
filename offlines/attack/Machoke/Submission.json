@@ -49,6 +49,8 @@
     ],
     "Niveau": 5,
     "Nom": "Submission",
+    "NomEn": "Submission",
+    "NomFr": "Corps-à-Corps",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Grabs and slams — deals heavy damage but recoils from the impact.",

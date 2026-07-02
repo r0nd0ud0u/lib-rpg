@@ -49,6 +49,8 @@
     ],
     "Niveau": 7,
     "Nom": "Dragon Rage",
+    "NomEn": "Dragon Rage",
+    "NomFr": "Draco-Rage",
     "Photo": "charmander.png",
     "Portée": "Individual",
     "Description": "Channels draconic energy into a devastating strike that shreds enemy armour.",

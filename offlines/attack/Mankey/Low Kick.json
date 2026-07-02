@@ -35,6 +35,8 @@
     ],
     "Niveau": 3,
     "Nom": "Low Kick",
+    "NomEn": "Low Kick",
+    "NomFr": "Balayage",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Sweeps the enemy's legs — deals damage and reduces physical armour.",

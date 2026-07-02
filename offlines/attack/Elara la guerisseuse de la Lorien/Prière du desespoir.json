@@ -91,9 +91,15 @@
     ],
     "Niveau": 10,
     "Nom": "Prière du desespoir",
+    "NomEn": "Prayer of Despair",
+    "NomFr": "Prière du desespoir",
     "Photo": "default.png",
     "Portée": "Zone",
     "Sound": "",
     "Description": "Prayer of Despair — a desperate prayer that channels divine energy for a powerful emergency heal.",
-    "DescriptionEffects": "Deals 49% magic damage to self; +75% max Magic armor on all allies for 3 turns; +75% max Physical armor on all allies for 3 turns; +60% max Magic power on all allies for 3 turns; +60% max Physical power on all allies for 3 turns; 6-turn cooldown."
+    "DescriptionEn": "Prayer of Despair — a desperate prayer that channels divine energy for a powerful emergency heal.",
+    "DescriptionFr": "Prière du désespoir — une prière désespérée qui canalise une énergie divine pour un puissant soin d'urgence.",
+    "DescriptionEffects": "Deals 49% magic damage to self; +75% max Magic armor on all allies for 3 turns; +75% max Physical armor on all allies for 3 turns; +60% max Magic power on all allies for 3 turns; +60% max Physical power on all allies for 3 turns; 6-turn cooldown.",
+    "DescriptionEffectsEn": "Deals 49% magic damage to self; +75% max Magic armor on all allies for 3 turns; +75% max Physical armor on all allies for 3 turns; +60% max Magic power on all allies for 3 turns; +60% max Physical power on all allies for 3 turns; 6-turn cooldown.",
+    "DescriptionEffectsFr": "Inflige 49 % de dégâts magiques à soi-même ; +75 % d'Armure magique max sur tous les alliés pendant 3 tours ; +75 % d'Armure physique max sur tous les alliés pendant 3 tours ; +60 % de Puissance magique max sur tous les alliés pendant 3 tours ; +60 % de Puissance physique max sur tous les alliés pendant 3 tours ; temps de recharge de 6 tours."
 }

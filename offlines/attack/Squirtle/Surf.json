@@ -49,6 +49,8 @@
     ],
     "Niveau": 6,
     "Nom": "Surf",
+    "NomEn": "Surf",
+    "NomFr": "Surf",
     "Photo": "squirtle.png",
     "Portée": "Individual",
     "Description": "Rides a massive wave — deals heavy water damage and absorbs a little health back.",

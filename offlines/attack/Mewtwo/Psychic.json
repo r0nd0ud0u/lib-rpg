@@ -35,6 +35,8 @@
     ],
     "Niveau": 9,
     "Nom": "Psychic",
+    "NomEn": "Psychic",
+    "NomFr": "Psyko",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Levitates the enemy with telekinesis — deals psychic damage and reduces magical armour.",

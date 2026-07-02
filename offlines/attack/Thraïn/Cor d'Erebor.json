@@ -78,6 +78,8 @@
     ],
     "Niveau": 5,
     "Nom": "Cor d'Erebor",
+    "NomEn": "Horn of Erebor",
+    "NomFr": "Cor d'Erebor",
     "Photo": "default.png",
     "Portée": "Zone",
     "Description": "Horn of Erebor — a rallying war horn that boosts allies' morale and combat effectiveness.",

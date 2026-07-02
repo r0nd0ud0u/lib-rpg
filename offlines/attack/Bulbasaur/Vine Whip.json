@@ -49,6 +49,8 @@
     ],
     "Niveau": 1,
     "Nom": "Vine Whip",
+    "NomEn": "Vine Whip",
+    "NomFr": "Fouet Lianes",
     "Photo": "bulbasaur.png",
     "Portée": "Individual",
     "Description": "Whips the enemy with razor-sharp vines, reducing their physical defence for 2 turns.",

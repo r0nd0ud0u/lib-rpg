@@ -35,6 +35,8 @@
     ],
     "Niveau": 3,
     "Nom": "Croissance Bienfaisante",
+    "NomEn": "Beneficial Growth",
+    "NomFr": "Croissance Bienfaisante",
     "Photo": "Thalia.png",
     "Portée": "Zone",
     "Description": "Beneficial Growth — infuses a target with nature energy for gentle ongoing healing.",

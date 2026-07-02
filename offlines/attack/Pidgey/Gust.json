@@ -35,6 +35,8 @@
     ],
     "Niveau": 2,
     "Nom": "Gust",
+    "NomEn": "Gust",
+    "NomFr": "Tourbillon",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Flaps its wings to generate a gust — deals wind damage and reduces enemy speed.",

@@ -50,6 +50,8 @@
     ],
     "Niveau": 3,
     "Nom": "Fracas Marteau ",
+    "NomEn": "Hammer Crash",
+    "NomFr": "Fracas Marteau ",
     "Photo": "Thraïn.png",
     "Portée": "Zone",
     "Description": "Hammer Crash — a devastating hammer strike that can be lethal at low HP.",

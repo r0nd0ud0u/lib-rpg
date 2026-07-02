@@ -49,6 +49,8 @@
     ],
     "Niveau": 9,
     "Nom": "Psystrike",
+    "NomEn": "Psystrike",
+    "NomFr": "Psyfrappe",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "The ultimate psychic strike — reduces physical armour as psychic power overwhelms the target.",

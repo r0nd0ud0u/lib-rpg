@@ -22,6 +22,8 @@
     ],
     "Niveau": 1,
     "Nom": "Griffure",
+    "NomEn": "Claw Strike",
+    "NomFr": "Griffure",
     "Photo": "Charge.png",
     "Portée": "Individual",
     "Description": "Scratch — quick claws raking across flesh for minor damage.",

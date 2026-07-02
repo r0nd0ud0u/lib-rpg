@@ -35,6 +35,8 @@
     ],
     "Niveau": 8,
     "Nom": "Dragon Rage",
+    "NomEn": "Dragon Rage",
+    "NomFr": "Draco-Rage",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Unleashes draconic wrath — cracks enemy armour.",

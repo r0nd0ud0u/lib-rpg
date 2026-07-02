@@ -49,9 +49,15 @@
     ],
     "Niveau": 3,
     "Nom": "Rayon astral",
+    "NomEn": "Astral Ray",
+    "NomFr": "Rayon astral",
     "Photo": "default.png",
     "Portée": "Individual",
     "Sound": "",
     "Description": "Astral Ray — fires a beam of starlight that weakens the target's resistance with each hit.",
-    "DescriptionEffects": "Deals 70 magic damage to one enemy; enemy takes +25% more damage for 4 turns (stacks each cast); 2-turn cooldown."
+    "DescriptionEn": "Astral Ray — fires a beam of starlight that weakens the target's resistance with each hit.",
+    "DescriptionFr": "Rayon astral — tire un rayon de lumière stellaire qui affaiblit la résistance de la cible à chaque coup.",
+    "DescriptionEffects": "Deals 70 magic damage to one enemy; enemy takes +25% more damage for 4 turns (stacks each cast); 2-turn cooldown.",
+    "DescriptionEffectsEn": "Deals 70 magic damage to one enemy; enemy takes +25% more damage for 4 turns (stacks each cast); 2-turn cooldown.",
+    "DescriptionEffectsFr": "Inflige 70 dégâts magiques à un ennemi ; l'ennemi subit +25 % de dégâts supplémentaires pendant 4 tours (cumulable à chaque lancer) ; temps de recharge de 2 tours."
 }

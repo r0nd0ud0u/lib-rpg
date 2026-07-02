@@ -50,6 +50,8 @@
     ],
     "Niveau": 1,
     "Nom": "Frappe Cinglante ",
+    "NomEn": "Stinging Strike",
+    "NomFr": "Frappe Cinglante ",
     "Photo": "Thraïn.png",
     "Portée": "Individual",
     "Description": "Stinging Strike — a precise hit that bypasses armor for consistent damage.",

@@ -49,6 +49,8 @@
     ],
     "Niveau": 3,
     "Nom": "Fire Spin",
+    "NomEn": "Fire Spin",
+    "NomFr": "Ronde Feu",
     "Photo": "charmander.png",
     "Portée": "Individual",
     "Description": "Traps the enemy in a spinning fire vortex, slowing their speed regeneration.",

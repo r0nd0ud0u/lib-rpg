@@ -21,6 +21,8 @@
     ],
     "Niveau": 1,
     "Nom": "Quick Attack",
+    "NomEn": "Quick Attack",
+    "NomFr": "Vive-Attaque",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "A lightning-fast tackle that always strikes first.",

@@ -22,6 +22,8 @@
     ],
     "Niveau": 1,
     "Nom": "Jet de Pierres",
+    "NomEn": "Stone Throw",
+    "NomFr": "Jet de Pierres",
     "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Rock Throw — hurls a heavy stone, dealing moderate physical damage.",

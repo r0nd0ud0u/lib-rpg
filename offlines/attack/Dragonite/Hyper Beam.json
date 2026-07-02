@@ -35,6 +35,8 @@
     ],
     "Niveau": 8,
     "Nom": "Hyper Beam",
+    "NomEn": "Hyper Beam",
+    "NomFr": "Ultilaser",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "Fires an enormous beam of energy — requires recharge after use.",

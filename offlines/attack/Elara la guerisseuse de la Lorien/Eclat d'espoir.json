@@ -49,9 +49,15 @@
     ],
     "Niveau": 1,
     "Nom": "Eclat d'espoir",
+    "NomEn": "Spark of Hope",
+    "NomFr": "Eclat d'espoir",
     "Photo": "default.png",
     "Portée": "Zone",
     "Sound": "",
     "Description": "Spark of Hope — releases a burst of radiant light, healing allies and damaging enemies.",
-    "DescriptionEffects": "Heals all allies for 20% HP; +15% max Magic power on all allies for 2 turns; +15% max Physical power on all allies for 2 turns."
+    "DescriptionEn": "Spark of Hope — releases a burst of radiant light, healing allies and damaging enemies.",
+    "DescriptionFr": "Éclat d'espoir — libère une explosion de lumière radiante, soignant les alliés et blessant les ennemis.",
+    "DescriptionEffects": "Heals all allies for 20% HP; +15% max Magic power on all allies for 2 turns; +15% max Physical power on all allies for 2 turns.",
+    "DescriptionEffectsEn": "Heals all allies for 20% HP; +15% max Magic power on all allies for 2 turns; +15% max Physical power on all allies for 2 turns.",
+    "DescriptionEffectsFr": "Soigne tous les alliés de 20 % de leurs PV ; +15 % de Puissance magique max sur tous les alliés pendant 2 tours ; +15 % de Puissance physique max sur tous les alliés pendant 2 tours."
 }

@@ -22,6 +22,8 @@
     ],
     "Niveau": 3,
     "Nom": "Charge Ecrasante",
+    "NomEn": "Crushing Charge",
+    "NomFr": "Charge Ecrasante",
     "Photo": "Charge.png",
     "Portée": "Zone",
     "Description": "Crushing Charge — a fierce charge that deals heavy damage on impact.",

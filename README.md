@@ -190,6 +190,50 @@ Scenarios are filtered by universe at game initialisation and when the universe 
 
 ---
 
+## Bilingual descriptions (`description_en` / `description_fr`)
+
+`AttackType` and `Character` each carry a legacy single-language `Description`/`DescriptionEffects` field, plus optional locale-specific siblings: `DescriptionEn`/`DescriptionFr` on both structs, and `DescriptionEffectsEn`/`DescriptionEffectsFr` on `AttackType` only. All four are `#[serde(default)]`, so existing JSON with none of these keys deserializes exactly as before.
+
+`AttackType::description_for(lang: Lang) -> &str` (and `effects_description_for`) and `Character::description_for(lang: Lang) -> &str` return the locale-specific field when it's non-empty, and transparently fall back to the legacy `Description`/`DescriptionEffects` field otherwise — so unmigrated characters/attacks keep showing the same text regardless of which language the UI requests. `Lang` lives in `common::lang` specifically because lib-rpg has no UI-framework dependency; the consuming app converts its own locale type into `Lang` at the UI boundary.
+
+The same fallback pattern applies to `AttackType::name` (the `Nom` JSON key): `NomEn`/`NomFr` are optional display-only siblings resolved via `name_for(lang: Lang) -> &str`. The plain `name` field stays the canonical identifier used for lookups, cooldown tracking, stats keys and JSON filenames — `name_for` must only be used for display text, never for comparisons or map keys.
+
+JSON definition (attack file, e.g. `Elara la guerisseuse de la Lorien/Charge.json`):
+
+```json
+{
+  "Nom": "Charge",
+  "NomEn": "Charge",
+  "NomFr": "Charge",
+  "Description": "A basic strike dealing physical damage.",
+  "DescriptionEn": "A basic strike dealing physical damage.",
+  "DescriptionFr": "Une attaque de base infligeant des dégâts physiques.",
+  "DescriptionEffects": "Deals 35 physical damage to one enemy.",
+  "DescriptionEffectsEn": "Deals 35 physical damage to one enemy.",
+  "DescriptionEffectsFr": "Inflige 35 dégâts physiques à un ennemi."
+}
+```
+
+> **`NomEn`/`NomFr` are populated for every shipped attack** (all 113 attack files across both the LOTR and Pokémon rosters) — attack names always display correctly regardless of language. `DescriptionEn`/`DescriptionFr`/`DescriptionEffectsEn`/`DescriptionEffectsFr` are still only populated for **Elara la guerisseuse de la Lorien**'s character + 12 attacks; every other character/attack's tooltip description falls back to its single existing-language text until migrated. Extending descriptions to the rest of the roster is mechanical — populate the fields per file — and is tracked as follow-up work in dx-rpg's `docs/iteration-plan.md`.
+
+### Bilingual NPC dialog (`dialog_en` / `dialog_fr`)
+
+Overworld NPCs (`overworld_manager::NpcState`, loaded from `offlines/maps/<map_id>.json`) follow the same pattern: a legacy `dialog: Vec<String>` field plus optional `dialog_en`/`dialog_fr` siblings (`#[serde(default)]`). `NpcState::dialog_for(lang: Lang) -> &Vec<String>` returns the locale-specific lines when non-empty, else falls back to `dialog`.
+
+`OverworldManager::move_player` and `OverworldManager::interact` both take a `lang: Lang` parameter — used to resolve the NPC's dialog lines (and the built-in bilingual locked-door hint message) into `OverworldState::active_dialog` before it's sent to the client. All 12 shipped maps (10 LOTR + 2 Pokémon) are fully migrated with both `dialog_en` and `dialog_fr` populated.
+
+```json
+{
+  "id": "gandalf",
+  "x": 2, "y": 2,
+  "dialog": ["La Comté est menacée, ami !"],
+  "dialog_en": ["The Shire is threatened, friend!"],
+  "dialog_fr": ["La Comté est menacée, ami !"]
+}
+```
+
+---
+
 ## Damage Formula
 
 ### `AttackType::damage_by_atk`

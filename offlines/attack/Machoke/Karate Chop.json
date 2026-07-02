@@ -35,6 +35,8 @@
     ],
     "Niveau": 5,
     "Nom": "Karate Chop",
+    "NomEn": "Karate Chop",
+    "NomFr": "Tranche",
     "Photo": "Angmar.png",
     "Portée": "Individual",
     "Description": "A sharp chop that cracks armour.",

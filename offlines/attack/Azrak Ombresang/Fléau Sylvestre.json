@@ -36,6 +36,8 @@
     ],
     "Niveau": 5,
     "Nom": "Fléau Sylvestre",
+    "NomEn": "Sylvan Scourge",
+    "NomFr": "Fléau Sylvestre",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Individual",
     "Description": "Forest Blight — a blight strike that corrupts nature energy to deal damage.",
