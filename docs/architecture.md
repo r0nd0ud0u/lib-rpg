@@ -60,8 +60,20 @@ flowchart LR
             target_rs["target.rs\n(TargetData)"]
         end
         subgraph server
-            game_manager_rs["game_manager.rs\n(GameManager)"]
-            players_manager_rs["players_manager.rs\n(PlayerManager)"]
+            subgraph game_manager_dir["game_manager/"]
+                gm_mod["mod.rs\n(GameManager struct, new)"]
+                gm_scenario["scenario_flow.rs\n(load/set/end scenario)"]
+                gm_turn["turn_flow.rs\n(turn & round flow)"]
+                gm_attack["attack_flow.rs\n(launch_attack, logs)"]
+            end
+            subgraph players_manager_dir["players_manager/"]
+                pm_mod["mod.rs\n(PlayerManager struct, new)"]
+                pm_accessors["accessors.rs\n(character lookups)"]
+                pm_targeting["targeting.rs\n(target selection)"]
+                pm_consumables["consumables.rs\n(potion usage)"]
+                pm_turn["turn_flow.rs\n(per-turn processing)"]
+                pm_gae["game_atk_effect.rs\n(GameAtkEffect, log_text)"]
+            end
             game_state_rs["game_state.rs\n(GameState)"]
             data_manager_rs["data_manager.rs\n(DataManager)"]
             scenario_rs["scenario.rs\n(Scenario)"]
