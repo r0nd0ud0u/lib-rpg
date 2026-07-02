@@ -7,11 +7,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 1,
-            "Type": "Active effet si Dégâts au tour précédent",
             "Valeur de l'effet": 0,
-            "Value": 0,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ConditionDamagePrevTurn",
@@ -24,11 +21,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 1,
-            "Type": "Buf multi",
             "Valeur de l'effet": 0,
-            "Value": 3,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "MultiValue",
@@ -41,11 +35,8 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 3,
-            "Type": "ChangeCurrentStat",
             "Valeur de l'effet": 0,
-            "Value": 25,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStat",
@@ -58,11 +49,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 5,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 5,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -75,11 +63,8 @@
         {
             "Cible": "Enemy",
             "Portée": "Aleatoire Individuel",
-            "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "ChangeCurrentStat",
             "Valeur de l'effet": 0,
-            "Value": -35,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStat",
@@ -90,7 +75,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 4,
     "Nom": "Fleur de vie sanguinaire",
     "Photo": "default.png",

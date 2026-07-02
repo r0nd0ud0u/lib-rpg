@@ -1,7 +1,6 @@
 {
   "Class": "Berserker",
   "Color": "orange",
-  "Experience": 0,
   "CharacterRoundsInfo": {
     "is_first_round": false,
     "is_heal_atk_blocked": false,
@@ -14,7 +13,6 @@
   "IdName": "Charmander_#1",
   "Photo": "default",
   "Rank": "Common",
-  "Shape": "",
   "Short name": "Charmander",
   "Stats": {
     "Aggro": {

@@ -7,11 +7,8 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "HP",
             "Tours actifs": 5,
-            "Type": "ChangeCurrentStat",
             "Valeur de l'effet": 0,
-            "Value": 25,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStat",
@@ -24,11 +21,8 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Mana regeneration",
             "Tours actifs": 5,
-            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
-            "Value": 2,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeMaxStat",
@@ -41,11 +35,8 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Magic power",
             "Tours actifs": 5,
-            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
-            "Value": 10,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeMaxStat",
@@ -56,7 +47,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 5,
     "Nom": "Fleur de l'Espoir",
     "Photo": "Thalia.png",

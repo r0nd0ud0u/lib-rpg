@@ -35,11 +35,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Berserk rate",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
-            "Value": 100,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStat",
@@ -50,7 +47,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 11,
     "Nom": "Tourbillon Destructeur ",
     "Photo": "Thraïn.png",

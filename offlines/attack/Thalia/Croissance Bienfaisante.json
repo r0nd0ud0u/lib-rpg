@@ -7,11 +7,8 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "HP",
             "Tours actifs": 3,
-            "Type": "ChangeCurrentStat",
             "Valeur de l'effet": 0,
-            "Value": 25,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStat",
@@ -24,11 +21,8 @@
         {
             "Cible": "All allies",
             "Portée": "Zone",
-            "Stat": "Magic power",
             "Tours actifs": 3,
-            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
-            "Value": 10,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeMaxStat",
@@ -39,7 +33,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 3,
     "Nom": "Croissance Bienfaisante",
     "Photo": "Thalia.png",

@@ -4,17 +4,12 @@
     "Coût de mana": 11,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
-    "Durée": 1,
-    "Dégâts": 0,
     "Effet": [
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStat",
             "Valeur de l'effet": 0,
-            "Value": 100,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStat",
@@ -27,11 +22,8 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 1,
-            "Type": "RemoveOneDebuf",
             "Valeur de l'effet": 0,
-            "Value": 0,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "RemoveOneDebuf",
@@ -44,11 +36,8 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ReinitBuf",
             "Valeur de l'effet": 0,
-            "Value": 0,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ReinitBuf",
@@ -61,11 +50,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 5,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 1000,
-            "Value": 5,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -76,15 +62,10 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 9,
     "Nom": "Éveil de l'Espérance",
     "Photo": "Thalia.png",
     "Portée": "Individual",
-    "Regen mana": 0,
-    "Regen rage": 0,
-    "Regen vigueur": 0,
-    "Soin": 0,
     "Description": "Awakening of Hope — a radiant bloom of hope that heals the targeted ally.",
     "DescriptionEffects": "Heals on the targeted ally for 100; removes the oldest debuff on the targeted ally; resets its active effects; 5-turn cooldown."
 }

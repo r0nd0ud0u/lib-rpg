@@ -3,16 +3,12 @@
     "Coût de mana": 20,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
-    "Durée": 1,
     "Effet": [
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStat",
             "Valeur de l'effet": 0,
-            "Value": 35,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStat",
@@ -25,11 +21,8 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
-            "Value": 10,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeMaxStat",
@@ -42,11 +35,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 6,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 6,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -57,7 +47,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 6,
     "Nom": "Synthesis",
     "Photo": "bulbasaur.png",

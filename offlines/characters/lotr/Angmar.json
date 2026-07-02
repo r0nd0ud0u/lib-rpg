@@ -1,7 +1,6 @@
 {
     "Class": "Warrior",
     "Color": "red",
-    "Experience": 0,
     "CharacterRoundsInfo": {
         "is_first_round": false,
         "is_heal_atk_blocked": false,
@@ -13,7 +12,6 @@
     "IdName": "Angmar_#1",
     "Photo": "Angmar",
     "Rank": "Advanced",
-    "Shape": "",
     "Short name": "Angmar",
     "Stats": {
         "Aggro": {
@@ -89,18 +87,7 @@
             "Max": 0
         }
     },
-    "Tx-rx": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-    ],
     "Type": "Boss",
-    "is-blocking-atk": false,
-    "max-actions-by-round": 1,
-    "nb-actions-in-round": 0,
     "energies": [
         {
             "kind": "Mana"

@@ -1,7 +1,6 @@
 {
   "Class": "Warrior",
   "Color": "red",
-  "Experience": 0,
   "CharacterRoundsInfo": {
     "is_first_round": false,
     "is_heal_atk_blocked": false,
@@ -14,7 +13,6 @@
   "IdName": "Mewtwo_Armure_#1",
   "Photo": "default",
   "Rank": "Advanced",
-  "Shape": "",
   "Short name": "Mewtwo Armure",
   "Stats": {
     "Aggro": {
@@ -90,18 +88,7 @@
       "Max": 20
     }
   },
-  "Tx-rx": [
-    {},
-    {},
-    {},
-    {},
-    {},
-    {}
-  ],
   "Type": "Boss",
-  "is-blocking-atk": false,
-  "max-actions-by-round": 3,
-  "nb-actions-in-round": 0,
   "energies": [
     {
       "kind": "Vigor"

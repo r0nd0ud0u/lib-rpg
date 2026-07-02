@@ -1,7 +1,6 @@
 {
   "Class": "Warrior",
   "Color": "red",
-  "Experience": 0,
   "CharacterRoundsInfo": {
     "is_first_round": false,
     "is_heal_atk_blocked": false,
@@ -14,7 +13,6 @@
   "IdName": "Mankey_#1",
   "Photo": "default",
   "Rank": "Common",
-  "Shape": "",
   "Short name": "Mankey",
   "Stats": {
     "Aggro": {
@@ -90,18 +88,7 @@
       "Max": 15
     }
   },
-  "Tx-rx": [
-    {},
-    {},
-    {},
-    {},
-    {},
-    {}
-  ],
   "Type": "Boss",
-  "is-blocking-atk": false,
-  "max-actions-by-round": 1,
-  "nb-actions-in-round": 0,
   "energies": [
     {
       "kind": "Vigor"

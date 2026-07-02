@@ -4,7 +4,6 @@
     "Coût de mana": 25,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
-    "Durée": 1,
     "Effet": [
         {
             "Cible": "Enemy",
@@ -21,7 +20,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 4,
     "Nom": "Malediction des Morts",
     "Photo": "Charge.png",

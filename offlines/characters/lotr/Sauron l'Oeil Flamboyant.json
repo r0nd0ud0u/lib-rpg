@@ -1,7 +1,6 @@
 {
     "Class": "Warrior",
     "Color": "gold",
-    "Experience": 0,
     "CharacterRoundsInfo": {
         "is_first_round": false,
         "is_heal_atk_blocked": false,
@@ -14,7 +13,6 @@
     "IdName": "Sauron_Oeil_Flamboyant_#1",
     "Photo": "Angmar",
     "Rank": "Advanced",
-    "Shape": "",
     "Short name": "Sauron",
     "Stats": {
         "Aggro": {
@@ -90,18 +88,7 @@
             "Max": 30
         }
     },
-    "Tx-rx": [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {}
-    ],
     "Type": "Boss",
-    "is-blocking-atk": false,
-    "max-actions-by-round": 1,
-    "nb-actions-in-round": 0,
     "energies": [
         {
             "kind": "Mana"

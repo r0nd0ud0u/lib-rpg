@@ -4,17 +4,12 @@
     "Coût de mana": 0,
     "Coût de rage": 0,
     "Coût de vigueur": 13,
-    "Durée": 1,
-    "Dégâts": 0,
     "Effet": [
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Physical power",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
-            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStat",
@@ -27,11 +22,8 @@
         {
             "Cible": "Only allies",
             "Portée": "Zone",
-            "Stat": "Physical power",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
-            "Value": 10,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStat",
@@ -44,11 +36,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Magic power",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
-            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStat",
@@ -61,11 +50,8 @@
         {
             "Cible": "Only allies",
             "Portée": "Zone",
-            "Stat": "Magic power",
             "Tours actifs": 4,
-            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
-            "Value": 10,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStat",
@@ -78,11 +64,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 6,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 6,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
                 "value": 6,
@@ -92,15 +75,10 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 2,
     "Nom": "Furie du Mordor",
     "Photo": "Azrak Ombresang.png",
     "Portée": "Zone",
-    "Regen mana": 0,
-    "Regen rage": 0,
-    "Regen vigueur": 0,
-    "Soin": 0,
     "Description": "Mordor Fury — channels the rage of Mordor for a powerful, wide-area assault.",
     "DescriptionEffects": "+20% max Physical power for 4 turns; +10% max Physical power on all allies for 4 turns; +20% max Magic power for 4 turns; +10% max Magic power on all allies for 4 turns; 6-turn cooldown."
 }

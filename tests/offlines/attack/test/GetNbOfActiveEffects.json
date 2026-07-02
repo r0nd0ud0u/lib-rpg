@@ -4,8 +4,6 @@
     "Coût de mana": 9,
     "Coût de rage": 0,
     "Coût de vigueur": 0,
-    "Durée": 1,
-    "Dégâts": 0,
     "Effet": [
         {
             "Cible": "Ally",
@@ -66,11 +64,8 @@
         {
             "Cible": "Ally",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 2,
-            "Type": "ChangeCurrentStat",
             "Valeur de l'effet": 0,
-            "Value": -35,
             "IsMagicEffect": true,
             "Buffer": {
                 "kind": "ChangeCurrentStat",
@@ -179,13 +174,8 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 1,
     "Nom": "GetNbOfActiveEffects",
     "Photo": "Thalia.png",
-    "Portée": "Individual",
-    "Regen mana": 0,
-    "Regen rage": 0,
-    "Regen vigueur": 0,
-    "Soin": 0
+    "Portée": "Individual"
 }

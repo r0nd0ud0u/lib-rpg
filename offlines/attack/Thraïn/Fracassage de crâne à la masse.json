@@ -7,11 +7,8 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "HP",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStat",
             "Valeur de l'effet": 0,
-            "Value": -150,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeCurrentStat",
@@ -24,11 +21,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Dodge",
             "Tours actifs": 2,
-            "Type": "ChangeMaxStat",
             "Valeur de l'effet": 0,
-            "Value": 65,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "ChangeMaxStat",
@@ -41,11 +35,8 @@
         {
             "Cible": "Enemy",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 2,
-            "Type": "DamageRxPercent",
             "Valeur de l'effet": 0,
-            "Value": 20,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "DamageRxPercent",
@@ -58,11 +49,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "",
             "Tours actifs": 10,
-            "Type": "CooldownTurnsNumber",
             "Valeur de l'effet": 0,
-            "Value": 10,
             "IsMagicEffect": false,
             "Buffer": {
                 "kind": "CooldownTurnsNumber",
@@ -75,11 +63,8 @@
         {
             "Cible": "Self",
             "Portée": "Individual",
-            "Stat": "Berserk",
             "Tours actifs": 1,
-            "Type": "ChangeCurrentStat",
             "Valeur de l'effet": 0,
-            "Value": 25,
             "Buffer": {
                 "kind": "ChangeCurrentStat",
                 "value": 25,
@@ -89,7 +74,6 @@
             }
         }
     ],
-    "Forme": "Standard",
     "Niveau": 13,
     "Nom": "Fracassage de crâne à la masse",
     "Photo": "Thraïn.png",
