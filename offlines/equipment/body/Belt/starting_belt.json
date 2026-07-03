@@ -1,6 +1,7 @@
 {
     "Categorie": "Belt",
     "Nom": "starting belt",
+    "NomFr": "ceinture de départ",
     "Nom unique": "starting belt",
     "Stats": {
         "Aggro": {

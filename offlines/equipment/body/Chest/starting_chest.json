@@ -1,6 +1,7 @@
 {
     "Categorie": "Chest",
     "Nom": "starting chest",
+    "NomFr": "plastron de départ",
     "Nom unique": "starting chest",
     "Stats": {
         "Aggro": {

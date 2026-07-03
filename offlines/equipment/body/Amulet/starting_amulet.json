@@ -1,6 +1,7 @@
 {
     "Categorie": "Amulet",
     "Nom": "starting amulet",
+    "NomFr": "amulette de départ",
     "Nom unique": "starting amulet",
     "Stats": {
         "Aggro": {

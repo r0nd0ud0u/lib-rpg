@@ -1,6 +1,7 @@
 {
     "Categorie": "RightWeapon",
     "Nom": "medium right weapon",
+    "NomFr": "arme moyenne (droite)",
     "Nom unique": "medium right weapon",
     "Stats": {
         "Aggro": {

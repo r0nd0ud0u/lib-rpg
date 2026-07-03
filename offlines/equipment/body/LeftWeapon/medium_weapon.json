@@ -1,6 +1,7 @@
 {
     "Categorie": "LeftWeapon",
     "Nom": "medium weapon",
+    "NomFr": "arme moyenne",
     "Nom unique": "medium weapon",
     "Stats": {
         "Aggro": {

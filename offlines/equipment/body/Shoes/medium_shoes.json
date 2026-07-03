@@ -1,6 +1,7 @@
 {
     "Categorie": "Shoes",
     "Nom": "medium shoes",
+    "NomFr": "chaussures moyennes",
     "Nom unique": "medium shoes",
     "Stats": {
         "Aggro": {

@@ -1,6 +1,7 @@
 {
     "Categorie": "RightWeapon",
     "Nom": "starting right weapon",
+    "NomFr": "arme de départ (droite)",
     "Nom unique": "starting right weapon",
     "Stats": {
         "Aggro": {
