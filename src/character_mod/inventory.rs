@@ -266,7 +266,13 @@ impl Inventory {
             return;
         }
 
-        let category = self.get_category(equipment_unique_name);
+        let Some(category) = self.get_category(equipment_unique_name) else {
+            tracing::error!(
+                "Equipment with unique name '{}' not found in inventory",
+                equipment_unique_name
+            );
+            return;
+        };
         let limit = self.get_limit_for_category(&category);
 
         // Count how many are equipped in the category
@@ -382,25 +388,17 @@ impl Inventory {
         }
     }
 
-    fn get_category(&self, equipment_unique_name: &str) -> EquipmentJsonKey {
-        self.equipments
-            .iter()
-            .find_map(|(category, equipments)| {
-                if equipments
-                    .iter()
-                    .any(|e| e.unique_name == equipment_unique_name)
-                {
-                    Some(category.clone())
-                } else {
-                    None
-                }
-            })
-            .unwrap_or_else(|| {
-                panic!(
-                    "Equipment with unique name '{}' not found in inventory",
-                    equipment_unique_name
-                )
-            })
+    fn get_category(&self, equipment_unique_name: &str) -> Option<EquipmentJsonKey> {
+        self.equipments.iter().find_map(|(category, equipments)| {
+            if equipments
+                .iter()
+                .any(|e| e.unique_name == equipment_unique_name)
+            {
+                Some(category.clone())
+            } else {
+                None
+            }
+        })
     }
 }
 
