@@ -440,12 +440,14 @@ mod tests {
             unique_name: "sword_of_testing".to_owned(),
             category: EquipmentJsonKey::LeftWeapon,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         let equipment2 = Equipment {
             name: "Shield of Testing".to_owned(),
             unique_name: "shield_of_testing".to_owned(),
             category: EquipmentJsonKey::Chest,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         inventory.add_equipment(&equipment1, true);
         inventory.add_equipment(&equipment2, false);
@@ -497,6 +499,7 @@ mod tests {
             unique_name: "helmet_of_testing".to_owned(),
             category: EquipmentJsonKey::Head,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         equipment1.stats.all_stats.insert(
             HP.to_owned(),
@@ -511,6 +514,7 @@ mod tests {
             unique_name: "armor_of_testing".to_owned(),
             category: EquipmentJsonKey::Chest,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         equipment2.stats.all_stats.insert(
             HP.to_owned(),
@@ -565,6 +569,7 @@ mod tests {
             unique_name: "Amulet".to_owned(),
             category: EquipmentJsonKey::Amulet,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         inventory.add_equipment(&equipment1, true);
         let all_equipments = vec![equipment1.clone()];
@@ -584,6 +589,7 @@ mod tests {
             unique_name: "Boots".to_owned(),
             category: EquipmentJsonKey::Shoes,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         inventory.add_equipment(&equipment1, false);
         assert!(!inventory.equipments[&EquipmentJsonKey::Shoes][0].is_equipped);
@@ -615,6 +621,7 @@ mod tests {
             unique_name: "test_ring".to_owned(),
             category: EquipmentJsonKey::RightRing,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         inventory.add_equipment(&equipment, false);
         assert!(inventory.has_unseen_equipment());
@@ -634,6 +641,7 @@ mod tests {
             unique_name: "test_sword".to_owned(),
             category: EquipmentJsonKey::LeftWeapon,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         }
     }
 
@@ -767,24 +775,28 @@ mod tests {
             unique_name: "Tattoes1".to_owned(),
             category: EquipmentJsonKey::Tattoes,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         let equipment2 = Equipment {
             name: "Tattoes of Testing 2".to_owned(),
             unique_name: "Tattoes2".to_owned(),
             category: EquipmentJsonKey::Tattoes,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         let equipment3 = Equipment {
             name: "Tattoes of Testing 3".to_owned(),
             unique_name: "Tattoes3".to_owned(),
             category: EquipmentJsonKey::Tattoes,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         let equipment4 = Equipment {
             name: "Tattoes of Testing 4".to_owned(),
             unique_name: "Tattoes4".to_owned(),
             category: EquipmentJsonKey::Tattoes,
             stats: crate::character_mod::stats::Stats::default(),
+            ..Default::default()
         };
         inventory.add_equipment(&equipment1, false);
         inventory.add_equipment(&equipment2, false);

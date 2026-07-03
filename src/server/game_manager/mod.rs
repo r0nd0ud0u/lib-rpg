@@ -2,7 +2,7 @@ use std::{collections::HashMap, path::Path};
 
 use crate::{
     character_mod::equipment::{Equipment, EquipmentJsonKey},
-    common::{constants::paths_const::*, log_data::LogData},
+    common::{constants::paths_const::*, lang::Lang, log_data::LogData},
     server::{
         end_of_scenario::EndOfScenario,
         game_paths::GamePaths,
@@ -36,6 +36,18 @@ pub struct ResultLaunchAttack {
     pub is_dot_kill: bool,
     /// Last attack name of the character killed by DOT (empty if not a DOT kill).
     pub dying_char_last_atk: String,
+}
+
+impl ResultLaunchAttack {
+    /// Locale-specific attack name; falls back to the canonical `atk_name` when
+    /// there's no landed effect to resolve an `AttackType` from (e.g. an attack
+    /// whose only effects were fully dodged/blocked).
+    pub fn atk_display_name_for(&self, lang: Lang) -> &str {
+        self.new_game_atk_effects
+            .first()
+            .map(|gae| gae.atk_type.name_for(lang))
+            .unwrap_or(&self.atk_name)
+    }
 }
 
 /// The entry of the library.
@@ -92,5 +104,58 @@ impl GameManager {
             states_scenarios,
             end_of_scenario: EndOfScenario::default(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::character_mod::attack_type::AttackType;
+
+    #[test]
+    fn unit_atk_display_name_for_fallback() {
+        let result = ResultLaunchAttack {
+            atk_name: "Charge".to_owned(),
+            new_game_atk_effects: vec![GameAtkEffect {
+                atk_type: AttackType {
+                    name: "Charge".to_owned(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        assert_eq!(result.atk_display_name_for(Lang::En), "Charge");
+        assert_eq!(result.atk_display_name_for(Lang::Fr), "Charge");
+    }
+
+    #[test]
+    fn unit_atk_display_name_for_localized() {
+        let result = ResultLaunchAttack {
+            atk_name: "Don de vie".to_owned(),
+            new_game_atk_effects: vec![GameAtkEffect {
+                atk_type: AttackType {
+                    name: "Don de vie".to_owned(),
+                    name_en: "Gift of Life".to_owned(),
+                    name_fr: "Don de vie".to_owned(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        assert_eq!(result.atk_display_name_for(Lang::En), "Gift of Life");
+        assert_eq!(result.atk_display_name_for(Lang::Fr), "Don de vie");
+    }
+
+    #[test]
+    fn unit_atk_display_name_for_no_effects_falls_back_to_atk_name() {
+        let result = ResultLaunchAttack {
+            atk_name: "Charge".to_owned(),
+            new_game_atk_effects: vec![],
+            ..Default::default()
+        };
+        assert_eq!(result.atk_display_name_for(Lang::En), "Charge");
+        assert_eq!(result.atk_display_name_for(Lang::Fr), "Charge");
     }
 }
