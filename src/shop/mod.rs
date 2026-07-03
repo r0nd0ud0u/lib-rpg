@@ -9,14 +9,24 @@ use crate::{
         loot::LootType,
         rank::Rank,
     },
-    common::constants::stats_const::{BERSERK, MANA, VIGOR},
+    common::{
+        constants::stats_const::{BERSERK, MANA, VIGOR},
+        lang::Lang,
+    },
 };
 
 /// A single item available for purchase in the shop.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 pub struct ShopCatalogItem {
+    /// Canonical identifier (matches `Equipment::unique_name` for equipment,
+    /// or the hardcoded consumable name). Used for lookups/comparisons —
+    /// use `display_name_for` for display.
     pub name: String,
+    /// English-language display name (optional; falls back to `name` if empty)
+    pub name_en: String,
+    /// French-language display name (optional; falls back to `name` if empty)
+    pub name_fr: String,
     pub kind: LootType,
     pub price: u64,
     pub rank: Rank,
@@ -29,11 +39,29 @@ impl Default for ShopCatalogItem {
     fn default() -> Self {
         Self {
             name: String::new(),
+            name_en: String::new(),
+            name_fr: String::new(),
             kind: LootType::Equipment,
             price: 0,
             rank: Rank::Common,
             category: None,
             description: String::new(),
+        }
+    }
+}
+
+impl ShopCatalogItem {
+    /// Locale-specific display name; falls back to `name` when the
+    /// locale-specific one is empty (unmigrated equipment or consumables).
+    pub fn display_name_for(&self, lang: Lang) -> &str {
+        let localized = match lang {
+            Lang::En => &self.name_en,
+            Lang::Fr => &self.name_fr,
+        };
+        if localized.is_empty() {
+            &self.name
+        } else {
+            localized
         }
     }
 }
@@ -96,6 +124,8 @@ pub fn build_shop_catalog(
             };
             items.push(ShopCatalogItem {
                 name: equip.unique_name.clone(),
+                name_en: equip.name_for(Lang::En).to_owned(),
+                name_fr: equip.name_for(Lang::Fr).to_owned(),
                 kind: LootType::Equipment,
                 price,
                 rank: Rank::Common,
@@ -128,6 +158,7 @@ pub fn build_shop_catalog(
             rank,
             category: None,
             description: desc.to_owned(),
+            ..Default::default()
         });
     }
 
@@ -258,5 +289,38 @@ mod tests {
     #[test]
     fn unit_build_consumable_by_name_unknown() {
         assert!(build_consumable_by_name("unknown item").is_none());
+    }
+
+    #[test]
+    fn unit_display_name_for_fallback() {
+        let item = ShopCatalogItem {
+            name: "potion".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(item.display_name_for(Lang::En), "potion");
+        assert_eq!(item.display_name_for(Lang::Fr), "potion");
+    }
+
+    #[test]
+    fn unit_display_name_for_localized() {
+        let item = ShopCatalogItem {
+            name: "medium belt".to_owned(),
+            name_en: "medium belt".to_owned(),
+            name_fr: "ceinture moyenne".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(item.display_name_for(Lang::En), "medium belt");
+        assert_eq!(item.display_name_for(Lang::Fr), "ceinture moyenne");
+    }
+
+    #[test]
+    fn unit_build_shop_catalog_localizes_equipment_names() {
+        let catalog = catalog_from_production();
+        let belt = catalog
+            .iter()
+            .find(|i| i.name == "medium belt")
+            .expect("medium belt should be in the catalog");
+        assert_eq!(belt.display_name_for(Lang::Fr), "ceinture moyenne");
+        assert_eq!(belt.display_name_for(Lang::En), "medium belt");
     }
 }

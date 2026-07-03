@@ -1,6 +1,7 @@
 {
     "Categorie": "Amulet",
     "Nom": "medium amulet",
+    "NomFr": "amulette moyenne",
     "Nom unique": "medium amulet",
     "Stats": {
         "Aggro": {

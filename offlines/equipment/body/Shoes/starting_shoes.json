@@ -1,6 +1,7 @@
 {
     "Categorie": "Shoes",
     "Nom": "starting shoes",
+    "NomFr": "chaussures de départ",
     "Nom unique": "starting shoes",
     "Stats": {
         "Aggro": {

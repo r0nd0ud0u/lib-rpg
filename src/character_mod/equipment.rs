@@ -3,7 +3,7 @@ use std::{fmt, path::Path};
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 
-use crate::{character_mod::stats::Stats, utils};
+use crate::{character_mod::stats::Stats, common::lang::Lang, utils};
 use strum_macros::EnumIter;
 
 /// Define the parameters of an equipment.
@@ -13,9 +13,16 @@ pub struct Equipment {
     /// Name of the equipment
     #[serde(rename = "Categorie")]
     pub category: EquipmentJsonKey,
-    /// Type of the equipment
+    /// Type of the equipment. Canonical display fallback — use `name_for`
+    /// for display once `name_en`/`name_fr` are populated.
     #[serde(rename = "Nom")]
     pub name: String,
+    /// English-language display name (optional; falls back to `name` if empty)
+    #[serde(rename = "NomEn", default)]
+    pub name_en: String,
+    /// French-language display name (optional; falls back to `name` if empty)
+    #[serde(rename = "NomFr", default)]
+    pub name_fr: String,
     /// Photo of the equipment
     #[serde(rename = "Nom unique")]
     pub unique_name: String,
@@ -94,6 +101,21 @@ impl Equipment {
             ))
         }
     }
+
+    /// Locale-specific display name; falls back to the legacy `name` field
+    /// when the locale-specific one is empty (unmigrated equipment). Only
+    /// for display — use `unique_name` for identity comparisons, map keys, etc.
+    pub fn name_for(&self, lang: Lang) -> &str {
+        let localized = match lang {
+            Lang::En => &self.name_en,
+            Lang::Fr => &self.name_fr,
+        };
+        if localized.is_empty() {
+            &self.name
+        } else {
+            localized
+        }
+    }
 }
 
 #[cfg(test)]
@@ -101,6 +123,28 @@ mod tests {
     use crate::common::constants::stats_const::*;
 
     use super::*;
+
+    #[test]
+    fn unit_name_for_fallback() {
+        let equipment = Equipment {
+            name: "medium belt".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(equipment.name_for(Lang::En), "medium belt");
+        assert_eq!(equipment.name_for(Lang::Fr), "medium belt");
+    }
+
+    #[test]
+    fn unit_name_for_localized() {
+        let equipment = Equipment {
+            name: "medium belt".to_owned(),
+            name_en: "medium belt".to_owned(),
+            name_fr: "ceinture moyenne".to_owned(),
+            ..Default::default()
+        };
+        assert_eq!(equipment.name_for(Lang::En), "medium belt");
+        assert_eq!(equipment.name_for(Lang::Fr), "ceinture moyenne");
+    }
 
     #[test]
     fn unit_equipment_json_key_display() {
