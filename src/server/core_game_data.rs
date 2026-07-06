@@ -61,6 +61,8 @@ impl CoreGameData {
 
         // set the full boss roster so load_next_scenario can populate active_bosses
         gm.pm.all_bosses = dm.all_bosses.clone();
+        // static talent tree definitions, sent to clients alongside the equipment table
+        gm.pm.talent_trees = dm.talent_trees.clone();
         // load the first scenario of the game and set its active bosses
         gm.load_next_scenario()?;
 
@@ -212,6 +214,17 @@ mod tests {
             "new_with_scenarios must succeed with universe-tagged scenarios: {:?}",
             result.err()
         );
+    }
+
+    #[test]
+    fn unit_new_exposes_talent_trees_on_pm() {
+        // Talent tree definitions are static content loaded by DataManager; they must
+        // flow through to `pm.talent_trees` so clients receive them in ServerData.
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let core = CoreGameData::new(&dm, "TestServer").unwrap();
+
+        assert_eq!(core.game_manager.pm.talent_trees.len(), 1);
+        assert!(core.game_manager.pm.talent_trees.contains_key("test"));
     }
 
     #[test]
