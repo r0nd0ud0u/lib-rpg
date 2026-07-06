@@ -197,6 +197,16 @@ fn drought_threshold_dodge(
     }
 }
 
+/// Whether a talent effect of this kind permanently raises a stat via `Stats::set_stats_on_effect`
+/// (the same accumulator equipment uses) rather than being pushed as an ambient passive `Buffer`.
+/// Only `ChangeMaxStat`/`ChangeCurrentStat` are stat accumulators; other kinds may carry a real
+/// stat name for their own purposes (e.g. `OverHealBoostStat.stats_name` names the stat to boost
+/// on overheal, it isn't itself a stat to permanently raise) and must stay ambient buffers so the
+/// ambient/turn-processing code that reads `character_rounds_info.all_buffers` can find them.
+fn is_stat_accumulator_effect(kind: &BufKinds) -> bool {
+    matches!(kind, BufKinds::ChangeMaxStat | BufKinds::ChangeCurrentStat)
+}
+
 impl Character {
     /// Locale-specific description; falls back to the legacy `description`
     /// field when the locale-specific one is empty (unmigrated characters).
@@ -1239,7 +1249,7 @@ impl Character {
         }
 
         for effect in &talent.effects {
-            if self.stats.all_stats.contains_key(&effect.stats_name) {
+            if is_stat_accumulator_effect(&effect.kind) {
                 self.stats.set_stats_on_effect(
                     &effect.stats_name,
                     effect.value,
@@ -1272,7 +1282,7 @@ impl Character {
                 continue;
             };
             for effect in &talent.effects {
-                if self.stats.all_stats.contains_key(&effect.stats_name) {
+                if is_stat_accumulator_effect(&effect.kind) {
                     self.stats.set_stats_on_effect(
                         &effect.stats_name,
                         -effect.value,
@@ -3424,6 +3434,64 @@ mod tests {
             "unlocking a2 should push a DamageTxPercent +8% passive buffer"
         );
         assert_eq!(c.talents.spent, 2);
+    }
+
+    // Regression: an effect kind like `OverHealBoostStat` legitimately carries a real stat
+    // name (which stat to boost on overheal) without being a stat-accumulator effect itself.
+    // It must be pushed as an ambient `Buffer` (findable via `get_buffer_by_type`), not routed
+    // through `Stats::set_stats_on_effect` just because its `stats_name` matches a real stat.
+    #[test]
+    fn unit_unlock_talent_overheal_boost_stat_stays_ambient_buffer_despite_real_stats_name() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let dodge_before = c.stats.all_stats[DODGE].clone();
+        let tree = TalentTree {
+            hero_key: "TestHero".to_owned(),
+            paths: vec![lib_rpg_talent_path_with_overheal_boost()],
+        };
+
+        c.unlock_talent("overheal_dodge", &tree).unwrap();
+
+        // Stat must be untouched — this effect is not a stat accumulator.
+        assert_eq!(c.stats.all_stats[DODGE], dodge_before);
+        // The buffer must be ambiently discoverable so the overheal-turn logic can find it.
+        let buf = c
+            .character_rounds_info
+            .get_buffer_by_type(&BufKinds::OverHealBoostStat)
+            .expect("OverHealBoostStat buffer should be pushed ambiently");
+        assert_eq!(buf.stats_name, DODGE);
+        assert!(buf.is_passive_enabled);
+
+        c.respec_talents(&tree);
+        assert!(
+            c.character_rounds_info
+                .get_buffer_by_type(&BufKinds::OverHealBoostStat)
+                .is_none()
+        );
+        assert_eq!(c.stats.all_stats[DODGE], dodge_before);
+    }
+
+    fn lib_rpg_talent_path_with_overheal_boost() -> TalentPath {
+        TalentPath {
+            key: "path_a".to_owned(),
+            name_en: "Path A".to_owned(),
+            name_fr: "Chemin A".to_owned(),
+            talents: vec![TalentDef {
+                id: "overheal_dodge".to_owned(),
+                path: "path_a".to_owned(),
+                tier: 1,
+                cost: 1,
+                is_capstone: false,
+                requires: vec![],
+                effects: vec![TalentEffect {
+                    kind: BufKinds::OverHealBoostStat,
+                    stats_name: DODGE.to_owned(),
+                    value: 0,
+                    is_percent: false,
+                }],
+                ..Default::default()
+            }],
+        }
     }
 
     #[test]
