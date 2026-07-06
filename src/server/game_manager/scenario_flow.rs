@@ -195,6 +195,11 @@ impl GameManager {
                     .exp_to_next_level;
                 self.pm.active_heroes[i].level += 1;
                 self.pm.active_heroes[i].stats.update_stats_to_next_level();
+                // Grant a talent skill point every level, plus a bonus every 5th level
+                self.pm.active_heroes[i].talents.skill_points += 1;
+                if self.pm.active_heroes[i].level.is_multiple_of(5) {
+                    self.pm.active_heroes[i].talents.skill_points += 1;
+                }
                 // Recompute the threshold for the new level
                 self.pm.active_heroes[i]
                     .character_rounds_info
@@ -713,6 +718,12 @@ mod tests {
                 "hero '{}' HP max should have increased after leveling up",
                 hero.id_name
             );
+            // A single level-up (1 -> 2, not a multiple of 5) grants exactly 1 skill point
+            assert_eq!(
+                hero.talents.skill_points, 1,
+                "hero '{}' should have earned 1 skill point for reaching level 2",
+                hero.id_name
+            );
         }
         // assess end of scenario LevelUp
         assert_eq!(gm.end_of_scenario.characters_levelup.len(), 2); // 2 heroes
@@ -728,6 +739,45 @@ mod tests {
                 lu.character_id_name
             );
         });
+    }
+
+    #[test]
+    fn unit_talent_skill_points_milestone_bonus_at_level_5() {
+        // Each call awards 200 exp (2 Common lvl1 bosses). Thresholds by level (Common,
+        // Standard): 1->2:100, 2->3:200, 3->4:300, 4->5:400. Reaching level 5 from level 1
+        // takes 4 level-ups (2,3,4,5), one of which (5) is a multiple-of-5 milestone:
+        // total skill points = 4 + 1 bonus = 5.
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+        gm.current_scenario = Scenario {
+            name: "test".to_string(),
+            description: "test".to_string(),
+            boss_patterns: HashMap::new(),
+            loots: vec![],
+            level: 1,
+            universe: String::new(),
+        };
+
+        let mut iterations = 0;
+        while gm.pm.active_heroes.iter().any(|h| h.level < 5) && iterations < 20 {
+            gm.process_end_of_scenario();
+            iterations += 1;
+        }
+
+        for hero in &gm.pm.active_heroes {
+            assert_eq!(
+                hero.level, 5,
+                "hero '{}' should have reached level 5",
+                hero.id_name
+            );
+            assert_eq!(
+                hero.talents.skill_points, 5,
+                "hero '{}' should have earned 5 skill points reaching level 5 (4 level-ups + 1 milestone bonus)",
+                hero.id_name
+            );
+        }
     }
 
     #[test]

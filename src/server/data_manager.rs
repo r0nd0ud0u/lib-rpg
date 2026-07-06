@@ -7,9 +7,11 @@ use crate::{
     character_mod::{
         character::{Character, CharacterKind},
         equipment::{Equipment, EquipmentJsonKey},
+        talent::TalentTree,
     },
     common::constants::paths_const::{
         OFFLINE_CHARACTERS, OFFLINE_LOOT_EQUIPMENT, OFFLINE_ROOT, OFFLINE_SCENARIOS,
+        OFFLINE_TALENTS,
     },
     server::scenario::Scenario,
     shop::{ShopCatalogItem, build_shop_catalog},
@@ -28,6 +30,8 @@ pub struct DataManager {
     pub equipment_table: HashMap<EquipmentJsonKey, Vec<Equipment>>,
     /// Shop catalog derived from equipment_table and hardcoded consumables
     pub shop_catalog: Vec<ShopCatalogItem>,
+    /// Talent tree definitions, keyed by `TalentTree.hero_key` (matches `Character.db_full_name`)
+    pub talent_trees: HashMap<String, TalentTree>,
     /// Root path for offline files
     pub offline_root: std::path::PathBuf,
 }
@@ -51,6 +55,8 @@ impl DataManager {
         dm.load_all_characters(path_ref)?;
         // load all the scenarios
         dm.load_all_scenarios(path_ref)?;
+        // load all the talent trees
+        dm.load_all_talent_trees(path_ref)?;
 
         let shop_catalog = build_shop_catalog(&dm.equipment_table);
         Ok(DataManager {
@@ -59,6 +65,7 @@ impl DataManager {
             all_scenarios: dm.all_scenarios,
             equipment_table: dm.equipment_table,
             shop_catalog,
+            talent_trees: dm.talent_trees,
             offline_root: dm.offline_root,
         })
     }
@@ -226,6 +233,59 @@ impl DataManager {
         }
 
         Ok(())
+    }
+
+    /// Load all talent tree JSON files (one per hero). Missing directory is not an error:
+    /// talent trees are optional content, unlike characters/scenarios.
+    pub fn load_all_talent_trees<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
+        if path.as_ref().as_os_str().is_empty() {
+            bail!("no root path")
+        }
+        let talent_dir_path = path.as_ref().join(*OFFLINE_TALENTS);
+
+        // Load top-level JSON files (default universe / no universe)
+        if let Ok(list) = list_files_in_dir(&talent_dir_path) {
+            for talent_path in &list {
+                match TalentTree::try_new_from_json(talent_path) {
+                    Ok(tree) => {
+                        self.talent_trees.insert(tree.hero_key.clone(), tree);
+                    }
+                    Err(e) => tracing::error!("{:?} cannot be decoded: {}", talent_path, e),
+                }
+            }
+        }
+
+        // Load talent trees from sub-directories — each sub-dir is a universe
+        if let Ok(universe_dirs) = crate::utils::list_dirs_in_dir(&talent_dir_path) {
+            for universe_dir in &universe_dirs {
+                match list_files_in_dir(universe_dir) {
+                    Ok(list) => {
+                        for talent_path in &list {
+                            match TalentTree::try_new_from_json(talent_path) {
+                                Ok(tree) => {
+                                    self.talent_trees.insert(tree.hero_key.clone(), tree);
+                                }
+                                Err(e) => {
+                                    tracing::error!("{:?} cannot be decoded: {}", talent_path, e)
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => tracing::warn!(
+                        "Cannot list files in universe dir {:?}: {}",
+                        universe_dir,
+                        e
+                    ),
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// The talent tree for a hero, if any content was authored for them.
+    pub fn talent_tree_for(&self, hero_key: &str) -> Option<&TalentTree> {
+        self.talent_trees.get(hero_key)
     }
 
     /// Return a sorted list of all distinct universes found in loaded scenarios.
@@ -481,5 +541,26 @@ mod tests {
             assert_eq!(s.universe, "lotr");
             assert!(!s.name.is_empty(), "lotr scenario name should not be empty");
         }
+    }
+
+    #[test]
+    fn unit_load_all_talent_trees() {
+        let mut dm = DataManager::default();
+        dm.load_all_talent_trees(*TEST_OFFLINE_ROOT).unwrap();
+
+        assert_eq!(dm.talent_trees.len(), 1, "expected the 'test' hero's tree");
+        let tree = dm.talent_tree_for("test").expect("tree for 'test' hero");
+        assert!(tree.validate().is_ok());
+        assert_eq!(tree.paths.len(), 2);
+        assert!(tree.find_talent("test_path_a_1").is_some());
+        assert!(dm.talent_tree_for("does_not_exist").is_none());
+    }
+
+    #[test]
+    fn unit_load_all_talent_trees_missing_dir_is_not_an_error() {
+        // Talent content is optional: a root path with no `talents/` dir must not fail.
+        let mut dm = DataManager::default();
+        assert!(dm.load_all_talent_trees("unknown").is_ok());
+        assert!(dm.talent_trees.is_empty());
     }
 }

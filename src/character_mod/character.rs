@@ -16,6 +16,7 @@ use crate::{
         rank::Rank,
         rounds_information::{AmountType, CharacterRoundsInfo},
         stats::Stats,
+        talent::{TalentBoard, TalentTree},
         target::TargetData,
     },
     common::{
@@ -77,6 +78,8 @@ pub struct Character {
     pub character_rounds_info: CharacterRoundsInfo,
     /// Inventory
     pub inventory: Inventory,
+    /// Talent tree progress: earned/spent skill points and unlocked talent ids
+    pub talents: TalentBoard,
     /// Energy
     pub energies: Vec<Energy>,
     /// Rank of the character, used for boss to adapt the difficulty of the fight
@@ -114,6 +117,7 @@ impl Default for Character {
             character_rounds_info: CharacterRoundsInfo::default(),
             class: Class::Standard,
             inventory: Inventory::default(),
+            talents: TalentBoard::default(),
             energies: Vec::new(),
             rank: Rank::default(),
             description: String::new(),
@@ -1185,6 +1189,111 @@ impl Character {
         self.apply_effects_on_stats(false);
     }
 
+    /// Spend a skill point on `talent_id`. Validates prerequisites, cost, and the
+    /// one-capstone-per-tree rule before applying the talent's effects: stat-targeting
+    /// effects (non-empty `stats_name`) go through `Stats::set_stats_on_effect` (same
+    /// accumulator equipment uses), everything else is pushed as a passive `Buffer`
+    /// onto `character_rounds_info.all_buffers` (read live by the combat code, e.g.
+    /// `DamageTxPercent`/`HealTxPercent`).
+    pub fn unlock_talent(&mut self, talent_id: &str, tree: &TalentTree) -> Result<()> {
+        if self.talents.unlocked.iter().any(|id| id == talent_id) {
+            bail!("Talent '{}' is already unlocked", talent_id);
+        }
+        let talent = tree.find_talent(talent_id).ok_or_else(|| {
+            anyhow!(
+                "Talent '{}' not found in tree '{}'",
+                talent_id,
+                tree.hero_key
+            )
+        })?;
+        for req in &talent.requires {
+            if !self.talents.unlocked.iter().any(|id| id == req) {
+                bail!(
+                    "Talent '{}' requires '{}' to be unlocked first",
+                    talent_id,
+                    req
+                );
+            }
+        }
+        if talent.is_capstone {
+            let other_capstones = tree.other_capstones(&talent.path);
+            if let Some(taken) = self
+                .talents
+                .unlocked
+                .iter()
+                .find(|id| other_capstones.contains(&id.as_str()))
+            {
+                bail!(
+                    "Cannot unlock capstone '{}': capstone '{}' from another path is already active; respec first",
+                    talent_id,
+                    taken
+                );
+            }
+        }
+        if self.talents.available() < talent.cost {
+            bail!(
+                "Not enough skill points: have {}, need {}",
+                self.talents.available(),
+                talent.cost
+            );
+        }
+
+        for effect in &talent.effects {
+            if self.stats.all_stats.contains_key(&effect.stats_name) {
+                self.stats.set_stats_on_effect(
+                    &effect.stats_name,
+                    effect.value,
+                    effect.is_percent,
+                    true,
+                );
+            } else {
+                self.character_rounds_info.all_buffers.push(Buffer {
+                    is_passive_enabled: true,
+                    is_passive: true,
+                    value: effect.value,
+                    is_percent: effect.is_percent,
+                    stats_name: effect.stats_name.clone(),
+                    kind: effect.kind.clone(),
+                });
+            }
+        }
+        self.talents.unlocked.push(talent_id.to_owned());
+        self.talents.spent += talent.cost;
+        Ok(())
+    }
+
+    /// Undo every unlocked talent for free: reverse each effect (negate the stat call, or
+    /// remove the matching passive `Buffer`) and reset spent points to 0. Skill points
+    /// already earned (`skill_points`) are untouched, only `spent`/`unlocked` are cleared.
+    pub fn respec_talents(&mut self, tree: &TalentTree) {
+        let unlocked = std::mem::take(&mut self.talents.unlocked);
+        for talent_id in unlocked {
+            let Some(talent) = tree.find_talent(&talent_id) else {
+                continue;
+            };
+            for effect in &talent.effects {
+                if self.stats.all_stats.contains_key(&effect.stats_name) {
+                    self.stats.set_stats_on_effect(
+                        &effect.stats_name,
+                        -effect.value,
+                        effect.is_percent,
+                        true,
+                    );
+                } else if let Some(idx) =
+                    self.character_rounds_info.all_buffers.iter().position(|b| {
+                        b.kind == effect.kind
+                            && b.stats_name == effect.stats_name
+                            && b.value == effect.value
+                            && b.is_percent == effect.is_percent
+                    })
+                {
+                    self.character_rounds_info.all_buffers.remove(idx);
+                }
+            }
+        }
+        self.talents.spent = 0;
+    }
+
     fn apply_effects_on_stats(&mut self, update_effect_stats: bool) {
         self.character_rounds_info
             .all_effects
@@ -1229,6 +1338,7 @@ mod tests {
     use crate::character_mod::energy::EnergyKind;
     use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
     use crate::character_mod::rank::Rank;
+    use crate::character_mod::talent::{TalentDef, TalentEffect, TalentPath, TalentTree};
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::common::constants::streak_breaker_const::STREAK_BREAKER_ADVANCED;
     use crate::common::lang::Lang;
@@ -3193,5 +3303,209 @@ mod tests {
             recorded > 0,
             "Overheal from a heal attack must be recorded in tx_rx[OverHealRx], got 0"
         );
+    }
+
+    fn build_test_talent_tree() -> TalentTree {
+        TalentTree {
+            hero_key: "TestHero".to_owned(),
+            paths: vec![
+                TalentPath {
+                    key: "path_a".to_owned(),
+                    name_en: "Path A".to_owned(),
+                    name_fr: "Chemin A".to_owned(),
+                    talents: vec![
+                        TalentDef {
+                            id: "a1".to_owned(),
+                            path: "path_a".to_owned(),
+                            tier: 1,
+                            cost: 1,
+                            is_capstone: false,
+                            requires: vec![],
+                            effects: vec![TalentEffect {
+                                kind: BufKinds::ChangeMaxStat,
+                                stats_name: DODGE.to_owned(),
+                                value: 10,
+                                is_percent: true,
+                            }],
+                            ..Default::default()
+                        },
+                        TalentDef {
+                            id: "a2".to_owned(),
+                            path: "path_a".to_owned(),
+                            tier: 2,
+                            cost: 1,
+                            is_capstone: false,
+                            requires: vec!["a1".to_owned()],
+                            effects: vec![TalentEffect {
+                                kind: BufKinds::DamageTxPercent,
+                                stats_name: String::new(),
+                                value: 8,
+                                is_percent: true,
+                            }],
+                            ..Default::default()
+                        },
+                        TalentDef {
+                            id: "a5".to_owned(),
+                            path: "path_a".to_owned(),
+                            tier: 5,
+                            cost: 4,
+                            is_capstone: true,
+                            requires: vec!["a2".to_owned()],
+                            effects: vec![TalentEffect {
+                                kind: BufKinds::DamageTxPercent,
+                                stats_name: String::new(),
+                                value: 20,
+                                is_percent: true,
+                            }],
+                            ..Default::default()
+                        },
+                    ],
+                },
+                TalentPath {
+                    key: "path_b".to_owned(),
+                    name_en: "Path B".to_owned(),
+                    name_fr: "Chemin B".to_owned(),
+                    talents: vec![TalentDef {
+                        id: "b5".to_owned(),
+                        path: "path_b".to_owned(),
+                        tier: 5,
+                        cost: 4,
+                        is_capstone: true,
+                        requires: vec![],
+                        effects: vec![TalentEffect {
+                            kind: BufKinds::ChangeMaxStat,
+                            stats_name: HP.to_owned(),
+                            value: 20,
+                            is_percent: true,
+                        }],
+                        ..Default::default()
+                    }],
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn unit_unlock_talent_applies_stat_effect_and_deducts_points() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let dodge = c.stats.all_stats.get_mut(DODGE).unwrap();
+        dodge.max_raw = 100;
+        dodge.max = 100;
+        dodge.current = 100;
+        dodge.buf_equip_value = 0;
+        dodge.buf_equip_percent = 0;
+        dodge.buf_effect_value = 0;
+        dodge.buf_effect_percent = 0;
+        let tree = build_test_talent_tree();
+
+        c.unlock_talent("a1", &tree).unwrap();
+
+        assert_eq!(c.stats.all_stats[DODGE].max, 110);
+        assert_eq!(c.talents.spent, 1);
+        assert_eq!(c.talents.available(), 4);
+        assert_eq!(c.talents.unlocked, vec!["a1".to_owned()]);
+    }
+
+    #[test]
+    fn unit_unlock_talent_pushes_buffer_for_non_stat_effect() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let tree = build_test_talent_tree();
+        c.unlock_talent("a1", &tree).unwrap();
+
+        c.unlock_talent("a2", &tree).unwrap();
+
+        assert!(
+            c.character_rounds_info
+                .all_buffers
+                .iter()
+                .any(|b| b.kind == BufKinds::DamageTxPercent && b.value == 8),
+            "unlocking a2 should push a DamageTxPercent +8% passive buffer"
+        );
+        assert_eq!(c.talents.spent, 2);
+    }
+
+    #[test]
+    fn unit_unlock_talent_fails_insufficient_points() {
+        let mut c = testing_character();
+        c.talents.skill_points = 0;
+        let tree = build_test_talent_tree();
+
+        let err = c.unlock_talent("a1", &tree).unwrap_err();
+        assert!(err.to_string().contains("Not enough skill points"));
+        assert!(c.talents.unlocked.is_empty());
+    }
+
+    #[test]
+    fn unit_unlock_talent_fails_missing_prereq() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let tree = build_test_talent_tree();
+
+        let err = c.unlock_talent("a2", &tree).unwrap_err();
+        assert!(err.to_string().contains("requires"));
+        assert!(c.talents.unlocked.is_empty());
+    }
+
+    #[test]
+    fn unit_unlock_talent_fails_already_unlocked() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let tree = build_test_talent_tree();
+        c.unlock_talent("a1", &tree).unwrap();
+
+        let err = c.unlock_talent("a1", &tree).unwrap_err();
+        assert!(err.to_string().contains("already unlocked"));
+        assert_eq!(c.talents.spent, 1);
+    }
+
+    #[test]
+    fn unit_unlock_talent_fails_second_capstone() {
+        let mut c = testing_character();
+        c.talents.skill_points = 20;
+        let tree = build_test_talent_tree();
+        c.unlock_talent("a1", &tree).unwrap();
+        c.unlock_talent("a2", &tree).unwrap();
+        c.unlock_talent("a5", &tree).unwrap();
+
+        let err = c.unlock_talent("b5", &tree).unwrap_err();
+        assert!(err.to_string().contains("already active"));
+        assert!(!c.talents.unlocked.contains(&"b5".to_owned()));
+    }
+
+    #[test]
+    fn unit_respec_talents_reverts_stats_and_refunds() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let dodge = c.stats.all_stats.get_mut(DODGE).unwrap();
+        dodge.max_raw = 100;
+        dodge.max = 100;
+        dodge.current = 100;
+        dodge.buf_equip_value = 0;
+        dodge.buf_equip_percent = 0;
+        dodge.buf_effect_value = 0;
+        dodge.buf_effect_percent = 0;
+        let tree = build_test_talent_tree();
+        let baseline_dodge = c.stats.all_stats[DODGE].clone();
+        c.unlock_talent("a1", &tree).unwrap();
+        c.unlock_talent("a2", &tree).unwrap();
+        assert_ne!(c.stats.all_stats[DODGE].max, baseline_dodge.max);
+
+        c.respec_talents(&tree);
+
+        assert_eq!(c.stats.all_stats[DODGE], baseline_dodge);
+        assert!(
+            !c.character_rounds_info
+                .all_buffers
+                .iter()
+                .any(|b| b.kind == BufKinds::DamageTxPercent && b.value == 8),
+            "respec should remove the talent-granted DamageTxPercent buffer"
+        );
+        assert_eq!(c.talents.spent, 0);
+        assert!(c.talents.unlocked.is_empty());
+        // Points earned are not lost on respec, only what was spent
+        assert_eq!(c.talents.skill_points, 5);
+        assert_eq!(c.talents.available(), 5);
     }
 }
