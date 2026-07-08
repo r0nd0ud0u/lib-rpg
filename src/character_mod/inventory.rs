@@ -9,7 +9,10 @@ use crate::{
         equipment::{Equipment, EquipmentJsonKey},
         rank::Rank,
     },
-    common::constants::stats_const::{BERSERK, MANA, VIGOR},
+    common::{
+        constants::stats_const::{BERSERK, MANA, VIGOR},
+        lang::Lang,
+    },
 };
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -56,14 +59,29 @@ pub struct EquipmentInventory {
 #[derive(Default, Debug, serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 #[serde(default)]
 pub struct Consumable {
-    /// Name of the consumable, used to identify it and for players to choose it
+    /// Canonical (English) name of the consumable, used to identify it and as the
+    /// fallback display name — use `display_name_for` for locale-aware display.
     pub name: String,
+    /// French-language display name (optional; falls back to `name` if empty)
+    pub name_fr: String,
     /// Effects of the consumable, used to know what the consumable does and to apply its effects when used
     pub effects: Vec<EffectParam>,
     /// Kind of the consumable, used to know how to use it and to display it in the right category in the inventory
     pub consumable_kind: ConsumableKind,
     /// Rank of the consumable, used to know the rarity and the power of the consumable
     pub rank: Rank,
+}
+
+impl Consumable {
+    /// Locale-specific display name; falls back to `name` (English) when `name_fr`
+    /// is empty, mirroring `ShopCatalogItem::display_name_for`.
+    pub fn display_name_for(&self, lang: Lang) -> &str {
+        match lang {
+            Lang::En => &self.name,
+            Lang::Fr if !self.name_fr.is_empty() => &self.name_fr,
+            Lang::Fr => &self.name,
+        }
+    }
 }
 
 #[repr(usize)]
@@ -95,9 +113,10 @@ impl Inventory {
             .unwrap_or(0)
     }
 
-    pub fn add_potion(&mut self, name: &str, hp_amount: i64, rank: Rank) {
+    pub fn add_potion(&mut self, name: &str, name_fr: &str, hp_amount: i64, rank: Rank) {
         self.consumables.push(Consumable {
             name: name.to_owned(),
+            name_fr: name_fr.to_owned(),
             effects: vec![build_hp_effect(hp_amount, false)],
             consumable_kind: ConsumableKind::Potion,
             rank,
@@ -105,20 +124,21 @@ impl Inventory {
     }
 
     pub fn add_small_potion(&mut self) {
-        self.add_potion("potion", 20, Rank::Common);
+        self.add_potion("potion", "potion", 20, Rank::Common);
     }
 
     pub fn add_super_potion(&mut self) {
-        self.add_potion("super potion", 60, Rank::Intermediate);
+        self.add_potion("super potion", "super potion", 60, Rank::Intermediate);
     }
 
     pub fn add_hyper_potion(&mut self) {
-        self.add_potion("hyper potion", 120, Rank::Advanced);
+        self.add_potion("hyper potion", "hyper potion", 120, Rank::Advanced);
     }
 
     pub fn add_resurrection_potion(&mut self) {
         self.consumables.push(Consumable {
             name: "potion of resurrection".to_owned(),
+            name_fr: "potion de resurrection".to_owned(),
             effects: vec![build_resurrect_effect(50)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Advanced,
@@ -128,6 +148,7 @@ impl Inventory {
     pub fn add_mana_potion(&mut self) {
         self.consumables.push(Consumable {
             name: "mana potion".to_owned(),
+            name_fr: "potion de mana".to_owned(),
             effects: vec![build_energy_effect(MANA, 30)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Common,
@@ -137,6 +158,7 @@ impl Inventory {
     pub fn add_vigor_potion(&mut self) {
         self.consumables.push(Consumable {
             name: "vigor potion".to_owned(),
+            name_fr: "potion de vigueur".to_owned(),
             effects: vec![build_energy_effect(VIGOR, 30)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Common,
@@ -146,6 +168,7 @@ impl Inventory {
     pub fn add_berserk_potion(&mut self) {
         self.consumables.push(Consumable {
             name: "berserk potion".to_owned(),
+            name_fr: "potion de rage".to_owned(),
             effects: vec![build_energy_effect(BERSERK, 30)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Common,
@@ -653,6 +676,7 @@ mod tests {
         };
         let potion = crate::character_mod::inventory::Consumable {
             name: "potion".to_owned(),
+            name_fr: "potion".to_owned(),
             effects: vec![],
             consumable_kind: crate::character_mod::inventory::ConsumableKind::Potion,
             rank: crate::character_mod::rank::Rank::Common,
@@ -670,6 +694,7 @@ mod tests {
         };
         let potion = crate::character_mod::inventory::Consumable {
             name: "potion".to_owned(),
+            name_fr: "potion".to_owned(),
             effects: vec![],
             consumable_kind: crate::character_mod::inventory::ConsumableKind::Potion,
             rank: crate::character_mod::rank::Rank::Common,

@@ -28,7 +28,6 @@ impl GameAtkEffect {
         let target = &self.effect_outcome.target_id_name;
         let real = self.effect_outcome.real_amount_tx;
         let full = self.effect_outcome.full_amount_tx;
-        let pre = self.effect_outcome.pre_armor_amount_tx;
         let stat = &self
             .processed_effect_param
             .input_effect_param
@@ -80,10 +79,13 @@ impl GameAtkEffect {
                 let is_damage = is_hp && (real < 0 || full < 0);
                 if is_hp {
                     if is_damage {
-                        if pre == real {
+                        // `full` here is the post-armor/crit/block amount, so it's directly
+                        // comparable to `real` (post-HP-clamp) — using `pre` (raw, pre-armor)
+                        // made block/crit look inconsistent since it never reflects them.
+                        if full == real {
                             Some(format!("{target} ← {real} HP"))
                         } else {
-                            Some(format!("{target} ← {real} HP (full: {pre}, real: {real})"))
+                            Some(format!("{target} ← {real} HP (full: {full}, real: {real})"))
                         }
                     } else if full == real {
                         Some(format!("{target} ← {real} HP ({kind})"))
@@ -167,6 +169,34 @@ mod tests {
             gae.log_text(),
             Some("Target ← -20 HP (full: -30, real: -20)".to_string()),
             "armor mitigation: real != pre → full/real format"
+        );
+    }
+
+    #[test]
+    fn unit_log_text_hp_damage_block_shows_full_not_raw() {
+        use crate::character_mod::buffers::BufKinds;
+        // pre (raw, pre-armor) is -99 the whole time; full (post-armor/crit/block) is -8
+        // and matches real exactly (not HP-clamped). Before the fix this compared
+        // pre == real (false) and printed the confusing "(full: -99, real: -8)".
+        let gae = make_gae_hp(-8, -8, -99, BufKinds::ChangeCurrentStat);
+        assert_eq!(
+            gae.log_text(),
+            Some("Target ← -8 HP".to_string()),
+            "full == real should collapse to the simple format even though raw pre-armor \
+             damage (-99) differs — full, not pre, is what should ever be compared to real"
+        );
+    }
+
+    #[test]
+    fn unit_log_text_hp_damage_shows_true_full_when_hp_clamped() {
+        use crate::character_mod::buffers::BufKinds;
+        // pre=-500 (raw), full=-61 (post-armor/crit/block), real=-40 (HP-clamped near death).
+        let gae = make_gae_hp(-40, -61, -500, BufKinds::ChangeCurrentStat);
+        assert_eq!(
+            gae.log_text(),
+            Some("Target ← -40 HP (full: -61, real: -40)".to_string()),
+            "the displayed 'full' must be the mitigated full_amount_tx (-61), not the raw \
+             pre_armor_amount_tx (-500)"
         );
     }
 

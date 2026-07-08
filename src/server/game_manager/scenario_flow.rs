@@ -40,6 +40,13 @@ impl GameManager {
     }
 
     pub fn load_next_scenario(&mut self) -> Result<()> {
+        // Debug-only: helps diagnose reports of the Scenarios tab showing stale progress
+        // after a transition — trace when states_scenarios actually flips so it can be
+        // compared against when the client-facing ServerEvent broadcast fires.
+        tracing::debug!(
+            "load_next_scenario: start, current={}",
+            self.current_scenario.name
+        );
         // update current scenario state
         if let Some((_, state)) = self
             .states_scenarios
@@ -101,6 +108,11 @@ impl GameManager {
             self.set_active_bosses(&all_bosses);
         }
 
+        tracing::debug!(
+            "load_next_scenario: done, new_current={}, states_scenarios={:?}",
+            self.current_scenario.name,
+            self.states_scenarios
+        );
         Ok(())
     }
 
@@ -117,6 +129,15 @@ impl GameManager {
     /// - Automatically use all consumables in inventory (potions restore HP)
     ///   Process end of scenario struct to be sent to the frontend with the rewards and the level up info
     pub fn process_end_of_scenario(&mut self) {
+        // Debug-only: helps diagnose reports of duplicate loot after a scenario — every
+        // call to this function grants a full set of rewards, so if it's ever invoked
+        // twice for the same scenario completion (e.g. from two different code paths
+        // both reacting to "all bosses dead"), this line will appear twice in the logs.
+        tracing::debug!(
+            "process_end_of_scenario: scenario={}, active_heroes={}",
+            self.current_scenario.name,
+            self.pm.active_heroes.len()
+        );
         // Total exp: sum from all bosses
         let total_exp: u64 = self
             .pm
@@ -162,6 +183,12 @@ impl GameManager {
                             .find(|e| e.unique_name == loot.name)
                             .cloned()
                         {
+                            tracing::debug!(
+                                "process_end_of_scenario: granting equipment '{}' (category {:?}) to {}",
+                                equipment.unique_name,
+                                equipment.category,
+                                self.pm.active_heroes[i].id_name
+                            );
                             self.pm.active_heroes[i]
                                 .inventory
                                 .add_equipment(&equipment, false);

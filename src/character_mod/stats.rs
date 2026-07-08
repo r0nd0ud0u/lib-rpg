@@ -254,6 +254,15 @@ impl Stats {
             .all_stats
             .get_mut(attribute_name)
             .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
+        // Debug-only: helps diagnose reports of armor-shred effects seemingly hitting the
+        // wrong armor stat (physical vs magic) — trace which exact attribute_name a
+        // ChangeMaxStat-style effect targets and its current value before/after.
+        if attribute_name == PHYSICAL_ARMOR || attribute_name == MAGICAL_ARMOR {
+            tracing::debug!(
+                "set_stats_on_effect: target={attribute_name}, value={value}, is_percent={is_percent}, current_before={}",
+                stat.current
+            );
+        }
         if update_effect {
             if is_percent {
                 stat.buf_effect_percent += value;
@@ -262,6 +271,12 @@ impl Stats {
             }
         }
         Self::recompute_stat_max_and_current(stat, None);
+        if attribute_name == PHYSICAL_ARMOR || attribute_name == MAGICAL_ARMOR {
+            tracing::debug!(
+                "set_stats_on_effect: target={attribute_name}, current_after={}",
+                stat.current
+            );
+        }
     }
 
     /// Helper to recompute max and current values for a stat after buffer changes

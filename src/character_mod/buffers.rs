@@ -142,10 +142,29 @@ impl Buffer {
         self.is_percent = is_percent;
     }
 
+    /// Cap on stacked percent-based damage/heal modifiers (e.g. a repeatable
+    /// vulnerability debuff), so re-casting the same effect many times in one fight
+    /// can't multiply damage/healing beyond a sane ceiling.
+    pub const MAX_STACKED_PERCENT: i64 = 300;
+
     pub fn update_buf(&mut self, value: i64, is_percent: bool, stat: &str) {
         self.value += value;
         self.is_percent = is_percent;
         self.stats_name = stat.to_owned();
+
+        if is_percent
+            && matches!(
+                self.kind,
+                BufKinds::DamageRxPercent
+                    | BufKinds::DamageTxPercent
+                    | BufKinds::HealTxPercent
+                    | BufKinds::HealRxPercent
+            )
+        {
+            self.value = self
+                .value
+                .clamp(-Self::MAX_STACKED_PERCENT, Self::MAX_STACKED_PERCENT);
+        }
     }
 }
 
@@ -307,5 +326,37 @@ mod tests {
         assert!(buff.stats_name.is_empty());
         assert!(!buff.is_passive_enabled);
         assert_eq!(buff.value, 20);
+    }
+
+    #[test]
+    fn unit_update_buf_caps_stacked_percent_damage_debuffs() {
+        let mut buff = Buffer {
+            kind: BufKinds::DamageRxPercent,
+            ..Default::default()
+        };
+
+        // Recasting a 25%-per-stack debuff many times must not exceed the cap.
+        for _ in 0..20 {
+            buff.update_buf(25, true, "");
+        }
+        assert_eq!(buff.value, Buffer::MAX_STACKED_PERCENT);
+
+        // A non-percent buffer of the same kind is untouched by the cap.
+        let mut flat_buff = Buffer {
+            kind: BufKinds::DamageRxPercent,
+            ..Default::default()
+        };
+        flat_buff.update_buf(1000, false, "");
+        assert_eq!(flat_buff.value, 1000);
+
+        // A percent buffer of an uncapped kind (e.g. ChangeMaxStat) is unaffected.
+        let mut stat_buff = Buffer {
+            kind: BufKinds::ChangeMaxStat,
+            ..Default::default()
+        };
+        for _ in 0..20 {
+            stat_buff.update_buf(25, true, "Magic armor");
+        }
+        assert_eq!(stat_buff.value, 500);
     }
 }
