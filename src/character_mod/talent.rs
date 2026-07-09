@@ -138,11 +138,20 @@ pub struct TalentBoard {
     pub spent: u64,
     /// Ids of unlocked talents, in unlock order (needed to reverse cleanly on respec)
     pub unlocked: Vec<String>,
+    /// `true` while the player has not yet opened the Talents tab since points were
+    /// last granted — drives the notification badge, mirroring
+    /// `EquipmentInventory::is_new` / `Inventory::has_unseen_equipment`.
+    pub has_unseen_points: bool,
 }
 
 impl TalentBoard {
     pub fn available(&self) -> u64 {
         self.skill_points.saturating_sub(self.spent)
+    }
+
+    /// Clear the notification badge — call when the player opens the Talents tab.
+    pub fn mark_points_seen(&mut self) {
+        self.has_unseen_points = false;
     }
 }
 
@@ -220,6 +229,7 @@ mod tests {
             skill_points: 5,
             spent: 3,
             unlocked: vec![],
+            has_unseen_points: false,
         };
         assert_eq!(board.available(), 2);
     }
@@ -230,8 +240,19 @@ mod tests {
             skill_points: 1,
             spent: 3,
             unlocked: vec![],
+            has_unseen_points: false,
         };
         assert_eq!(board.available(), 0);
+    }
+
+    #[test]
+    fn unit_talent_board_mark_points_seen() {
+        let mut board = TalentBoard {
+            has_unseen_points: true,
+            ..Default::default()
+        };
+        board.mark_points_seen();
+        assert!(!board.has_unseen_points);
     }
 
     #[test]

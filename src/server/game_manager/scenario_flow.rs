@@ -224,6 +224,7 @@ impl GameManager {
                 self.pm.active_heroes[i].stats.update_stats_to_next_level();
                 // Grant a talent skill point every level, plus a bonus every 5th level
                 self.pm.active_heroes[i].talents.skill_points += 1;
+                self.pm.active_heroes[i].talents.has_unseen_points = true;
                 if self.pm.active_heroes[i].level.is_multiple_of(5) {
                     self.pm.active_heroes[i].talents.skill_points += 1;
                 }
@@ -802,6 +803,11 @@ mod tests {
             assert_eq!(
                 hero.talents.skill_points, 5,
                 "hero '{}' should have earned 5 skill points reaching level 5 (4 level-ups + 1 milestone bonus)",
+                hero.id_name
+            );
+            assert!(
+                hero.talents.has_unseen_points,
+                "hero '{}' should have the talent notification badge lit after earning points",
                 hero.id_name
             );
         }
