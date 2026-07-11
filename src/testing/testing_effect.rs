@@ -367,3 +367,25 @@ pub fn build_remove_one_debuf_effect() -> ProcessedEffectParam {
         ..Default::default()
     }
 }
+
+#[cfg(not(tarpaulin_include))]
+pub fn build_reinit_buf_effect(stats_name: &str) -> ProcessedEffectParam {
+    ProcessedEffectParam {
+        input_effect_param: EffectParam {
+            nb_turns: 1,
+            target_kind: TARGET_ALLY.to_owned(),
+            reach: INDIVIDUAL.to_owned(),
+            buffer: Buffer {
+                kind: BufKinds::ReinitBuf,
+                value: 0,
+                is_percent: false,
+                stats_name: stats_name.to_owned(),
+                is_passive_enabled: false,
+                is_passive: false,
+            },
+            ..Default::default()
+        },
+        number_of_applies: 1,
+        ..Default::default()
+    }
+}

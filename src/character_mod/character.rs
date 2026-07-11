@@ -8,7 +8,10 @@ use crate::{
         attack_type::{AttackType, LauncherAtkInfo},
         buffers::{BufKinds, Buffer},
         class::Class,
-        effect::{EffectOutcome, EffectParam, ProcessedEffectParam, is_debuf_effect, is_hot},
+        effect::{
+            EffectOutcome, EffectParam, ProcessedEffectParam, is_debuf_effect, is_effet_hot_or_dot,
+            is_hot,
+        },
         energy::{Energy, EnergyKind},
         equipment::{Equipment, EquipmentJsonKey},
         experience::build_exp_to_next_level,
@@ -442,6 +445,31 @@ impl Character {
             };
         }
 
+        // ReinitBuf: restart all HOTs/DOTs on the given stat for this target.
+        // The actual mutation lives here (not in process_effect_type) so that zone/all-allies
+        // attacks correctly reset counters on every receiving target, not only on the caster.
+        if processed_ep.input_effect_param.buffer.kind == BufKinds::ReinitBuf {
+            let stats_name = processed_ep.input_effect_param.buffer.stats_name.clone();
+            for gae in self.character_rounds_info.all_effects.iter_mut() {
+                if gae
+                    .processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == stats_name
+                    && is_effet_hot_or_dot(
+                        &gae.processed_effect_param.input_effect_param.buffer.kind,
+                    )
+                {
+                    gae.processed_effect_param.counter_turn = 0;
+                }
+            }
+            return EffectOutcome {
+                target_id_name: self.id_name.clone(),
+                ..Default::default()
+            };
+        }
+
         // eval if the effect can be applied on the target
         if processed_ep.input_effect_param.buffer.stats_name.is_empty()
             || !self
@@ -679,28 +707,27 @@ impl Character {
             let raw_cost = atk.berseck_cost.max(atk.vigor_cost).max(atk.mana_cost);
             if raw_cost > 0 {
                 // remaining is AFTER process_atk_cost deducted the first apply's cost.
-                // apply_cost_on_stats deducts raw_cost * stat_max / 100 (not raw_cost itself),
-                // so compute actual_cost using the stat's max to get the right repeat count.
-                let (remaining, stat_max) = if atk.berseck_cost > 0 {
+                // apply_cost_on_stats now deducts raw_cost directly (flat value).
+                let remaining = if atk.berseck_cost > 0 {
                     self.stats
                         .all_stats
                         .get(BERSERK)
-                        .map(|s| (s.current as i64, s.max))
-                        .unwrap_or((0, 100))
+                        .map(|s| s.current as i64)
+                        .unwrap_or(0)
                 } else if atk.vigor_cost > 0 {
                     self.stats
                         .all_stats
                         .get(VIGOR)
-                        .map(|s| (s.current as i64, s.max))
-                        .unwrap_or((0, 100))
+                        .map(|s| s.current as i64)
+                        .unwrap_or(0)
                 } else {
                     self.stats
                         .all_stats
                         .get(MANA)
-                        .map(|s| (s.current as i64, s.max))
-                        .unwrap_or((0, 100))
+                        .map(|s| s.current as i64)
+                        .unwrap_or(0)
                 };
-                let actual_cost = ((raw_cost * stat_max / 100) as i64).max(1);
+                let actual_cost = (raw_cost as i64).max(1);
                 // nb_applies = total times the effect fires; remaining is post-first-deduction,
                 // so add back one actual_cost to recover the pre-deduction energy, then divide.
                 let nb_applies = ((remaining + actual_cost) / actual_cost).max(1);
@@ -974,8 +1001,8 @@ impl Character {
             return false;
         }
 
-        atk_type.mana_cost * mana.max / 100 <= mana.current
-            && atk_type.vigor_cost * vigor.max / 100 <= vigor.current
+        atk_type.mana_cost <= mana.current
+            && atk_type.vigor_cost <= vigor.current
             && atk_type.berseck_cost <= berserk.current
     }
 
@@ -1777,36 +1804,15 @@ mod tests {
         let old_vigor_current = c.stats.all_stats[VIGOR].current;
         let old_mana_current = c.stats.all_stats[MANA].current;
         let old_berseck_current = c.stats.all_stats[BERSERK].current;
-        let old_vigor_max = c.stats.all_stats[VIGOR].max;
-        let old_mana_max = c.stats.all_stats[MANA].max;
-        let old_berseck_max = c.stats.all_stats[BERSERK].max;
-        c.process_atk_cost("atk1"); // 10% vigor cost
+        c.process_atk_cost("atk1"); // flat 10 cost on each
 
-        assert_eq!(
-            old_vigor_current - 10 * old_vigor_max / 100,
-            c.stats.all_stats[VIGOR].current
-        );
-        assert_eq!(
-            old_mana_current - 10 * old_mana_max / 100,
-            c.stats.all_stats[MANA].current
-        );
-        assert_eq!(
-            old_berseck_current - 10 * old_berseck_max / 100,
-            c.stats.all_stats[BERSERK].current
-        );
-        c.process_atk_cost("atk1"); // 10% vigor cost again!
-        assert_eq!(
-            old_vigor_current - 20 * old_vigor_max / 100,
-            c.stats.all_stats[VIGOR].current
-        );
-        assert_eq!(
-            old_mana_current - 20 * old_mana_max / 100,
-            c.stats.all_stats[MANA].current
-        );
-        assert_eq!(
-            old_berseck_current - 20 * old_berseck_max / 100,
-            c.stats.all_stats[BERSERK].current
-        );
+        assert_eq!(old_vigor_current - 10, c.stats.all_stats[VIGOR].current);
+        assert_eq!(old_mana_current - 10, c.stats.all_stats[MANA].current);
+        assert_eq!(old_berseck_current - 10, c.stats.all_stats[BERSERK].current);
+        c.process_atk_cost("atk1"); // flat 10 cost again!
+        assert_eq!(old_vigor_current - 20, c.stats.all_stats[VIGOR].current);
+        assert_eq!(old_mana_current - 20, c.stats.all_stats[MANA].current);
+        assert_eq!(old_berseck_current - 20, c.stats.all_stats[BERSERK].current);
     }
 
     #[test]
@@ -2133,6 +2139,77 @@ mod tests {
                 .value
         );
         assert_eq!(target.id_name, eo.target_id_name);
+    }
+
+    #[test]
+    fn unit_apply_effect_reinit_buf_resets_matching_hot_on_target() {
+        // ReinitBuf must reset the counter_turn of an existing HOT on the *target's own*
+        // effects (not just the caster's) — this is what makes attacks like Sève Régénératrice
+        // work correctly when cast on an ally other than the caster.
+        let mut target = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let launcher_stats = target.stats.clone();
+
+        let mut aged_hot = build_hot_effect_individual();
+        aged_hot.counter_turn = 2;
+        target
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: aged_hot,
+                ..Default::default()
+            });
+
+        let reinit_ep = build_reinit_buf_effect(HP);
+        let eo = target.apply_processed_effect_param(&reinit_ep, &launcher_stats, false, 0);
+
+        assert_eq!(
+            0,
+            target.character_rounds_info.all_effects[0]
+                .processed_effect_param
+                .counter_turn,
+            "ReinitBuf must reset the target's own HOT counter"
+        );
+        assert_eq!(target.id_name, eo.target_id_name);
+    }
+
+    #[test]
+    fn unit_apply_effect_reinit_buf_ignores_non_matching_stat() {
+        // ReinitBuf on a different stat must not touch an unrelated HOT's counter.
+        let mut target = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let launcher_stats = target.stats.clone();
+
+        let mut aged_hot = build_hot_effect_individual();
+        aged_hot.counter_turn = 2;
+        target
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: aged_hot,
+                ..Default::default()
+            });
+
+        let reinit_ep = build_reinit_buf_effect(MANA);
+        target.apply_processed_effect_param(&reinit_ep, &launcher_stats, false, 0);
+
+        assert_eq!(
+            2,
+            target.character_rounds_info.all_effects[0]
+                .processed_effect_param
+                .counter_turn,
+            "ReinitBuf on an unrelated stat must not reset this HOT's counter"
+        );
     }
 
     #[test]

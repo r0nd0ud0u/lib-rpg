@@ -379,24 +379,10 @@ impl CharacterRoundsInfo {
                 return Ok(processed_effect_param);
             }
             BufKinds::ReinitBuf => {
-                // Restart all HOTs/DOTs on the given stat
-                let stats_name = ep.buffer.stats_name.clone();
-                for gae in self.all_effects.iter_mut() {
-                    if gae
-                        .processed_effect_param
-                        .input_effect_param
-                        .buffer
-                        .stats_name
-                        == stats_name
-                        && is_effet_hot_or_dot(
-                            &gae.processed_effect_param.input_effect_param.buffer.kind,
-                        )
-                    {
-                        gae.processed_effect_param.counter_turn = 0;
-                    }
-                }
+                // Actual reset happens on the target side in Character::apply_processed_effect_param
+                // so every receiving target (not just the caster) gets its HOTs/DOTs restarted.
                 processed_effect_param.log = LogData {
-                    message: format!("HOTs/DOTs on '{}' restarted", stats_name),
+                    message: format!("HOTs/DOTs on '{}' restarted", ep.buffer.stats_name),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
@@ -1803,27 +1789,18 @@ mod tests {
 
     #[test]
     fn unit_process_effect_reinit_buf() {
+        // process_effect_type is a no-op for ReinitBuf on the launcher side;
+        // actual reset happens in Character::apply_processed_effect_param on the target,
+        // so every receiving target (not just the caster) gets its counters restarted.
         let mut cri = CharacterRoundsInfo::default();
-        // Add an active HOT with counter_turn = 2
         let mut gae = make_hot_gae(30);
         gae.processed_effect_param.counter_turn = 2;
         cri.all_effects.push(gae);
-        // ReinitBuf on HP resets the counter
         let ep = make_ep(BufKinds::ReinitBuf, 0, HP, 1);
-        cri.process_effect_type(&ep, "test_atk").unwrap();
-        assert_eq!(0, cri.all_effects[0].processed_effect_param.counter_turn);
-    }
-
-    #[test]
-    fn unit_process_effect_reinit_buf_no_match() {
-        let mut cri = CharacterRoundsInfo::default();
-        let mut gae = make_hot_gae(30);
-        gae.processed_effect_param.counter_turn = 2;
-        cri.all_effects.push(gae);
-        // ReinitBuf on a different stat — should not reset HP HOT
-        let ep = make_ep(BufKinds::ReinitBuf, 0, MANA, 1);
-        cri.process_effect_type(&ep, "test_atk").unwrap();
+        let result = cri.process_effect_type(&ep, "test_atk").unwrap();
+        // Launcher's all_effects untouched — no reset here
         assert_eq!(2, cri.all_effects[0].processed_effect_param.counter_turn);
+        assert_eq!(BufKinds::ReinitBuf, result.input_effect_param.buffer.kind);
     }
 
     #[test]

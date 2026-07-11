@@ -293,7 +293,6 @@ fn unit_elara_frappe_elementaire_3_heroes_3_enemies() {
     }
 
     let old_boss_hp = gm.pm.active_bosses[0].stats.all_stats[HP].current;
-    let mana_max = gm.pm.current_player.stats.all_stats[MANA].max;
     let old_mana = gm.pm.current_player.stats.all_stats[MANA].current;
 
     // Expected magic damage: rebalanced base value=76, Elara mag power, boss mag armor+pow
@@ -315,16 +314,16 @@ fn unit_elara_frappe_elementaire_3_heroes_3_enemies() {
         "attack must produce effects"
     );
 
-    // Mana cost: 15% of mana_max
+    // Mana cost: flat 15
     assert_eq!(
-        old_mana - 15 * mana_max / 100,
+        old_mana - 15,
         gm.pm
             .get_active_hero_character(elara_id)
             .unwrap()
             .stats
             .all_stats[MANA]
             .current,
-        "Elara mana cost: 15% of max"
+        "Elara mana cost: flat 15"
     );
 
     // Boss HP reduced by expected magic damage
@@ -382,7 +381,6 @@ fn unit_elara_don_de_vie_3_heroes_3_enemies() {
         .max;
     let old_elara_hp = gm.pm.current_player.stats.all_stats[HP].current;
     let elara_hp_max = gm.pm.current_player.stats.all_stats[HP].max;
-    let mana_max = gm.pm.current_player.stats.all_stats[MANA].max;
     let old_mana = gm.pm.current_player.stats.all_stats[MANA].current;
 
     gm.launch_attack(Some("Don de vie"));
@@ -429,12 +427,8 @@ fn unit_elara_don_de_vie_3_heroes_3_enemies() {
         "Elara self-damage must be at least 1 apply (15% HP max = {min_self_dmg})"
     );
 
-    // Mana cost: 24% of mana_max
-    assert_eq!(
-        old_mana - 24 * mana_max / 100,
-        new_mana,
-        "Elara mana cost: 24% of max"
-    );
+    // Mana cost: flat 24
+    assert_eq!(old_mana - 24, new_mana, "Elara mana cost: flat 24");
 }
 
 #[test]
@@ -502,7 +496,6 @@ fn unit_elara_lumiere_curative_3_heroes_3_enemies() {
         .stats
         .all_stats[HP]
         .max;
-    let mana_max = gm.pm.current_player.stats.all_stats[MANA].max;
     let old_mana = gm.pm.current_player.stats.all_stats[MANA].current;
     let mana_regen = gm.pm.current_player.stats.all_stats[MANA_REGEN].current;
     // Heal formula adds launcher magical power: full_amount = (buffer.value + pow_current)
@@ -534,9 +527,9 @@ fn unit_elara_lumiere_curative_3_heroes_3_enemies() {
         heal_amount
     );
 
-    // Mana cost 15% of max; eval_end_of_round applies regen so account for mana_regen
-    let expected_mana = (old_mana as i64 - (15 * mana_max / 100) as i64 + mana_regen as i64) as u64;
-    assert_eq!(expected_mana, new_mana, "Elara mana: cost 15% + regen");
+    // Mana cost flat 15; eval_end_of_round applies regen so account for mana_regen
+    let expected_mana = (old_mana as i64 - 15 + mana_regen as i64) as u64;
+    assert_eq!(expected_mana, new_mana, "Elara mana: cost 15 + regen");
 }
 
 #[test]
@@ -579,7 +572,6 @@ fn unit_elara_non_sans_raison_3_heroes_3_enemies() {
         .stats
         .all_stats[HP]
         .max;
-    let mana_max = gm.pm.current_player.stats.all_stats[MANA].max;
     let old_mana = gm.pm.current_player.stats.all_stats[MANA].current;
 
     gm.launch_attack(Some("Non sans raison"));
@@ -623,15 +615,15 @@ fn unit_elara_non_sans_raison_3_heroes_3_enemies() {
         "Elara heal attacks must be blocked after Non sans raison"
     );
 
-    // Mana cost: 24% of max mana
+    // Mana cost: flat 24
     assert_eq!(
-        old_mana - 24 * mana_max / 100,
+        old_mana - 24,
         gm.pm
             .get_active_hero_character(elara_id)
             .unwrap()
             .stats
             .all_stats[MANA]
             .current,
-        "Non sans raison costs 24% of max mana"
+        "Non sans raison costs a flat 24 mana"
     );
 }

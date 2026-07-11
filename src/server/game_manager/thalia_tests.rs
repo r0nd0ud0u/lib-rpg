@@ -683,6 +683,91 @@ fn unit_eveil_foret_reinit_hot_counters() {
     }
 }
 
+/// Sève Régénératrice targets a single ally (not necessarily the caster) and, unlike Eveil
+/// de la forêt, applies no fresh HOT alongside ReinitBuf — so this test can't pass by
+/// accident from a newly-created HOT masking whether the pre-existing one was actually reset.
+/// It seeds the aged HOT only on the target (never on Thalia), so a pass here can only be
+/// explained by ReinitBuf resetting the real target's own effects.
+#[test]
+fn unit_seve_regeneratrice_reinit_hot_counter_on_non_caster_ally() {
+    use crate::character_mod::buffers::BufKinds;
+
+    let (mut gm, thalia_id) = setup_thalia_turn();
+    if !thalia_id.contains("Thalia") {
+        return;
+    }
+
+    let Some(target_id) = gm
+        .pm
+        .active_heroes
+        .iter()
+        .find(|h| h.id_name != thalia_id)
+        .map(|h| h.id_name.clone())
+    else {
+        return;
+    };
+
+    let aged_hot_ep = crate::character_mod::effect::ProcessedEffectParam {
+        input_effect_param: crate::character_mod::effect::EffectParam {
+            nb_turns: 4,
+            buffer: crate::character_mod::buffers::Buffer {
+                kind: BufKinds::ChangeCurrentStat,
+                value: 50,
+                is_percent: false,
+                stats_name: HP.to_owned(),
+                is_passive_enabled: false,
+                is_passive: false,
+            },
+            ..Default::default()
+        },
+        counter_turn: 2,
+        number_of_applies: 1,
+        ..Default::default()
+    };
+    let aged_hot_gae = crate::server::players_manager::GameAtkEffect {
+        processed_effect_param: aged_hot_ep,
+        atk_type: Default::default(),
+        launching_turn: 1,
+        launching_round: 1,
+        effect_outcome: Default::default(),
+    };
+    if let Some(target) = gm
+        .pm
+        .active_heroes
+        .iter_mut()
+        .find(|h| h.id_name == target_id)
+    {
+        target.character_rounds_info.all_effects.push(aged_hot_gae);
+    }
+
+    gm.pm
+        .set_targeted_characters(&thalia_id, "Sève Régénératrice");
+    gm.launch_attack(Some("Sève Régénératrice"));
+
+    let target = gm
+        .pm
+        .active_heroes
+        .iter()
+        .find(|h| h.id_name == target_id)
+        .unwrap();
+    let reset = target.character_rounds_info.all_effects.iter().any(|gae| {
+        gae.processed_effect_param.input_effect_param.buffer.kind == BufKinds::ChangeCurrentStat
+            && gae
+                .processed_effect_param
+                .input_effect_param
+                .buffer
+                .stats_name
+                == HP
+            && gae.processed_effect_param.input_effect_param.nb_turns == 4
+            && gae.processed_effect_param.counter_turn == 0
+    });
+    assert!(
+        reset,
+        "Sève Régénératrice must reset the HP HOT counter on the actual target ({}), not just the caster",
+        target_id
+    );
+}
+
 /// Eveil de la forêt sets a BoostedByHots buffer on Thalia proportional to her active HOT count.
 #[test]
 fn unit_eveil_foret_boosted_by_hots_on_thalia() {

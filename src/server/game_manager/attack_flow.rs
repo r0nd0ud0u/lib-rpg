@@ -500,9 +500,9 @@ mod tests {
                 .all_stats[HP]
                 .current
         );
-        // cost: 9 % of vigor 200 = 18
+        // flat cost: 9
         assert_eq!(
-            old_vigor_hero - 18,
+            old_vigor_hero - 9,
             gm.pm
                 .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
@@ -564,9 +564,9 @@ mod tests {
                 .all_stats[HP]
                 .current
         );
-        // 9% of 200 (total vigor)
+        // flat cost: 9
         assert_eq!(
-            old_vigor_hero - 18,
+            old_vigor_hero - 9,
             gm.pm
                 .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
@@ -632,9 +632,9 @@ mod tests {
                 .all_stats[HP]
                 .current
         );
-        // 9% of 200 (total vigor)
+        // flat cost: 9
         assert_eq!(
-            old_vigor_hero - 18,
+            old_vigor_hero - 9,
             gm.pm
                 .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
@@ -709,9 +709,9 @@ mod tests {
                 .all_stats[HP]
                 .current
         );
-        // 9% of 200 (total vigor)
+        // flat cost: 9
         assert_eq!(
-            old_vigor_hero - 18,
+            old_vigor_hero - 9,
             gm.pm
                 .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
@@ -765,16 +765,16 @@ mod tests {
                 .all_stats[HP]
                 .current
         );
-        // -10% of mana max (see effect param of the atk)
+        // flat cost: 10 (see mana_cost of the atk)
         assert_eq!(
-            old_mana_launcher - (0.1 * old_mana_launcher as f64) as u64,
+            old_mana_launcher - 10,
             gm.pm
                 .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
                 .stats
                 .all_stats[MANA]
                 .current
-        ); // 10% of 200 (total mana)
+        );
     }
 
     #[test]
@@ -857,9 +857,9 @@ mod tests {
                 .all_stats[HP]
                 .current
         );
-        // -18%, mana max = 200
+        // flat cost: 18
         assert_eq!(
-            old_mana_launcher - (0.18 * old_mana_launcher as f64) as u64,
+            old_mana_launcher - 18,
             gm.pm
                 .get_active_hero_character(&hero_launcher_id_name)
                 .unwrap()
@@ -1002,13 +1002,6 @@ mod tests {
             .stats
             .all_stats[BERSERK]
             .current;
-        let old_berserk_max = gm
-            .pm
-            .get_mut_active_character(&hero_launcher_id_name)
-            .unwrap()
-            .stats
-            .all_stats[BERSERK]
-            .max;
         let result = gm.launch_attack(Some("ChangeCurrentStatByValue-berseck"));
         let new_berserk = gm
             .pm
@@ -1018,11 +1011,8 @@ mod tests {
             .all_stats[BERSERK]
             .current;
         assert_eq!(result.new_game_atk_effects.len(), 1); // target himself
-        // cost: -5% of berserk max, effect value +20
-        assert_eq!(
-            new_berserk,
-            old_berserk_current - (5 * old_berserk_max / 100) + 20
-        );
+        // flat cost: 5, effect value +20
+        assert_eq!(new_berserk, old_berserk_current - 5 + 20);
     }
 
     #[test]
