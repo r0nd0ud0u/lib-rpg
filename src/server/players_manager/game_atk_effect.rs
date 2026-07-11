@@ -28,6 +28,7 @@ impl GameAtkEffect {
         let target = &self.effect_outcome.target_id_name;
         let real = self.effect_outcome.real_amount_tx;
         let full = self.effect_outcome.full_amount_tx;
+        let pre = self.effect_outcome.pre_armor_amount_tx;
         let stat = &self
             .processed_effect_param
             .input_effect_param
@@ -79,18 +80,23 @@ impl GameAtkEffect {
                 let is_damage = is_hp && (real < 0 || full < 0);
                 if is_hp {
                     if is_damage {
-                        // `full` here is the post-armor/crit/block amount, so it's directly
-                        // comparable to `real` (post-HP-clamp) — using `pre` (raw, pre-armor)
-                        // made block/crit look inconsistent since it never reflects them.
-                        if full == real {
-                            Some(format!("{target} ← {real} HP"))
-                        } else {
-                            Some(format!("{target} ← {real} HP (full: {full}, real: {real})"))
+                        // `pre`  = raw pre-armor/block/crit damage
+                        // `full` = post-armor/crit/block, before HP cap
+                        // `real` = actual HP change after HP cap
+                        let mitigated = pre != full; // armor/block/crit changed the amount
+                        let hp_capped = full != real; // HP cap limited the amount applied
+                        match (mitigated, hp_capped) {
+                            (false, false) => Some(format!("{target} ← {real} HP")),
+                            (true, false) => Some(format!("{target} ← {real} HP (raw: {pre})")),
+                            (false, true) => Some(format!("{target} ← {real} HP (full: {full})")),
+                            (true, true) => Some(format!(
+                                "{target} ← {real} HP (raw: {pre}, full: {full})"
+                            )),
                         }
                     } else if full == real {
                         Some(format!("{target} ← {real} HP ({kind})"))
                     } else {
-                        Some(format!("{target} ← {real} HP (full: {full}, real: {real})"))
+                        Some(format!("{target} ← {real} HP (full: {full})"))
                     }
                 } else if *kind == BufKinds::ChangeMaxStat
                     && self
@@ -164,39 +170,37 @@ mod tests {
     #[test]
     fn unit_log_text_hp_damage_with_armor() {
         use crate::character_mod::buffers::BufKinds;
+        // pre == full (-30): no armor/block mitigation; HP cap limits real to -20.
         let gae = make_gae_hp(-20, -30, -30, BufKinds::ChangeCurrentStat);
         assert_eq!(
             gae.log_text(),
-            Some("Target ← -20 HP (full: -30, real: -20)".to_string()),
-            "armor mitigation: real != pre → full/real format"
+            Some("Target ← -20 HP (full: -30)".to_string()),
+            "HP cap only (pre==full): shows (full: N)"
         );
     }
 
     #[test]
-    fn unit_log_text_hp_damage_block_shows_full_not_raw() {
+    fn unit_log_text_hp_damage_block_shows_raw() {
         use crate::character_mod::buffers::BufKinds;
-        // pre (raw, pre-armor) is -99 the whole time; full (post-armor/crit/block) is -8
-        // and matches real exactly (not HP-clamped). Before the fix this compared
-        // pre == real (false) and printed the confusing "(full: -99, real: -8)".
+        // pre (raw, pre-armor) is -99; block/armor reduces it to full=-8 == real (no HP cap).
+        // Shows (raw: -99) so the player can see how effective the block was.
         let gae = make_gae_hp(-8, -8, -99, BufKinds::ChangeCurrentStat);
         assert_eq!(
             gae.log_text(),
-            Some("Target ← -8 HP".to_string()),
-            "full == real should collapse to the simple format even though raw pre-armor \
-             damage (-99) differs — full, not pre, is what should ever be compared to real"
+            Some("Target ← -8 HP (raw: -99)".to_string()),
+            "mitigation only (full==real): shows (raw: pre)"
         );
     }
 
     #[test]
-    fn unit_log_text_hp_damage_shows_true_full_when_hp_clamped() {
+    fn unit_log_text_hp_damage_armor_and_hp_cap() {
         use crate::character_mod::buffers::BufKinds;
         // pre=-500 (raw), full=-61 (post-armor/crit/block), real=-40 (HP-clamped near death).
         let gae = make_gae_hp(-40, -61, -500, BufKinds::ChangeCurrentStat);
         assert_eq!(
             gae.log_text(),
-            Some("Target ← -40 HP (full: -61, real: -40)".to_string()),
-            "the displayed 'full' must be the mitigated full_amount_tx (-61), not the raw \
-             pre_armor_amount_tx (-500)"
+            Some("Target ← -40 HP (raw: -500, full: -61)".to_string()),
+            "mitigation + HP cap: shows (raw: pre, full: full)"
         );
     }
 
@@ -217,8 +221,8 @@ mod tests {
         let gae = make_gae_hp(30, 50, 50, BufKinds::ChangeCurrentStat);
         assert_eq!(
             gae.log_text(),
-            Some("Target ← 30 HP (full: 50, real: 30)".to_string()),
-            "heal capped at HP max → full/real format"
+            Some("Target ← 30 HP (full: 50)".to_string()),
+            "heal capped at HP max → (full: N) format"
         );
     }
 
