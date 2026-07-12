@@ -89,9 +89,9 @@ impl GameAtkEffect {
                             (false, false) => Some(format!("{target} ← {real} HP")),
                             (true, false) => Some(format!("{target} ← {real} HP (raw: {pre})")),
                             (false, true) => Some(format!("{target} ← {real} HP (full: {full})")),
-                            (true, true) => Some(format!(
-                                "{target} ← {real} HP (raw: {pre}, full: {full})"
-                            )),
+                            (true, true) => {
+                                Some(format!("{target} ← {real} HP (raw: {pre}, full: {full})"))
+                            }
                         }
                     } else if full == real {
                         Some(format!("{target} ← {real} HP ({kind})"))
