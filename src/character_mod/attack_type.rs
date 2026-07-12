@@ -218,6 +218,10 @@ impl AttackType {
     /// defense = armor + target_phys_pow / DEFENSE_DIVISOR (physical only)
     pub const DEFENSE_DIVISOR: f64 = 4.0;
 
+    /// Floor for `defense`, capping the max vulnerability multiplier (protection)
+    /// at `ARMOR_FACTOR / (ARMOR_FACTOR + MIN_DEFENSE)` = 4x raw damage.
+    pub const MIN_DEFENSE: f64 = -75.0;
+
     /// Returns `(raw_damage, effective_damage)`:
     /// - `raw_damage`: damage before armor (attack value scaled by launcher power)
     /// - `effective_damage`: damage after armor mitigation (diminishing-returns formula)
@@ -243,7 +247,10 @@ impl AttackType {
         let raw_damage = (atk_value as f64 * power_factor).round() as i64;
 
         // Defense = armor + target power contribution (physical resistance from strength).
-        let defense = target_armor as f64 + target_power as f64 / Self::DEFENSE_DIVISOR;
+        // Floored so armor-shred debuffs can make a target vulnerable (protection > 1)
+        // without the formula blowing up or flipping sign as defense approaches -ARMOR_FACTOR.
+        let defense = (target_armor as f64 + target_power as f64 / Self::DEFENSE_DIVISOR)
+            .max(Self::MIN_DEFENSE);
         let protection = Self::ARMOR_FACTOR / (Self::ARMOR_FACTOR + defense);
         let effective_damage = (raw_damage as f64 * protection).round() as i64;
 
@@ -437,5 +444,33 @@ mod tests {
         launcher_zero.init();
         let (raw_z, _) = AttackType::damage_by_atk(&target_stats, &launcher_zero, true, -50, 1);
         assert_eq!(raw_z, -50);
+    }
+
+    #[test]
+    fn unit_damage_by_atk_clamps_negative_defense() {
+        let mut target_stats = Stats::default();
+        target_stats.init();
+        // Armor is stored as u64 and normally floored at 0 by Stats::modify_stat_current /
+        // recompute_stat_max_and_current, so it can't go negative through normal gameplay.
+        // This simulates what get_armor_stat's `as i64` cast would see if that invariant were
+        // ever broken, to prove MIN_DEFENSE keeps protection bounded instead of exploding or
+        // flipping sign (damage becoming a heal).
+        target_stats.get_mut_value(MAGICAL_ARMOR).current = (-500i64) as u64;
+
+        let mut launcher_stats = Stats::default();
+        launcher_stats.init();
+        launcher_stats.get_mut_value(MAGICAL_POWER).current = 100;
+
+        // power_factor = 1 + 100/100 = 2.0; raw = round(-500 * 2.0) = -1000
+        // defense = -500, clamped to MIN_DEFENSE = -75; protection = 100/25 = 4.0
+        // effective = round(-1000 * 4.0) = -4000 (capped at the 4x vulnerability ceiling)
+        let (raw, effective) =
+            AttackType::damage_by_atk(&target_stats, &launcher_stats, true, -500, 1);
+        assert_eq!(raw, -1000);
+        assert_eq!(effective, -4000);
+        assert!(
+            effective.unsigned_abs() <= raw.unsigned_abs() * 4,
+            "damage must never exceed the 4x vulnerability cap even with deeply negative armor"
+        );
     }
 }

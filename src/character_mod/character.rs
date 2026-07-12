@@ -8,7 +8,10 @@ use crate::{
         attack_type::{AttackType, LauncherAtkInfo},
         buffers::{BufKinds, Buffer},
         class::Class,
-        effect::{EffectOutcome, EffectParam, ProcessedEffectParam, is_debuf_effect, is_hot},
+        effect::{
+            EffectOutcome, EffectParam, ProcessedEffectParam, is_debuf_effect, is_effet_hot_or_dot,
+            is_hot,
+        },
         energy::{Energy, EnergyKind},
         equipment::{Equipment, EquipmentJsonKey},
         experience::build_exp_to_next_level,
@@ -16,6 +19,7 @@ use crate::{
         rank::Rank,
         rounds_information::{AmountType, CharacterRoundsInfo},
         stats::Stats,
+        talent::{TalentBoard, TalentTree},
         target::TargetData,
     },
     common::{
@@ -77,6 +81,8 @@ pub struct Character {
     pub character_rounds_info: CharacterRoundsInfo,
     /// Inventory
     pub inventory: Inventory,
+    /// Talent tree progress: earned/spent skill points and unlocked talent ids
+    pub talents: TalentBoard,
     /// Energy
     pub energies: Vec<Energy>,
     /// Rank of the character, used for boss to adapt the difficulty of the fight
@@ -114,6 +120,7 @@ impl Default for Character {
             character_rounds_info: CharacterRoundsInfo::default(),
             class: Class::Standard,
             inventory: Inventory::default(),
+            talents: TalentBoard::default(),
             energies: Vec::new(),
             rank: Rank::default(),
             description: String::new(),
@@ -191,6 +198,16 @@ fn drought_threshold_dodge(
         Rank::Intermediate if level >= 10 => Some(STREAK_BREAKER_INTERMEDIATE),
         _ => None,
     }
+}
+
+/// Whether a talent effect of this kind permanently raises a stat via `Stats::set_stats_on_effect`
+/// (the same accumulator equipment uses) rather than being pushed as an ambient passive `Buffer`.
+/// Only `ChangeMaxStat`/`ChangeCurrentStat` are stat accumulators; other kinds may carry a real
+/// stat name for their own purposes (e.g. `OverHealBoostStat.stats_name` names the stat to boost
+/// on overheal, it isn't itself a stat to permanently raise) and must stay ambient buffers so the
+/// ambient/turn-processing code that reads `character_rounds_info.all_buffers` can find them.
+fn is_stat_accumulator_effect(kind: &BufKinds) -> bool {
+    matches!(kind, BufKinds::ChangeMaxStat | BufKinds::ChangeCurrentStat)
 }
 
 impl Character {
@@ -424,6 +441,31 @@ impl Character {
                 target_id_name: self.id_name.clone(),
                 full_amount_tx: total_increase,
                 real_amount_tx: total_increase,
+                ..Default::default()
+            };
+        }
+
+        // ReinitBuf: restart all HOTs/DOTs on the given stat for this target.
+        // The actual mutation lives here (not in process_effect_type) so that zone/all-allies
+        // attacks correctly reset counters on every receiving target, not only on the caster.
+        if processed_ep.input_effect_param.buffer.kind == BufKinds::ReinitBuf {
+            let stats_name = processed_ep.input_effect_param.buffer.stats_name.clone();
+            for gae in self.character_rounds_info.all_effects.iter_mut() {
+                if gae
+                    .processed_effect_param
+                    .input_effect_param
+                    .buffer
+                    .stats_name
+                    == stats_name
+                    && is_effet_hot_or_dot(
+                        &gae.processed_effect_param.input_effect_param.buffer.kind,
+                    )
+                {
+                    gae.processed_effect_param.counter_turn = 0;
+                }
+            }
+            return EffectOutcome {
+                target_id_name: self.id_name.clone(),
                 ..Default::default()
             };
         }
@@ -665,28 +707,27 @@ impl Character {
             let raw_cost = atk.berseck_cost.max(atk.vigor_cost).max(atk.mana_cost);
             if raw_cost > 0 {
                 // remaining is AFTER process_atk_cost deducted the first apply's cost.
-                // apply_cost_on_stats deducts raw_cost * stat_max / 100 (not raw_cost itself),
-                // so compute actual_cost using the stat's max to get the right repeat count.
-                let (remaining, stat_max) = if atk.berseck_cost > 0 {
+                // apply_cost_on_stats now deducts raw_cost directly (flat value).
+                let remaining = if atk.berseck_cost > 0 {
                     self.stats
                         .all_stats
                         .get(BERSERK)
-                        .map(|s| (s.current as i64, s.max))
-                        .unwrap_or((0, 100))
+                        .map(|s| s.current as i64)
+                        .unwrap_or(0)
                 } else if atk.vigor_cost > 0 {
                     self.stats
                         .all_stats
                         .get(VIGOR)
-                        .map(|s| (s.current as i64, s.max))
-                        .unwrap_or((0, 100))
+                        .map(|s| s.current as i64)
+                        .unwrap_or(0)
                 } else {
                     self.stats
                         .all_stats
                         .get(MANA)
-                        .map(|s| (s.current as i64, s.max))
-                        .unwrap_or((0, 100))
+                        .map(|s| s.current as i64)
+                        .unwrap_or(0)
                 };
-                let actual_cost = ((raw_cost * stat_max / 100) as i64).max(1);
+                let actual_cost = (raw_cost as i64).max(1);
                 // nb_applies = total times the effect fires; remaining is post-first-deduction,
                 // so add back one actual_cost to recover the pre-deduction energy, then divide.
                 let nb_applies = ((remaining + actual_cost) / actual_cost).max(1);
@@ -960,8 +1001,8 @@ impl Character {
             return false;
         }
 
-        atk_type.mana_cost * mana.max / 100 <= mana.current
-            && atk_type.vigor_cost * vigor.max / 100 <= vigor.current
+        atk_type.mana_cost <= mana.current
+            && atk_type.vigor_cost <= vigor.current
             && atk_type.berseck_cost <= berserk.current
     }
 
@@ -1185,6 +1226,111 @@ impl Character {
         self.apply_effects_on_stats(false);
     }
 
+    /// Spend a skill point on `talent_id`. Validates prerequisites, cost, and the
+    /// one-capstone-per-tree rule before applying the talent's effects: stat-targeting
+    /// effects (non-empty `stats_name`) go through `Stats::set_stats_on_effect` (same
+    /// accumulator equipment uses), everything else is pushed as a passive `Buffer`
+    /// onto `character_rounds_info.all_buffers` (read live by the combat code, e.g.
+    /// `DamageTxPercent`/`HealTxPercent`).
+    pub fn unlock_talent(&mut self, talent_id: &str, tree: &TalentTree) -> Result<()> {
+        if self.talents.unlocked.iter().any(|id| id == talent_id) {
+            bail!("Talent '{}' is already unlocked", talent_id);
+        }
+        let talent = tree.find_talent(talent_id).ok_or_else(|| {
+            anyhow!(
+                "Talent '{}' not found in tree '{}'",
+                talent_id,
+                tree.hero_key
+            )
+        })?;
+        for req in &talent.requires {
+            if !self.talents.unlocked.iter().any(|id| id == req) {
+                bail!(
+                    "Talent '{}' requires '{}' to be unlocked first",
+                    talent_id,
+                    req
+                );
+            }
+        }
+        if talent.is_capstone {
+            let other_capstones = tree.other_capstones(&talent.path);
+            if let Some(taken) = self
+                .talents
+                .unlocked
+                .iter()
+                .find(|id| other_capstones.contains(&id.as_str()))
+            {
+                bail!(
+                    "Cannot unlock capstone '{}': capstone '{}' from another path is already active; respec first",
+                    talent_id,
+                    taken
+                );
+            }
+        }
+        if self.talents.available() < talent.cost {
+            bail!(
+                "Not enough skill points: have {}, need {}",
+                self.talents.available(),
+                talent.cost
+            );
+        }
+
+        for effect in &talent.effects {
+            if is_stat_accumulator_effect(&effect.kind) {
+                self.stats.set_stats_on_effect(
+                    &effect.stats_name,
+                    effect.value,
+                    effect.is_percent,
+                    true,
+                );
+            } else {
+                self.character_rounds_info.all_buffers.push(Buffer {
+                    is_passive_enabled: true,
+                    is_passive: true,
+                    value: effect.value,
+                    is_percent: effect.is_percent,
+                    stats_name: effect.stats_name.clone(),
+                    kind: effect.kind.clone(),
+                });
+            }
+        }
+        self.talents.unlocked.push(talent_id.to_owned());
+        self.talents.spent += talent.cost;
+        Ok(())
+    }
+
+    /// Undo every unlocked talent for free: reverse each effect (negate the stat call, or
+    /// remove the matching passive `Buffer`) and reset spent points to 0. Skill points
+    /// already earned (`skill_points`) are untouched, only `spent`/`unlocked` are cleared.
+    pub fn respec_talents(&mut self, tree: &TalentTree) {
+        let unlocked = std::mem::take(&mut self.talents.unlocked);
+        for talent_id in unlocked {
+            let Some(talent) = tree.find_talent(&talent_id) else {
+                continue;
+            };
+            for effect in &talent.effects {
+                if is_stat_accumulator_effect(&effect.kind) {
+                    self.stats.set_stats_on_effect(
+                        &effect.stats_name,
+                        -effect.value,
+                        effect.is_percent,
+                        true,
+                    );
+                } else if let Some(idx) =
+                    self.character_rounds_info.all_buffers.iter().position(|b| {
+                        b.kind == effect.kind
+                            && b.stats_name == effect.stats_name
+                            && b.value == effect.value
+                            && b.is_percent == effect.is_percent
+                    })
+                {
+                    self.character_rounds_info.all_buffers.remove(idx);
+                }
+            }
+        }
+        self.talents.spent = 0;
+    }
+
     fn apply_effects_on_stats(&mut self, update_effect_stats: bool) {
         self.character_rounds_info
             .all_effects
@@ -1229,6 +1375,7 @@ mod tests {
     use crate::character_mod::energy::EnergyKind;
     use crate::character_mod::equipment::{Equipment, EquipmentJsonKey};
     use crate::character_mod::rank::Rank;
+    use crate::character_mod::talent::{TalentDef, TalentEffect, TalentPath, TalentTree};
     use crate::common::constants::paths_const::TEST_OFFLINE_ROOT;
     use crate::common::constants::streak_breaker_const::STREAK_BREAKER_ADVANCED;
     use crate::common::lang::Lang;
@@ -1657,36 +1804,15 @@ mod tests {
         let old_vigor_current = c.stats.all_stats[VIGOR].current;
         let old_mana_current = c.stats.all_stats[MANA].current;
         let old_berseck_current = c.stats.all_stats[BERSERK].current;
-        let old_vigor_max = c.stats.all_stats[VIGOR].max;
-        let old_mana_max = c.stats.all_stats[MANA].max;
-        let old_berseck_max = c.stats.all_stats[BERSERK].max;
-        c.process_atk_cost("atk1"); // 10% vigor cost
+        c.process_atk_cost("atk1"); // flat 10 cost on each
 
-        assert_eq!(
-            old_vigor_current - 10 * old_vigor_max / 100,
-            c.stats.all_stats[VIGOR].current
-        );
-        assert_eq!(
-            old_mana_current - 10 * old_mana_max / 100,
-            c.stats.all_stats[MANA].current
-        );
-        assert_eq!(
-            old_berseck_current - 10 * old_berseck_max / 100,
-            c.stats.all_stats[BERSERK].current
-        );
-        c.process_atk_cost("atk1"); // 10% vigor cost again!
-        assert_eq!(
-            old_vigor_current - 20 * old_vigor_max / 100,
-            c.stats.all_stats[VIGOR].current
-        );
-        assert_eq!(
-            old_mana_current - 20 * old_mana_max / 100,
-            c.stats.all_stats[MANA].current
-        );
-        assert_eq!(
-            old_berseck_current - 20 * old_berseck_max / 100,
-            c.stats.all_stats[BERSERK].current
-        );
+        assert_eq!(old_vigor_current - 10, c.stats.all_stats[VIGOR].current);
+        assert_eq!(old_mana_current - 10, c.stats.all_stats[MANA].current);
+        assert_eq!(old_berseck_current - 10, c.stats.all_stats[BERSERK].current);
+        c.process_atk_cost("atk1"); // flat 10 cost again!
+        assert_eq!(old_vigor_current - 20, c.stats.all_stats[VIGOR].current);
+        assert_eq!(old_mana_current - 20, c.stats.all_stats[MANA].current);
+        assert_eq!(old_berseck_current - 20, c.stats.all_stats[BERSERK].current);
     }
 
     #[test]
@@ -2013,6 +2139,77 @@ mod tests {
                 .value
         );
         assert_eq!(target.id_name, eo.target_id_name);
+    }
+
+    #[test]
+    fn unit_apply_effect_reinit_buf_resets_matching_hot_on_target() {
+        // ReinitBuf must reset the counter_turn of an existing HOT on the *target's own*
+        // effects (not just the caster's) — this is what makes attacks like Sève Régénératrice
+        // work correctly when cast on an ally other than the caster.
+        let mut target = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let launcher_stats = target.stats.clone();
+
+        let mut aged_hot = build_hot_effect_individual();
+        aged_hot.counter_turn = 2;
+        target
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: aged_hot,
+                ..Default::default()
+            });
+
+        let reinit_ep = build_reinit_buf_effect(HP);
+        let eo = target.apply_processed_effect_param(&reinit_ep, &launcher_stats, false, 0);
+
+        assert_eq!(
+            0,
+            target.character_rounds_info.all_effects[0]
+                .processed_effect_param
+                .counter_turn,
+            "ReinitBuf must reset the target's own HOT counter"
+        );
+        assert_eq!(target.id_name, eo.target_id_name);
+    }
+
+    #[test]
+    fn unit_apply_effect_reinit_buf_ignores_non_matching_stat() {
+        // ReinitBuf on a different stat must not touch an unrelated HOT's counter.
+        let mut target = Character::try_new_from_json(
+            "./tests/offlines/characters/test.json",
+            *TEST_OFFLINE_ROOT,
+            false,
+            &testing_all_equipment(),
+        )
+        .unwrap();
+        let launcher_stats = target.stats.clone();
+
+        let mut aged_hot = build_hot_effect_individual();
+        aged_hot.counter_turn = 2;
+        target
+            .character_rounds_info
+            .all_effects
+            .push(GameAtkEffect {
+                processed_effect_param: aged_hot,
+                ..Default::default()
+            });
+
+        let reinit_ep = build_reinit_buf_effect(MANA);
+        target.apply_processed_effect_param(&reinit_ep, &launcher_stats, false, 0);
+
+        assert_eq!(
+            2,
+            target.character_rounds_info.all_effects[0]
+                .processed_effect_param
+                .counter_turn,
+            "ReinitBuf on an unrelated stat must not reset this HOT's counter"
+        );
     }
 
     #[test]
@@ -3193,5 +3390,267 @@ mod tests {
             recorded > 0,
             "Overheal from a heal attack must be recorded in tx_rx[OverHealRx], got 0"
         );
+    }
+
+    fn build_test_talent_tree() -> TalentTree {
+        TalentTree {
+            hero_key: "TestHero".to_owned(),
+            paths: vec![
+                TalentPath {
+                    key: "path_a".to_owned(),
+                    name_en: "Path A".to_owned(),
+                    name_fr: "Chemin A".to_owned(),
+                    talents: vec![
+                        TalentDef {
+                            id: "a1".to_owned(),
+                            path: "path_a".to_owned(),
+                            tier: 1,
+                            cost: 1,
+                            is_capstone: false,
+                            requires: vec![],
+                            effects: vec![TalentEffect {
+                                kind: BufKinds::ChangeMaxStat,
+                                stats_name: DODGE.to_owned(),
+                                value: 10,
+                                is_percent: true,
+                            }],
+                            ..Default::default()
+                        },
+                        TalentDef {
+                            id: "a2".to_owned(),
+                            path: "path_a".to_owned(),
+                            tier: 2,
+                            cost: 1,
+                            is_capstone: false,
+                            requires: vec!["a1".to_owned()],
+                            effects: vec![TalentEffect {
+                                kind: BufKinds::DamageTxPercent,
+                                stats_name: String::new(),
+                                value: 8,
+                                is_percent: true,
+                            }],
+                            ..Default::default()
+                        },
+                        TalentDef {
+                            id: "a5".to_owned(),
+                            path: "path_a".to_owned(),
+                            tier: 5,
+                            cost: 4,
+                            is_capstone: true,
+                            requires: vec!["a2".to_owned()],
+                            effects: vec![TalentEffect {
+                                kind: BufKinds::DamageTxPercent,
+                                stats_name: String::new(),
+                                value: 20,
+                                is_percent: true,
+                            }],
+                            ..Default::default()
+                        },
+                    ],
+                },
+                TalentPath {
+                    key: "path_b".to_owned(),
+                    name_en: "Path B".to_owned(),
+                    name_fr: "Chemin B".to_owned(),
+                    talents: vec![TalentDef {
+                        id: "b5".to_owned(),
+                        path: "path_b".to_owned(),
+                        tier: 5,
+                        cost: 4,
+                        is_capstone: true,
+                        requires: vec![],
+                        effects: vec![TalentEffect {
+                            kind: BufKinds::ChangeMaxStat,
+                            stats_name: HP.to_owned(),
+                            value: 20,
+                            is_percent: true,
+                        }],
+                        ..Default::default()
+                    }],
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn unit_unlock_talent_applies_stat_effect_and_deducts_points() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let dodge = c.stats.all_stats.get_mut(DODGE).unwrap();
+        dodge.max_raw = 100;
+        dodge.max = 100;
+        dodge.current = 100;
+        dodge.buf_equip_value = 0;
+        dodge.buf_equip_percent = 0;
+        dodge.buf_effect_value = 0;
+        dodge.buf_effect_percent = 0;
+        let tree = build_test_talent_tree();
+
+        c.unlock_talent("a1", &tree).unwrap();
+
+        assert_eq!(c.stats.all_stats[DODGE].max, 110);
+        assert_eq!(c.talents.spent, 1);
+        assert_eq!(c.talents.available(), 4);
+        assert_eq!(c.talents.unlocked, vec!["a1".to_owned()]);
+    }
+
+    #[test]
+    fn unit_unlock_talent_pushes_buffer_for_non_stat_effect() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let tree = build_test_talent_tree();
+        c.unlock_talent("a1", &tree).unwrap();
+
+        c.unlock_talent("a2", &tree).unwrap();
+
+        assert!(
+            c.character_rounds_info
+                .all_buffers
+                .iter()
+                .any(|b| b.kind == BufKinds::DamageTxPercent && b.value == 8),
+            "unlocking a2 should push a DamageTxPercent +8% passive buffer"
+        );
+        assert_eq!(c.talents.spent, 2);
+    }
+
+    // Regression: an effect kind like `OverHealBoostStat` legitimately carries a real stat
+    // name (which stat to boost on overheal) without being a stat-accumulator effect itself.
+    // It must be pushed as an ambient `Buffer` (findable via `get_buffer_by_type`), not routed
+    // through `Stats::set_stats_on_effect` just because its `stats_name` matches a real stat.
+    #[test]
+    fn unit_unlock_talent_overheal_boost_stat_stays_ambient_buffer_despite_real_stats_name() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let dodge_before = c.stats.all_stats[DODGE].clone();
+        let tree = TalentTree {
+            hero_key: "TestHero".to_owned(),
+            paths: vec![lib_rpg_talent_path_with_overheal_boost()],
+        };
+
+        c.unlock_talent("overheal_dodge", &tree).unwrap();
+
+        // Stat must be untouched — this effect is not a stat accumulator.
+        assert_eq!(c.stats.all_stats[DODGE], dodge_before);
+        // The buffer must be ambiently discoverable so the overheal-turn logic can find it.
+        let buf = c
+            .character_rounds_info
+            .get_buffer_by_type(&BufKinds::OverHealBoostStat)
+            .expect("OverHealBoostStat buffer should be pushed ambiently");
+        assert_eq!(buf.stats_name, DODGE);
+        assert!(buf.is_passive_enabled);
+
+        c.respec_talents(&tree);
+        assert!(
+            c.character_rounds_info
+                .get_buffer_by_type(&BufKinds::OverHealBoostStat)
+                .is_none()
+        );
+        assert_eq!(c.stats.all_stats[DODGE], dodge_before);
+    }
+
+    fn lib_rpg_talent_path_with_overheal_boost() -> TalentPath {
+        TalentPath {
+            key: "path_a".to_owned(),
+            name_en: "Path A".to_owned(),
+            name_fr: "Chemin A".to_owned(),
+            talents: vec![TalentDef {
+                id: "overheal_dodge".to_owned(),
+                path: "path_a".to_owned(),
+                tier: 1,
+                cost: 1,
+                is_capstone: false,
+                requires: vec![],
+                effects: vec![TalentEffect {
+                    kind: BufKinds::OverHealBoostStat,
+                    stats_name: DODGE.to_owned(),
+                    value: 0,
+                    is_percent: false,
+                }],
+                ..Default::default()
+            }],
+        }
+    }
+
+    #[test]
+    fn unit_unlock_talent_fails_insufficient_points() {
+        let mut c = testing_character();
+        c.talents.skill_points = 0;
+        let tree = build_test_talent_tree();
+
+        let err = c.unlock_talent("a1", &tree).unwrap_err();
+        assert!(err.to_string().contains("Not enough skill points"));
+        assert!(c.talents.unlocked.is_empty());
+    }
+
+    #[test]
+    fn unit_unlock_talent_fails_missing_prereq() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let tree = build_test_talent_tree();
+
+        let err = c.unlock_talent("a2", &tree).unwrap_err();
+        assert!(err.to_string().contains("requires"));
+        assert!(c.talents.unlocked.is_empty());
+    }
+
+    #[test]
+    fn unit_unlock_talent_fails_already_unlocked() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let tree = build_test_talent_tree();
+        c.unlock_talent("a1", &tree).unwrap();
+
+        let err = c.unlock_talent("a1", &tree).unwrap_err();
+        assert!(err.to_string().contains("already unlocked"));
+        assert_eq!(c.talents.spent, 1);
+    }
+
+    #[test]
+    fn unit_unlock_talent_fails_second_capstone() {
+        let mut c = testing_character();
+        c.talents.skill_points = 20;
+        let tree = build_test_talent_tree();
+        c.unlock_talent("a1", &tree).unwrap();
+        c.unlock_talent("a2", &tree).unwrap();
+        c.unlock_talent("a5", &tree).unwrap();
+
+        let err = c.unlock_talent("b5", &tree).unwrap_err();
+        assert!(err.to_string().contains("already active"));
+        assert!(!c.talents.unlocked.contains(&"b5".to_owned()));
+    }
+
+    #[test]
+    fn unit_respec_talents_reverts_stats_and_refunds() {
+        let mut c = testing_character();
+        c.talents.skill_points = 5;
+        let dodge = c.stats.all_stats.get_mut(DODGE).unwrap();
+        dodge.max_raw = 100;
+        dodge.max = 100;
+        dodge.current = 100;
+        dodge.buf_equip_value = 0;
+        dodge.buf_equip_percent = 0;
+        dodge.buf_effect_value = 0;
+        dodge.buf_effect_percent = 0;
+        let tree = build_test_talent_tree();
+        let baseline_dodge = c.stats.all_stats[DODGE].clone();
+        c.unlock_talent("a1", &tree).unwrap();
+        c.unlock_talent("a2", &tree).unwrap();
+        assert_ne!(c.stats.all_stats[DODGE].max, baseline_dodge.max);
+
+        c.respec_talents(&tree);
+
+        assert_eq!(c.stats.all_stats[DODGE], baseline_dodge);
+        assert!(
+            !c.character_rounds_info
+                .all_buffers
+                .iter()
+                .any(|b| b.kind == BufKinds::DamageTxPercent && b.value == 8),
+            "respec should remove the talent-granted DamageTxPercent buffer"
+        );
+        assert_eq!(c.talents.spent, 0);
+        assert!(c.talents.unlocked.is_empty());
+        // Points earned are not lost on respec, only what was spent
+        assert_eq!(c.talents.skill_points, 5);
+        assert_eq!(c.talents.available(), 5);
     }
 }

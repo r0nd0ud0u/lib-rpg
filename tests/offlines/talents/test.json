@@ -1,0 +1,79 @@
+{
+    "hero_key": "test",
+    "paths": [
+        {
+            "key": "path_a",
+            "name_en": "Path A",
+            "name_fr": "Chemin A",
+            "talents": [
+                {
+                    "id": "test_path_a_1",
+                    "path": "path_a",
+                    "tier": 1,
+                    "cost": 1,
+                    "is_capstone": false,
+                    "requires": [],
+                    "name_en": "First Step",
+                    "name_fr": "Premier pas",
+                    "description_en": "A small boost.",
+                    "description_fr": "Un petit coup de pouce.",
+                    "effects": [
+                        {
+                            "kind": "ChangeMaxStat",
+                            "stats-name": "HP",
+                            "value": 10,
+                            "is-percent": true
+                        }
+                    ]
+                },
+                {
+                    "id": "test_path_a_5",
+                    "path": "path_a",
+                    "tier": 5,
+                    "cost": 4,
+                    "is_capstone": true,
+                    "requires": ["test_path_a_1"],
+                    "name_en": "Path A Capstone",
+                    "name_fr": "Capstone chemin A",
+                    "description_en": "The pinnacle of path A.",
+                    "description_fr": "Le summum du chemin A.",
+                    "effects": [
+                        {
+                            "kind": "DamageTxPercent",
+                            "stats-name": "",
+                            "value": 20,
+                            "is-percent": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "path_b",
+            "name_en": "Path B",
+            "name_fr": "Chemin B",
+            "talents": [
+                {
+                    "id": "test_path_b_5",
+                    "path": "path_b",
+                    "tier": 5,
+                    "cost": 4,
+                    "is_capstone": true,
+                    "requires": [],
+                    "name_en": "Path B Capstone",
+                    "name_fr": "Capstone chemin B",
+                    "description_en": "The pinnacle of path B.",
+                    "description_fr": "Le summum du chemin B.",
+                    "effects": [
+                        {
+                            "kind": "ChangeMaxStat",
+                            "stats-name": "HP",
+                            "value": 20,
+                            "is-percent": true
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

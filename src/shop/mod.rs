@@ -137,22 +137,55 @@ pub fn build_shop_catalog(
 
     // Hardcoded consumables (no JSON files for these)
     let consumables = [
-        ("potion", 50u64, Rank::Common, "Restores 20 HP."),
-        ("super potion", 150, Rank::Intermediate, "Restores 60 HP."),
-        ("hyper potion", 300, Rank::Advanced, "Restores 120 HP."),
+        ("potion", "potion", 50u64, Rank::Common, "Restores 20 HP."),
+        (
+            "super potion",
+            "super potion",
+            150,
+            Rank::Intermediate,
+            "Restores 60 HP.",
+        ),
+        (
+            "hyper potion",
+            "hyper potion",
+            300,
+            Rank::Advanced,
+            "Restores 120 HP.",
+        ),
         (
             "potion of resurrection",
+            "potion de resurrection",
             500,
             Rank::Advanced,
             "Revives a fallen hero with 50 HP.",
         ),
-        ("mana potion", 80, Rank::Common, "Restores 30 Mana."),
-        ("vigor potion", 80, Rank::Common, "Restores 30 Vigor."),
-        ("berserk potion", 80, Rank::Common, "Restores 30 Berserk."),
+        (
+            "mana potion",
+            "potion de mana",
+            80,
+            Rank::Common,
+            "Restores 30 Mana.",
+        ),
+        (
+            "vigor potion",
+            "potion de vigueur",
+            80,
+            Rank::Common,
+            "Restores 30 Vigor.",
+        ),
+        (
+            "berserk potion",
+            "potion de rage",
+            80,
+            Rank::Common,
+            "Restores 30 Berserk.",
+        ),
     ];
-    for (name, price, rank, desc) in consumables {
+    for (name, name_fr, price, rank, desc) in consumables {
         items.push(ShopCatalogItem {
             name: name.to_owned(),
+            name_en: name.to_owned(),
+            name_fr: name_fr.to_owned(),
             kind: LootType::Consumable,
             price,
             rank,
@@ -167,46 +200,65 @@ pub fn build_shop_catalog(
 }
 
 /// Build a `Consumable` from its shop name.
+///
+/// Scenario loot tables (`offlines/scenarios/**/*.json`) name potions by rank —
+/// "Common potion", "Super potion", "Rare potion" — which don't match the shop's own
+/// flavor names ("potion", "super potion", "hyper potion") for the same items either in
+/// case or in wording. Normalize case and alias the loot names so scenario rewards
+/// actually resolve to a real consumable instead of silently granting nothing.
 pub fn build_consumable_by_name(name: &str) -> Option<Consumable> {
-    match name {
+    let lower = name.to_lowercase();
+    let canonical: &str = match lower.as_str() {
+        "common potion" => "potion",
+        "rare potion" => "hyper potion",
+        other => other,
+    };
+    match canonical {
         "potion" => Some(Consumable {
             name: "potion".to_owned(),
+            name_fr: "potion".to_owned(),
             effects: vec![build_hp_effect(20, false)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Common,
         }),
         "super potion" => Some(Consumable {
             name: "super potion".to_owned(),
+            name_fr: "super potion".to_owned(),
             effects: vec![build_hp_effect(60, false)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Intermediate,
         }),
         "hyper potion" => Some(Consumable {
             name: "hyper potion".to_owned(),
+            name_fr: "hyper potion".to_owned(),
             effects: vec![build_hp_effect(120, false)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Advanced,
         }),
         "potion of resurrection" => Some(Consumable {
             name: "potion of resurrection".to_owned(),
+            name_fr: "potion de resurrection".to_owned(),
             effects: vec![build_resurrect_effect(50)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Advanced,
         }),
         "mana potion" => Some(Consumable {
             name: "mana potion".to_owned(),
+            name_fr: "potion de mana".to_owned(),
             effects: vec![build_energy_effect(MANA, 30)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Common,
         }),
         "vigor potion" => Some(Consumable {
             name: "vigor potion".to_owned(),
+            name_fr: "potion de vigueur".to_owned(),
             effects: vec![build_energy_effect(VIGOR, 30)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Common,
         }),
         "berserk potion" => Some(Consumable {
             name: "berserk potion".to_owned(),
+            name_fr: "potion de rage".to_owned(),
             effects: vec![build_energy_effect(BERSERK, 30)],
             consumable_kind: ConsumableKind::Potion,
             rank: Rank::Common,
@@ -287,8 +339,29 @@ mod tests {
     }
 
     #[test]
+    fn unit_build_consumable_by_name_resolves_scenario_loot_names() {
+        // Scenario loot JSON uses Title Case, rank-prefixed names distinct from the shop's
+        // own flavor names for the same items — every one of these must resolve.
+        let common = build_consumable_by_name("Common potion").unwrap();
+        assert_eq!(common.rank, Rank::Common);
+
+        let super_ = build_consumable_by_name("Super potion").unwrap();
+        assert_eq!(super_.rank, Rank::Intermediate);
+
+        let rare = build_consumable_by_name("Rare potion").unwrap();
+        assert_eq!(rare.rank, Rank::Advanced);
+    }
+
+    #[test]
     fn unit_build_consumable_by_name_unknown() {
         assert!(build_consumable_by_name("unknown item").is_none());
+    }
+
+    #[test]
+    fn unit_consumable_display_name_for_localized() {
+        let mana_potion = build_consumable_by_name("mana potion").unwrap();
+        assert_eq!(mana_potion.display_name_for(Lang::En), "mana potion");
+        assert_eq!(mana_potion.display_name_for(Lang::Fr), "potion de mana");
     }
 
     #[test]

@@ -397,13 +397,12 @@ fn unit_thrain_enchainement_furieux_3_heroes_3_enemies() {
     gm.pm.current_player.level = 100;
     gm.pm.current_player.stats.all_stats[CRITICAL_STRIKE].current = 0;
 
-    // Set berserk to 60; the attack costs 20% of max berserk per apply and fires as many
+    // Set berserk to 60; the attack costs a flat 20 rage per apply and fires as many
     // times as possible (RepeatAsManyAsPossible) until rage is exhausted.
-    // actual_cost = raw_cost * berserk_max / 100; nb_applies = floor(60 / actual_cost).
+    // nb_applies = floor(60 / actual_cost).
     gm.pm.current_player.stats.all_stats[BERSERK].current = 60;
-    let berserk_max = gm.pm.current_player.stats.all_stats[BERSERK].max;
     let berseck_cost = 20u64;
-    let actual_cost = (berseck_cost * berserk_max / 100).max(1);
+    let actual_cost = berseck_cost.max(1);
     let nb_applies = (60u64 / actual_cost).max(1);
 
     // Target: first boss, zero dodge and DamageRxPercent for clean formula
@@ -539,9 +538,8 @@ fn unit_thrain_tourbillon_destructeur_3_heroes_3_enemies() {
 
     let thrain_phy_pow = gm.pm.current_player.stats.get_power_stat(false);
     let old_berserk = gm.pm.current_player.stats.all_stats[BERSERK].current;
-    let berserk_max = gm.pm.current_player.stats.all_stats[BERSERK].max;
     let berseck_cost = 15u64;
-    let cost_deducted = berseck_cost * berserk_max / 100;
+    let cost_deducted = berseck_cost;
 
     let old_berserk_rate_pct =
         gm.pm.current_player.stats.all_stats[BERSECK_RATE].buf_effect_percent;

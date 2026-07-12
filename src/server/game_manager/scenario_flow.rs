@@ -40,6 +40,13 @@ impl GameManager {
     }
 
     pub fn load_next_scenario(&mut self) -> Result<()> {
+        // Debug-only: helps diagnose reports of the Scenarios tab showing stale progress
+        // after a transition — trace when states_scenarios actually flips so it can be
+        // compared against when the client-facing ServerEvent broadcast fires.
+        tracing::debug!(
+            "load_next_scenario: start, current={}",
+            self.current_scenario.name
+        );
         // update current scenario state
         if let Some((_, state)) = self
             .states_scenarios
@@ -101,6 +108,11 @@ impl GameManager {
             self.set_active_bosses(&all_bosses);
         }
 
+        tracing::debug!(
+            "load_next_scenario: done, new_current={}, states_scenarios={:?}",
+            self.current_scenario.name,
+            self.states_scenarios
+        );
         Ok(())
     }
 
@@ -117,6 +129,15 @@ impl GameManager {
     /// - Automatically use all consumables in inventory (potions restore HP)
     ///   Process end of scenario struct to be sent to the frontend with the rewards and the level up info
     pub fn process_end_of_scenario(&mut self) {
+        // Debug-only: helps diagnose reports of duplicate loot after a scenario — every
+        // call to this function grants a full set of rewards, so if it's ever invoked
+        // twice for the same scenario completion (e.g. from two different code paths
+        // both reacting to "all bosses dead"), this line will appear twice in the logs.
+        tracing::debug!(
+            "process_end_of_scenario: scenario={}, active_heroes={}",
+            self.current_scenario.name,
+            self.pm.active_heroes.len()
+        );
         // Total exp: sum from all bosses
         let total_exp: u64 = self
             .pm
@@ -162,6 +183,12 @@ impl GameManager {
                             .find(|e| e.unique_name == loot.name)
                             .cloned()
                         {
+                            tracing::debug!(
+                                "process_end_of_scenario: granting equipment '{}' (category {:?}) to {}",
+                                equipment.unique_name,
+                                equipment.category,
+                                self.pm.active_heroes[i].id_name
+                            );
                             self.pm.active_heroes[i]
                                 .inventory
                                 .add_equipment(&equipment, false);
@@ -195,6 +222,12 @@ impl GameManager {
                     .exp_to_next_level;
                 self.pm.active_heroes[i].level += 1;
                 self.pm.active_heroes[i].stats.update_stats_to_next_level();
+                // Grant a talent skill point every level, plus a bonus every 5th level
+                self.pm.active_heroes[i].talents.skill_points += 1;
+                self.pm.active_heroes[i].talents.has_unseen_points = true;
+                if self.pm.active_heroes[i].level.is_multiple_of(5) {
+                    self.pm.active_heroes[i].talents.skill_points += 1;
+                }
                 // Recompute the threshold for the new level
                 self.pm.active_heroes[i]
                     .character_rounds_info
@@ -713,6 +746,12 @@ mod tests {
                 "hero '{}' HP max should have increased after leveling up",
                 hero.id_name
             );
+            // A single level-up (1 -> 2, not a multiple of 5) grants exactly 1 skill point
+            assert_eq!(
+                hero.talents.skill_points, 1,
+                "hero '{}' should have earned 1 skill point for reaching level 2",
+                hero.id_name
+            );
         }
         // assess end of scenario LevelUp
         assert_eq!(gm.end_of_scenario.characters_levelup.len(), 2); // 2 heroes
@@ -728,6 +767,50 @@ mod tests {
                 lu.character_id_name
             );
         });
+    }
+
+    #[test]
+    fn unit_talent_skill_points_milestone_bonus_at_level_5() {
+        // Each call awards 200 exp (2 Common lvl1 bosses). Thresholds by level (Common,
+        // Standard): 1->2:100, 2->3:200, 3->4:300, 4->5:400. Reaching level 5 from level 1
+        // takes 4 level-ups (2,3,4,5), one of which (5) is a multiple-of-5 milestone:
+        // total skill points = 4 + 1 bonus = 5.
+        use crate::server::scenario::Scenario;
+        use std::collections::HashMap;
+
+        let mut gm = testing_game_manager();
+        gm.current_scenario = Scenario {
+            name: "test".to_string(),
+            description: "test".to_string(),
+            boss_patterns: HashMap::new(),
+            loots: vec![],
+            level: 1,
+            universe: String::new(),
+        };
+
+        let mut iterations = 0;
+        while gm.pm.active_heroes.iter().any(|h| h.level < 5) && iterations < 20 {
+            gm.process_end_of_scenario();
+            iterations += 1;
+        }
+
+        for hero in &gm.pm.active_heroes {
+            assert_eq!(
+                hero.level, 5,
+                "hero '{}' should have reached level 5",
+                hero.id_name
+            );
+            assert_eq!(
+                hero.talents.skill_points, 5,
+                "hero '{}' should have earned 5 skill points reaching level 5 (4 level-ups + 1 milestone bonus)",
+                hero.id_name
+            );
+            assert!(
+                hero.talents.has_unseen_points,
+                "hero '{}' should have the talent notification badge lit after earning points",
+                hero.id_name
+            );
+        }
     }
 
     #[test]

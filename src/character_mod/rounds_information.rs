@@ -379,24 +379,10 @@ impl CharacterRoundsInfo {
                 return Ok(processed_effect_param);
             }
             BufKinds::ReinitBuf => {
-                // Restart all HOTs/DOTs on the given stat
-                let stats_name = ep.buffer.stats_name.clone();
-                for gae in self.all_effects.iter_mut() {
-                    if gae
-                        .processed_effect_param
-                        .input_effect_param
-                        .buffer
-                        .stats_name
-                        == stats_name
-                        && is_effet_hot_or_dot(
-                            &gae.processed_effect_param.input_effect_param.buffer.kind,
-                        )
-                    {
-                        gae.processed_effect_param.counter_turn = 0;
-                    }
-                }
+                // Actual reset happens on the target side in Character::apply_processed_effect_param
+                // so every receiving target (not just the caster) gets its HOTs/DOTs restarted.
                 processed_effect_param.log = LogData {
-                    message: format!("HOTs/DOTs on '{}' restarted", stats_name),
+                    message: format!("HOTs/DOTs on '{}' restarted", ep.buffer.stats_name),
                     color: "".to_owned(),
                 };
                 return Ok(processed_effect_param);
@@ -711,7 +697,7 @@ impl CharacterRoundsInfo {
             let is_blocking = *class == Class::Berserker && eval_dodge;
 
             // Update drought counter
-            if is_dodging {
+            if is_dodging || is_blocking {
                 self.dodge_drought_counter = 0;
             } else {
                 self.dodge_drought_counter += 1;
@@ -806,14 +792,23 @@ impl CharacterRoundsInfo {
         if is_crit {
             self.crit_drought_counter = 0;
             if delta_capped > 0 {
-                self.update_buffer(&Buffer {
-                    is_passive_enabled: false,
-                    value: delta_capped,
-                    is_percent: false,
-                    stats_name: String::new(),
-                    kind: BufKinds::DamageCritCapped,
-                    is_passive: false,
-                });
+                // Snapshot, not accumulate: delta_capped is already the full excess-crit-stat
+                // bonus. `update_buffer` adds to any existing same-kind buffer, which is right
+                // for stacking debuffs like DamageRxPercent but would let this "flat" bump
+                // (see README's Talent Trees section) compound without limit on every
+                // subsequent crit landed in the same fight.
+                if let Some(buf) = self.get_mut_buffer_by_type(&BufKinds::DamageCritCapped) {
+                    buf.value = delta_capped;
+                } else {
+                    self.all_buffers.push(Buffer {
+                        is_passive_enabled: false,
+                        value: delta_capped,
+                        is_percent: false,
+                        stats_name: String::new(),
+                        kind: BufKinds::DamageCritCapped,
+                        is_passive: false,
+                    });
+                }
             }
             Ok(true)
         } else {
@@ -1794,27 +1789,18 @@ mod tests {
 
     #[test]
     fn unit_process_effect_reinit_buf() {
+        // process_effect_type is a no-op for ReinitBuf on the launcher side;
+        // actual reset happens in Character::apply_processed_effect_param on the target,
+        // so every receiving target (not just the caster) gets its counters restarted.
         let mut cri = CharacterRoundsInfo::default();
-        // Add an active HOT with counter_turn = 2
         let mut gae = make_hot_gae(30);
         gae.processed_effect_param.counter_turn = 2;
         cri.all_effects.push(gae);
-        // ReinitBuf on HP resets the counter
         let ep = make_ep(BufKinds::ReinitBuf, 0, HP, 1);
-        cri.process_effect_type(&ep, "test_atk").unwrap();
-        assert_eq!(0, cri.all_effects[0].processed_effect_param.counter_turn);
-    }
-
-    #[test]
-    fn unit_process_effect_reinit_buf_no_match() {
-        let mut cri = CharacterRoundsInfo::default();
-        let mut gae = make_hot_gae(30);
-        gae.processed_effect_param.counter_turn = 2;
-        cri.all_effects.push(gae);
-        // ReinitBuf on a different stat — should not reset HP HOT
-        let ep = make_ep(BufKinds::ReinitBuf, 0, MANA, 1);
-        cri.process_effect_type(&ep, "test_atk").unwrap();
+        let result = cri.process_effect_type(&ep, "test_atk").unwrap();
+        // Launcher's all_effects untouched — no reset here
         assert_eq!(2, cri.all_effects[0].processed_effect_param.counter_turn);
+        assert_eq!(BufKinds::ReinitBuf, result.input_effect_param.buffer.kind);
     }
 
     #[test]
@@ -2189,5 +2175,56 @@ mod tests {
             capped_buf.map(|b| b.value > 0).unwrap_or(false),
             "DamageCritCapped buffer should be > 0"
         );
+    }
+
+    #[test]
+    fn unit_damage_crit_capped_does_not_compound_across_crits() {
+        use crate::testing::testing_atk::build_atk_damage_indiv;
+
+        let mut cri = CharacterRoundsInfo::default();
+        cri.new_buffers();
+        let atk = build_atk_damage_indiv();
+
+        // drought_threshold = Some(0) guarantees a crit every call regardless of the
+        // counter (which resets to 0 on each crit), so this exercises repeated crits
+        // in the same fight rather than relying on RNG.
+        for _ in 0..5 {
+            let result = cri.process_critical_strike(&atk, 80, Some(0)).unwrap();
+            assert!(result);
+        }
+
+        let capped_buf = cri.get_buffer_by_type(&BufKinds::DamageCritCapped).unwrap();
+        assert_eq!(
+            capped_buf.value, 20,
+            "DamageCritCapped must stay a flat snapshot of the excess crit stat (80-60), \
+             not accumulate +20 on every one of the 5 crits landed"
+        );
+    }
+
+    #[test]
+    fn unit_berserker_drought_counter_resets_on_block() {
+        use crate::character_mod::class::Class;
+
+        // Guarantee the streak-breaker fires via the drought counter, not RNG.
+        let mut cri = CharacterRoundsInfo {
+            dodge_drought_counter: 5,
+            ..Default::default()
+        };
+        cri.process_dodging(1, &Class::Berserker, 0, "berserker", Some(5));
+        assert!(
+            cri.dodge_info.is_blocking,
+            "Berserker should block once the streak-breaker fires"
+        );
+        assert!(!cri.dodge_info.is_dodging);
+        assert_eq!(
+            cri.dodge_drought_counter, 0,
+            "drought counter must reset on a block, not just a dodge, or a Berserker \
+             (whose is_dodging is always false) would block every turn forever"
+        );
+
+        // A second call without the counter re-crossing the threshold must not
+        // be guaranteed anymore (proves the streak actually broke).
+        cri.process_dodging(1, &Class::Berserker, 0, "berserker", Some(5));
+        assert_eq!(cri.dodge_drought_counter, 1);
     }
 }

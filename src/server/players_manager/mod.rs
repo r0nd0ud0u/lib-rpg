@@ -7,6 +7,7 @@ use crate::{
         character::{Character, CharacterKind},
         equipment::{Equipment, EquipmentJsonKey},
         inventory::Consumable,
+        talent::TalentTree,
     },
     common::constants::stats_const::*,
 };
@@ -45,6 +46,11 @@ pub struct PlayerManager {
     /// Shared party consumables pool — available to any hero, consumed when used
     #[serde(default)]
     pub party_consumables: Vec<Consumable>,
+    /// Talent tree definitions, keyed by hero `db_full_name`. Static content, sent
+    /// to clients alongside `equipment_table` so the Talents sheet can render tiers,
+    /// costs and descriptions without a separate round-trip.
+    #[serde(default)]
+    pub talent_trees: HashMap<String, TalentTree>,
 }
 
 impl PlayerManager {
@@ -61,6 +67,7 @@ impl PlayerManager {
             current_player: Character::default(),
             equipment_table,
             party_consumables: Vec::new(),
+            talent_trees: HashMap::new(),
         }
     }
 

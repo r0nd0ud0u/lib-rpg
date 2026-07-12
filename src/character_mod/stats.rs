@@ -254,6 +254,15 @@ impl Stats {
             .all_stats
             .get_mut(attribute_name)
             .unwrap_or_else(|| panic!("Stat not found: {}", attribute_name));
+        // Debug-only: helps diagnose reports of armor-shred effects seemingly hitting the
+        // wrong armor stat (physical vs magic) — trace which exact attribute_name a
+        // ChangeMaxStat-style effect targets and its current value before/after.
+        if attribute_name == PHYSICAL_ARMOR || attribute_name == MAGICAL_ARMOR {
+            tracing::debug!(
+                "set_stats_on_effect: target={attribute_name}, value={value}, is_percent={is_percent}, current_before={}",
+                stat.current
+            );
+        }
         if update_effect {
             if is_percent {
                 stat.buf_effect_percent += value;
@@ -262,6 +271,12 @@ impl Stats {
             }
         }
         Self::recompute_stat_max_and_current(stat, None);
+        if attribute_name == PHYSICAL_ARMOR || attribute_name == MAGICAL_ARMOR {
+            tracing::debug!(
+                "set_stats_on_effect: target={attribute_name}, current_after={}",
+                stat.current
+            );
+        }
     }
 
     /// Helper to recompute max and current values for a stat after buffer changes
@@ -333,12 +348,7 @@ impl Stats {
 
     pub fn apply_cost_on_stats(&mut self, cost: u64, stats_name: &str) {
         let attribute = self.get_mut_value(stats_name);
-        attribute.current = std::cmp::max(
-            0,
-            attribute
-                .current
-                .saturating_sub(cost.saturating_mul(attribute.max) / 100),
-        );
+        attribute.current = attribute.current.saturating_sub(cost);
     }
 
     /// access the real amount received by the effect on that character
@@ -483,6 +493,32 @@ mod tests {
         stats.get_mut_value(PHYSICAL_ARMOR).current = 20;
         assert_eq!(stats.get_armor_stat(true), 10);
         assert_eq!(stats.get_armor_stat(false), 20);
+    }
+
+    #[test]
+    pub fn unit_apply_cost_on_stats_is_flat_not_percent_of_max() {
+        let mut stats = Stats::default();
+        stats.init();
+        // Max is deliberately far from 100 so a percent-of-max deduction (old behavior)
+        // would produce a different result than a flat deduction (new behavior).
+        stats.get_mut_value(MANA).max = 9999;
+        stats.get_mut_value(MANA).current = 50;
+        stats.apply_cost_on_stats(15, MANA);
+        assert_eq!(
+            stats.get_mut_value(MANA).current,
+            35,
+            "cost must be deducted as a flat amount regardless of the stat's max"
+        );
+    }
+
+    #[test]
+    pub fn unit_apply_cost_on_stats_saturates_at_zero() {
+        let mut stats = Stats::default();
+        stats.init();
+        stats.get_mut_value(VIGOR).max = 100;
+        stats.get_mut_value(VIGOR).current = 10;
+        stats.apply_cost_on_stats(25, VIGOR);
+        assert_eq!(stats.get_mut_value(VIGOR).current, 0);
     }
 
     #[test]

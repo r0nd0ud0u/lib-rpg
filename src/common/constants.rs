@@ -91,6 +91,7 @@ pub mod paths_const {
         pub static ref OFFLINE_GAMESTATE: &'static Path = Path::new("game_state");
         pub static ref OFFLINE_SCENARIOS: &'static Path = Path::new("scenarios");
         pub static ref OFFLINE_MAPS: &'static Path = Path::new("maps");
+        pub static ref OFFLINE_TALENTS: &'static Path = Path::new("talents");
         pub static ref GAME_STATE_STATS_IN_GAME: &'static Path = Path::new("/stats_in_game_{}.csv");
     }
 }
