@@ -4,10 +4,12 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::path::Path;
 
+use crate::common::log_data::LogData;
 use crate::server::data_manager::DataManager;
 use crate::server::game_manager::GameManager;
-use crate::server::game_state::GameStatus;
+use crate::server::game_state::{GameState, GameStatus};
 use crate::server::overworld_manager::{OverworldManager, OverworldState};
+use crate::server::players_manager::PlayerManager;
 use crate::server::server_manager::GamePhase;
 use crate::shop::ShopCatalogItem;
 
@@ -46,7 +48,51 @@ pub struct CoreGameData {
     pub overworld: Option<OverworldState>,
 }
 
+/// Lightweight snapshot of the `CoreGameData` sub-fields that change on an ordinary
+/// attack: character stats/buffs/turn state (`game_state`, `pm`), the combat log, and
+/// the action-banner hint. Deliberately excludes `all_scenarios`, `states_scenarios`,
+/// `current_scenario`, `game_paths`, and `end_of_scenario` — those are static for the
+/// whole duration of a single fight, so a consumer that already has a full
+/// `CoreGameData` (e.g. from an earlier full sync) can apply this instead of
+/// re-transmitting/re-storing the whole thing on every attack. See
+/// `CoreGameData::to_combat_update` / `CoreGameData::apply_combat_update`.
+///
+/// A caller still needs a full `CoreGameData` snapshot (not just this) whenever
+/// `end_of_scenario`/`game_phase` might have changed — e.g. the attack that ends a
+/// scenario or the game (see `GameManager::eval_end_of_round` ->
+/// `process_end_of_scenario`).
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct CombatUpdate {
+    pub game_state: GameState,
+    pub pm: PlayerManager,
+    pub logs: Vec<LogData>,
+    pub last_action_header: String,
+}
+
 impl CoreGameData {
+    /// Extract a `CombatUpdate` snapshot — see its doc comment for what's included
+    /// and why. Consumes `self` (callers already hold an owned clone, so this avoids
+    /// an extra clone of `pm`/`logs`); use `.clone().to_combat_update()` if you still
+    /// need the original afterward.
+    pub fn to_combat_update(self) -> CombatUpdate {
+        CombatUpdate {
+            game_state: self.game_manager.game_state,
+            pm: self.game_manager.pm,
+            logs: self.game_manager.logs,
+            last_action_header: self.last_action_header,
+        }
+    }
+
+    /// Apply a `CombatUpdate` in place, leaving every other field (all_scenarios,
+    /// states_scenarios, current_scenario, game_paths, end_of_scenario, ...)
+    /// untouched at its current value.
+    pub fn apply_combat_update(&mut self, update: CombatUpdate) {
+        self.game_manager.game_state = update.game_state;
+        self.game_manager.pm = update.pm;
+        self.game_manager.logs = update.logs;
+        self.last_action_header = update.last_action_header;
+    }
+
     pub fn new(dm: &DataManager, server_name: &str) -> Result<CoreGameData> {
         Self::new_with_scenarios(dm, server_name, dm.all_scenarios.clone())
     }
