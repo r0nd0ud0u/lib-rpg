@@ -417,6 +417,75 @@ mod tests {
     }
 
     #[test]
+    fn unit_to_combat_update_extracts_fields() {
+        use crate::common::log_data::LogData;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+
+        core.game_manager.game_state.current_round = 3;
+        core.game_manager.logs.push(LogData {
+            message: "hit!".to_string(),
+            color: "#ffffff".to_string(),
+        });
+        core.last_action_header = "Used potion".to_string();
+
+        let expected_state = core.game_manager.game_state.clone();
+        let expected_pm = core.game_manager.pm.clone();
+        let expected_logs = core.game_manager.logs.clone();
+
+        let update = core.to_combat_update();
+
+        assert_eq!(update.game_state, expected_state);
+        assert_eq!(update.pm, expected_pm);
+        assert_eq!(update.logs, expected_logs);
+        assert_eq!(update.last_action_header, "Used potion");
+    }
+
+    #[test]
+    fn unit_apply_combat_update_updates_only_combat_fields() {
+        use crate::common::log_data::LogData;
+        use crate::server::core_game_data::CombatUpdate;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+
+        // Fields that apply_combat_update must leave untouched.
+        let original_server_name = core.server_name.clone();
+        let original_players_nb = core.players_nb;
+        let original_current_scenario = core.game_manager.current_scenario.clone();
+
+        let mut new_state = core.game_manager.game_state.clone();
+        new_state.current_round = 7;
+        let new_pm = core.game_manager.pm.clone();
+        let update = CombatUpdate {
+            game_state: new_state.clone(),
+            pm: new_pm.clone(),
+            logs: vec![LogData {
+                message: "critical hit!".to_string(),
+                color: "#ff0000".to_string(),
+            }],
+            last_action_header: "Attacked".to_string(),
+        };
+
+        core.apply_combat_update(update);
+
+        assert_eq!(core.game_manager.game_state, new_state);
+        assert_eq!(core.game_manager.pm, new_pm);
+        assert_eq!(core.game_manager.logs.len(), 1);
+        assert_eq!(core.game_manager.logs[0].message, "critical hit!");
+        assert_eq!(core.last_action_header, "Attacked");
+
+        // Untouched fields must retain their original values.
+        assert_eq!(core.server_name, original_server_name);
+        assert_eq!(core.players_nb, original_players_nb);
+        assert_eq!(
+            core.game_manager.current_scenario,
+            original_current_scenario
+        );
+    }
+
+    #[test]
     fn unit_game_phase_overworld_serde() {
         use crate::server::server_manager::GamePhase;
 
