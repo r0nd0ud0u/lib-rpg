@@ -54,13 +54,7 @@ pub struct CoreGameData {
 /// `current_scenario`, `game_paths`, and `end_of_scenario` — those are static for the
 /// whole duration of a single fight, so a consumer that already has a full
 /// `CoreGameData` (e.g. from an earlier full sync) can apply this instead of
-/// re-transmitting/re-storing the whole thing on every attack. See
-/// `CoreGameData::to_combat_update` / `CoreGameData::apply_combat_update`.
-///
-/// A caller still needs a full `CoreGameData` snapshot (not just this) whenever
-/// `end_of_scenario`/`game_phase` might have changed — e.g. the attack that ends a
-/// scenario or the game (see `GameManager::eval_end_of_round` ->
-/// `process_end_of_scenario`).
+/// re-transmitting/re-storing the whole thing on every attack
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct CombatUpdate {
     pub game_state: GameState,
@@ -71,9 +65,7 @@ pub struct CombatUpdate {
 
 impl CoreGameData {
     /// Extract a `CombatUpdate` snapshot — see its doc comment for what's included
-    /// and why. Consumes `self` (callers already hold an owned clone, so this avoids
-    /// an extra clone of `pm`/`logs`); use `.clone().to_combat_update()` if you still
-    /// need the original afterward.
+    /// and why.
     pub fn to_combat_update(self) -> CombatUpdate {
         CombatUpdate {
             game_state: self.game_manager.game_state,
