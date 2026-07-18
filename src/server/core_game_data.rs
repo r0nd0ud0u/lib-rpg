@@ -4,10 +4,12 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::path::Path;
 
+use crate::common::log_data::LogData;
 use crate::server::data_manager::DataManager;
 use crate::server::game_manager::GameManager;
-use crate::server::game_state::GameStatus;
+use crate::server::game_state::{GameState, GameStatus};
 use crate::server::overworld_manager::{OverworldManager, OverworldState};
+use crate::server::players_manager::PlayerManager;
 use crate::server::server_manager::GamePhase;
 use crate::shop::ShopCatalogItem;
 
@@ -46,7 +48,43 @@ pub struct CoreGameData {
     pub overworld: Option<OverworldState>,
 }
 
+/// Lightweight snapshot of the `CoreGameData` sub-fields that change on an ordinary
+/// attack: character stats/buffs/turn state (`game_state`, `pm`), the combat log, and
+/// the action-banner hint. Deliberately excludes `all_scenarios`, `states_scenarios`,
+/// `current_scenario`, `game_paths`, and `end_of_scenario` — those are static for the
+/// whole duration of a single fight, so a consumer that already has a full
+/// `CoreGameData` (e.g. from an earlier full sync) can apply this instead of
+/// re-transmitting/re-storing the whole thing on every attack
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct CombatUpdate {
+    pub game_state: GameState,
+    pub pm: PlayerManager,
+    pub logs: Vec<LogData>,
+    pub last_action_header: String,
+}
+
 impl CoreGameData {
+    /// Extract a `CombatUpdate` snapshot — see its doc comment for what's included
+    /// and why.
+    pub fn to_combat_update(self) -> CombatUpdate {
+        CombatUpdate {
+            game_state: self.game_manager.game_state,
+            pm: self.game_manager.pm,
+            logs: self.game_manager.logs,
+            last_action_header: self.last_action_header,
+        }
+    }
+
+    /// Apply a `CombatUpdate` in place, leaving every other field (all_scenarios,
+    /// states_scenarios, current_scenario, game_paths, end_of_scenario, ...)
+    /// untouched at its current value.
+    pub fn apply_combat_update(&mut self, update: CombatUpdate) {
+        self.game_manager.game_state = update.game_state;
+        self.game_manager.pm = update.pm;
+        self.game_manager.logs = update.logs;
+        self.last_action_header = update.last_action_header;
+    }
+
     pub fn new(dm: &DataManager, server_name: &str) -> Result<CoreGameData> {
         Self::new_with_scenarios(dm, server_name, dm.all_scenarios.clone())
     }
@@ -376,6 +414,75 @@ mod tests {
         core.exit_overworld_to_fight("Stage 1");
         assert_eq!(core.game_phase, GamePhase::Running);
         assert_eq!(core.overworld.as_ref().unwrap().pending_encounter, None);
+    }
+
+    #[test]
+    fn unit_to_combat_update_extracts_fields() {
+        use crate::common::log_data::LogData;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+
+        core.game_manager.game_state.current_round = 3;
+        core.game_manager.logs.push(LogData {
+            message: "hit!".to_string(),
+            color: "#ffffff".to_string(),
+        });
+        core.last_action_header = "Used potion".to_string();
+
+        let expected_state = core.game_manager.game_state.clone();
+        let expected_pm = core.game_manager.pm.clone();
+        let expected_logs = core.game_manager.logs.clone();
+
+        let update = core.to_combat_update();
+
+        assert_eq!(update.game_state, expected_state);
+        assert_eq!(update.pm, expected_pm);
+        assert_eq!(update.logs, expected_logs);
+        assert_eq!(update.last_action_header, "Used potion");
+    }
+
+    #[test]
+    fn unit_apply_combat_update_updates_only_combat_fields() {
+        use crate::common::log_data::LogData;
+        use crate::server::core_game_data::CombatUpdate;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+
+        // Fields that apply_combat_update must leave untouched.
+        let original_server_name = core.server_name.clone();
+        let original_players_nb = core.players_nb;
+        let original_current_scenario = core.game_manager.current_scenario.clone();
+
+        let mut new_state = core.game_manager.game_state.clone();
+        new_state.current_round = 7;
+        let new_pm = core.game_manager.pm.clone();
+        let update = CombatUpdate {
+            game_state: new_state.clone(),
+            pm: new_pm.clone(),
+            logs: vec![LogData {
+                message: "critical hit!".to_string(),
+                color: "#ff0000".to_string(),
+            }],
+            last_action_header: "Attacked".to_string(),
+        };
+
+        core.apply_combat_update(update);
+
+        assert_eq!(core.game_manager.game_state, new_state);
+        assert_eq!(core.game_manager.pm, new_pm);
+        assert_eq!(core.game_manager.logs.len(), 1);
+        assert_eq!(core.game_manager.logs[0].message, "critical hit!");
+        assert_eq!(core.last_action_header, "Attacked");
+
+        // Untouched fields must retain their original values.
+        assert_eq!(core.server_name, original_server_name);
+        assert_eq!(core.players_nb, original_players_nb);
+        assert_eq!(
+            core.game_manager.current_scenario,
+            original_current_scenario
+        );
     }
 
     #[test]
