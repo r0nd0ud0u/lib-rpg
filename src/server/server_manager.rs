@@ -6,6 +6,11 @@ use crate::server::core_game_data::CoreGameData;
 pub struct ServerManager {
     /// key is player_name, value is a list of player_id (to handle multiple connections with the same player name, e.g. multiple tabs)
     pub players: HashMap<String, Vec<u32>>,
+    /// key is player_name, value is the device token of the client currently recognized as
+    /// owning the live login for that player_name (persisted client-side, one token per
+    /// device/browser). Used to tell a genuine second tab/reconnect of the same device apart
+    /// from an unrelated device that still has a stale cached session for the same username.
+    pub device_tokens: HashMap<String, String>,
     /// List of paths to ongoing games, used to display on the load game page and to reconnect to ongoing games on server restart
     pub ongoing_games: Vec<OnGoingGame>,
     /// key is server_name, value is the server data (core game data and players data connected to the server)
@@ -65,6 +70,7 @@ impl ServerManager {
     pub fn new() -> Self {
         ServerManager {
             players: HashMap::new(),
+            device_tokens: HashMap::new(),
             ongoing_games: Vec::new(),
             servers_data: HashMap::new(),
             saved_games_list: Vec::new(),
