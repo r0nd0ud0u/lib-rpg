@@ -19,6 +19,7 @@ use crate::{
             reach_const::INDIVIDUAL,
             stats_const::HP,
         },
+        lang::Lang,
         log_data::{
             LogData,
             const_colors::{DARK_RED, LIGHT_GREEN},
@@ -157,13 +158,13 @@ impl CharacterRoundsInfo {
     }
 
     /// Output: hot, dot, buf, debuf
-    pub fn get_hot_and_buf_nbs_txts(all_effects: &Vec<GameAtkEffect>) -> HotsBufs {
+    pub fn get_hot_and_buf_nbs_txts(all_effects: &Vec<GameAtkEffect>, lang: Lang) -> HotsBufs {
         let mut hots_bufs = HotsBufs::default();
         for e in all_effects {
             if e.processed_effect_param.input_effect_param.nb_turns < 2 {
                 continue;
             }
-            let txt = Self::get_hot_and_buf_texts(e);
+            let txt = Self::get_hot_and_buf_texts(e, lang);
             if effect::is_hot(
                 &e.processed_effect_param.input_effect_param.buffer.kind,
                 &e.processed_effect_param
@@ -205,10 +206,10 @@ impl CharacterRoundsInfo {
         hots_bufs
     }
 
-    fn get_hot_and_buf_texts(gae: &GameAtkEffect) -> String {
+    fn get_hot_and_buf_texts(gae: &GameAtkEffect, lang: Lang) -> String {
         let ep = &gae.processed_effect_param.input_effect_param;
         let nb_turns = ep.nb_turns - gae.processed_effect_param.counter_turn;
-        let atk_name = &gae.atk_type.name;
+        let atk_name = gae.atk_type.name_for(lang);
 
         if ep.buffer.kind == BufKinds::CooldownTurnsNumber {
             return format!("{}: cooldown ({} turns)", atk_name, nb_turns);
@@ -939,10 +940,13 @@ mod tests {
             rounds_information::{CharacterRoundsInfo, HotsBufs},
             target::TargetData,
         },
-        common::constants::{
-            all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
-            paths_const::TEST_OFFLINE_ROOT,
-            stats_const::*,
+        common::{
+            constants::{
+                all_target_const::{TARGET_ALLY, TARGET_ENNEMY},
+                paths_const::TEST_OFFLINE_ROOT,
+                stats_const::*,
+            },
+            lang::Lang,
         },
         server::players_manager::GameAtkEffect,
         testing::{
@@ -976,7 +980,7 @@ mod tests {
             },
             ..Default::default()
         };
-        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![cooldown_gae]);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![cooldown_gae], Lang::En);
         // Cooldown goes to debuf bucket (value=3, stats_name empty, not HP)
         // but the text should contain "cooldown"
         let all_txt: Vec<String> = result
@@ -1004,7 +1008,7 @@ mod tests {
             },
             ..Default::default()
         };
-        let result2 = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![max_stat_gae]);
+        let result2 = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![max_stat_gae], Lang::En);
         let all_txt2: Vec<String> = result2
             .dot_txt
             .iter()
@@ -1054,7 +1058,7 @@ mod tests {
             },
             ..Default::default()
         };
-        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![gae]);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![gae], Lang::En);
         let all_txt: Vec<String> = result
             .hot_txt
             .iter()
@@ -1072,7 +1076,7 @@ mod tests {
     fn unit_get_hot_and_buf_nbs() {
         use crate::character_mod::{attack_type::AttackType, effect::EffectOutcome};
 
-        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![]);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&vec![], Lang::En);
         assert_eq!(result, HotsBufs::default());
         let mut all_effects: Vec<GameAtkEffect> = vec![];
         // add a 1-turn-effect (nb_turns < 2, should be ignored)
@@ -1080,7 +1084,7 @@ mod tests {
             processed_effect_param: build_dmg_effect_individual(),
             ..Default::default()
         });
-        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects, Lang::En);
         assert_eq!(result, HotsBufs::default());
 
         // add a 2-turn HOT: +30 HP
@@ -1096,7 +1100,7 @@ mod tests {
             },
             ..Default::default()
         });
-        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects, Lang::En);
         assert_eq!(
             result,
             HotsBufs {
@@ -1119,7 +1123,7 @@ mod tests {
             },
             ..Default::default()
         });
-        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects, Lang::En);
         assert_eq!(
             result,
             HotsBufs {
@@ -1140,7 +1144,7 @@ mod tests {
             },
             ..Default::default()
         });
-        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects, Lang::En);
         assert_eq!(
             result,
             HotsBufs {
@@ -1163,7 +1167,7 @@ mod tests {
             },
             ..Default::default()
         });
-        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects, Lang::En);
         assert_eq!(
             result,
             HotsBufs {
@@ -1679,7 +1683,7 @@ mod tests {
             },
             ..Default::default()
         }];
-        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects);
+        let result = CharacterRoundsInfo::get_hot_and_buf_nbs_txts(&all_effects, Lang::En);
         assert_eq!(result.hot_nb, 1, "ChangeMaxStat +HP should be HOT");
         assert_eq!(result.dot_nb, 0, "ChangeMaxStat +HP should not be DOT");
     }
