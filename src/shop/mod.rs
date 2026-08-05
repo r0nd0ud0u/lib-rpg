@@ -191,7 +191,6 @@ pub fn build_shop_catalog(
             rank,
             category: None,
             description: desc.to_owned(),
-            ..Default::default()
         });
     }
 
