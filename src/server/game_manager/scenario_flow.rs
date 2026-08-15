@@ -294,7 +294,7 @@ mod tests {
         gm.states_scenarios
             .insert(stage1_name.clone(), ScenarioState::InProgress);
 
-        // damage heroes and drain their energy to verify restoration on next scenario
+        // damage heroes and drain their energy to verify it carries over unchanged into the next scenario
         for hero in gm.pm.active_heroes.iter_mut() {
             hero.stats.get_mut_value(HP).current = 1;
             hero.stats.get_mut_value(MANA).current = 0;
@@ -328,21 +328,21 @@ mod tests {
             "active_bosses should match stage 2 boss patterns count"
         );
 
-        // heroes must have HP, energy and no effects restored to max
+        // heroes must have effects cleared, but HP/Mana/Vigor carry over unchanged
         for hero in gm.pm.active_heroes.iter() {
             assert_eq!(
-                hero.stats.all_stats[HP].current, hero.stats.all_stats[HP].max,
-                "hero {} HP should be restored to max",
+                hero.stats.all_stats[HP].current, 1,
+                "hero {} HP should NOT be restored on scenario transition",
                 hero.db_full_name
             );
             assert_eq!(
-                hero.stats.all_stats[MANA].current, hero.stats.all_stats[MANA].max,
-                "hero {} Mana should be restored to max",
+                hero.stats.all_stats[MANA].current, 0,
+                "hero {} Mana should NOT be restored on scenario transition",
                 hero.db_full_name
             );
             assert_eq!(
-                hero.stats.all_stats[VIGOR].current, hero.stats.all_stats[VIGOR].max,
-                "hero {} Vigor should be restored to max",
+                hero.stats.all_stats[VIGOR].current, 0,
+                "hero {} Vigor should NOT be restored on scenario transition",
                 hero.db_full_name
             );
             assert_eq!(
