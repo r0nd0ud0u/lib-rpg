@@ -85,9 +85,10 @@ impl PlayerManager {
                 stat.current = stat.current.min(stat.max);
             }
             c.character_rounds_info.clear();
-            c.stats.get_mut_value(HP).current = c.stats.all_stats[HP].max;
-            c.stats.get_mut_value(MANA).current = c.stats.all_stats[MANA].max;
-            c.stats.get_mut_value(VIGOR).current = c.stats.all_stats[VIGOR].max;
+            // HP and energies (Mana/Vigor) intentionally carry over across scenarios —
+            // nothing is free-healed/refilled between encounters. Berserk still resets to
+            // 0 (not a max-restore: it's a builds-up-during-combat resource that always
+            // starts empty).
             c.stats.get_mut_value(BERSERK).current = 0;
             c.stats.get_mut_value(SPEED).current = 0;
             // Reset displayed aggro so the new scenario starts from 0.
@@ -340,8 +341,9 @@ mod tests {
         assert_eq!(10, hot_and_dot); // 30(hot) - 20 (dot)
     }
 
-    /// clear_scenario must reset speed to 0, restore stat maxima inflated by active
-    /// ChangeMaxStat* effects (e.g. speed_regen, dodge), and set HP/Mana/Vigor to full.
+    /// clear_scenario must reset speed to 0 and restore stat maxima inflated by active
+    /// ChangeMaxStat* effects (e.g. speed_regen, dodge).
+    /// HP and Mana are intentionally left untouched — they carry over across scenarios.
     #[test]
     fn unit_clear_scenario_resets_stats() {
         use crate::character_mod::{
@@ -354,8 +356,6 @@ mod tests {
 
         let old_dodge_max = pm.active_heroes[0].stats.all_stats[DODGE].max;
         let old_speed_regen_max = pm.active_heroes[0].stats.all_stats[SPEED_REGEN].max;
-        let old_hp_max = pm.active_heroes[0].stats.all_stats[HP].max;
-        let old_mana_max = pm.active_heroes[0].stats.all_stats[MANA].max;
 
         // Inject ChangeMaxStat +20 on Dodge (simulates an active mid-scenario buff).
         let dodge_ep = EffectParam {
@@ -452,12 +452,12 @@ mod tests {
             "Speed regen max must be restored after clear_scenario"
         );
         assert_eq!(
-            old_hp_max, hero.stats.all_stats[HP].current,
-            "HP must be restored to max after clear_scenario"
+            10, hero.stats.all_stats[HP].current,
+            "HP must be left untouched (not restored) by clear_scenario"
         );
         assert_eq!(
-            old_mana_max, hero.stats.all_stats[MANA].current,
-            "Mana must be restored to max after clear_scenario"
+            5, hero.stats.all_stats[MANA].current,
+            "Mana must be left untouched (not restored) by clear_scenario"
         );
         assert_eq!(
             0, hero.stats.all_stats[BERSERK].current,
