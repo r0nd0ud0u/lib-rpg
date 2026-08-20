@@ -1,6 +1,6 @@
 [package]
 name = "lib-rpg"
-version = "1.5.3"
+version = "1.5.4"
 authors = [""]
 edition = "2024"
 
