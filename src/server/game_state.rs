@@ -24,6 +24,19 @@ pub struct ResultAtks {
     pub results: ResultLaunchAttack,
 }
 
+/// Snapshot of the last consumable (potion) use, so a client can react to it (e.g. play
+/// a sound) the same way it reacts to `last_result_atk` for attacks — without parsing the
+/// free-text action-header/log strings. `launcher_id_name` empty means "no use yet";
+/// `turn_nb`/`round_nb` are the dedupe key, same convention as `ResultLaunchAttack`.
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ConsumableUseResult {
+    pub launcher_id_name: String,
+    pub target_id_name: String,
+    pub consumable_name: String,
+    pub turn_nb: usize,
+    pub round_nb: usize,
+}
+
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GameState {
     /// Current turn number
@@ -40,6 +53,9 @@ pub struct GameState {
     pub status: GameStatus,
     /// Information about the last result attacks
     pub last_result_atk: ResultLaunchAttack,
+    /// Information about the last consumable (potion) use
+    #[serde(default)]
+    pub last_consumable_use: ConsumableUseResult,
     /// Stats in game, to display in the stats sheet
     pub stats_in_game: HashMap<String, StatsInGame>,
     /// Accumulated boss kills across all completed scenarios (never reset between scenarios)
@@ -67,6 +83,7 @@ impl GameState {
         self.order_to_play.clear();
         self.status = GameStatus::StartGame;
         self.last_result_atk = ResultLaunchAttack::default();
+        self.last_consumable_use = ConsumableUseResult::default();
         // Note: accumulated_kills is intentionally NOT reset here — it persists across scenarios
     }
 
