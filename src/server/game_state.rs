@@ -26,15 +26,17 @@ pub struct ResultAtks {
 
 /// Snapshot of the last consumable (potion) use, so a client can react to it (e.g. play
 /// a sound) the same way it reacts to `last_result_atk` for attacks — without parsing the
-/// free-text action-header/log strings. `launcher_id_name` empty means "no use yet";
-/// `turn_nb`/`round_nb` are the dedupe key, same convention as `ResultLaunchAttack`.
+/// free-text action-header/log strings. `launcher_id_name` empty means "no use yet".
+///
+/// Deduped on `seq` (a caller-incremented counter) rather than `turn_nb`/`round_nb` like
+/// `ResultLaunchAttack`: consumables can also be used outside combat (overworld resting),
+/// where turn/round don't advance between uses, so they can't tell two uses apart there.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ConsumableUseResult {
     pub launcher_id_name: String,
     pub target_id_name: String,
     pub consumable_name: String,
-    pub turn_nb: usize,
-    pub round_nb: usize,
+    pub seq: u64,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
