@@ -34,9 +34,12 @@ pub fn classify_result_atk(ra: &ResultLaunchAttack) -> Vec<SoundCue> {
     for effect in &ra.new_game_atk_effects {
         let cue = if effect.effect_outcome.is_critical {
             SoundCue::CriticalHit
-        } else if effect.effect_outcome.real_amount_tx < 0 {
-            SoundCue::Heal
         } else if effect.effect_outcome.real_amount_tx > 0 {
+            // real_amount_tx is the actual HP change: positive for a heal,
+            // negative for damage (see character_mod::character's heal/damage
+            // application, e.g. the HP-potion tests: "real_amount_tx is positive").
+            SoundCue::Heal
+        } else if effect.effect_outcome.real_amount_tx < 0 {
             SoundCue::Hit
         } else {
             continue;
@@ -105,18 +108,18 @@ mod tests {
     }
 
     #[test]
-    fn negative_amount_yields_heal() {
+    fn positive_amount_yields_heal() {
         let ra = ResultLaunchAttack {
-            new_game_atk_effects: vec![effect_with(false, -15)],
+            new_game_atk_effects: vec![effect_with(false, 15)],
             ..Default::default()
         };
         assert_eq!(classify_result_atk(&ra), vec![SoundCue::Heal]);
     }
 
     #[test]
-    fn plain_hit_yields_hit() {
+    fn negative_amount_yields_hit() {
         let ra = ResultLaunchAttack {
-            new_game_atk_effects: vec![effect_with(false, 8)],
+            new_game_atk_effects: vec![effect_with(false, -8)],
             ..Default::default()
         };
         assert_eq!(classify_result_atk(&ra), vec![SoundCue::Hit]);
