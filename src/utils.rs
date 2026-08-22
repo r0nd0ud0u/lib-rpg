@@ -1,10 +1,32 @@
-use anyhow::Result;
+use anyhow::{Result, bail};
 use rand::Rng;
 use serde::{Serialize, de::DeserializeOwned};
 use std::{
+    collections::HashMap,
     fs, io,
     path::{Path, PathBuf},
+    sync::OnceLock,
 };
+
+/// When set, `read_from_json`/`list_files_in_dir`/`list_dirs_in_dir` read from this map
+/// instead of the real filesystem — keyed by forward-slash-normalized path strings (see
+/// `embedded_key`). Needed on wasm32 (no real filesystem) and used uniformly on
+/// desktop/mobile too, to avoid locating a loose data directory next to the installed
+/// binary. A process-global `OnceLock` (not a thread-local): dioxus-desktop runs a
+/// multi-threaded tokio runtime, so game logic can execute on a different worker thread
+/// than whichever one calls `set_embedded_files` at startup. Unset (the default)
+/// preserves today's real-fs behavior exactly — the server never calls this.
+static EMBEDDED_FILES: OnceLock<HashMap<String, &'static str>> = OnceLock::new();
+
+/// Activates embedded-file mode for the whole process. See `EMBEDDED_FILES`'s doc
+/// comment. A second call after the first is a no-op (first caller wins).
+pub fn set_embedded_files(files: HashMap<String, &'static str>) {
+    let _ = EMBEDDED_FILES.set(files);
+}
+
+fn embedded_key<P: AsRef<Path>>(path: P) -> String {
+    path.as_ref().to_string_lossy().replace('\\', "/")
+}
 
 /// * Returns the concatenation of effect str and stats str
 /// * If the effect str name is empty => only the stats str
@@ -22,6 +44,20 @@ pub fn build_effect_name(raw_effect: &str, stats_name: &str) -> String {
 }
 
 pub fn list_files_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
+    if let Some(files) = EMBEDDED_FILES.get() {
+        let prefix = format!("{}/", embedded_key(&path));
+        let mut out: Vec<PathBuf> = files
+            .keys()
+            .filter(|k| {
+                k.strip_prefix(&prefix)
+                    .is_some_and(|rest| !rest.is_empty() && !rest.contains('/'))
+            })
+            .map(PathBuf::from)
+            .collect();
+        out.sort();
+        return Ok(out);
+    }
+
     // Normalize the path to ensure consistent behavior across platforms
     let normalized = normalize_cross_platform(path);
 
@@ -50,6 +86,20 @@ pub fn normalize_cross_platform<P: AsRef<Path>>(path: P) -> PathBuf {
 }
 
 pub fn list_dirs_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
+    if let Some(files) = EMBEDDED_FILES.get() {
+        let key = embedded_key(&path);
+        let prefix = format!("{key}/");
+        let dirs: std::collections::BTreeSet<String> = files
+            .keys()
+            .filter_map(|k| {
+                let rest = k.strip_prefix(&prefix)?;
+                let (first_segment, remainder) = rest.split_once('/')?;
+                (!remainder.is_empty()).then(|| format!("{key}/{first_segment}"))
+            })
+            .collect();
+        return Ok(dirs.into_iter().map(PathBuf::from).collect());
+    }
+
     // Normalize the path to ensure consistent behavior across platforms
     let normalized = normalize_cross_platform(path);
 
@@ -67,9 +117,17 @@ pub fn list_dirs_in_dir<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
 }
 
 pub fn read_from_json<P: AsRef<Path>, T: DeserializeOwned>(path: P) -> Result<T> {
-    // Normalize the path to ensure consistent behavior across platforms
-    let normalized = normalize_cross_platform(path);
-    let content = fs::read_to_string(&normalized)?;
+    let content = if let Some(files) = EMBEDDED_FILES.get() {
+        let key = embedded_key(&path);
+        match files.get(key.as_str()) {
+            Some(c) => c.to_string(),
+            None => bail!("no embedded file for {key:?}"),
+        }
+    } else {
+        // Normalize the path to ensure consistent behavior across platforms
+        let normalized = normalize_cross_platform(path);
+        fs::read_to_string(&normalized)?
+    };
     let value: T = serde_json::from_str(&content)?;
     Ok(value)
 }
