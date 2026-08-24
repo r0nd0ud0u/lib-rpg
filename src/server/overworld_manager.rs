@@ -141,8 +141,12 @@ impl OverworldManager {
     /// Load a map from `<root>/maps/<map_id>.json` and return a ready manager.
     pub fn load_map(map_id: &str, root: &Path) -> Result<OverworldManager> {
         let map_path = root.join("maps").join(format!("{map_id}.json"));
-        let content = std::fs::read_to_string(&map_path)?;
-        let map: MapData = serde_json::from_str(&content)?;
+        // `utils::read_from_json`, not a bare `std::fs::read_to_string`: on wasm (the web
+        // client's offline mode) there is no filesystem at all, so a direct read fails with
+        // "operation not supported on this platform". `read_from_json` serves the same file
+        // out of `EMBEDDED_FILES` when embedded mode is active, and falls back to the real
+        // filesystem on the server — which is how every other loader here already works.
+        let map: MapData = crate::utils::read_from_json(&map_path)?;
 
         let npcs = map
             .npcs

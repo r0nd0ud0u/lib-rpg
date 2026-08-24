@@ -11,7 +11,30 @@
 
 use std::{collections::HashMap, fs, path::Path};
 
-use lib_rpg::{server::data_manager::DataManager, utils::set_embedded_files};
+use lib_rpg::{
+    server::{data_manager::DataManager, overworld_manager::OverworldManager},
+    utils::set_embedded_files,
+};
+
+/// A root that exists only inside the embedded map, never on disk — see the `load_map`
+/// assertions for why that matters.
+const VIRTUAL_ROOT: &str = "./tests/offlines_embedded_only";
+
+const VIRTUAL_MAP_JSON: &str = r#"{
+  "id": "virtual_map",
+  "width": 5,
+  "height": 5,
+  "tiles": [
+    ["wall","wall","wall","wall","wall"],
+    ["wall","floor","floor","floor","wall"],
+    ["wall","floor","grass","floor","wall"],
+    ["wall","water","floor",{"door":{"target_map":"route_1","spawn":{"x":1,"y":1}}},"wall"],
+    ["wall","wall","wall","wall","wall"]
+  ],
+  "npcs": [{"id":"elder","x":1,"y":1,"dialog":["Hello!","Be careful."]}],
+  "spawn": {"x":2,"y":1},
+  "encounters": ["stage_1"]
+}"#;
 
 /// Recursively walks `root`, returning every file's path (exactly as `Path::join` would
 /// produce it from `root`) mapped to its content, leaked to `'static` — matching the shape
@@ -44,7 +67,12 @@ fn walk_to_embedded_map(root: &Path) -> HashMap<String, &'static str> {
 #[test]
 fn data_manager_try_new_matches_real_fs_counts_via_embedded_files() {
     let root = Path::new("./tests/offlines");
-    set_embedded_files(walk_to_embedded_map(root));
+    let mut embedded = walk_to_embedded_map(root);
+    embedded.insert(
+        format!("{VIRTUAL_ROOT}/maps/virtual_map.json"),
+        VIRTUAL_MAP_JSON,
+    );
+    set_embedded_files(embedded);
 
     // Same expectations `src/server/data_manager.rs`'s `unit_try_new`/
     // `unit_load_all_characters`/`unit_load_all_scenarios`/`unit_load_all_talent_trees`
@@ -74,4 +102,33 @@ fn data_manager_try_new_matches_real_fs_counts_via_embedded_files() {
             .is_ok()
     );
     assert!(empty.talent_trees.is_empty());
+
+    // Regression: `OverworldManager::load_map` used to call `std::fs::read_to_string`
+    // directly instead of going through `utils::read_from_json` like every other loader,
+    // so it was the one path that ignored embedded mode entirely. On wasm — where the web
+    // client's offline mode runs and there is no filesystem — that surfaced to the player
+    // as "EnterOverworld failed: operation not supported on this platform", leaving the
+    // Start Game button apparently dead.
+    //
+    // `VIRTUAL_ROOT` deliberately does not exist on disk, and the map below was injected
+    // into the embedded map above rather than written to a file. A `std::fs` read of it
+    // therefore cannot succeed on any platform, so this fails on the host too if the
+    // embedded path is ever bypassed again — which a fixture that also exists on disk
+    // would not catch, since the raw read would just quietly succeed there.
+    let virtual_root = Path::new(VIRTUAL_ROOT);
+    assert!(
+        !virtual_root.exists(),
+        "{VIRTUAL_ROOT} must not exist on disk or this test proves nothing"
+    );
+    let mgr = OverworldManager::load_map("virtual_map", virtual_root)
+        .expect("load_map must read the embedded map, not the real filesystem");
+    assert_eq!(mgr.state.map_id, "virtual_map");
+    assert_eq!(mgr.state.width, 5);
+    assert_eq!(mgr.state.height, 5);
+    assert_eq!(mgr.state.npcs.len(), 1);
+    assert_eq!(mgr.state.encounters, vec!["stage_1"]);
+
+    // A map absent from the embedded map must fail cleanly rather than fall through to
+    // the real filesystem.
+    assert!(OverworldManager::load_map("no_such_map", virtual_root).is_err());
 }
