@@ -175,9 +175,13 @@ impl Inventory {
         });
     }
 
+    /// Removes one copy of `name` from the bag. Potions are stored as one `Consumable`
+    /// entry per copy (no quantity field), so `retain` would have dropped every stacked
+    /// copy sharing that name on a single use — remove only the first match instead.
     pub fn remove_potion(&mut self, name: &str) {
-        self.consumables
-            .retain(|consumable| consumable.name != name);
+        if let Some(idx) = self.consumables.iter().position(|c| c.name == name) {
+            self.consumables.remove(idx);
+        }
     }
 
     pub fn contains_potion(&self, name: &str) -> bool {
@@ -453,6 +457,37 @@ mod tests {
 
         inventory.remove_potion("super potion");
         assert!(!inventory.contains_potion("super potion"));
+    }
+
+    #[test]
+    fn unit_remove_potion_removes_only_one_stacked_copy() {
+        // Buying several copies of the same potion (e.g. from the shop) pushes one
+        // `Consumable` entry per copy — using one must only remove that single entry,
+        // not every stacked copy sharing the same name.
+        let mut inventory = Inventory::default();
+        inventory.add_vigor_potion();
+        inventory.add_vigor_potion();
+        inventory.add_vigor_potion();
+        assert_eq!(
+            inventory
+                .consumables
+                .iter()
+                .filter(|c| c.name == "vigor potion")
+                .count(),
+            3
+        );
+
+        inventory.remove_potion("vigor potion");
+        assert_eq!(
+            inventory
+                .consumables
+                .iter()
+                .filter(|c| c.name == "vigor potion")
+                .count(),
+            2,
+            "removing one potion should leave the other stacked copies untouched"
+        );
+        assert!(inventory.contains_potion("vigor potion"));
     }
 
     #[test]
