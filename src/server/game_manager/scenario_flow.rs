@@ -48,13 +48,7 @@ impl GameManager {
             self.current_scenario.name
         );
         // update current scenario state
-        if let Some((_, state)) = self
-            .states_scenarios
-            .iter_mut()
-            .find(|(name, _)| *name == &self.current_scenario.name)
-        {
-            *state = ScenarioState::Completed;
-        }
+        self.mark_current_scenario_completed();
         let current_level = self.current_scenario.level;
         let current_universe = self.current_scenario.universe.clone();
         // get the next scenario with the next level in the same universe.
@@ -74,16 +68,9 @@ impl GameManager {
                 current_level + 1
             ));
         };
-        // update scenario state in map
-        if let Some((_, state)) = self
-            .states_scenarios
-            .iter_mut()
-            .find(|(name, _)| *name == &scenario.name)
-        {
-            *state = ScenarioState::InProgress;
-        }
-        // update current scenario
+        // update current scenario and its state in the map
         self.current_scenario = scenario;
+        self.mark_current_scenario_in_progress();
 
         if self.current_scenario.level > 1 {
             // accumulate kills from the completed scenario before clearing
@@ -116,6 +103,35 @@ impl GameManager {
         Ok(())
     }
 
+    /// Mark `current_scenario` as `InProgress`, demoting any other scenario that was
+    /// still flagged `InProgress` back to `NotStarted`.
+    ///
+    /// In the overworld flow a fight is entered through
+    /// `CoreGameData::exit_overworld_to_fight`, which swaps `current_scenario` without
+    /// going through `load_next_scenario` — so this is what keeps `states_scenarios`
+    /// (the Scenarios sheet and the stats panel) in sync with the fight actually being
+    /// played. Exactly one scenario can be in progress at a time: a fight the player
+    /// left without finishing falls back to `NotStarted`, since it restarts from
+    /// scratch anyway. Already-`Completed` scenarios are never downgraded.
+    pub fn mark_current_scenario_in_progress(&mut self) {
+        let current = self.current_scenario.name.clone();
+        for (name, state) in self.states_scenarios.iter_mut() {
+            if *name == current {
+                *state = ScenarioState::InProgress;
+            } else if *state == ScenarioState::InProgress {
+                *state = ScenarioState::NotStarted;
+            }
+        }
+    }
+
+    /// Mark `current_scenario` as `Completed`. Idempotent.
+    pub fn mark_current_scenario_completed(&mut self) {
+        let current = self.current_scenario.name.clone();
+        if let Some(state) = self.states_scenarios.get_mut(&current) {
+            *state = ScenarioState::Completed;
+        }
+    }
+
     pub fn all_scenarios_completed(&self) -> bool {
         self.states_scenarios
             .values()
@@ -138,6 +154,10 @@ impl GameManager {
             self.current_scenario.name,
             self.pm.active_heroes.len()
         );
+        // The scenario is over the moment this runs (all bosses dead), so record it as
+        // completed here rather than in `load_next_scenario` — the overworld flow never
+        // calls that, and the end-of-scenario sheet is shown before any transition.
+        self.mark_current_scenario_completed();
         // Total exp: sum from all bosses
         let total_exp: u64 = self
             .pm
@@ -271,6 +291,78 @@ mod tests {
     use crate::testing::testing_all_characters::{
         self, testing_game_manager, testing_test_ally1_vs_test_boss1,
     };
+    /// The scenario is finished the moment all bosses are dead — in the overworld flow
+    /// nothing ever calls `load_next_scenario`, so `process_end_of_scenario` is what has
+    /// to flip the state the Scenarios sheet reads.
+    #[test]
+    fn unit_process_end_of_scenario_marks_current_completed() {
+        use crate::server::scenario::ScenarioState;
+
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+        let stage1_name = "Patrouille Gobeline".to_owned();
+        gm.current_scenario = gm
+            .all_scenarios
+            .iter()
+            .find(|s| s.name == stage1_name)
+            .cloned()
+            .unwrap();
+        gm.mark_current_scenario_in_progress();
+
+        gm.process_end_of_scenario();
+
+        assert_eq!(
+            gm.states_scenarios[&stage1_name],
+            ScenarioState::Completed,
+            "the scenario must be Completed as soon as its bosses are all dead"
+        );
+    }
+
+    /// Only one scenario may be InProgress at a time, and a Completed one is never
+    /// downgraded when the player starts another fight.
+    #[test]
+    fn unit_mark_current_scenario_in_progress_is_exclusive() {
+        use crate::server::scenario::ScenarioState;
+
+        let mut gm = testing_all_characters::dxrpg_game_manager();
+        let stage1_name = "Patrouille Gobeline".to_owned();
+        let stage2_name = "Embuscade Gobeline".to_owned();
+        let stage3_name = gm
+            .all_scenarios
+            .iter()
+            .find(|s| s.level == 3)
+            .map(|s| s.name.clone())
+            .expect("dxrpg data must have a level-3 scenario");
+
+        gm.states_scenarios
+            .insert(stage1_name.clone(), ScenarioState::Completed);
+        gm.states_scenarios
+            .insert(stage2_name.clone(), ScenarioState::InProgress);
+        gm.current_scenario = gm
+            .all_scenarios
+            .iter()
+            .find(|s| s.name == stage3_name)
+            .cloned()
+            .unwrap();
+
+        gm.mark_current_scenario_in_progress();
+
+        assert_eq!(
+            gm.states_scenarios[&stage3_name],
+            ScenarioState::InProgress,
+            "the scenario being played must be InProgress"
+        );
+        assert_eq!(
+            gm.states_scenarios[&stage2_name],
+            ScenarioState::NotStarted,
+            "an abandoned fight must fall back to NotStarted, not stay InProgress"
+        );
+        assert_eq!(
+            gm.states_scenarios[&stage1_name],
+            ScenarioState::Completed,
+            "a Completed scenario must never be downgraded"
+        );
+    }
+
     #[test]
     fn unit_load_next_scenario() {
         use crate::server::scenario::ScenarioState;

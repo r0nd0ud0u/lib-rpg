@@ -203,7 +203,21 @@ impl CoreGameData {
         {
             self.game_manager.current_scenario = scenario;
         }
-        // reset game/boss state so the encounter starts fresh
+        // Keep states_scenarios in sync: this path replaces load_next_scenario in the
+        // overworld flow, so without it the Scenarios sheet would stay stuck on the
+        // scenario that was current when the game started.
+        self.game_manager.mark_current_scenario_in_progress();
+        // reset game/boss state so the encounter starts fresh — accumulating the
+        // previous encounter's kills first, exactly like load_next_scenario does,
+        // otherwise clear_scenario() drops them and the stats sheet's kill count
+        // restarts from zero on every new fight.
+        self.game_manager.game_state.accumulated_kills += self
+            .game_manager
+            .pm
+            .active_bosses
+            .iter()
+            .filter(|b| b.stats.is_dead().unwrap_or(false))
+            .count();
         self.game_manager.game_state.clear_scenario();
         self.game_manager.pm.clear_scenario();
         let all_bosses = self.game_manager.pm.all_bosses.clone();
@@ -482,6 +496,57 @@ mod tests {
         assert_eq!(
             core.game_manager.current_scenario,
             original_current_scenario
+        );
+    }
+
+    /// Entering a fight from the overworld is the only scenario transition in the
+    /// overworld flow (`load_next_scenario` is never called), so it must both flip the
+    /// new scenario to InProgress and carry the previous fight's kills over.
+    #[test]
+    fn unit_exit_overworld_to_fight_updates_scenario_state_and_kills() {
+        use crate::common::constants::stats_const::HP;
+        use crate::server::scenario::ScenarioState;
+
+        let dm = DataManager::try_new(*TEST_OFFLINE_ROOT).unwrap();
+        let mut core = CoreGameData::new(&dm, "Default").unwrap();
+
+        // CoreGameData::new loads stage 1 as the current scenario.
+        let stage1 = core.game_manager.current_scenario.name.clone();
+        let stage2 = core
+            .game_manager
+            .all_scenarios
+            .iter()
+            .find(|s| s.level == 2)
+            .map(|s| s.name.clone())
+            .expect("test data must have a level-2 scenario");
+
+        // Win stage 1: every active boss dies, then the end-of-scenario processing runs.
+        for boss in core.game_manager.pm.active_bosses.iter_mut() {
+            boss.stats.get_mut_value(HP).current = 0;
+        }
+        let killed = core.game_manager.pm.active_bosses.len();
+        core.game_manager.process_end_of_scenario();
+        assert_eq!(
+            core.game_manager.states_scenarios[&stage1],
+            ScenarioState::Completed
+        );
+
+        // Trigger the next fight from the overworld.
+        core.exit_overworld_to_fight(&stage2);
+
+        assert_eq!(
+            core.game_manager.states_scenarios[&stage2],
+            ScenarioState::InProgress,
+            "the newly entered scenario must be InProgress"
+        );
+        assert_eq!(
+            core.game_manager.states_scenarios[&stage1],
+            ScenarioState::Completed,
+            "the previous scenario must stay Completed"
+        );
+        assert_eq!(
+            core.game_manager.game_state.accumulated_kills, killed,
+            "kills from the finished scenario must survive the transition"
         );
     }
 
